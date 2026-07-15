@@ -64,6 +64,24 @@ export default function AdminLayout({ children }) {
             {item.label}
           </Link>
         ))}
+
+        <div style={{ borderTop: "1px solid #ece0d5", margin: "16px 0 10px" }} />
+        <Link
+          href="/member"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: "block",
+            padding: "9px 12px",
+            borderRadius: 8,
+            fontSize: 14,
+            fontWeight: 700,
+            color: "#0e8a97",
+            textDecoration: "none",
+          }}
+        >
+          View Student Dashboard &rarr;
+        </Link>
       </nav>
       <div style={{ flex: 1, minWidth: 0 }}>{children}</div>
     </div>
