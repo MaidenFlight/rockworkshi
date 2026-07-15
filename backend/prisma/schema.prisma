@@ -17,6 +17,24 @@ model User {
   passwordHash String?
   googleId     String?  @unique
   createdAt    DateTime @default(now())
+
+  // Student profile (filled in at signup / editable by admin)
+  name            String?
+  age             String?
+  phone           String?
+  isMinor         Boolean @default(false)
+  sponsorName     String?
+  sponsorEmail    String?
+  instrument      String?
+  experience      String?
+  level           String?
+  instructionType String?
+  coStudentName   String?
+  plan            String?
+  status          String  @default("active")
+
+  // Simple derived dashboard stats: { weeklyMinutes, weeklyGoal, streak, achievements: [] }
+  practiceStats Json?
 }
 
 // Shape required by @quixo3/prisma-session-store
@@ -25,4 +43,119 @@ model Session {
   sid       String   @unique
   data      String
   expiresAt DateTime
+}
+
+model TrialRequest {
+  id           String   @id @default(uuid())
+  studentName  String
+  age          String?
+  guardian     String?
+  email        String
+  phone        String?
+  instrument   String?
+  format       String?
+  experience   String?
+  availability String?
+  favorites    String?
+  goals        String?
+  notes        String?
+  status       String   @default("New")
+  createdAt    DateTime @default(now())
+}
+
+model ContactMessage {
+  id         String   @id @default(uuid())
+  name       String
+  email      String
+  phone      String?
+  reason     String?
+  age        String?
+  instrument String?
+  message    String
+  prefer     String?
+  createdAt  DateTime @default(now())
+}
+
+model Teacher {
+  id          String   @id @default(uuid())
+  name        String
+  bio         String?
+  instruments String?
+  photoUrl    String?
+  published   Boolean  @default(true)
+  order       Int      @default(0)
+  updatedAt   DateTime @updatedAt
+}
+
+model Faq {
+  id        String   @id @default(uuid())
+  question  String
+  answer    String
+  published Boolean  @default(true)
+  order     Int      @default(0)
+  updatedAt DateTime @updatedAt
+}
+
+model Song {
+  id         String   @id @default(uuid())
+  title      String
+  artist     String?
+  level      String?
+  instrument String?
+  notes      String?
+  published  Boolean  @default(true)
+  order      Int      @default(0)
+  updatedAt  DateTime @updatedAt
+}
+
+model OnStagePost {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  mediaUrl    String?
+  date        String?
+  published   Boolean  @default(true)
+  order       Int      @default(0)
+  updatedAt   DateTime @updatedAt
+}
+
+model Page {
+  id        String   @id @default(uuid())
+  title     String
+  slug      String   @unique
+  nav       String?
+  status    String   @default("Draft")
+  body      String?
+  updatedAt DateTime @updatedAt
+}
+
+model Resource {
+  id        String   @id @default(uuid())
+  name      String
+  type      String?
+  url       String?
+  updatedAt DateTime @updatedAt
+}
+
+model Media {
+  id        String   @id @default(uuid())
+  label     String
+  kind      String?
+  url       String?
+  updatedAt DateTime @updatedAt
+}
+
+model Lesson {
+  id                  String   @id @default(uuid())
+  order               Int      @default(0)
+  title               String
+  artist              String?
+  key                 String?
+  difficulty          String?
+  estTime             String?
+  videoUrl            String?
+  playthroughVideoUrl String?
+  levels              Json?
+  published           Boolean  @default(true)
+  createdAt           DateTime @default(now())
 }
