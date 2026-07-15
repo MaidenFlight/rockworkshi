@@ -7,10 +7,12 @@ const router = express.Router();
 
 const SALT_ROUNDS = 12;
 
+const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || "").trim().toLowerCase();
+
 function toSafeUser(user) {
   if (!user) return null;
   const { passwordHash, ...safe } = user;
-  return safe;
+  return { ...safe, isAdmin: Boolean(ADMIN_EMAIL) && user.email === ADMIN_EMAIL };
 }
 
 function isEmailValid(email) {
