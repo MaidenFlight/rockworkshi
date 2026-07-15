@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { API_URL } from "@/lib/api";
 
 export default function SignIn() {
@@ -9,7 +10,7 @@ export default function SignIn() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const router = useRouter();
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -27,7 +28,7 @@ export default function SignIn() {
         setError(data.error || "Something went wrong.");
         return;
       }
-      setSuccess(true);
+      router.push(data.user.isAdmin ? "/admin" : "/member");
     } catch {
       setError("Could not reach the API.");
     } finally {
@@ -55,53 +56,47 @@ export default function SignIn() {
 
       <div style={{ maxWidth: 460, margin: "0 auto", padding: "36px 24px 90px" }}>
         <div style={{ background: "#fffdf9", border: "1px solid #ece0d5", borderRadius: 16, padding: 32, boxShadow: "0 26px 54px -34px rgba(90,40,70,0.4)" }}>
-          {success ? (
-            <p style={{ margin: 0, fontSize: 15, color: "#0a2338" }}>
-              You&apos;re signed in. <Link href="/" style={{ color: "#cf3f20", fontWeight: 700 }}>Back to home &rarr;</Link>
+          <form onSubmit={handleSubmit}>
+            <label style={fieldLabelStyle}>
+              Email
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                style={inputStyle}
+                placeholder="you@email.com"
+                required
+              />
+            </label>
+            <label style={{ ...fieldLabelStyle, marginTop: 14 }}>
+              Password
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                style={inputStyle}
+                placeholder="••••••••"
+                required
+              />
+            </label>
+
+            {error && <p style={{ margin: "10px 2px 0", fontSize: 13.5, color: "#cf3f20" }}>{error}</p>}
+
+            <button type="submit" disabled={submitting} className="rw-cta" style={ctaButtonStyle}>
+              {submitting ? "Signing in…" : "Sign in"}
+            </button>
+
+            <a href={`${API_URL}/auth/google`} style={{ display: "block", marginTop: 12 }}>
+              <span style={googleButtonStyle}>Sign in with Google</span>
+            </a>
+
+            <p style={{ margin: "18px 2px 0", fontSize: 13.5, color: "#7a6d78" }}>
+              No account yet?{" "}
+              <Link href="/signup" style={{ color: "#cf3f20", fontWeight: 700, textDecoration: "none" }}>
+                Sign up here.
+              </Link>
             </p>
-          ) : (
-            <form onSubmit={handleSubmit}>
-              <label style={fieldLabelStyle}>
-                Email
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  style={inputStyle}
-                  placeholder="you@email.com"
-                  required
-                />
-              </label>
-              <label style={{ ...fieldLabelStyle, marginTop: 14 }}>
-                Password
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  style={inputStyle}
-                  placeholder="••••••••"
-                  required
-                />
-              </label>
-
-              {error && <p style={{ margin: "10px 2px 0", fontSize: 13.5, color: "#cf3f20" }}>{error}</p>}
-
-              <button type="submit" disabled={submitting} className="rw-cta" style={ctaButtonStyle}>
-                {submitting ? "Signing in…" : "Sign in"}
-              </button>
-
-              <a href={`${API_URL}/auth/google`} style={{ display: "block", marginTop: 12 }}>
-                <span style={googleButtonStyle}>Sign in with Google</span>
-              </a>
-
-              <p style={{ margin: "18px 2px 0", fontSize: 13.5, color: "#7a6d78" }}>
-                No account yet?{" "}
-                <Link href="/signup" style={{ color: "#cf3f20", fontWeight: 700, textDecoration: "none" }}>
-                  Sign up here.
-                </Link>
-              </p>
-            </form>
-          )}
+          </form>
         </div>
       </div>
     </div>
