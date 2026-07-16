@@ -10,6 +10,7 @@ const TOOLS = [
   { name: "Metronome", emoji: "⏱️", href: "/tools/metronome" },
   { name: "Chord Library", emoji: "\u{1F4D6}", href: "/tools/chords" },
   { name: "Piano Notes", emoji: "\u{1F3B9}", href: "/tools/piano" },
+  { name: "Rhythm Trainer", emoji: "\u{1F941}", href: "/tools/rhythm" },
 ];
 
 const ACHIEVEMENTS = [
@@ -42,7 +43,7 @@ export default function MemberDashboard() {
       </h1>
       <p style={{ color: "#6a6560", marginBottom: 36 }}>Pick up where you left off, or grab a practice tool.</p>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14, marginBottom: 44 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 14, marginBottom: 44 }}>
         {TOOLS.map((tool) => (
           <Link
             key={tool.name}
