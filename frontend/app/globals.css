@@ -83,6 +83,13 @@ h3 {
   border-color: rgba(224, 91, 74, 0.5);
 }
 
+.dash-song {
+  transition: background 0.16s ease;
+}
+.dash-song:hover {
+  background: rgba(42, 26, 51, 0.04);
+}
+
 .rw-navtrigger {
   background: transparent;
   border: none;
@@ -115,6 +122,12 @@ h3 {
     grid-template-columns: 1fr !important;
   }
   .rw-cols-3 {
+    grid-template-columns: 1fr !important;
+  }
+  .rw-cols-2 {
+    grid-template-columns: 1fr !important;
+  }
+  .rw-featured-grid {
     grid-template-columns: 1fr !important;
   }
   .rw-editorial-col {
