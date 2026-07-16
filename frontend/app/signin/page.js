@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { API_URL } from "@/lib/api";
+import RockWorksIcon from "@/components/RockWorksIcon";
 
 export default function SignIn() {
   const [email, setEmail] = useState("");
@@ -40,6 +41,9 @@ export default function SignIn() {
     <div>
       <section style={{ position: "relative", overflow: "hidden", background: "linear-gradient(155deg,#06192d 0%,#0b2f43 52%,#0b5563 100%)" }}>
         <div style={{ position: "relative", maxWidth: 900, margin: "0 auto", padding: "56px 24px 70px", textAlign: "center" }}>
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
+            <RockWorksIcon size={40} color="#ffcf8f" />
+          </div>
           <div style={{ display: "inline-block", fontSize: 12.5, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#ffd89a", marginBottom: 14 }}>
             Welcome back
           </div>

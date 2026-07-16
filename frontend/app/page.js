@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { instruments, audiences, testimonials } from "@/lib/content";
+import RockWorksIcon from "@/components/RockWorksIcon";
 
 export default function Home() {
   return (
@@ -109,15 +110,26 @@ export default function Home() {
               borderRadius: 3,
               overflow: "hidden",
               boxShadow: "0 30px 60px -34px rgba(0,0,0,0.55)",
-              background: "linear-gradient(160deg,#0e5561,#06192d)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 14,
-              color: "rgba(255,245,236,0.5)",
             }}
           >
-            On the Rock Works stage &middot; Honolulu
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/band.svg" alt="A band on the Rock Works stage" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+            <div
+              style={{
+                position: "absolute",
+                left: -14,
+                bottom: -16,
+                background: "#06192d",
+                color: "#fff",
+                fontSize: 12.5,
+                fontWeight: 600,
+                letterSpacing: "0.04em",
+                padding: "11px 18px",
+                borderLeft: "3px solid #ef5130",
+              }}
+            >
+              On the Rock Works stage &middot; Honolulu
+            </div>
           </div>
         </div>
         <div style={{ position: "relative", lineHeight: 0 }}>
@@ -332,6 +344,9 @@ export default function Home() {
 
       {/* CTA */}
       <section style={{ position: "relative", overflow: "hidden", background: "linear-gradient(135deg,#06192d,#0b3a4c 70%,#0e5561)", color: "#fff" }}>
+        <div style={{ position: "absolute", right: "-6%", top: "50%", transform: "translateY(-50%)", opacity: 0.08, pointerEvents: "none" }}>
+          <RockWorksIcon size={420} color="#fff" />
+        </div>
         <div style={{ position: "relative", maxWidth: 900, margin: "0 auto", padding: "80px 24px", textAlign: "center" }}>
           <h2 style={{ fontWeight: 700, fontSize: "clamp(32px,4.2vw,52px)", margin: "0 0 16px", color: "#fff", letterSpacing: "-0.015em", lineHeight: 1.02 }}>
             Ready to play your first song?

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { primaryNav } from "@/lib/content";
+import RockWorksIcon from "@/components/RockWorksIcon";
 
 export default function Nav() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -40,7 +41,8 @@ export default function Nav() {
           flexWrap: "wrap",
         }}
       >
-        <Link href="/" style={{ display: "flex", alignItems: "center", gap: 14, flexShrink: 0, textDecoration: "none" }}>
+        <Link href="/" style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0, textDecoration: "none" }}>
+          <RockWorksIcon size={38} color="#ef5130" />
           <span
             style={{
               display: "flex",

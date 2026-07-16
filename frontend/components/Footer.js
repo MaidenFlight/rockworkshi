@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { footerLinks, footerSocial } from "@/lib/content";
+import RockWorksIcon from "@/components/RockWorksIcon";
 
 export default function Footer() {
   return (
@@ -18,11 +19,14 @@ export default function Footer() {
         }}
       >
         <div style={{ maxWidth: 320 }}>
-          <div style={{ display: "flex", flexDirection: "column", lineHeight: 1 }}>
-            <span style={{ fontFamily: "var(--font-zilla-slab), serif", fontWeight: 600, fontSize: 18, color: "#fff" }}>Rock Works</span>
-            <span style={{ fontWeight: 700, fontSize: 8.5, letterSpacing: "0.26em", textTransform: "uppercase", color: "#82d4dd", marginTop: 3 }}>
-              School of Music
-            </span>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <RockWorksIcon size={28} color="#ffcf8f" />
+            <div style={{ display: "flex", flexDirection: "column", lineHeight: 1 }}>
+              <span style={{ fontFamily: "var(--font-zilla-slab), serif", fontWeight: 600, fontSize: 18, color: "#fff" }}>Rock Works</span>
+              <span style={{ fontWeight: 700, fontSize: 8.5, letterSpacing: "0.26em", textTransform: "uppercase", color: "#82d4dd", marginTop: 3 }}>
+                School of Music
+              </span>
+            </div>
           </div>
           <p style={{ margin: "14px 0 16px", fontSize: 13.5, lineHeight: 1.55 }}>
             A ten-year, song-based music curriculum for individuals and rock bands. Music is life.
