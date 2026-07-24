@@ -2,41 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { API_URL } from "@/lib/api";
 import RockWorksIcon from "@/components/RockWorksIcon";
+import SignupWizard from "@/components/auth/SignupWizard";
 
 export default function SignUp() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const router = useRouter();
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-    setError("");
-    setSubmitting(true);
-    try {
-      const res = await fetch(`${API_URL}/auth/signup`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ email, password }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || "Something went wrong.");
-        return;
-      }
-      router.push(data.user.isAdmin ? "/admin" : "/member");
-    } catch {
-      setError("Could not reach the API.");
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
   return (
     <div>
       <section style={{ position: "relative", overflow: "hidden", background: "linear-gradient(155deg,#06192d 0%,#0b2f43 52%,#0b5563 100%)" }}>
@@ -58,97 +28,30 @@ export default function SignUp() {
         </div>
       </section>
 
-      <div style={{ maxWidth: 460, margin: "0 auto", padding: "36px 24px 90px" }}>
-        <div style={{ background: "#fffdf9", border: "1px solid #ece0d5", borderRadius: 16, padding: 32, boxShadow: "0 26px 54px -34px rgba(90,40,70,0.4)" }}>
-          <form onSubmit={handleSubmit}>
-            <label style={fieldLabelStyle}>
-              Email
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                style={inputStyle}
-                placeholder="you@email.com"
-                required
-              />
-            </label>
-            <label style={{ ...fieldLabelStyle, marginTop: 14 }}>
-              Password
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                style={inputStyle}
-                placeholder="At least 8 characters"
-                minLength={8}
-                required
-              />
-            </label>
+      <div style={{ maxWidth: 640, margin: "0 auto", padding: "40px 24px 80px" }}>
+        <SignupWizard mode="signup" />
 
-            {error && <p style={{ margin: "10px 2px 0", fontSize: 13.5, color: "#cf3f20" }}>{error}</p>}
-
-            <button type="submit" disabled={submitting} className="rw-cta" style={ctaButtonStyle}>
-              {submitting ? "Creating account…" : "Create account"}
-            </button>
-
-            <a href={`${API_URL}/auth/google`} style={{ display: "block", marginTop: 12 }}>
-              <span style={googleButtonStyle}>Sign up with Google</span>
-            </a>
-
-            <p style={{ margin: "18px 2px 0", fontSize: 13.5, color: "#7a6d78" }}>
-              Already have an account?{" "}
-              <Link href="/signin" style={{ color: "#cf3f20", fontWeight: 700, textDecoration: "none" }}>
-                Sign in here.
-              </Link>
-            </p>
-          </form>
+        <div style={{ textAlign: "center", marginTop: 24 }}>
+          <a href={`${API_URL}/auth/google`} style={{ display: "inline-block", marginBottom: 14 }}>
+            <span style={googleButtonStyle}>Sign up with Google instead</span>
+          </a>
+          <p style={{ margin: 0, fontSize: 13.5, color: "#7a6d78" }}>
+            Already have an account?{" "}
+            <Link href="/signin" style={{ color: "#cf3f20", fontWeight: 700, textDecoration: "none" }}>
+              Sign in here.
+            </Link>
+          </p>
         </div>
       </div>
     </div>
   );
 }
 
-const fieldLabelStyle = {
-  display: "flex",
-  flexDirection: "column",
-  gap: 6,
-  fontSize: 13.5,
-  fontWeight: 700,
-  color: "#33454f",
-};
-
-const inputStyle = {
-  padding: "12px 14px",
-  borderRadius: 10,
-  border: "1px solid #d8cab8",
-  fontSize: 15,
-  fontFamily: "inherit",
-  color: "#0a2338",
-};
-
-const ctaButtonStyle = {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  width: "100%",
-  marginTop: 20,
-  padding: "14px 22px",
-  borderRadius: 999,
-  fontWeight: 800,
-  fontSize: 15.5,
-  color: "#fff",
-  border: "none",
-  cursor: "pointer",
-  background: "linear-gradient(135deg,#ef5130,#cf3f20)",
-  boxShadow: "0 12px 26px -12px #ef5130",
-};
-
 const googleButtonStyle = {
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  width: "100%",
-  padding: "13px 22px",
+  padding: "13px 26px",
   borderRadius: 999,
   fontWeight: 700,
   fontSize: 14.5,

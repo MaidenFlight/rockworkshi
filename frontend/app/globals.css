@@ -113,6 +113,19 @@ h3 {
   background: rgba(42, 26, 51, 0.05);
 }
 
+.rw-menu-item:hover {
+  background: rgba(42, 26, 51, 0.05);
+}
+
+.rw-nav-link:focus-visible,
+.rw-navtrigger:focus-visible,
+.rw-menu-trigger:focus-visible,
+.rw-menu-item:focus-visible,
+.rw-cta:focus-visible {
+  outline: 2px solid #0e8a97;
+  outline-offset: 2px;
+}
+
 .rw-burger {
   display: none;
 }

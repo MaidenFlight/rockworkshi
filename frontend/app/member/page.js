@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { API_URL } from "@/lib/api";
-import { useSession } from "@/lib/useSession";
+import { useAuth } from "@/contexts/AuthContext";
 
 const TOOLS = [
   { name: "Guitar Tuner", emoji: "\u{1F3B8}", href: "/tools/tuner" },
@@ -20,7 +20,7 @@ const ACHIEVEMENTS = [
 ];
 
 export default function MemberDashboard() {
-  const { user } = useSession();
+  const { user } = useAuth();
   const [lessons, setLessons] = useState([]);
 
   useEffect(() => {

@@ -1,31 +1,37 @@
 export const primaryNav = [
+  { label: "Home", href: "/" },
   {
     label: "About",
     menu: [
-      { label: "Our Philosophy", href: "/about/philosophy" },
+      { label: "Philosophy", href: "/about/philosophy" },
       { label: "History", href: "/about/history" },
-    ],
-  },
-  {
-    label: "Program",
-    menu: [
-      { label: "Format", href: "/program/format" },
-      { label: "Curriculum", href: "/program/curriculum" },
-    ],
-  },
-  {
-    label: "Community",
-    menu: [
+      { label: "Teachers", href: "/teachers" },
       { label: "Alumni", href: "/community/alumni" },
-      { label: "Events", href: "/community/events" },
-      { label: "Special Programs", href: "/community/programs" },
     ],
   },
-  { label: "Teachers", href: "/teachers" },
-  { label: "Song Library", href: "/song-library" },
+  {
+    label: "Lessons",
+    menu: [
+      { label: "How It Works", href: "/program/how-it-works" },
+      { label: "Curriculum", href: "/program/curriculum" },
+      { label: "Song Library", href: "/song-library" },
+      { label: "Format & Pricing", href: "/program/format" },
+      { label: "Music Tools", href: "/tools" },
+      { label: "FAQ", href: "/faq" },
+    ],
+  },
+  {
+    label: "Programs",
+    menu: [
+      { label: "Individual Lessons", href: "/community/programs/individual-lessons" },
+      { label: "Rock Band Program", href: "/community/programs/rock-band-program" },
+      { label: "School Program", href: "/community/programs/school-program" },
+      { label: "After-School Program", href: "/community/programs/after-school-program" },
+    ],
+  },
+  { label: "Events", href: "/community/events" },
   { label: "On Stage", href: "/on-stage" },
-  { label: "Tools", href: "/tools" },
-  { label: "FAQ", href: "/faq" },
+  { label: "Contact", href: "/contact" },
 ];
 
 export const instruments = [
@@ -75,11 +81,29 @@ export const testimonials = [
 
 export const programs = [
   {
-    slug: "rock-band",
-    title: "Rock Band",
+    slug: "individual-lessons",
+    title: "Individual Lessons",
+    desc: "One-on-one weekly lessons built around the same real song, start to finish.",
+    method:
+      "Each student works one-on-one with a teacher through the five-level curriculum on a single song at a time — sing-along, chords, scales and fills, melody, then improv — before moving to the next.",
+    structureItems: [
+      "One weekly 30 or 45-minute private lesson",
+      "Teacher matched to the student's instrument and goals",
+      "Song-based curriculum — always learning a real, complete song",
+      "Progress tracked level by level, at the student's own pace",
+    ],
+    forWho: "Any student, any age, who wants dedicated one-on-one instruction.",
+    instruments: "Guitar, piano, bass, drums, voice, or ukulele.",
+    format: "Weekly private lesson, 30 or 45 minutes.",
+    progress: "Most students complete one full song every 4–6 weeks.",
+    ctaLabel: "Ask About Individual Lessons",
+  },
+  {
+    slug: "rock-band-program",
+    title: "Rock Band Program",
     desc: "Small groups learn one song together and take it to the stage as a full band.",
     method:
-      "Four to five students, each on a different instrument, learn the same song in parallel — then rehearse it together as a band until it's ready for the stage.",
+      "Four to five students, each on a different instrument, learn the same song in parallel through their individual lessons — then rehearse it together as a band until it's ready for the stage.",
     structureItems: [
       "Weekly one-hour band rehearsal, on top of individual lessons",
       "Song chosen collaboratively based on the group's instruments and level",
@@ -93,47 +117,48 @@ export const programs = [
     ctaLabel: "Ask About Rock Band",
   },
   {
-    slug: "songwriting-workshop",
-    title: "Songwriting Workshop",
-    desc: "For students ready to write and record their own original music.",
+    slug: "school-program",
+    title: "School Program",
+    desc: "In-school music instruction Rock Works runs on-site during the school day.",
     method:
-      "Small workshop groups write, arrange, and record an original song over a series of sessions — covering lyric writing, chord progressions, melody, and a basic home recording setup.",
+      "Rock Works partners with schools to run the same song-based curriculum on campus, in-class or during an elective period — no separate transportation or after-school scheduling needed for families.",
     structureItems: [
-      "Six sessions, one song written and recorded start to finish",
-      "Lyric writing and melody-building exercises",
-      "Chord progression and arrangement basics",
-      "A simple recorded demo to take home",
+      "Weekly on-site lessons during the school day or an elective block",
+      "Same five-level, song-based curriculum as our studio program",
+      "Coordinated with school staff and schedules",
+      "Optional showcase at a school assembly or event",
     ],
-    forWho: "Students with at least a year of lessons who want to create, not just play covers.",
-    instruments: "Any instrument — voice included.",
-    format: "Small group workshop, six weekly sessions.",
-    progress: "Every student leaves with a finished, recorded original song.",
-    ctaLabel: "Ask About Songwriting",
+    forWho: "Schools and families who want music instruction built into the school day.",
+    instruments: "Guitar, piano, bass, drums, voice, or ukulele, depending on the school's setup.",
+    format: "Weekly on-site group or individual sessions, arranged with the school.",
+    progress: "Tracks the standard curriculum pace — one song every 4–6 weeks per student.",
+    ctaLabel: "Ask About the School Program",
   },
   {
-    slug: "summer-intensive",
-    title: "Summer Intensive",
-    desc: "A concentrated two-week program covering a full song, start to finish.",
+    slug: "after-school-program",
+    title: "After-School Program",
+    desc: "Drop-in music lessons that fit right into an existing after-school routine.",
     method:
-      "A focused two-week intensive that compresses a full song's five-level curriculum into daily sessions — ideal for students who want fast progress over summer break.",
+      "Students already staying for after-school care or activities join a Rock Works instructor on-site for their weekly lesson — no extra pickup or drop-off required.",
     structureItems: [
-      "Daily one-hour sessions over two weeks",
-      "One full song, all five levels, start to finish",
-      "Small group size for close individual attention",
-      "Optional mini-performance on the final day",
+      "Weekly lesson slotted into the after-school block",
+      "Same five-level, song-based curriculum as our studio program",
+      "No additional transportation — lessons happen where kids already are",
+      "Regular progress updates sent home to families",
     ],
-    forWho: "Current students looking to accelerate over the summer, or new students who want an immersive start.",
-    instruments: "Guitar, piano, bass, drums, voice, or ukulele.",
-    format: "Daily sessions, two weeks.",
-    progress: "Equivalent to roughly two months of weekly lessons, completed in two weeks.",
-    ctaLabel: "Ask About Summer Intensive",
+    forWho: "Families who want lessons to fit inside an existing after-school schedule.",
+    instruments: "Guitar, piano, bass, drums, voice, or ukulele, depending on the site's setup.",
+    format: "Weekly on-site lesson during after-school hours.",
+    progress: "Tracks the standard curriculum pace — one song every 4–6 weeks per student.",
+    ctaLabel: "Ask About the After-School Program",
   },
 ];
 
 export const footerLinks = [
   { label: "About", href: "/about/philosophy" },
-  { label: "Program", href: "/program/format" },
+  { label: "Lessons", href: "/song-library" },
   { label: "Teachers", href: "/teachers" },
+  { label: "Practice Tools", href: "/tools" },
   { label: "FAQ", href: "/faq" },
   { label: "Contact", href: "/contact" },
 ];

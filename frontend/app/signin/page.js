@@ -1,38 +1,48 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { API_URL } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
 import RockWorksIcon from "@/components/RockWorksIcon";
 
-export default function SignIn() {
+function isEmailValid(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+}
+
+function SignInForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { signIn } = useAuth();
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
+
+    if (!isEmailValid(email)) {
+      setError("Enter a valid email address.");
+      return;
+    }
+    if (!password) {
+      setError("Enter your password.");
+      return;
+    }
+
     setSubmitting(true);
     try {
-      const res = await fetch(`${API_URL}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ email, password }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || "Something went wrong.");
-        return;
-      }
-      router.push(data.user.isAdmin ? "/admin" : "/member");
-    } catch {
-      setError("Could not reach the API.");
-    } finally {
+      const user = await signIn(email.trim(), password);
+      setSuccess(true);
+      const next = searchParams.get("next");
+      const dest = next && next.startsWith("/") ? next : user.isAdmin ? "/admin" : "/member";
+      setTimeout(() => router.push(dest), 500);
+    } catch (err) {
+      setError(err.message || "Something went wrong.");
       setSubmitting(false);
     }
   }
@@ -60,50 +70,73 @@ export default function SignIn() {
 
       <div style={{ maxWidth: 460, margin: "0 auto", padding: "36px 24px 90px" }}>
         <div style={{ background: "#fffdf9", border: "1px solid #ece0d5", borderRadius: 16, padding: 32, boxShadow: "0 26px 54px -34px rgba(90,40,70,0.4)" }}>
-          <form onSubmit={handleSubmit}>
-            <label style={fieldLabelStyle}>
-              Email
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                style={inputStyle}
-                placeholder="you@email.com"
-                required
-              />
-            </label>
-            <label style={{ ...fieldLabelStyle, marginTop: 14 }}>
-              Password
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                style={inputStyle}
-                placeholder="••••••••"
-                required
-              />
-            </label>
-
-            {error && <p style={{ margin: "10px 2px 0", fontSize: 13.5, color: "#cf3f20" }}>{error}</p>}
-
-            <button type="submit" disabled={submitting} className="rw-cta" style={ctaButtonStyle}>
-              {submitting ? "Signing in…" : "Sign in"}
-            </button>
-
-            <a href={`${API_URL}/auth/google`} style={{ display: "block", marginTop: 12 }}>
-              <span style={googleButtonStyle}>Sign in with Google</span>
-            </a>
-
-            <p style={{ margin: "18px 2px 0", fontSize: 13.5, color: "#7a6d78" }}>
-              No account yet?{" "}
-              <Link href="/signup" style={{ color: "#cf3f20", fontWeight: 700, textDecoration: "none" }}>
-                Sign up here.
-              </Link>
+          {success ? (
+            <p role="status" style={{ margin: 0, fontSize: 15.5, fontWeight: 700, color: "#0e8a97", textAlign: "center" }}>
+              Signed in! Taking you to your dashboard…
             </p>
-          </form>
+          ) : (
+            <form onSubmit={handleSubmit} noValidate>
+              <label style={fieldLabelStyle}>
+                Email
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  style={inputStyle}
+                  placeholder="you@email.com"
+                  autoComplete="email"
+                  required
+                />
+              </label>
+              <label style={{ ...fieldLabelStyle, marginTop: 14 }}>
+                Password
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  style={inputStyle}
+                  placeholder="••••••••"
+                  autoComplete="current-password"
+                  required
+                />
+              </label>
+
+              {error && (
+                <p role="alert" style={{ margin: "10px 2px 0", fontSize: 13.5, color: "#cf3f20" }}>
+                  {error}
+                </p>
+              )}
+
+              <button type="submit" disabled={submitting} className="rw-cta" style={ctaButtonStyle}>
+                {submitting ? "Signing in…" : "Sign in"}
+              </button>
+
+              <a href={`${API_URL}/auth/google`} style={{ display: "block", marginTop: 12 }}>
+                <span style={googleButtonStyle}>Sign in with Google</span>
+              </a>
+
+              <p style={{ margin: "18px 2px 0", fontSize: 13.5, color: "#7a6d78" }}>
+                No account yet?{" "}
+                <Link href="/signup" style={{ color: "#cf3f20", fontWeight: 700, textDecoration: "none" }}>
+                  Sign up here.
+                </Link>
+              </p>
+              <p style={{ margin: "10px 2px 0", fontSize: 12.5, color: "#a3927f" }}>
+                Demo student login: student@rockworks.com / demo123
+              </p>
+            </form>
+          )}
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SignIn() {
+  return (
+    <Suspense fallback={null}>
+      <SignInForm />
+    </Suspense>
   );
 }
 
