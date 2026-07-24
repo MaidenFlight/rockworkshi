@@ -2,6 +2,7 @@ const express = require("express");
 const bcrypt = require("bcrypt");
 const passport = require("../config/passport");
 const prisma = require("../lib/prisma");
+const { requireAuth } = require("../middleware/auth");
 
 const router = express.Router();
 
@@ -12,7 +13,11 @@ const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || "").trim().toLowerCase();
 function toSafeUser(user) {
   if (!user) return null;
   const { passwordHash, ...safe } = user;
-  return { ...safe, isAdmin: Boolean(ADMIN_EMAIL) && user.email === ADMIN_EMAIL };
+  return {
+    ...safe,
+    isAdmin: Boolean(ADMIN_EMAIL) && user.email === ADMIN_EMAIL,
+    profileComplete: Boolean(user.instrument),
+  };
 }
 
 function isEmailValid(email) {
@@ -23,9 +28,33 @@ const googleEnabled = Boolean(
   process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
 );
 
+const PROFILE_STRING_FIELDS = [
+  "name",
+  "age",
+  "phone",
+  "sponsorName",
+  "sponsorEmail",
+  "instrument",
+  "experience",
+  "level",
+  "instructionType",
+  "coStudentName",
+  "plan",
+];
+
+function collectProfileFields(body) {
+  const data = {};
+  for (const key of PROFILE_STRING_FIELDS) {
+    if (typeof body[key] === "string") data[key] = body[key].trim();
+  }
+  if (typeof body.isMinor === "boolean") data.isMinor = body.isMinor;
+  return data;
+}
+
 router.post("/signup", async (req, res, next) => {
   const email = (req.body.email || "").trim().toLowerCase();
   const { password } = req.body;
+  const profile = collectProfileFields(req.body);
 
   if (!isEmailValid(email)) {
     return res.status(400).json({ error: "Enter a valid email address." });
@@ -35,6 +64,12 @@ router.post("/signup", async (req, res, next) => {
       .status(400)
       .json({ error: "Password must be at least 8 characters." });
   }
+  if (!profile.name) {
+    return res.status(400).json({ error: "Student name is required." });
+  }
+  if (profile.isMinor && (!profile.sponsorName || !profile.sponsorEmail)) {
+    return res.status(400).json({ error: "A sponsor name and email are required for a minor." });
+  }
 
   try {
     const existing = await prisma.user.findUnique({ where: { email } });
@@ -43,7 +78,7 @@ router.post("/signup", async (req, res, next) => {
     }
 
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
-    const user = await prisma.user.create({ data: { email, passwordHash } });
+    const user = await prisma.user.create({ data: { email, passwordHash, ...profile } });
 
     req.login(user, (err) => {
       if (err) return next(err);
@@ -85,6 +120,17 @@ router.get("/me", (req, res) => {
   return res.json({ user: toSafeUser(req.user) });
 });
 
+router.patch("/me", requireAuth, async (req, res, next) => {
+  const data = collectProfileFields(req.body);
+
+  try {
+    const user = await prisma.user.update({ where: { id: req.user.id }, data });
+    return res.json({ user: toSafeUser(user) });
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.get("/google", (req, res, next) => {
   if (!googleEnabled) {
     return res
@@ -101,7 +147,9 @@ router.get("/google/callback", (req, res, next) => {
   passport.authenticate("google", {
     failureRedirect: `${process.env.FRONTEND_URL}/?error=google`,
   })(req, res, () => {
-    res.redirect(process.env.FRONTEND_URL);
+    const isAdmin = req.user.email === ADMIN_EMAIL;
+    const dest = !isAdmin && !req.user.instrument ? "/onboarding" : isAdmin ? "/admin" : "/member";
+    res.redirect(`${process.env.FRONTEND_URL}${dest}`);
   });
 });
 

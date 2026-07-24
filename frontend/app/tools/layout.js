@@ -2,6 +2,6 @@
 
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
-export default function MemberLayout({ children }) {
+export default function ToolsLayout({ children }) {
   return <ProtectedRoute>{children}</ProtectedRoute>;
 }

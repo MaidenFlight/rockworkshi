@@ -2,20 +2,44 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
 import { primaryNav } from "@/lib/content";
 import RockWorksIcon from "@/components/RockWorksIcon";
+import ProfileMenu from "@/components/auth/ProfileMenu";
+import { useAuth } from "@/contexts/AuthContext";
+import { ROLES } from "@/lib/auth/roles";
+import { firstNameOf, initialsOf } from "@/lib/auth/displayName";
 
 export default function Nav() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { user, isAuthenticated, role, signOut } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileExpanded, setMobileExpanded] = useState(null);
+
+  const dashboardHref = role === ROLES.ADMINISTRATOR ? "/admin" : "/member";
+
+  const isActive = (item) =>
+    item.href ? (item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)) : item.menu?.some((sub) => pathname.startsWith(sub.href));
 
   useEffect(() => {
     if (!mobileOpen) return;
     document.body.style.overflow = "hidden";
+    function onKeyDown(e) {
+      if (e.key === "Escape") setMobileOpen(false);
+    }
+    document.addEventListener("keydown", onKeyDown);
     return () => {
       document.body.style.overflow = "";
+      document.removeEventListener("keydown", onKeyDown);
     };
   }, [mobileOpen]);
+
+  async function handleMobileSignOut() {
+    setMobileOpen(false);
+    await signOut();
+    router.push("/");
+  }
 
   return (
     <header
@@ -77,7 +101,7 @@ export default function Nav() {
                     <button
                       className="rw-nav-link rw-navtrigger"
                       aria-haspopup="true"
-                      style={navLinkStyle}
+                      style={isActive(item) ? activeNavLinkStyle : navLinkStyle}
                     >
                       {item.label} <span style={{ fontSize: 9, opacity: 0.7 }}>&#9662;</span>
                     </button>
@@ -109,7 +133,7 @@ export default function Nav() {
                     </div>
                   </>
                 ) : (
-                  <Link href={item.href} className="rw-nav-link" style={navLinkStyle}>
+                  <Link href={item.href} className="rw-nav-link" style={isActive(item) ? activeNavLinkStyle : navLinkStyle}>
                     {item.label}
                   </Link>
                 )}
@@ -118,12 +142,26 @@ export default function Nav() {
           </div>
 
           <span className="rw-desktop-nav" style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: 8 }}>
-            <Link href="/signin" className="rw-nav-link" style={navLinkStyle}>
-              Sign In
-            </Link>
-            <Link href="/trial" className="rw-cta" style={ctaStyle}>
-              Book a Trial
-            </Link>
+            {isAuthenticated ? (
+              <>
+                <Link href={dashboardHref} className="rw-nav-link" style={navLinkStyle}>
+                  Dashboard
+                </Link>
+                <ProfileMenu />
+              </>
+            ) : (
+              <>
+                <Link href="/signin" className="rw-nav-link" style={navLinkStyle}>
+                  Sign In
+                </Link>
+                <Link href="/signup" className="rw-nav-link" style={navLinkStyle}>
+                  Sign Up
+                </Link>
+                <Link href="/trial" className="rw-cta" style={ctaStyle}>
+                  Book a Trial
+                </Link>
+              </>
+            )}
           </span>
 
           <button
@@ -210,22 +248,76 @@ export default function Nav() {
                   )}
                 </div>
               ))}
-              <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 20, padding: "0 8px" }}>
-                <Link
-                  href="/signin"
-                  onClick={() => setMobileOpen(false)}
-                  style={{ textAlign: "center", padding: 12, borderRadius: 8, border: "1px solid #d8cab8", fontWeight: 600, fontSize: 15, color: "#33454f", textDecoration: "none" }}
-                >
-                  Sign In
-                </Link>
-                <Link
-                  href="/trial"
-                  onClick={() => setMobileOpen(false)}
-                  style={{ textAlign: "center", padding: 13, borderRadius: 8, background: "#ef5130", color: "#fff", fontWeight: 700, fontSize: 15, textDecoration: "none" }}
-                >
-                  Book a Trial
-                </Link>
-              </div>
+              {isAuthenticated ? (
+                <div style={{ marginTop: 20, padding: "14px 8px 0", borderTop: "1px solid #ece0d5" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        width: 38,
+                        height: 38,
+                        borderRadius: "50%",
+                        background: "linear-gradient(135deg,#0e8a97,#0a2338)",
+                        color: "#fff",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontWeight: 800,
+                        fontSize: 14.5,
+                        flexShrink: 0,
+                      }}
+                    >
+                      {initialsOf(user)}
+                    </span>
+                    <span style={{ fontWeight: 700, fontSize: 16, color: "#0a2338" }}>{firstNameOf(user)}</span>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    <Link href={dashboardHref} onClick={() => setMobileOpen(false)} style={mobileMenuLinkStyle}>
+                      Dashboard
+                    </Link>
+                    <Link href="/member" onClick={() => setMobileOpen(false)} style={mobileMenuLinkStyle}>
+                      Student Dashboard
+                    </Link>
+                    <Link href="/member/profile" onClick={() => setMobileOpen(false)} style={mobileMenuLinkStyle}>
+                      My Profile
+                    </Link>
+                    <Link href="/member/settings" onClick={() => setMobileOpen(false)} style={mobileMenuLinkStyle}>
+                      Account Settings
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={handleMobileSignOut}
+                      style={{ ...mobileMenuLinkStyle, textAlign: "left", background: "transparent", border: "none", cursor: "pointer", color: "#cf3f20", fontFamily: "inherit" }}
+                    >
+                      Sign Out
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 20, padding: "0 8px" }}>
+                  <Link
+                    href="/signin"
+                    onClick={() => setMobileOpen(false)}
+                    style={{ textAlign: "center", padding: 12, borderRadius: 8, border: "1px solid #d8cab8", fontWeight: 600, fontSize: 15, color: "#33454f", textDecoration: "none" }}
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    href="/signup"
+                    onClick={() => setMobileOpen(false)}
+                    style={{ textAlign: "center", padding: 12, borderRadius: 8, border: "1px solid #d8cab8", fontWeight: 600, fontSize: 15, color: "#33454f", textDecoration: "none" }}
+                  >
+                    Sign Up
+                  </Link>
+                  <Link
+                    href="/trial"
+                    onClick={() => setMobileOpen(false)}
+                    style={{ textAlign: "center", padding: 13, borderRadius: 8, background: "#ef5130", color: "#fff", fontWeight: 700, fontSize: 15, textDecoration: "none" }}
+                  >
+                    Book a Trial
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         </>
@@ -242,6 +334,21 @@ const navLinkStyle = {
   color: "#33454f",
   textDecoration: "none",
   cursor: "pointer",
+};
+
+const activeNavLinkStyle = {
+  ...navLinkStyle,
+  color: "#ef5130",
+  boxShadow: "inset 0 -2px 0 #ef5130",
+};
+
+const mobileMenuLinkStyle = {
+  display: "block",
+  padding: "11px 8px",
+  fontSize: 15,
+  fontWeight: 600,
+  color: "#33454f",
+  textDecoration: "none",
 };
 
 const ctaStyle = {

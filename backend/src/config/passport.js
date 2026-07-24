@@ -54,7 +54,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
               });
             } else {
               user = await prisma.user.create({
-                data: { email, googleId: profile.id },
+                data: { email, googleId: profile.id, name: profile.displayName || undefined },
               });
             }
           }
