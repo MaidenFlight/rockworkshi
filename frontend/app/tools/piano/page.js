@@ -1,14 +1,20 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const WHITE_SEMITONES = [0, 2, 4, 5, 7, 9, 11];
 const BLACK_AFTER = { 0: 1, 2: 3, 5: 6, 7: 8, 9: 10 }; // white semitone -> black semitone that follows it
 const OCTAVE_SPAN = 2;
-const WHITE_W = 42;
 const WHITE_H = 160;
-const BLACK_W = 26;
 const BLACK_H = 100;
+// Keys are sized as a share of the container so they shrink to fit a phone.
+// The two-octave layout is capped at its original width so the desktop keyboard
+// is unchanged; the one-octave layout fills the screen instead, which keeps the
+// keys comfortably wide on a phone.
+const WHITE_W_MAX = 42;
+// Black keys straddle the seam between two whites, at this fraction of a
+// white key's width.
+const BLACK_W_RATIO = 0.62;
 
 function noteFreqFromMidi(midi) {
   return 440 * Math.pow(2, (midi - 69) / 12);
@@ -20,6 +26,18 @@ export default function Piano() {
   const [octave, setOctave] = useState(3);
   const [labels, setLabels] = useState(true);
   const [down, setDown] = useState({});
+  const [span, setSpan] = useState(OCTAVE_SPAN);
+
+  // Two octaves squeezed into a phone leaves each key too narrow to hit, so
+  // show one there — the octave buttons already move the range. Applied after
+  // mount so the server and client agree on the first render.
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 720px)");
+    const apply = () => setSpan(mq.matches ? 1 : OCTAVE_SPAN);
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, []);
 
   const ctxRef = useRef(null);
   const voicesRef = useRef({});
@@ -85,7 +103,7 @@ export default function Piano() {
   }
 
   const whiteKeys = [];
-  for (let o = 0; o < OCTAVE_SPAN; o++) {
+  for (let o = 0; o < span; o++) {
     for (const s of WHITE_SEMITONES) {
       const midi = (octave + o + 1) * 12 + s;
       whiteKeys.push({ id: `w-${o}-${s}`, midi, semitone: s, label: NOTE_LETTERS[s] + (octave + o) });
@@ -96,8 +114,9 @@ export default function Piano() {
     const blackSemitone = BLACK_AFTER[wk.semitone];
     if (blackSemitone === undefined) return;
     const midi = wk.midi + 1;
-    blackKeys.push({ id: `b-${i}`, midi, x: (i + 1) * WHITE_W - BLACK_W / 2, label: NOTE_LETTERS[blackSemitone % 12] });
+    blackKeys.push({ id: `b-${i}`, midi, whiteIndex: i, label: NOTE_LETTERS[blackSemitone % 12] });
   });
+  const whitePct = 100 / whiteKeys.length;
 
   const heldHandlers = (id, midi) => ({
     onMouseDown: () => noteOn(id, midi),
@@ -117,11 +136,11 @@ export default function Piano() {
     <div style={{ maxWidth: 760, margin: "0 auto", padding: "60px 24px 100px" }}>
       <h1 style={{ fontWeight: 600, fontSize: 32, color: "#0a2338", marginBottom: 8 }}>Piano</h1>
       <p style={{ color: "#6a6560", marginBottom: 28 }}>
-        Two octaves, polyphonic — hold several keys to build a chord.
+        {span === 1 ? "One octave" : "Two octaves"}, polyphonic — hold several keys to build a chord.
       </p>
 
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap", marginBottom: 20 }}>
+        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
           <button onClick={() => setOctave((o) => Math.max(1, o - 1))} style={pillBtn}>
             &#9664; Octave
           </button>
@@ -135,16 +154,17 @@ export default function Piano() {
         </button>
       </div>
 
-      <div style={{ position: "relative", width: whiteKeys.length * WHITE_W, height: WHITE_H, userSelect: "none" }}>
+      <div style={{ position: "relative", width: "100%", maxWidth: span === 1 ? undefined : whiteKeys.length * WHITE_W_MAX, height: WHITE_H, userSelect: "none", touchAction: "none" }}>
         {whiteKeys.map((wk, i) => (
           <div
             key={wk.id}
             {...heldHandlers(wk.id, wk.midi)}
             style={{
               position: "absolute",
-              left: i * WHITE_W,
+              left: `${i * whitePct}%`,
               top: 0,
-              width: WHITE_W - 2,
+              width: `${whitePct}%`,
+              boxSizing: "border-box",
               height: WHITE_H,
               background: down[wk.id] ? "#fdece6" : "#fff",
               border: "1px solid #0a2338",
@@ -167,9 +187,10 @@ export default function Piano() {
             {...heldHandlers(bk.id, bk.midi)}
             style={{
               position: "absolute",
-              left: bk.x,
+              left: `${(bk.whiteIndex + 1) * whitePct}%`,
+              transform: "translateX(-50%)",
               top: 0,
-              width: BLACK_W,
+              width: `${whitePct * BLACK_W_RATIO}%`,
               height: BLACK_H,
               background: down[bk.id] ? "#ef5130" : "#0a2338",
               borderRadius: "0 0 4px 4px",
