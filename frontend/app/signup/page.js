@@ -1,10 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
-import { API_URL } from "@/lib/api";
 import RockWorksIcon from "@/components/RockWorksIcon";
 import SignupWizard from "@/components/auth/SignupWizard";
+import SocialAuthButtons from "@/components/auth/SocialAuthButtons";
 
 export default function SignUp() {
   return (
@@ -32,9 +31,9 @@ export default function SignUp() {
         <SignupWizard mode="signup" />
 
         <div style={{ textAlign: "center", marginTop: 24 }}>
-          <a href={`${API_URL}/auth/google`} style={{ display: "inline-block", marginBottom: 14 }}>
-            <span style={googleButtonStyle}>Sign up with Google instead</span>
-          </a>
+          <div style={{ marginBottom: 14 }}>
+            <SocialAuthButtons action="Sign up" />
+          </div>
           <p style={{ margin: 0, fontSize: 13.5, color: "#7a6d78" }}>
             Already have an account?{" "}
             <Link href="/signin" style={{ color: "#cf3f20", fontWeight: 700, textDecoration: "none" }}>
@@ -46,16 +45,3 @@ export default function SignUp() {
     </div>
   );
 }
-
-const googleButtonStyle = {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  padding: "13px 26px",
-  borderRadius: 999,
-  fontWeight: 700,
-  fontSize: 14.5,
-  color: "#33454f",
-  border: "1px solid #d8cab8",
-  cursor: "pointer",
-};

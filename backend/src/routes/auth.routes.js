@@ -13,11 +13,26 @@ const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || "").trim().toLowerCase();
 function toSafeUser(user) {
   if (!user) return null;
   const { passwordHash, ...safe } = user;
+  const isAdmin = Boolean(ADMIN_EMAIL) && user.email === ADMIN_EMAIL;
   return {
     ...safe,
-    isAdmin: Boolean(ADMIN_EMAIL) && user.email === ADMIN_EMAIL,
+    isAdmin,
     profileComplete: Boolean(user.instrument),
+    // Admins run the school rather than enrol in it, so they're never held at
+    // the payment step.
+    paymentComplete: isAdmin || Boolean(user.paidAt),
   };
+}
+
+// Where a signed-in user still needs to go before the member area will work.
+// Both the OAuth callback and the client-side route guard read this, so the
+// two can't disagree about what "finished signing up" means.
+function nextStepFor(user) {
+  const safe = toSafeUser(user);
+  if (safe.isAdmin) return "/admin";
+  if (!safe.profileComplete) return "/onboarding";
+  if (!safe.paymentComplete) return "/onboarding/payment";
+  return "/member";
 }
 
 function isEmailValid(email) {
@@ -131,6 +146,12 @@ router.patch("/me", requireAuth, async (req, res, next) => {
   }
 });
 
+// Lets the sign-in/sign-up pages show only the providers this server can
+// actually complete, instead of a button that 503s.
+router.get("/providers", (req, res) => {
+  res.json({ providers: { google: googleEnabled } });
+});
+
 router.get("/google", (req, res, next) => {
   if (!googleEnabled) {
     return res
@@ -147,9 +168,10 @@ router.get("/google/callback", (req, res, next) => {
   passport.authenticate("google", {
     failureRedirect: `${process.env.FRONTEND_URL}/?error=google`,
   })(req, res, () => {
-    const isAdmin = req.user.email === ADMIN_EMAIL;
-    const dest = !isAdmin && !req.user.instrument ? "/onboarding" : isAdmin ? "/admin" : "/member";
-    res.redirect(`${process.env.FRONTEND_URL}${dest}`);
+    // A Google account supplies an email and a name but none of the enrolment
+    // answers, so new users land on the questionnaire rather than the
+    // dashboard.
+    res.redirect(`${process.env.FRONTEND_URL}${nextStepFor(req.user)}`);
   });
 });
 
