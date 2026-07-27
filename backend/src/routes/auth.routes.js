@@ -3,8 +3,20 @@ const bcrypt = require("bcrypt");
 const passport = require("../config/passport");
 const prisma = require("../lib/prisma");
 const { requireAuth } = require("../middleware/auth");
-const { issueFields, tokenMatches, canResend, verifiedFields } = require("../lib/verification");
-const { verificationEmail } = require("../lib/mailer");
+const {
+  issueVerification,
+  issueReset,
+  tokenMatches,
+  verifiedFields,
+  clearedResetFields,
+  cooledDown,
+  isExpired,
+} = require("../lib/emailTokens");
+const {
+  verificationEmail,
+  passwordResetEmail,
+  passwordChangedEmail,
+} = require("../lib/mailer");
 
 const router = express.Router();
 
@@ -118,7 +130,7 @@ router.post("/signup", async (req, res, next) => {
     }
 
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
-    const { token, data: verification } = issueFields();
+    const { token, data: verification } = issueVerification();
     const user = await prisma.user.create({
       data: { email, passwordHash, ...profile, ...verification },
     });
@@ -217,15 +229,140 @@ router.post("/resend-verification", requireAuth, async (req, res, next) => {
     if (req.user.emailVerifiedAt) {
       return res.json({ alreadyVerified: true });
     }
-    if (!canResend(req.user)) {
+    if (!cooledDown(req.user.verificationSentAt)) {
       return res.status(429).json({ error: "Please wait a moment before requesting another email." });
     }
 
-    const { token, data } = issueFields();
+    const { token, data } = issueVerification();
     const user = await prisma.user.update({ where: { id: req.user.id }, data });
     await sendVerificationLink(req, user, token);
 
     return res.json({ sent: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Signing in elsewhere shouldn't survive a password change — especially a
+// reset, where the point may be that someone else has the account. Sessions are
+// rows holding serialized passport data, so the user's id appears in the blob.
+async function endOtherSessions(userId, keepSid) {
+  try {
+    await prisma.session.deleteMany({
+      where: { data: { contains: userId }, sid: keepSid ? { not: keepSid } : undefined },
+    });
+  } catch (err) {
+    // Not worth failing the password change over.
+    console.error("Could not clear other sessions:", err.message);
+  }
+}
+
+function passwordProblem(password) {
+  if (!password || password.length < 8) return "Password must be at least 8 characters.";
+  return null;
+}
+
+// Changing a known password. Requires the current one, so a borrowed session
+// can't be used to lock the owner out.
+router.post("/change-password", requireAuth, async (req, res, next) => {
+  const { currentPassword, newPassword } = req.body || {};
+
+  const problem = passwordProblem(newPassword);
+  if (problem) return res.status(400).json({ error: problem });
+
+  try {
+    const ok = await bcrypt.compare(String(currentPassword || ""), req.user.passwordHash);
+    if (!ok) return res.status(400).json({ error: "That isn't your current password." });
+
+    const passwordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
+    await prisma.user.update({
+      where: { id: req.user.id },
+      // Any outstanding reset link is void now the password has been set.
+      data: { passwordHash, ...clearedResetFields },
+    });
+
+    await endOtherSessions(req.user.id, req.sessionID);
+    passwordChangedEmail({ to: req.user.email }).catch((err) =>
+      console.error("Could not send password-changed email:", err.message)
+    );
+
+    return res.json({ changed: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Starts a reset. Always answers the same way, whether or not the address is
+// registered — otherwise this endpoint becomes a way to find out who has an
+// account here.
+router.post("/forgot-password", async (req, res, next) => {
+  const email = String(req.body?.email || "").trim().toLowerCase();
+  const sameAnswer = () => res.json({ sent: true });
+
+  if (!isEmailValid(email)) return sameAnswer();
+
+  try {
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) return sameAnswer();
+    // Silently ignore a rapid repeat rather than reporting the rate limit,
+    // which would itself confirm the address exists.
+    if (!cooledDown(user.resetSentAt)) return sameAnswer();
+
+    const { token, data } = issueReset();
+    await prisma.user.update({ where: { id: user.id }, data });
+
+    try {
+      await passwordResetEmail({
+        to: user.email,
+        link: `${appOriginFor(req)}/reset-password?token=${token}`,
+      });
+    } catch (err) {
+      console.error("Could not send password reset email:", err.message);
+    }
+
+    return sameAnswer();
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Finishes a reset. The token is the only proof needed, so this works signed
+// out, from whichever browser opened the email.
+router.post("/reset-password", async (req, res, next) => {
+  const token = String(req.body?.token || "");
+  const { newPassword } = req.body || {};
+
+  const problem = passwordProblem(newPassword);
+  if (problem) return res.status(400).json({ error: problem });
+  if (!token) return res.status(400).json({ error: "That reset link is not valid." });
+
+  try {
+    const candidates = await prisma.user.findMany({
+      where: { resetTokenHash: { not: null } },
+      select: { id: true, email: true, resetTokenHash: true, resetExpiresAt: true },
+    });
+    const match = candidates.find((u) => tokenMatches(token, u.resetTokenHash));
+
+    if (!match) return res.status(400).json({ error: "That reset link is not valid." });
+    if (isExpired(match.resetExpiresAt)) {
+      return res.status(400).json({ error: "That reset link has expired. Request a new one." });
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
+    await prisma.user.update({
+      where: { id: match.id },
+      // Single use: clear the token so the link can't be replayed.
+      data: { passwordHash, ...clearedResetFields },
+    });
+
+    // Whoever prompted the reset may not be the account owner, so drop every
+    // existing session for it.
+    await endOtherSessions(match.id, null);
+    passwordChangedEmail({ to: match.email }).catch((err) =>
+      console.error("Could not send password-changed email:", err.message)
+    );
+
+    return res.json({ reset: true });
   } catch (err) {
     next(err);
   }

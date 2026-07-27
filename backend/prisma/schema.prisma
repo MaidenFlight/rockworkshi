@@ -27,6 +27,12 @@ model User {
   verificationSentAt    DateTime?
   verificationExpiresAt DateTime?
 
+  // Same treatment for password resets, on a much shorter fuse: this token is
+  // enough to take over the account.
+  resetTokenHash  String?
+  resetSentAt     DateTime?
+  resetExpiresAt  DateTime?
+
   createdAt DateTime @default(now())
 
   // Student profile (filled in at signup / editable by admin)

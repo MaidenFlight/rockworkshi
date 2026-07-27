@@ -167,4 +167,59 @@ function verificationEmail({ to, link }) {
   });
 }
 
-module.exports = { sendMail, verificationEmail, smtpConfigured };
+function passwordResetEmail({ to, link }) {
+  return sendMail({
+    to,
+    subject: "Reset your password — Rock Works School of Music",
+    text: [
+      "We got a request to reset the password on your Rock Works account.",
+      "",
+      "Set a new password here:",
+      link,
+      "",
+      "The link is good for 1 hour and can only be used once.",
+      "If you didn't ask for this, ignore this email — your password won't change.",
+    ].join("\n"),
+    html: layout({
+      heading: "Reset your password",
+      lines: [
+        "We got a request to reset the password on your Rock Works account.",
+        "Choose a new one and you'll be back to your lessons in a moment.",
+      ],
+      button: { href: link, label: "Set a new password" },
+      footer:
+        "This link is good for 1 hour and can only be used once. If you didn't ask for a reset, you can ignore this email — your password won't change.",
+    }),
+  });
+}
+
+// Sent after the fact, so someone who didn't make the change hears about it.
+function passwordChangedEmail({ to }) {
+  return sendMail({
+    to,
+    subject: "Your password was changed — Rock Works School of Music",
+    text: [
+      "The password on your Rock Works account was just changed.",
+      "",
+      "If that was you, there's nothing to do.",
+      "If it wasn't, reset your password immediately and contact us at aloha@rockworks.music.",
+    ].join("\n"),
+    html: layout({
+      heading: "Your password was changed",
+      lines: [
+        "The password on your Rock Works account was just changed.",
+        "If that was you, there's nothing to do here.",
+      ],
+      footer:
+        "If this wasn't you, reset your password straight away and let us know at aloha@rockworks.music.",
+    }),
+  });
+}
+
+module.exports = {
+  sendMail,
+  verificationEmail,
+  passwordResetEmail,
+  passwordChangedEmail,
+  smtpConfigured,
+};
