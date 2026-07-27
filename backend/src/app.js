@@ -11,9 +11,22 @@ const lessonsRoutes = require("./routes/lessons.routes");
 
 const app = express();
 
+// In development the frontend is reached from whatever host the browser used —
+// localhost on this machine, or the machine's LAN IP when testing on a phone.
+// That IP is a DHCP lease and changes, so match the private ranges rather than
+// pinning one address. Production still allows only the configured origin.
+const LAN_ORIGIN =
+  /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\]|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)(:\d+)?$/;
+
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL,
+    origin(origin, callback) {
+      if (!origin || origin === process.env.FRONTEND_URL) return callback(null, true);
+      if (process.env.NODE_ENV !== "production" && LAN_ORIGIN.test(origin)) {
+        return callback(null, true);
+      }
+      return callback(null, false);
+    },
     credentials: true,
   })
 );
