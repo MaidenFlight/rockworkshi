@@ -1,20 +1,40 @@
-import { Zilla_Slab, Source_Sans_3 } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { AuthProvider } from "@/contexts/AuthContext";
 
-const zillaSlab = Zilla_Slab({
+// Self-hosted from app/fonts rather than next/font/google. Fetching these at
+// build time meant the build needed to reach fonts.googleapis.com, and failed
+// when it couldn't. The files are the same latin-subset woff2 Google was
+// serving, so rendering is unchanged.
+//
+// Zilla Slab has no variable version, hence one file per weight and style.
+const zillaSlab = localFont({
   variable: "--font-zilla-slab",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  style: ["normal", "italic"],
+  display: "swap",
+  src: [
+    { path: "./fonts/zilla-slab-300.woff2", weight: "300", style: "normal" },
+    { path: "./fonts/zilla-slab-300-italic.woff2", weight: "300", style: "italic" },
+    { path: "./fonts/zilla-slab-400.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/zilla-slab-400-italic.woff2", weight: "400", style: "italic" },
+    { path: "./fonts/zilla-slab-500.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/zilla-slab-500-italic.woff2", weight: "500", style: "italic" },
+    { path: "./fonts/zilla-slab-600.woff2", weight: "600", style: "normal" },
+    { path: "./fonts/zilla-slab-600-italic.woff2", weight: "600", style: "italic" },
+    { path: "./fonts/zilla-slab-700.woff2", weight: "700", style: "normal" },
+    { path: "./fonts/zilla-slab-700-italic.woff2", weight: "700", style: "italic" },
+  ],
 });
 
-const sourceSans = Source_Sans_3({
+// Source Sans 3 is a variable font: Google returned the same file for every
+// weight we asked for, so it's one file covering the 400–700 range we use.
+// Italic isn't included because the previous config didn't request it either —
+// the few italic runs in body copy are synthesized, as they were before.
+const sourceSans = localFont({
   variable: "--font-source-sans",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  display: "swap",
+  src: [{ path: "./fonts/source-sans-3-variable.woff2", weight: "400 700", style: "normal" }],
 });
 
 export const metadata = {
