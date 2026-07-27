@@ -393,7 +393,7 @@ export default function VideoPlayer({ lesson }) {
       )}
 
       <h3 style={{ fontWeight: 700, fontSize: 16, color: "#0a2338", margin: "28px 0 12px" }}>Practice by section</h3>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10 }}>
+      <div className="rw-cols-4" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10 }}>
         {sections.map((sec) => (
           <div
             key={sec.id}
@@ -483,23 +483,25 @@ export default function VideoPlayer({ lesson }) {
         )}
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginTop: 28 }}>
+      <div className="rw-cols-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginTop: 28 }}>
         <div style={{ border: "1px solid #ece0d5", borderRadius: 12, padding: 18, background: "#fffdf9" }}>
           <div style={{ fontWeight: 700, fontSize: 13, letterSpacing: "0.08em", textTransform: "uppercase", color: "#0e8a97", marginBottom: 10 }}>
             Backing track
           </div>
-          <button onClick={toggleBacking} style={iconBtn}>
-            {backingPlaying ? "Pause backing track" : "Play backing track"}
-          </button>
-          {mediaMode === "backing" && (
-            <button onClick={closeBacking} style={{ ...iconBtn, marginLeft: 8 }}>
-              Close
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <button onClick={toggleBacking} style={iconBtn}>
+              {backingPlaying ? "Pause backing track" : "Play backing track"}
             </button>
-          )}
+            {mediaMode === "backing" && (
+              <button onClick={closeBacking} style={iconBtn}>
+                Close
+              </button>
+            )}
+          </div>
         </div>
 
         <div style={{ border: "1px solid #ece0d5", borderRadius: 12, padding: 18, background: "#fffdf9" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 10 }}>
             <div style={{ fontWeight: 700, fontSize: 13, letterSpacing: "0.08em", textTransform: "uppercase", color: "#0e8a97" }}>
               Chord sheet
             </div>

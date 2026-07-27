@@ -143,6 +143,9 @@ h3 {
   .rw-cols-5 {
     grid-template-columns: repeat(3, 1fr) !important;
   }
+  .rw-cols-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
   .rw-featured-grid {
     grid-template-columns: 1fr !important;
   }
