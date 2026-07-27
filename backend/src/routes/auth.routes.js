@@ -3,20 +3,48 @@ const bcrypt = require("bcrypt");
 const passport = require("../config/passport");
 const prisma = require("../lib/prisma");
 const { requireAuth } = require("../middleware/auth");
+const { issueFields, tokenMatches, canResend, verifiedFields } = require("../lib/verification");
+const { verificationEmail } = require("../lib/mailer");
 
 const router = express.Router();
 
 const SALT_ROUNDS = 12;
 
+// The link points at the app, which posts the token back here. Built from the
+// origin the request came from so a link emailed to someone browsing over the
+// LAN doesn't send them to localhost — which on a phone is the phone itself.
+// Falls back to the configured URL when there's no Origin header.
+function appOriginFor(req) {
+  const origin = req.headers.origin;
+  if (origin && /^https?:\/\//.test(origin)) return origin.replace(/\/$/, "");
+  return (process.env.FRONTEND_URL || "http://localhost:3000").replace(/\/$/, "");
+}
+
+function verificationLinkFor(req, token) {
+  return `${appOriginFor(req)}/verify-email?token=${token}`;
+}
+
+async function sendVerificationLink(req, user, token) {
+  try {
+    await verificationEmail({ to: user.email, link: verificationLinkFor(req, token) });
+  } catch (err) {
+    // A send failure shouldn't abort signup — the account exists and the link
+    // can be resent. Log it so it isn't silent.
+    console.error("Could not send verification email:", err.message);
+  }
+}
+
 const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || "").trim().toLowerCase();
 
 function toSafeUser(user) {
   if (!user) return null;
-  const { passwordHash, ...safe } = user;
+  // Never leave the password hash or the verification token on a response.
+  const { passwordHash, verificationTokenHash, ...safe } = user;
   const isAdmin = Boolean(ADMIN_EMAIL) && user.email === ADMIN_EMAIL;
   return {
     ...safe,
     isAdmin,
+    emailVerified: Boolean(user.emailVerifiedAt),
     profileComplete: Boolean(user.instrument),
     // Admins run the school rather than enrol in it, so they're never held at
     // the payment step.
@@ -25,11 +53,12 @@ function toSafeUser(user) {
 }
 
 // Where a signed-in user still needs to go before the member area will work.
-// Both the OAuth callback and the client-side route guard read this, so the
-// two can't disagree about what "finished signing up" means.
+// The client-side route guard mirrors this, so the two can't disagree about
+// what "finished signing up" means.
 function nextStepFor(user) {
   const safe = toSafeUser(user);
   if (safe.isAdmin) return "/admin";
+  if (!safe.emailVerified) return "/verify-email";
   if (!safe.profileComplete) return "/onboarding";
   if (!safe.paymentComplete) return "/onboarding/payment";
   return "/member";
@@ -38,10 +67,6 @@ function nextStepFor(user) {
 function isEmailValid(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((email || "").trim());
 }
-
-const googleEnabled = Boolean(
-  process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
-);
 
 const PROFILE_STRING_FIELDS = [
   "name",
@@ -93,8 +118,15 @@ router.post("/signup", async (req, res, next) => {
     }
 
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
-    const user = await prisma.user.create({ data: { email, passwordHash, ...profile } });
+    const { token, data: verification } = issueFields();
+    const user = await prisma.user.create({
+      data: { email, passwordHash, ...profile, ...verification },
+    });
 
+    await sendVerificationLink(req, user, token);
+
+    // Signed in straight away, but nextStepFor() holds them at the "check your
+    // inbox" step until the address is confirmed.
     req.login(user, (err) => {
       if (err) return next(err);
       return res.status(201).json({ user: toSafeUser(user) });
@@ -146,33 +178,57 @@ router.patch("/me", requireAuth, async (req, res, next) => {
   }
 });
 
-// Lets the sign-in/sign-up pages show only the providers this server can
-// actually complete, instead of a button that 503s.
-router.get("/providers", (req, res) => {
-  res.json({ providers: { google: googleEnabled } });
+// Called by the app with the token from the emailed link. No auth requirement:
+// the token is the proof, so it works from whichever browser opened the email,
+// signed in or not. Always 200s with an outcome — the token's validity isn't an
+// HTTP-level error, and it keeps the client from guessing from status codes.
+router.post("/verify-email", async (req, res, next) => {
+  const token = String(req.body?.token || "");
+  const done = (status) => res.json({ status });
+
+  if (!token) return done("invalid");
+
+  try {
+    // Can't look the token up directly — only its hash is stored — so find the
+    // candidates with a live token and compare.
+    const candidates = await prisma.user.findMany({
+      where: { verificationTokenHash: { not: null } },
+      select: { id: true, verificationTokenHash: true, verificationExpiresAt: true, emailVerifiedAt: true },
+    });
+    const match = candidates.find((u) => tokenMatches(token, u.verificationTokenHash));
+
+    if (!match) return done("invalid");
+    if (match.emailVerifiedAt) return done("already");
+    if (match.verificationExpiresAt && match.verificationExpiresAt < new Date()) {
+      return done("expired");
+    }
+
+    await prisma.user.update({ where: { id: match.id }, data: verifiedFields() });
+    return done("success");
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.get("/google", (req, res, next) => {
-  if (!googleEnabled) {
-    return res
-      .status(503)
-      .json({ error: "Google sign-in isn't configured on this server yet." });
-  }
-  passport.authenticate("google", { scope: ["profile", "email"] })(req, res, next);
-});
+// Re-issues a token for the signed-in account. Rate limited so it can't be used
+// to flood an inbox.
+router.post("/resend-verification", requireAuth, async (req, res, next) => {
+  try {
+    if (req.user.emailVerifiedAt) {
+      return res.json({ alreadyVerified: true });
+    }
+    if (!canResend(req.user)) {
+      return res.status(429).json({ error: "Please wait a moment before requesting another email." });
+    }
 
-router.get("/google/callback", (req, res, next) => {
-  if (!googleEnabled) {
-    return res.redirect(`${process.env.FRONTEND_URL}/?error=google_not_configured`);
+    const { token, data } = issueFields();
+    const user = await prisma.user.update({ where: { id: req.user.id }, data });
+    await sendVerificationLink(req, user, token);
+
+    return res.json({ sent: true });
+  } catch (err) {
+    next(err);
   }
-  passport.authenticate("google", {
-    failureRedirect: `${process.env.FRONTEND_URL}/?error=google`,
-  })(req, res, () => {
-    // A Google account supplies an email and a name but none of the enrolment
-    // answers, so new users land on the questionnaire rather than the
-    // dashboard.
-    res.redirect(`${process.env.FRONTEND_URL}${nextStepFor(req.user)}`);
-  });
 });
 
 module.exports = router;

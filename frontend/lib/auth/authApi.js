@@ -8,18 +8,30 @@ async function parseJson(res) {
   }
 }
 
-// Which social providers this server can actually complete a sign-in with, so
-// the pages don't offer a button that errors out.
-export async function fetchProviders() {
-  try {
-    const res = await fetch(`${API_URL}/auth/providers`, { credentials: "include" });
-    if (!res.ok) return {};
-    const data = await parseJson(res);
-    return data?.providers || {};
-  } catch {
-    // Offline or API down — offer email sign-in only rather than failing.
-    return {};
-  }
+// Confirms an address from the token in the emailed link. Needs no session —
+// the token is the proof — so it works even if the email is opened elsewhere.
+// Resolves to "success" | "already" | "expired" | "invalid".
+export async function verifyEmailToken(token) {
+  const res = await fetch(`${API_URL}/auth/verify-email`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ token }),
+  });
+  const data = await parseJson(res);
+  if (!res.ok) throw new Error(data?.error || "Could not confirm your email.");
+  return data?.status || "invalid";
+}
+
+// Asks for a fresh verification email for the signed-in account.
+export async function resendVerification() {
+  const res = await fetch(`${API_URL}/auth/resend-verification`, {
+    method: "POST",
+    credentials: "include",
+  });
+  const data = await parseJson(res);
+  if (!res.ok) throw new Error(data?.error || "Could not send the email.");
+  return data;
 }
 
 export async function fetchCurrentUser() {

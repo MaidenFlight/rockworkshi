@@ -3,7 +3,6 @@
 import Link from "next/link";
 import RockWorksIcon from "@/components/RockWorksIcon";
 import SignupWizard from "@/components/auth/SignupWizard";
-import SocialAuthButtons from "@/components/auth/SocialAuthButtons";
 
 export default function SignUp() {
   return (
@@ -31,9 +30,6 @@ export default function SignUp() {
         <SignupWizard mode="signup" />
 
         <div style={{ textAlign: "center", marginTop: 24 }}>
-          <div style={{ marginBottom: 14 }}>
-            <SocialAuthButtons action="Sign up" />
-          </div>
           <p style={{ margin: 0, fontSize: 13.5, color: "#7a6d78" }}>
             Already have an account?{" "}
             <Link href="/signin" style={{ color: "#cf3f20", fontWeight: 700, textDecoration: "none" }}>
