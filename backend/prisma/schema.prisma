@@ -33,8 +33,31 @@ model User {
   plan            String?
   status          String  @default("active")
 
+  // Set once enrolment is paid for. Currently written by the demo checkout;
+  // a real processor should set it from a verified webhook instead.
+  paidAt   DateTime?
+  payments Payment[]
+
   // Simple derived dashboard stats: { weeklyMinutes, weeklyGoal, streak, achievements: [] }
   practiceStats Json?
+}
+
+// One row per payment attempt. "provider" records what settled it — today only
+// "demo", so these rows are not evidence of money changing hands. Amounts are
+// integer cents to keep float rounding out of billing.
+model Payment {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan        String
+  description String?
+  amountCents Int
+  currency    String   @default("usd")
+  provider    String   @default("demo")
+  status      String   @default("paid")
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
 }
 
 // Shape required by @quixo3/prisma-session-store

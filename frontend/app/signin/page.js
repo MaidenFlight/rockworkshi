@@ -3,9 +3,10 @@
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { API_URL } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import RockWorksIcon from "@/components/RockWorksIcon";
+import SocialAuthButtons from "@/components/auth/SocialAuthButtons";
+import { nextEnrolmentStep, dashboardFor } from "@/lib/auth/enrolment";
 
 function isEmailValid(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
@@ -39,7 +40,11 @@ function SignInForm() {
       const user = await signIn(email.trim(), password);
       setSuccess(true);
       const next = searchParams.get("next");
-      const dest = next && next.startsWith("/") ? next : user.isAdmin ? "/admin" : "/member";
+      // An unfinished enrolment outranks ?next — the guard would bounce them
+      // there anyway, and going straight there avoids a visible double redirect.
+      const dest =
+        nextEnrolmentStep(user) ||
+        (next && next.startsWith("/") ? next : dashboardFor(user));
       setTimeout(() => router.push(dest), 500);
     } catch (err) {
       setError(err.message || "Something went wrong.");
@@ -111,9 +116,9 @@ function SignInForm() {
                 {submitting ? "Signing in…" : "Sign in"}
               </button>
 
-              <a href={`${API_URL}/auth/google`} style={{ display: "block", marginTop: 12 }}>
-                <span style={googleButtonStyle}>Sign in with Google</span>
-              </a>
+              <div style={{ marginTop: 12 }}>
+                <SocialAuthButtons action="Sign in" />
+              </div>
 
               <p style={{ margin: "18px 2px 0", fontSize: 13.5, color: "#7a6d78" }}>
                 No account yet?{" "}
@@ -173,18 +178,4 @@ const ctaButtonStyle = {
   cursor: "pointer",
   background: "linear-gradient(135deg,#ef5130,#cf3f20)",
   boxShadow: "0 12px 26px -12px #ef5130",
-};
-
-const googleButtonStyle = {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  width: "100%",
-  padding: "13px 22px",
-  borderRadius: 999,
-  fontWeight: 700,
-  fontSize: 14.5,
-  color: "#33454f",
-  border: "1px solid #d8cab8",
-  cursor: "pointer",
 };

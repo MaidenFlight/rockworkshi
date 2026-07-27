@@ -8,6 +8,20 @@ async function parseJson(res) {
   }
 }
 
+// Which social providers this server can actually complete a sign-in with, so
+// the pages don't offer a button that errors out.
+export async function fetchProviders() {
+  try {
+    const res = await fetch(`${API_URL}/auth/providers`, { credentials: "include" });
+    if (!res.ok) return {};
+    const data = await parseJson(res);
+    return data?.providers || {};
+  } catch {
+    // Offline or API down — offer email sign-in only rather than failing.
+    return {};
+  }
+}
+
 export async function fetchCurrentUser() {
   const res = await fetch(`${API_URL}/auth/me`, { credentials: "include" });
   if (!res.ok) return null;

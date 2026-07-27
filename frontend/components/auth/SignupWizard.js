@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { destinationFor } from "@/lib/auth/enrolment";
 import { INSTRUMENT_NAMES, EXPERIENCE_OPTIONS, LEVEL_OPTIONS, PLANS, STEP_LABELS } from "@/lib/auth/signupOptions";
 
 function isEmailValid(email) {
@@ -53,6 +54,7 @@ export default function SignupWizard({ mode }) {
   const [submitError, setSubmitError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [nextHref, setNextHref] = useState(null);
 
   function set(key, value) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -98,8 +100,11 @@ export default function SignupWizard({ mode }) {
       } else {
         nextUser = await updateProfile(profile);
       }
+      // Answers are in — checkout is normally what's left.
+      const dest = destinationFor(nextUser);
+      setNextHref(dest);
       setSuccess(true);
-      setTimeout(() => router.push(nextUser.isAdmin ? "/admin" : "/member"), 600);
+      setTimeout(() => router.push(dest), 600);
     } catch (err) {
       setSubmitError(err.message || "Something went wrong.");
       setSubmitting(false);
@@ -113,7 +118,9 @@ export default function SignupWizard({ mode }) {
         <h2 style={{ fontFamily: "var(--font-zilla-slab), serif", fontWeight: 600, fontSize: 26, margin: "0 0 10px", color: "#0a2338" }}>
           {mode === "signup" ? "You're signed up!" : "You're all set!"}
         </h2>
-        <p style={{ margin: 0, fontSize: 15.5, color: "#5f6f79" }}>Taking you to your dashboard…</p>
+        <p style={{ margin: 0, fontSize: 15.5, color: "#5f6f79" }}>
+          {nextHref === "/onboarding/payment" ? "Taking you to checkout…" : "Taking you to your dashboard…"}
+        </p>
       </div>
     );
   }
@@ -273,7 +280,7 @@ export default function SignupWizard({ mode }) {
               </div>
             ))}
             <p style={{ margin: "16px 0 0", fontSize: 13.5, lineHeight: 1.55, color: "#a3927f" }}>
-              We don&apos;t collect card details here — once you submit, we&apos;ll follow up to set up secure payment.
+              You&apos;ll see your total on the next step before anything is confirmed.
             </p>
           </div>
         )}

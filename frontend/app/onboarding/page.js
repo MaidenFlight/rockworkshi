@@ -6,17 +6,19 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import RockWorksIcon from "@/components/RockWorksIcon";
 import SignupWizard from "@/components/auth/SignupWizard";
 import { useAuth } from "@/contexts/AuthContext";
-import { ROLES } from "@/lib/auth/roles";
+import { destinationFor } from "@/lib/auth/enrolment";
 
 function OnboardingContent() {
-  const { user, role } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
+    // Questions already answered — move on to whatever is still outstanding
+    // (checkout, normally) rather than assuming the dashboard.
     if (user?.profileComplete) {
-      router.replace(role === ROLES.ADMINISTRATOR ? "/admin" : "/member");
+      router.replace(destinationFor(user));
     }
-  }, [user, role, router]);
+  }, [user, router]);
 
   if (user?.profileComplete) return null;
 
@@ -34,7 +36,9 @@ function OnboardingContent() {
             Finish setting up your account
           </h1>
           <p style={{ margin: "14px 0 0", fontSize: 15.5, color: "rgba(255,245,236,0.82)" }}>
-            You signed in with Google — just a few quick questions so we can build your curriculum.
+            {user?.googleId
+              ? "You signed in with Google — just a few quick questions so we can build your curriculum."
+              : "Just a few quick questions so we can build your curriculum."}
           </p>
         </div>
         <div style={{ lineHeight: 0 }}>
@@ -53,7 +57,8 @@ function OnboardingContent() {
 
 export default function Onboarding() {
   return (
-    <ProtectedRoute>
+    // requireEnrolment={false}: this page *is* one of the enrolment steps.
+    <ProtectedRoute requireEnrolment={false}>
       <OnboardingContent />
     </ProtectedRoute>
   );
