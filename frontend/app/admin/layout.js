@@ -25,8 +25,8 @@ export default function AdminLayout({ children }) {
 
   return (
     <ProtectedRoute allow={[ROLES.ADMINISTRATOR]}>
-      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 24px 100px", display: "flex", gap: 32 }}>
-        <nav style={{ width: 200, flexShrink: 0 }}>
+      <div className="rw-admin-shell" style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 24px 100px", display: "flex", gap: 32 }}>
+        <nav className="rw-admin-nav" style={{ width: 200, flexShrink: 0 }}>
           <div style={{ fontWeight: 700, fontSize: 12, letterSpacing: "0.1em", textTransform: "uppercase", color: "#0e8a97", marginBottom: 14 }}>
             Admin
           </div>

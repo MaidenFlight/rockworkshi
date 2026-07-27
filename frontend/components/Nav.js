@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { primaryNav } from "@/lib/content";
@@ -177,7 +178,10 @@ export default function Nav() {
         </nav>
       </div>
 
-      {mobileOpen && (
+      {/* Portalled to <body>: the header's backdrop-filter creates a containing
+          block for fixed-position descendants, which would otherwise clip this
+          drawer and its overlay to the height of the header itself. */}
+      {mobileOpen && createPortal(
         <>
           <div
             style={{ position: "fixed", inset: 0, zIndex: 70, background: "rgba(6,25,45,0.4)" }}
@@ -320,7 +324,8 @@ export default function Nav() {
               )}
             </div>
           </div>
-        </>
+        </>,
+        document.body
       )}
     </header>
   );

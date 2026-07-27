@@ -43,7 +43,7 @@ export default function MemberDashboard() {
       </h1>
       <p style={{ color: "#6a6560", marginBottom: 36 }}>Pick up where you left off, or grab a practice tool.</p>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 14, marginBottom: 44 }}>
+      <div className="rw-cols-5" style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 14, marginBottom: 44 }}>
         {TOOLS.map((tool) => (
           <Link
             key={tool.name}
@@ -67,10 +67,10 @@ export default function MemberDashboard() {
         ))}
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 32 }}>
+      <div className="rw-featured-grid" style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 32 }}>
         <div>
           <h2 style={{ fontWeight: 600, fontSize: 20, color: "#0a2338", marginBottom: 16 }}>Your lessons</h2>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 16 }}>
+          <div className="rw-cols-2" style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 16 }}>
             {lessons.map((lesson) => (
               <Link
                 key={lesson.id}
