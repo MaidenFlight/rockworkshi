@@ -352,16 +352,35 @@ export default function VideoPlayer({ lesson }) {
                 {fmtT(currentTime)} / {fmtT(duration)}
               </span>
               <span style={{ flex: 1 }} />
-              {SPEEDS.map((s) => (
-                <button
-                  key={s}
-                  onClick={() => vpSetSpeed(s)}
-                  style={{ ...iconBtn, background: speed === s ? "#ef5130" : "transparent", color: "#fff", fontSize: 11 }}
-                >
-                  {s}x
-                </button>
-              ))}
+              {/* One row of speed pills is too wide for a phone, so it gives way
+                  to a native picker — which also gets the OS wheel on mobile. */}
+              <div className="rw-vp-speeds" style={{ display: "flex", gap: 12 }}>
+                {SPEEDS.map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => vpSetSpeed(s)}
+                    style={{ ...iconBtn, background: speed === s ? "#ef5130" : "transparent", color: "#fff", fontSize: 11 }}
+                  >
+                    {s}x
+                  </button>
+                ))}
+              </div>
+              <select
+                className="rw-vp-speed-select"
+                aria-label="Playback speed"
+                value={speed}
+                onChange={(e) => vpSetSpeed(Number(e.target.value))}
+                style={{ ...iconBtn, background: "transparent", color: "#fff", fontFamily: "inherit" }}
+              >
+                {SPEEDS.map((s) => (
+                  <option key={s} value={s} style={{ color: "#0a2338" }}>
+                    {s}x
+                  </option>
+                ))}
+              </select>
+              {/* Phones have hardware volume, and Mute is still here. */}
               <input
+                className="rw-vp-volume"
                 type="range"
                 min={0}
                 max={1}

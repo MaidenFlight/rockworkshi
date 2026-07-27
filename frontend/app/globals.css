@@ -130,6 +130,12 @@ h3 {
   display: none;
 }
 
+/* The video player swaps its row of speed pills for a native picker on narrow
+   screens, where the full row doesn't fit. See the 720px block below. */
+.rw-vp-speed-select {
+  display: none;
+}
+
 @media (max-width: 860px) {
   .rw-hero-grid {
     grid-template-columns: 1fr !important;
@@ -180,6 +186,13 @@ h3 {
   }
   .rw-admin-nav a {
     margin-bottom: 0 !important;
+  }
+  .rw-vp-speeds,
+  .rw-vp-volume {
+    display: none !important;
+  }
+  .rw-vp-speed-select {
+    display: block !important;
   }
 }
 
