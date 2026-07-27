@@ -1,37 +1,151 @@
-// Outbound email. No provider is wired up yet, so messages are written to the
-// server log instead of being sent — enough to click through the verification
-// link in development.
-//
-// To send for real, add a provider here (Resend/SendGrid/SMTP via nodemailer)
-// and have it take over when its credentials are present. Everything else calls
-// sendMail() and doesn't care which path ran.
-const EMAIL_CONFIGURED = false;
+const nodemailer = require("nodemailer");
 
-async function sendMail({ to, subject, text }) {
-  if (!EMAIL_CONFIGURED) {
+// Outbound email over SMTP, which every provider speaks — Gmail, Resend,
+// SendGrid, Mailgun, Postmark — so switching is a config change, not a rewrite.
+// See .env.example for the settings.
+//
+// With nothing configured, development falls back to an Ethereal mailbox: a
+// disposable inbox nodemailer provisions on demand. The message is genuinely
+// sent and rendered, and the log prints a URL to view it — much closer to the
+// real thing than printing the body to a terminal. Nothing reaches a real
+// address that way, so production refuses to start a fallback and reports the
+// misconfiguration instead.
+const FROM = process.env.MAIL_FROM || "Rock Works School of Music <aloha@rockworks.music>";
+const SMTP_HOST = process.env.SMTP_HOST;
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
+
+let transportPromise = null;
+
+function smtpConfigured() {
+  return Boolean(SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
+}
+
+async function buildTransport() {
+  if (smtpConfigured()) {
+    const port = Number(process.env.SMTP_PORT || 587);
+    const transport = nodemailer.createTransport({
+      host: SMTP_HOST,
+      port,
+      // 465 is implicit TLS; 587 and 25 upgrade with STARTTLS.
+      secure: port === 465,
+      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+    });
+    return { transport, kind: "smtp" };
+  }
+
+  if (IS_PRODUCTION) {
+    throw new Error(
+      "No SMTP configured. Set SMTP_HOST, SMTP_USER and SMTP_PASS to send email."
+    );
+  }
+
+  const test = await nodemailer.createTestAccount();
+  const transport = nodemailer.createTransport({
+    host: test.smtp.host,
+    port: test.smtp.port,
+    secure: test.smtp.secure,
+    auth: { user: test.user, pass: test.pass },
+  });
+  return { transport, kind: "ethereal" };
+}
+
+function getTransport() {
+  // Built once and reused; a failure isn't cached, so fixing the config and
+  // retrying works without a restart.
+  if (!transportPromise) {
+    transportPromise = buildTransport().catch((err) => {
+      transportPromise = null;
+      throw err;
+    });
+  }
+  return transportPromise;
+}
+
+async function sendMail({ to, subject, text, html }) {
+  const { transport, kind } = await getTransport();
+  const info = await transport.sendMail({ from: FROM, to, subject, text, html });
+
+  if (kind === "ethereal") {
+    const preview = nodemailer.getTestMessageUrl(info);
     console.log(
       [
         "",
         "──────────────────────────────────────────────────────────",
-        " EMAIL NOT CONFIGURED — logging instead of sending",
+        " Sent to a disposable Ethereal inbox (no SMTP configured).",
         ` To:      ${to}`,
         ` Subject: ${subject}`,
-        "",
-        text,
+        ` View it: ${preview}`,
         "──────────────────────────────────────────────────────────",
         "",
       ].join("\n")
     );
-    return { delivered: false, logged: true };
+    return { delivered: true, preview, kind };
   }
 
-  throw new Error("No email provider configured.");
+  console.log(`Email sent to ${to} (${subject})`);
+  return { delivered: true, kind };
+}
+
+function layout({ heading, lines, button, footer }) {
+  // Inline styles and a table shell: email clients strip <style> blocks and
+  // have patchy flexbox support.
+  const body = lines
+    .map(
+      (line) =>
+        `<p style="margin:0 0 14px;font-size:15px;line-height:1.6;color:#33454f;">${line}</p>`
+    )
+    .join("");
+
+  return `<!doctype html>
+<html>
+  <body style="margin:0;padding:0;background:#fbf5ec;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#fbf5ec;padding:32px 12px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#fffdf9;border:1px solid #ece0d5;border-radius:16px;overflow:hidden;">
+            <tr>
+              <td style="background:linear-gradient(135deg,#06192d,#0b3a4c 70%,#0e5561);padding:28px 32px;">
+                <div style="font-family:Georgia,'Times New Roman',serif;font-size:22px;font-weight:700;color:#ffffff;">Rock Works</div>
+                <div style="font-size:11px;letter-spacing:0.22em;text-transform:uppercase;color:#7fd3dd;margin-top:4px;">School of Music</div>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:32px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+                <h1 style="margin:0 0 16px;font-family:Georgia,'Times New Roman',serif;font-size:24px;font-weight:600;color:#0a2338;">${heading}</h1>
+                ${body}
+                ${
+                  button
+                    ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0 8px;">
+                         <tr><td style="border-radius:999px;background:#ef5130;">
+                           <a href="${button.href}" style="display:inline-block;padding:14px 30px;font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:999px;">${button.label}</a>
+                         </td></tr>
+                       </table>
+                       <p style="margin:16px 0 0;font-size:12.5px;line-height:1.55;color:#8a7d6a;">If the button doesn't work, paste this into your browser:<br><a href="${button.href}" style="color:#0e8a97;word-break:break-all;">${button.href}</a></p>`
+                    : ""
+                }
+                ${
+                  footer
+                    ? `<p style="margin:24px 0 0;padding-top:18px;border-top:1px solid #ece0d5;font-size:12.5px;line-height:1.55;color:#a3927f;">${footer}</p>`
+                    : ""
+                }
+              </td>
+            </tr>
+          </table>
+          <div style="max-width:520px;margin:16px auto 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:11.5px;color:#a3927f;">
+            Rock Works School of Music &middot; Honolulu, Hawaii &middot; Est. 1982
+          </div>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
 }
 
 function verificationEmail({ to, link }) {
   return sendMail({
     to,
     subject: "Confirm your email — Rock Works School of Music",
+    // Plain-text alternative, for clients that don't render HTML.
     text: [
       "Welcome to Rock Works!",
       "",
@@ -40,7 +154,17 @@ function verificationEmail({ to, link }) {
       "",
       "The link is good for 24 hours. If you didn't sign up, ignore this email.",
     ].join("\n"),
+    html: layout({
+      heading: "Confirm your email",
+      lines: [
+        "Welcome to Rock Works! You're one click away from finishing your sign-up.",
+        "Confirm your email address and we'll take you through to choosing your plan.",
+      ],
+      button: { href: link, label: "Confirm my email" },
+      footer:
+        "This link is good for 24 hours. If you didn't sign up for Rock Works, you can ignore this email.",
+    }),
   });
 }
 
-module.exports = { sendMail, verificationEmail, EMAIL_CONFIGURED };
+module.exports = { sendMail, verificationEmail, smtpConfigured };
