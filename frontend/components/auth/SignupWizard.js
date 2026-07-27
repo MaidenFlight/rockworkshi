@@ -119,7 +119,11 @@ export default function SignupWizard({ mode }) {
           {mode === "signup" ? "You're signed up!" : "You're all set!"}
         </h2>
         <p style={{ margin: 0, fontSize: 15.5, color: "#5f6f79" }}>
-          {nextHref === "/onboarding/payment" ? "Taking you to checkout…" : "Taking you to your dashboard…"}
+          {nextHref === "/verify-email"
+            ? "Check your inbox to confirm your email…"
+            : nextHref === "/onboarding/payment"
+            ? "Taking you to checkout…"
+            : "Taking you to your dashboard…"}
         </p>
       </div>
     );

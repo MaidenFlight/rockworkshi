@@ -36,9 +36,7 @@ function OnboardingContent() {
             Finish setting up your account
           </h1>
           <p style={{ margin: "14px 0 0", fontSize: 15.5, color: "rgba(255,245,236,0.82)" }}>
-            {user?.googleId
-              ? "You signed in with Google — just a few quick questions so we can build your curriculum."
-              : "Just a few quick questions so we can build your curriculum."}
+            Just a few quick questions so we can build your curriculum.
           </p>
         </div>
         <div style={{ lineHeight: 0 }}>

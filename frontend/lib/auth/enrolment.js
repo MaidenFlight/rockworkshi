@@ -7,6 +7,7 @@ export function nextEnrolmentStep(user) {
   if (!user) return null;
   // Admins run the school rather than enrol in it.
   if (user.isAdmin) return null;
+  if (!user.emailVerified) return "/verify-email";
   if (!user.profileComplete) return "/onboarding";
   if (!user.paymentComplete) return "/onboarding/payment";
   return null;

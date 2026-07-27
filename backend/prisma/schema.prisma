@@ -12,11 +12,22 @@ datasource db {
 }
 
 model User {
-  id           String   @id @default(uuid())
-  email        String   @unique
-  passwordHash String?
-  googleId     String?  @unique
-  createdAt    DateTime @default(now())
+  id String @id @default(uuid())
+
+  // Email and password are the only way in, so every account must have both.
+  email        String @unique
+  passwordHash String
+
+  // Null until the address is confirmed. Unverified accounts can sign in but
+  // are held at the "check your inbox" step by nextStepFor().
+  emailVerifiedAt DateTime?
+  // Sha-256 of the emailed token, never the token itself — a leaked table
+  // shouldn't let someone else confirm an address.
+  verificationTokenHash String?
+  verificationSentAt    DateTime?
+  verificationExpiresAt DateTime?
+
+  createdAt DateTime @default(now())
 
   // Student profile (filled in at signup / editable by admin)
   name            String?

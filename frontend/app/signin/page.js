@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import RockWorksIcon from "@/components/RockWorksIcon";
-import SocialAuthButtons from "@/components/auth/SocialAuthButtons";
 import { nextEnrolmentStep, dashboardFor } from "@/lib/auth/enrolment";
 
 function isEmailValid(email) {
@@ -116,9 +115,6 @@ function SignInForm() {
                 {submitting ? "Signing in…" : "Sign in"}
               </button>
 
-              <div style={{ marginTop: 12 }}>
-                <SocialAuthButtons action="Sign in" />
-              </div>
 
               <p style={{ margin: "18px 2px 0", fontSize: 13.5, color: "#7a6d78" }}>
                 No account yet?{" "}
