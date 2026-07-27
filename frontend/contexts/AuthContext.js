@@ -43,6 +43,13 @@ export function AuthProvider({ children }) {
         setUser(serverUser);
         writeCachedUser(serverUser);
       })
+      .catch(() => {
+        // A rejection here means the request never completed (API down,
+        // device offline, DNS/CORS) — not that the session is invalid, which
+        // comes back as a null user instead. Leave any cached user in place
+        // so a dropped connection doesn't look like a sign-out; the next
+        // mount re-checks against the cookie.
+      })
       .finally(() => {
         if (!cancelled) setIsLoading(false);
       });
