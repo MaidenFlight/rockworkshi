@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { changePassword } from "@/lib/auth/authApi";
 
 export default function AccountSettings() {
   const { user, updateProfile } = useAuth();
@@ -65,7 +66,105 @@ export default function AccountSettings() {
           {submitting ? "Saving…" : "Save changes"}
         </button>
       </form>
+
+      <ChangePasswordForm />
     </div>
+  );
+}
+
+function ChangePasswordForm() {
+  const [current, setCurrent] = useState("");
+  const [next, setNext] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [error, setError] = useState("");
+  const [done, setDone] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setError("");
+    setDone(false);
+
+    if (next.length < 8) {
+      setError("Your new password must be at least 8 characters.");
+      return;
+    }
+    if (next !== confirm) {
+      setError("Those passwords don't match.");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await changePassword(current, next);
+      setDone(true);
+      setCurrent("");
+      setNext("");
+      setConfirm("");
+    } catch (err) {
+      setError(err.message || "Could not change your password.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      style={{ background: "#fffdf9", border: "1px solid #ece0d5", borderRadius: 14, padding: 28, marginTop: 24 }}
+    >
+      <h2 style={{ fontWeight: 600, fontSize: 20, color: "#0a2338", margin: "0 0 4px" }}>Change password</h2>
+      <p style={{ margin: "0 0 18px", fontSize: 13.5, color: "#8a7d6a" }}>
+        You&apos;ll stay signed in here. Any other devices will be signed out.
+      </p>
+
+      <label style={fieldLabelStyle}>
+        Current password
+        <input
+          type="password"
+          value={current}
+          onChange={(e) => setCurrent(e.target.value)}
+          style={inputStyle}
+          autoComplete="current-password"
+        />
+      </label>
+      <label style={{ ...fieldLabelStyle, marginTop: 16 }}>
+        New password
+        <input
+          type="password"
+          value={next}
+          onChange={(e) => setNext(e.target.value)}
+          style={inputStyle}
+          placeholder="At least 8 characters"
+          autoComplete="new-password"
+        />
+      </label>
+      <label style={{ ...fieldLabelStyle, marginTop: 16 }}>
+        Confirm new password
+        <input
+          type="password"
+          value={confirm}
+          onChange={(e) => setConfirm(e.target.value)}
+          style={inputStyle}
+          autoComplete="new-password"
+        />
+      </label>
+
+      {error && (
+        <p role="alert" style={{ margin: "14px 2px 0", fontSize: 13.5, color: "#cf3f20" }}>
+          {error}
+        </p>
+      )}
+      {done && (
+        <p role="status" style={{ margin: "14px 2px 0", fontSize: 13.5, color: "#0e8a97", fontWeight: 700 }}>
+          Password changed. We&apos;ve emailed you to confirm.
+        </p>
+      )}
+
+      <button type="submit" disabled={submitting} className="rw-cta" style={ctaButtonStyle}>
+        {submitting ? "Changing…" : "Change password"}
+      </button>
+    </form>
   );
 }
 

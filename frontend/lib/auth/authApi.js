@@ -23,6 +23,44 @@ export async function verifyEmailToken(token) {
   return data?.status || "invalid";
 }
 
+export async function changePassword(currentPassword, newPassword) {
+  const res = await fetch(`${API_URL}/auth/change-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });
+  const data = await parseJson(res);
+  if (!res.ok) throw new Error(data?.error || "Could not change your password.");
+  return data;
+}
+
+// Starts a reset. Answers the same way whether or not the address is
+// registered, so the caller can't use it to discover who has an account.
+export async function requestPasswordReset(email) {
+  const res = await fetch(`${API_URL}/auth/forgot-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ email }),
+  });
+  const data = await parseJson(res);
+  if (!res.ok) throw new Error(data?.error || "Could not send the email.");
+  return data;
+}
+
+export async function resetPassword(token, newPassword) {
+  const res = await fetch(`${API_URL}/auth/reset-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ token, newPassword }),
+  });
+  const data = await parseJson(res);
+  if (!res.ok) throw new Error(data?.error || "Could not reset your password.");
+  return data;
+}
+
 // Asks for a fresh verification email for the signed-in account.
 export async function resendVerification() {
   const res = await fetch(`${API_URL}/auth/resend-verification`, {

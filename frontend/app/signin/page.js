@@ -115,15 +115,17 @@ function SignInForm() {
                 {submitting ? "Signing in…" : "Sign in"}
               </button>
 
+              <p style={{ margin: "16px 2px 0", fontSize: 13.5, textAlign: "center" }}>
+                <Link href="/forgot-password" style={{ color: "#0e8a97", fontWeight: 700, textDecoration: "none" }}>
+                  Forgot your password?
+                </Link>
+              </p>
 
               <p style={{ margin: "18px 2px 0", fontSize: 13.5, color: "#7a6d78" }}>
                 No account yet?{" "}
                 <Link href="/signup" style={{ color: "#cf3f20", fontWeight: 700, textDecoration: "none" }}>
                   Sign up here.
                 </Link>
-              </p>
-              <p style={{ margin: "10px 2px 0", fontSize: 12.5, color: "#a3927f" }}>
-                Demo student login: student@rockworks.com / demo123
               </p>
             </form>
           )}
