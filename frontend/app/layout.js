@@ -9,21 +9,19 @@ import { AuthProvider } from "@/contexts/AuthContext";
 // when it couldn't. The files are the same latin-subset woff2 Google was
 // serving, so rendering is unchanged.
 //
-// Zilla Slab has no variable version, hence one file per weight and style.
+// Zilla Slab has no variable version, so it's one file per weight and style —
+// and every one is preloaded, so only the faces actually used are listed.
+// Headings use 500, 600 and 700 (an h1/h2/h3 with no weight renders at the UA
+// default bold); the single italic is the home hero's "From day one." em.
+// Re-add a face here, with its woff2, if a design starts using one.
 const zillaSlab = localFont({
   variable: "--font-zilla-slab",
   display: "swap",
   src: [
-    { path: "./fonts/zilla-slab-300.woff2", weight: "300", style: "normal" },
-    { path: "./fonts/zilla-slab-300-italic.woff2", weight: "300", style: "italic" },
-    { path: "./fonts/zilla-slab-400.woff2", weight: "400", style: "normal" },
-    { path: "./fonts/zilla-slab-400-italic.woff2", weight: "400", style: "italic" },
     { path: "./fonts/zilla-slab-500.woff2", weight: "500", style: "normal" },
-    { path: "./fonts/zilla-slab-500-italic.woff2", weight: "500", style: "italic" },
     { path: "./fonts/zilla-slab-600.woff2", weight: "600", style: "normal" },
     { path: "./fonts/zilla-slab-600-italic.woff2", weight: "600", style: "italic" },
     { path: "./fonts/zilla-slab-700.woff2", weight: "700", style: "normal" },
-    { path: "./fonts/zilla-slab-700-italic.woff2", weight: "700", style: "italic" },
   ],
 });
 
