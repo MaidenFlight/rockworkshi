@@ -1,3 +1,7 @@
 node_modules
-# Keep environment variables out of version control
+# Keep environment variables out of version control. The glob matters: a bare
+# ".env" line would not cover .env.neon, .env.production or an editor's .env.bak,
+# any of which would carry live credentials into the repo.
 .env
+.env.*
+!.env.example

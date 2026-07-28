@@ -50,8 +50,8 @@ const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || "").trim().toLowerCase();
 
 function toSafeUser(user) {
   if (!user) return null;
-  // Never leave the password hash or the verification token on a response.
-  const { passwordHash, verificationTokenHash, ...safe } = user;
+  // Never leave the password hash or either token on a response.
+  const { passwordHash, verificationTokenHash, resetTokenHash, ...safe } = user;
   const isAdmin = Boolean(ADMIN_EMAIL) && user.email === ADMIN_EMAIL;
   return {
     ...safe,
@@ -301,29 +301,39 @@ router.post("/forgot-password", async (req, res, next) => {
 
   if (!isEmailValid(email)) return sameAnswer();
 
+  let user;
   try {
-    const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) return sameAnswer();
-    // Silently ignore a rapid repeat rather than reporting the rate limit,
-    // which would itself confirm the address exists.
-    if (!cooledDown(user.resetSentAt)) return sameAnswer();
+    user = await prisma.user.findUnique({ where: { email } });
+  } catch (err) {
+    return next(err);
+  }
 
-    const { token, data } = issueReset();
-    await prisma.user.update({ where: { id: user.id }, data });
+  // Answer here, before anything that only happens for a real account. The
+  // identical response body is wasted if a registered address takes 2s to
+  // answer and an unregistered one takes 5ms — the clock leaks what the body
+  // hides. Both paths now cost one lookup and nothing more.
+  sameAnswer();
 
-    try {
-      await passwordResetEmail({
+  if (!user) return;
+  // Silently ignore a rapid repeat rather than reporting the rate limit,
+  // which would itself confirm the address exists.
+  if (!cooledDown(user.resetSentAt)) return;
+
+  const { token, data } = issueReset();
+  // The token has to be stored before the mail goes out, or the link in it
+  // would be checked against nothing. Nothing left to tell the client by this
+  // point, and an unhandled rejection here would take the process down.
+  prisma.user
+    .update({ where: { id: user.id }, data })
+    .then(() =>
+      passwordResetEmail({
         to: user.email,
         link: `${appOriginFor(req)}/reset-password?token=${token}`,
-      });
-    } catch (err) {
+      })
+    )
+    .catch((err) => {
       console.error("Could not send password reset email:", err.message);
-    }
-
-    return sameAnswer();
-  } catch (err) {
-    next(err);
-  }
+    });
 });
 
 // Finishes a reset. The token is the only proof needed, so this works signed
