@@ -29,6 +29,16 @@ async function buildTransport() {
       // 465 is implicit TLS; 587 and 25 upgrade with STARTTLS.
       secure: port === 465,
       auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+      // Fail fast when the port is unreachable. Nodemailer's defaults are two
+      // minutes to connect and ten of socket inactivity, and a host that drops
+      // SMTP packets rather than refusing them burns the whole budget: signup
+      // awaits this send, so the person watches a spinner for minutes before
+      // the error is logged and the request finally completes. Some hosts block
+      // outbound 587 outright — Render does — so this is a configuration
+      // mistake worth surfacing in seconds.
+      connectionTimeout: 10_000,
+      greetingTimeout: 10_000,
+      socketTimeout: 20_000,
     });
     return { transport, kind: "smtp" };
   }
