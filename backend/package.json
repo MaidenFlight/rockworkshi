@@ -16,6 +16,10 @@
   "author": "",
   "license": "ISC",
   "type": "commonjs",
+  "//engines": "Pinned so Render builds on the same major we develop on. bcrypt is a native module and installs a prebuilt binary per Node major; letting the host pick its own default is how you get a build that works here and fails there.",
+  "engines": {
+    "node": "24.x"
+  },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
