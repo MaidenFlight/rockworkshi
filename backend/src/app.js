@@ -12,6 +12,14 @@ const billingRoutes = require("./routes/billing.routes");
 
 const app = express();
 
+// Render terminates HTTPS at its proxy and forwards plain HTTP to us, so
+// req.secure is false unless we trust the X-Forwarded-Proto header it sets.
+// Without this, express-session declines to send the `secure` session cookie in
+// production and every sign-in fails with no error to show for it.
+if (process.env.NODE_ENV === "production") {
+  app.set("trust proxy", 1);
+}
+
 // In development the frontend is reached from whatever host the browser used —
 // localhost on this machine, or the machine's LAN IP when testing on a phone.
 // That IP is a DHCP lease and changes, so match the private ranges rather than
@@ -44,6 +52,12 @@ app.use(
     }),
     cookie: {
       httpOnly: true,
+      // "lax" holds only because the API is deployed as a subdomain of the site
+      // it serves (api.rockworksschoolofmusichawaii.com next to the apex), which
+      // makes the cookie same-site. Move the API to a different domain — an
+      // onrender.com URL, say — and the browser stops sending this on fetch()
+      // and every request looks signed out. That would need sameSite "none",
+      // which Safari blocks by default; keeping the subdomain avoids it.
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
       maxAge: 7 * 24 * 60 * 60 * 1000,
