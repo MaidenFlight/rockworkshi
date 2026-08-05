@@ -27,6 +27,7 @@ async function main() {
   console.log(`  user      ${user || "(not set)"}`);
   console.log(`  pass      ${mask(pass)}`);
   console.log(`  from      ${process.env.MAIL_FROM || "(default)"}`);
+  console.log(`  reply-to  ${process.env.MAIL_REPLY_TO ?? "(default)"}`);
   console.log("");
 
   if (!host || !user || !pass) {

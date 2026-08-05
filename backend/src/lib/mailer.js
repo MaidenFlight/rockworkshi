@@ -10,7 +10,20 @@ const nodemailer = require("nodemailer");
 // real thing than printing the body to a terminal. Nothing reaches a real
 // address that way, so production refuses to start a fallback and reports the
 // misconfiguration instead.
-const FROM = process.env.MAIL_FROM || "Rock Works School of Music <aloha@rockworks.music>";
+// Resend will send from any address on the verified domain, whether or not a
+// mailbox exists there — so this is deliberately the one that does exist, to
+// keep every address a reader sees pointing at a real inbox.
+const FROM =
+  process.env.MAIL_FROM ||
+  "Rock Works School of Music <denny.landika@rockworksschoolofmusichawaii.com>";
+// Verifying a sending domain does not create a mailbox on it, so an address in
+// FROM can send while nothing receives there — someone hitting Reply would get a
+// bounce. Setting this explicitly keeps replies working even if FROM later moves
+// to an address that only sends. Set MAIL_REPLY_TO to an empty string to send no
+// Reply-To at all, and the copy below drops its "contact us" clause rather than
+// printing a dead address.
+const REPLY_TO =
+  process.env.MAIL_REPLY_TO ?? "denny.landika@rockworksschoolofmusichawaii.com";
 const SMTP_HOST = process.env.SMTP_HOST;
 const IS_PRODUCTION = process.env.NODE_ENV === "production";
 
@@ -73,7 +86,14 @@ function getTransport() {
 
 async function sendMail({ to, subject, text, html }) {
   const { transport, kind } = await getTransport();
-  const info = await transport.sendMail({ from: FROM, to, subject, text, html });
+  const info = await transport.sendMail({
+    from: FROM,
+    ...(REPLY_TO ? { replyTo: REPLY_TO } : {}),
+    to,
+    subject,
+    text,
+    html,
+  });
 
   if (kind === "ethereal") {
     const preview = nodemailer.getTestMessageUrl(info);
@@ -204,6 +224,8 @@ function passwordResetEmail({ to, link }) {
 }
 
 // Sent after the fact, so someone who didn't make the change hears about it.
+// This is the one message whose reader may need to reach a human urgently, so
+// it names the contact address — but only when one is actually configured.
 function passwordChangedEmail({ to }) {
   return sendMail({
     to,
@@ -212,7 +234,9 @@ function passwordChangedEmail({ to }) {
       "The password on your Rock Works account was just changed.",
       "",
       "If that was you, there's nothing to do.",
-      "If it wasn't, reset your password immediately and contact us at aloha@rockworks.music.",
+      REPLY_TO
+        ? `If it wasn't, reset your password immediately and contact us at ${REPLY_TO}.`
+        : "If it wasn't, reset your password immediately.",
     ].join("\n"),
     html: layout({
       heading: "Your password was changed",
@@ -220,8 +244,9 @@ function passwordChangedEmail({ to }) {
         "The password on your Rock Works account was just changed.",
         "If that was you, there's nothing to do here.",
       ],
-      footer:
-        "If this wasn't you, reset your password straight away and let us know at aloha@rockworks.music.",
+      footer: REPLY_TO
+        ? `If this wasn't you, reset your password straight away and let us know at <a href="mailto:${REPLY_TO}" style="color:#0e8a97;">${REPLY_TO}</a>.`
+        : "If this wasn't you, reset your password straight away.",
     }),
   });
 }
