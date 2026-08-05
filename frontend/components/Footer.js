@@ -77,7 +77,23 @@ export default function Footer() {
             </div>
             <p style={{ margin: "0 0 5px", fontSize: 14 }}>Honolulu, Hawaii</p>
             <p style={{ margin: "0 0 5px", fontSize: 14 }}>Est. 1982</p>
-            <p style={{ margin: 0, fontSize: 14 }}>aloha@rockworks.music</p>
+            {/* The one mailbox that exists on the domain. A generic alias like
+                aloha@ would read better here and would survive a change of
+                inbox, but it has to be created as a forward at Northwest first
+                — until then it would bounce. */}
+            <a
+              href="mailto:denny.landika@rockworksschoolofmusichawaii.com"
+              style={{
+                display: "block",
+                fontSize: 14,
+                color: "rgba(255,245,236,0.72)",
+                textDecoration: "none",
+                // Long enough to overrun a phone-width column on its own.
+                overflowWrap: "anywhere",
+              }}
+            >
+              denny.landika@rockworksschoolofmusichawaii.com
+            </a>
           </div>
         </div>
       </div>
