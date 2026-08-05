@@ -1,0 +1,16 @@
+# Netlify builds only the frontend. The backend lives on Render, where it needs
+# its own env vars and a long-lived process for Express sessions — the same
+# reason Vercel's monorepo detection had to be turned off when it offered to
+# deploy backend/ too.
+#
+# Committing this rather than setting it in the dashboard is deliberate: the
+# Vercel migration lost hours to a build that ran perfectly and then published
+# the wrong directory, because the setting lived somewhere nobody thought to
+# look. Here it is in the diff.
+[build]
+  base = "frontend"
+  command = "npm run build"
+
+# No publish directory and no plugin pinned on purpose. Netlify detects Next.js
+# and installs its adapter per build; pinning a version means it stops tracking
+# new Next releases, and this project is on Next 16.
