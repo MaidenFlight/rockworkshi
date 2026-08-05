@@ -5,6 +5,11 @@
 [build]
   base = "frontend"
   command = "npm run build"
+  # Relative to `base`, so this is frontend/.next. Set here rather than left to
+  # the dashboard because the dashboard had it saved as `frontend` — the source
+  # directory — from the first deploy, and a value set in the UI wins over an
+  # absent one here. The adapter rejects publish == base outright.
+  publish = ".next"
 
 # Declaring the adapter is what makes this a Next.js deploy rather than a folder
 # of files. Without it the first build here compiled all 50 routes, published
@@ -12,7 +17,6 @@
 # functions means no server-rendered routes, and /member/lesson/[id] is one.
 #
 # No version is pinned, so Netlify keeps the adapter current with new Next
-# releases. Deliberately no `publish` either: the adapter sets it, and setting it
-# by hand is what broke the first attempt.
+# releases.
 [[plugins]]
   package = "@netlify/plugin-nextjs"
