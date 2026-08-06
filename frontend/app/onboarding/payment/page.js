@@ -107,8 +107,10 @@ function PaymentContent() {
                 {summary.total}
               </div>
             </div>
+            {/* The fine print comes from the plan, not from here — a term is a
+                commitment and must not claim you can cancel any time. */}
             <div style={{ fontSize: 12.5, color: "#8a7d6a", marginTop: 4 }}>
-              Billed per {summary.cadence}. Cancel any time.
+              Billed every {summary.cadence}. {summary.note}
             </div>
 
             {isDemo && (
