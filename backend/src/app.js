@@ -8,7 +8,7 @@ const authRoutes = require("./routes/auth.routes");
 const adminRoutes = require("./routes/admin.routes");
 const publicRoutes = require("./routes/public.routes");
 const lessonsRoutes = require("./routes/lessons.routes");
-const billingRoutes = require("./routes/billing.routes");
+const { router: billingRoutes, stripeWebhook } = require("./routes/billing.routes");
 
 const app = express();
 
@@ -39,6 +39,13 @@ app.use(
     credentials: true,
   })
 );
+// Ahead of express.json() on purpose. Stripe signs the exact bytes it sent, so
+// verifying the signature needs the raw body — once JSON.parse has run, the
+// original bytes are gone and every event fails the check. Express matches
+// middleware in the order it was added, so this route has to be registered
+// before the parser, not merely mounted at a different path.
+app.post("/billing/webhook", express.raw({ type: "application/json" }), stripeWebhook);
+
 app.use(express.json());
 
 app.use(
