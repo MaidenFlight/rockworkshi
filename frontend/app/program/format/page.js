@@ -6,10 +6,11 @@ const OPTIONS = [
   { title: "Family & friends", desc: "Siblings or friends can share a lesson slot and learn side by side." },
 ];
 
+// Membership pricing only — what it costs to have access to the member area.
+// Lesson fees are arranged with the school and deliberately aren't quoted here.
 const PRICING = [
-  { name: "30-minute lesson", price: "$45", per: "/ week", desc: "Weekly one-on-one lesson. Best for younger or beginner students." },
-  { name: "45-minute lesson", price: "$60", per: "/ week", desc: "Weekly one-on-one lesson. Our most popular option." },
-  { name: "Rock Band add-on", price: "$25", per: "/ week", desc: "Weekly band rehearsal, added on top of an individual lesson." },
+  { name: "Monthly", price: "$55", per: "/ month", desc: "Full access to every lesson, the song library, and the practice tools. Cancel any time." },
+  { name: "Term", price: "$135", per: "/ 3 months", desc: "The same access, paid up front for a full term. Works out at $45 a month." },
 ];
 
 export default function Format() {
@@ -30,8 +31,8 @@ export default function Format() {
           Most students start one-on-one and move into a Rock Band once they&apos;re ready to play with others.
         </p>
 
-        <h2 style={{ fontWeight: 600, fontSize: 22, color: "#0a2338", margin: "56px 0 20px" }}>Pricing</h2>
-        <div className="rw-cols-3" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 24 }}>
+        <h2 style={{ fontWeight: 600, fontSize: 22, color: "#0a2338", margin: "56px 0 20px" }}>Membership</h2>
+        <div className="rw-cols-2" style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 24 }}>
           {PRICING.map((p) => (
             <div key={p.name} style={{ border: "1px solid #ece0d5", borderRadius: 14, padding: 24, background: "#fffdf9" }}>
               <div style={{ fontWeight: 700, fontSize: 15.5, color: "#0a2338", marginBottom: 10 }}>{p.name}</div>
@@ -44,7 +45,8 @@ export default function Format() {
           ))}
         </div>
         <p style={{ marginTop: 24, fontSize: 13.5, color: "#8a7d6a" }}>
-          Multi-student and sibling discounts available — ask your teacher or mention it at your trial lesson.
+          Membership covers everything on this site. Lesson times and fees are arranged with the
+          school — ask your teacher or mention it at your trial lesson.
         </p>
       </div>
     </div>

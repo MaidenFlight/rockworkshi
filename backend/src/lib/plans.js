@@ -2,32 +2,42 @@
 // client sends a plan name, never a price, so a tampered request can't change
 // what gets billed. Amounts are integer cents.
 //
+// What is being sold here is access to the member area — lessons, the song
+// library, the practice tools. Teaching itself is arranged with the school and
+// is deliberately not priced here.
+//
 // `name` must match the labels the signup wizard shows
 // (frontend/lib/auth/signupOptions.js); the lookup below falls back to the
-// first plan rather than throwing if the two ever drift.
+// first plan rather than throwing if the two ever drift. That fallback also
+// covers accounts created before this catalogue changed, whose stored plan is
+// a lesson tier that no longer exists — they land on Monthly.
+//
+// `interval` and `intervalCount` are the shape a processor wants for a
+// recurring price, so a term is three monthly intervals rather than its own
+// unit. Keeping them here means the billing cadence is defined in one place
+// alongside the amount it applies to.
 const PLANS = [
   {
-    key: "lesson30",
-    name: "30-Minute Lessons",
-    description: "Weekly one-on-one",
-    amountCents: 4500,
+    key: "monthly",
+    name: "Monthly",
+    description: "Full access to the member area",
+    amountCents: 5500,
+    interval: "month",
+    intervalCount: 1,
+    cadence: "month",
+    note: "Cancel any time.",
   },
   {
-    key: "lesson45",
-    name: "45-Minute Lessons",
-    description: "Weekly one-on-one, most popular",
-    amountCents: 6000,
-  },
-  {
-    key: "band",
-    name: "Rock Band Add-on",
-    description: "Adds weekly group rehearsal",
-    amountCents: 2500,
+    key: "term",
+    name: "Term",
+    description: "Full access, paid up front for a three-month term",
+    amountCents: 13500,
+    interval: "month",
+    intervalCount: 3,
+    cadence: "3 months",
+    note: "Works out at $45 a month. Renews at the start of each term.",
   },
 ];
-
-// Charged on top of the plan when a student enrols with a friend or sibling.
-const BAND_ADDON = PLANS.find((p) => p.key === "band");
 
 function planFor(nameOrKey) {
   const wanted = (nameOrKey || "").trim().toLowerCase();
@@ -46,16 +56,6 @@ function summaryFor(user) {
   const plan = planFor(user.plan);
   const lines = [{ label: plan.name, detail: plan.description, amountCents: plan.amountCents }];
 
-  // The band add-on is implied by choosing band instruction, unless the plan
-  // they picked already is the add-on.
-  if (user.instructionType === "band" && plan.key !== BAND_ADDON.key) {
-    lines.push({
-      label: BAND_ADDON.name,
-      detail: BAND_ADDON.description,
-      amountCents: BAND_ADDON.amountCents,
-    });
-  }
-
   const totalCents = lines.reduce((sum, l) => sum + l.amountCents, 0);
 
   return {
@@ -65,8 +65,13 @@ function summaryFor(user) {
     totalCents,
     total: formatUsd(totalCents),
     currency: "usd",
-    // Billing is weekly, so make it explicit rather than implying a one-off.
-    cadence: "week",
+    // How often this recurs, phrased for a reader — "month", "3-month term".
+    cadence: plan.cadence,
+    // The fine print under the total. Differs per plan: a term is a
+    // commitment, so it must not claim you can cancel any time.
+    note: plan.note,
+    interval: plan.interval,
+    intervalCount: plan.intervalCount,
   };
 }
 
