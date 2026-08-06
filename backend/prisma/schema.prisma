@@ -50,18 +50,26 @@ model User {
   plan            String?
   status          String  @default("active")
 
-  // Set once enrolment is paid for. Currently written by the demo checkout;
-  // a real processor should set it from a verified webhook instead.
+  // Set once enrolment is paid for. Written from a verified Stripe event, never
+  // from anything the browser reports — returning to the success page is not
+  // proof that money moved.
   paidAt   DateTime?
   payments Payment[]
+
+  // Stripe's own identifiers for this account. The customer id is what links a
+  // renewal invoice arriving months later back to a row in this table: the
+  // checkout session is long finished by then, so it can't do that job.
+  stripeCustomerId     String? @unique
+  stripeSubscriptionId String?
 
   // Simple derived dashboard stats: { weeklyMinutes, weeklyGoal, streak, achievements: [] }
   practiceStats Json?
 }
 
-// One row per payment attempt. "provider" records what settled it — today only
-// "demo", so these rows are not evidence of money changing hands. Amounts are
-// integer cents to keep float rounding out of billing.
+// One row per payment attempt. "provider" records what settled it — "stripe"
+// for real money, "demo" for the development stand-in, so the two are always
+// tellable apart in the history. Amounts are integer cents to keep float
+// rounding out of billing.
 model Payment {
   id          String   @id @default(uuid())
   userId      String
@@ -73,6 +81,13 @@ model Payment {
   provider    String   @default("demo")
   status      String   @default("paid")
   createdAt   DateTime @default(now())
+
+  // The processor's id for this charge — the Checkout Session for a first
+  // payment, the Invoice for a renewal. Unique because webhook delivery is
+  // at-least-once: Stripe retries until it gets a 2xx, and the same event
+  // arriving twice must not write two rows. The insert races the return from
+  // the success page, so the constraint is what settles it, not a prior read.
+  providerRef String? @unique
 
   @@index([userId])
 }
