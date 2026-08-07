@@ -1,8 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { changePassword } from "@/lib/auth/authApi";
+import {
+  cancelSubscription,
+  fetchSubscription,
+  resumeSubscription,
+} from "@/lib/billingApi";
 
 export default function AccountSettings() {
   const { user, updateProfile } = useAuth();
@@ -68,7 +73,146 @@ export default function AccountSettings() {
       </form>
 
       <ChangePasswordForm />
+      <MembershipSection />
     </div>
+  );
+}
+
+function formatDate(iso) {
+  if (!iso) return null;
+  return new Date(iso).toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+
+// Lets a member stop their own membership. The checkout page promises "cancel
+// any time", so this is what makes that true without an email to the school.
+function MembershipSection() {
+  const [subscription, setSubscription] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  // Cancelling is hard to undo once the period lapses, so it takes two clicks.
+  const [confirming, setConfirming] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchSubscription()
+      .then((sub) => {
+        if (!cancelled) setSubscription(sub);
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err.message);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  async function run(action) {
+    setError("");
+    setBusy(true);
+    try {
+      setSubscription(await action());
+      setConfirming(false);
+    } catch (err) {
+      setError(err.message || "Something went wrong.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  // Nothing to manage — a member paying by another arrangement, or the demo
+  // checkout in development. Saying nothing beats showing an empty panel.
+  if (loading || (!subscription && !error)) return null;
+
+  const endDate = formatDate(subscription?.currentPeriodEnd);
+
+  return (
+    <section style={{ background: "#fffdf9", border: "1px solid #ece0d5", borderRadius: 14, padding: 28, marginTop: 24 }}>
+      <h2 style={{ fontWeight: 600, fontSize: 20, color: "#0a2338", margin: "0 0 4px" }}>Membership</h2>
+
+      {error && (
+        <p role="alert" style={{ margin: "8px 2px 0", fontSize: 13.5, color: "#cf3f20" }}>
+          {error}
+        </p>
+      )}
+
+      {subscription && (
+        <>
+          <p style={{ margin: "0 0 18px", fontSize: 13.5, color: "#8a7d6a" }}>
+            {subscription.plan} — {subscription.amount} every {subscription.cadence}.
+          </p>
+
+          {subscription.cancelAtPeriodEnd ? (
+            <>
+              <div style={{ padding: "14px 16px", borderRadius: 10, background: "#fff6e6", border: "1px solid #f0d9a8" }}>
+                <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.5, color: "#8a6a3a" }}>
+                  Your membership is set to end{endDate ? ` on ${endDate}` : ""}. You keep full
+                  access until then, and you won&apos;t be charged again.
+                </p>
+              </div>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => run(resumeSubscription)}
+                className="rw-cta"
+                style={{ ...ctaButtonStyle, opacity: busy ? 0.7 : 1 }}
+              >
+                {busy ? "Working…" : "Keep my membership"}
+              </button>
+            </>
+          ) : (
+            <>
+              <p style={{ margin: "0 0 4px", fontSize: 13.5, color: "#33454f" }}>
+                {endDate ? `Renews on ${endDate}.` : "Renews automatically."}
+              </p>
+
+              {confirming ? (
+                <div style={{ marginTop: 14, padding: "14px 16px", borderRadius: 10, background: "#fdece6", border: "1px solid #f3c7ba" }}>
+                  <p style={{ margin: "0 0 12px", fontSize: 13.5, lineHeight: 1.5, color: "#8a4b3a" }}>
+                    Cancel your membership? You&apos;ll keep access
+                    {endDate ? ` until ${endDate}` : " until the end of the period you've paid for"},
+                    then it will end. Nothing is refunded, and you can re-join any time.
+                  </p>
+                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => run(cancelSubscription)}
+                      style={{ ...secondaryButtonStyle, borderColor: "#cf3f20", color: "#cf3f20", opacity: busy ? 0.7 : 1 }}
+                    >
+                      {busy ? "Cancelling…" : "Yes, cancel it"}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => setConfirming(false)}
+                      style={secondaryButtonStyle}
+                    >
+                      Never mind
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setConfirming(true)}
+                  style={{ ...secondaryButtonStyle, marginTop: 16 }}
+                >
+                  Cancel membership
+                </button>
+              )}
+            </>
+          )}
+        </>
+      )}
+    </section>
   );
 }
 
@@ -184,6 +328,20 @@ const inputStyle = {
   fontSize: 15,
   fontFamily: "inherit",
   color: "#0a2338",
+};
+
+// Quieter than the orange CTA on purpose — cancelling shouldn't be the most
+// inviting thing on the page, but it must not be hidden either.
+const secondaryButtonStyle = {
+  padding: "11px 20px",
+  borderRadius: 999,
+  fontWeight: 700,
+  fontSize: 14,
+  fontFamily: "inherit",
+  color: "#33454f",
+  background: "transparent",
+  border: "1px solid #d8cab8",
+  cursor: "pointer",
 };
 
 const ctaButtonStyle = {

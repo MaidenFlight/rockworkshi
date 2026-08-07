@@ -45,6 +45,37 @@ export async function confirmStripeCheckout(sessionId) {
   return data;
 }
 
+// The live membership, read from Stripe on each call — status, what it costs,
+// and whether it's already set to stop. Null when there's nothing to manage.
+export async function fetchSubscription() {
+  const res = await fetch(`${API_URL}/billing/subscription`, { credentials: "include" });
+  const data = await parseJson(res);
+  if (!res.ok) throw new Error(data?.error || "Could not load your membership.");
+  return data.subscription;
+}
+
+// Stops the membership renewing at the end of the period already paid for.
+// Access continues until then, so this is not an immediate cut-off.
+export async function cancelSubscription() {
+  const res = await fetch(`${API_URL}/billing/cancel`, {
+    method: "POST",
+    credentials: "include",
+  });
+  const data = await parseJson(res);
+  if (!res.ok) throw new Error(data?.error || "Could not cancel your membership.");
+  return data.subscription;
+}
+
+export async function resumeSubscription() {
+  const res = await fetch(`${API_URL}/billing/resume`, {
+    method: "POST",
+    credentials: "include",
+  });
+  const data = await parseJson(res);
+  if (!res.ok) throw new Error(data?.error || "Could not resume your membership.");
+  return data.subscription;
+}
+
 // Stand-in for a real processor: marks the enrolment paid without taking money.
 export async function payDemo() {
   const res = await fetch(`${API_URL}/billing/demo-pay`, {
