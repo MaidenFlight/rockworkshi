@@ -1,7 +1,7 @@
 const express = require("express");
 const prisma = require("../lib/prisma");
 const { requireAuth } = require("../middleware/auth");
-const { summaryFor, planFor } = require("../lib/plans");
+const { summaryFor, planFor, formatUsd } = require("../lib/plans");
 const { stripe, stripeEnabled, stripeIsLiveMode, WEBHOOK_SECRET } = require("../lib/stripe");
 
 const router = express.Router();
@@ -184,6 +184,86 @@ router.post("/confirm", requireAuth, async (req, res, next) => {
   }
 });
 
+// Reads the live subscription from Stripe rather than mirroring it into our
+// database. Cancellation state changes at Stripe's initiative as well as ours —
+// a card can fail, a term can lapse — so a local copy would be one more thing
+// that can silently disagree with the truth.
+async function subscriptionStateFor(user) {
+  if (!stripeEnabled() || !user.stripeSubscriptionId) return null;
+
+  let sub;
+  try {
+    sub = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
+  } catch (err) {
+    // A subscription that no longer exists on Stripe isn't an error to show a
+    // student — it just means there is nothing to manage.
+    if (err.statusCode === 404) return null;
+    throw err;
+  }
+
+  const item = sub.items?.data?.[0];
+  // Stripe moved the period onto the subscription item; older shapes keep it on
+  // the subscription, so read the item first and fall back.
+  const periodEnd = item?.current_period_end ?? sub.current_period_end;
+  const plan = planFor(sub.metadata?.planKey || user.plan);
+
+  return {
+    status: sub.status,
+    // True once cancellation is scheduled: they keep access until the date
+    // below, then it lapses. Stripe calls this cancel_at_period_end.
+    cancelAtPeriodEnd: Boolean(sub.cancel_at_period_end),
+    currentPeriodEnd: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
+    plan: plan.name,
+    cadence: plan.cadence,
+    amount: formatUsd(item?.price?.unit_amount ?? plan.amountCents),
+  };
+}
+
+router.get("/subscription", requireAuth, async (req, res, next) => {
+  try {
+    return res.json({ subscription: await subscriptionStateFor(req.user) });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Stops the membership renewing, at the end of the period already paid for.
+//
+// Deliberately not an immediate cancellation: a student who has paid for this
+// month — or this three-month term — keeps what they bought. It also means one
+// path serves both plans, since "end of the paid period" is whatever they
+// signed up for.
+router.post("/cancel", requireAuth, async (req, res, next) => {
+  if (!stripeEnabled() || !req.user.stripeSubscriptionId) {
+    return res.status(400).json({ error: "There's no active membership to cancel." });
+  }
+
+  try {
+    await stripe.subscriptions.update(req.user.stripeSubscriptionId, {
+      cancel_at_period_end: true,
+    });
+    return res.json({ subscription: await subscriptionStateFor(req.user) });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Undoes the above, while the period is still running.
+router.post("/resume", requireAuth, async (req, res, next) => {
+  if (!stripeEnabled() || !req.user.stripeSubscriptionId) {
+    return res.status(400).json({ error: "There's no membership to resume." });
+  }
+
+  try {
+    await stripe.subscriptions.update(req.user.stripeSubscriptionId, {
+      cancel_at_period_end: false,
+    });
+    return res.json({ subscription: await subscriptionStateFor(req.user) });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // Stripe's own account of what happened, and the authority on who has paid —
 // the browser may never come back from checkout at all, and renewals have no
 // browser involved. Mounted in app.js ahead of the JSON body parser because the
@@ -227,6 +307,26 @@ async function stripeWebhook(req, res) {
             subscriptionId: session.subscription,
           });
         }
+      }
+    } else if (event.type === "customer.subscription.deleted") {
+      // The period a cancelled member paid for has now run out — this fires at
+      // the end of it, not when they asked to cancel, which is what lets them
+      // keep the access they bought. Stripe also sends this when a subscription
+      // dies on its own, after repeated failed payments.
+      const sub = event.data.object;
+      const user = await prisma.user.findFirst({
+        where: { stripeSubscriptionId: sub.id },
+      });
+      if (user) {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            // Back to the payment gate. The enrolment history isn't lost —
+            // every charge is still a Payment row.
+            paidAt: null,
+            stripeSubscriptionId: null,
+          },
+        });
       }
     } else if (event.type === "invoice.paid") {
       const invoice = event.data.object;
