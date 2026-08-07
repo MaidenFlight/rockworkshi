@@ -154,6 +154,16 @@ export const programs = [
   },
 ];
 
+// The legal pages at /terms, /privacy and /refunds are deliberately NOT listed
+// here yet. They exist and can be read at those URLs, but they are drafts: they
+// carry visible "to be completed" blanks and have not been through a lawyer.
+// Linking them from every page would present them as the school's actual terms.
+//
+// Once the blanks are filled and the wording is approved, delete the banner in
+// components/LegalPage.js and add these three entries:
+//   { label: "Terms", href: "/terms" },
+//   { label: "Privacy", href: "/privacy" },
+//   { label: "Refunds", href: "/refunds" },
 export const footerLinks = [
   { label: "About", href: "/about/philosophy" },
   { label: "Lessons", href: "/song-library" },
