@@ -26,8 +26,6 @@ export default function AdminLessons() {
         { key: "key", label: "Key", type: "text" },
         { key: "difficulty", label: "Difficulty", type: "text" },
         { key: "estTime", label: "Est. time", type: "text" },
-        { key: "videoUrl", label: "Lesson video URL", type: "text" },
-        { key: "playthroughVideoUrl", label: "Playthrough video URL", type: "text" },
         { key: "levels", label: "Levels (JSON)", type: "json", default: DEFAULT_LEVELS },
         { key: "order", label: "Order", type: "number" },
         { key: "published", label: "Published", type: "checkbox" },

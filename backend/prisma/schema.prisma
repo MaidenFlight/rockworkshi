@@ -200,17 +200,61 @@ model Media {
   updatedAt DateTime @updatedAt
 }
 
+// A song as it's taught: the title, key and level descriptions are the same
+// whoever is playing it. The videos are not — see LessonVideo.
 model Lesson {
-  id                  String   @id @default(uuid())
-  order               Int      @default(0)
-  title               String
-  artist              String?
-  key                 String?
-  difficulty          String?
-  estTime             String?
-  videoUrl            String?
-  playthroughVideoUrl String?
-  levels              Json?
-  published           Boolean  @default(true)
-  createdAt           DateTime @default(now())
+  id         String   @id @default(uuid())
+  order      Int      @default(0)
+  title      String
+  artist     String?
+  key        String?
+  difficulty String?
+  estTime    String?
+  levels     Json?
+  published  Boolean  @default(true)
+  createdAt  DateTime @default(now())
+
+  videos LessonVideo[]
+}
+
+// One playable video. The same song is taught differently on every instrument,
+// and eventually at every level, so a video can't be a column on Lesson — there
+// is one per (lesson, instrument, level, kind), and most of those slots stay
+// empty for a long time while the library is being recorded.
+model LessonVideo {
+  id       String @id @default(uuid())
+  lessonId String
+  lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  // One of the six names in frontend/lib/content.js. Signup stores that same
+  // string on User.instrument and the two are matched by string, so they have
+  // to stay identical — a rename on either side silently hides every video.
+  instrument String
+
+  // Only level 1 is being recorded for now. The column exists from the start so
+  // that adding levels later is content entry, not a migration against rows
+  // that by then have real videos and paying students behind them.
+  level Int @default(1)
+
+  // "lesson" for the teaching video, "playthrough" for the song played straight.
+  kind String @default("lesson")
+
+  // How to turn videoId into something playable: "bunny" means it's a Bunny
+  // Stream guid and the URL gets signed per request; "direct" means videoId is
+  // already a plain URL, which is what local development and any leftover
+  // placeholder use.
+  provider String @default("bunny")
+
+  // The host's id for the video, deliberately not a full URL — a signed URL
+  // expires, so storing one would mean storing something already stale.
+  videoId String
+
+  published Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // One video per slot, so re-uploading replaces a row rather than leaving two
+  // that disagree about which is current.
+  @@unique([lessonId, instrument, level, kind])
+  @@index([lessonId])
 }
