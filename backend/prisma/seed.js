@@ -5,7 +5,13 @@ const { PrismaClient } = require("@prisma/client");
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
 
+// Mozilla's sample clip, used as a stand-in so the player has something to play
+// in development. It goes in as provider "direct", so nothing tries to sign it.
 const PLACEHOLDER_VIDEO = "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4";
+
+// Must match frontend/lib/content.js — the same strings are stored on
+// User.instrument at signup and matched against LessonVideo.instrument.
+const INSTRUMENTS = ["Guitar", "Piano", "Bass", "Drums", "Voice", "Ukulele"];
 
 const LEVELS = [
   { n: 1, name: "Sing-a-long", blurb: "Learn the melody and lyrics by ear, no instrument required yet." },
@@ -16,47 +22,72 @@ const LEVELS = [
 ];
 
 async function main() {
-  await prisma.lesson.createMany({
-    data: [
-      {
-        order: 1,
-        title: "Riptide",
-        artist: "Vance Joy",
-        key: "Am",
-        difficulty: "Beginner",
-        estTime: "25 min",
-        videoUrl: PLACEHOLDER_VIDEO,
-        playthroughVideoUrl: PLACEHOLDER_VIDEO,
-        levels: LEVELS,
-        published: true,
-      },
-      {
-        order: 2,
-        title: "Three Little Birds",
-        artist: "Bob Marley",
-        key: "A",
-        difficulty: "Beginner",
-        estTime: "22 min",
-        videoUrl: PLACEHOLDER_VIDEO,
-        playthroughVideoUrl: PLACEHOLDER_VIDEO,
-        levels: LEVELS,
-        published: true,
-      },
-      {
-        order: 3,
-        title: "Wonderwall",
-        artist: "Oasis",
-        key: "F#m",
-        difficulty: "Intermediate",
-        estTime: "30 min",
-        videoUrl: PLACEHOLDER_VIDEO,
-        playthroughVideoUrl: PLACEHOLDER_VIDEO,
-        levels: LEVELS,
-        published: true,
-      },
-    ],
-    skipDuplicates: true,
-  });
+  // Lesson has no natural unique key, so skipDuplicates can't protect it — a
+  // second run would just add three more copies. The videos below are keyed off
+  // whatever lessons exist, so that has to not happen.
+  const existingLessons = await prisma.lesson.count();
+  if (existingLessons > 0) {
+    console.log(`Lessons already present (${existingLessons}) — leaving them alone.`);
+  } else {
+    await prisma.lesson.createMany({
+      data: [
+        {
+          order: 1,
+          title: "Riptide",
+          artist: "Vance Joy",
+          key: "Am",
+          difficulty: "Beginner",
+          estTime: "25 min",
+          levels: LEVELS,
+          published: true,
+        },
+        {
+          order: 2,
+          title: "Three Little Birds",
+          artist: "Bob Marley",
+          key: "A",
+          difficulty: "Beginner",
+          estTime: "22 min",
+          levels: LEVELS,
+          published: true,
+        },
+        {
+          order: 3,
+          title: "Wonderwall",
+          artist: "Oasis",
+          key: "F#m",
+          difficulty: "Intermediate",
+          estTime: "30 min",
+          levels: LEVELS,
+          published: true,
+        },
+      ],
+    });
+  }
+
+  // A lesson video per instrument, so the instrument filter has something to
+  // filter. Wonderwall deliberately has no Drums or Voice video: in real life
+  // most (song × instrument) slots stay empty for months while the library is
+  // recorded, and the "not recorded yet" path needs to be the normal case in
+  // development rather than something only production ever hits.
+  const lessons = await prisma.lesson.findMany({ select: { id: true, title: true } });
+  const videos = [];
+  for (const lesson of lessons) {
+    for (const instrument of INSTRUMENTS) {
+      if (lesson.title === "Wonderwall" && (instrument === "Drums" || instrument === "Voice")) continue;
+      for (const kind of ["lesson", "playthrough"]) {
+        videos.push({
+          lessonId: lesson.id,
+          instrument,
+          level: 1,
+          kind,
+          provider: "direct",
+          videoId: PLACEHOLDER_VIDEO,
+        });
+      }
+    }
+  }
+  await prisma.lessonVideo.createMany({ data: videos, skipDuplicates: true });
 
   await prisma.teacher.createMany({
     data: [

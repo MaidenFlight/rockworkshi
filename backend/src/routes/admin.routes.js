@@ -135,7 +135,9 @@ contentCrud("onstage", prisma.onStagePost, ["title", "description", "mediaUrl", 
 contentCrud(
   "lessons",
   prisma.lesson,
-  ["order", "title", "artist", "key", "difficulty", "estTime", "videoUrl", "playthroughVideoUrl", "levels", "published"],
+  // Videos are no longer columns here — they hang off Lesson as LessonVideo
+  // rows, one per instrument, and are managed by their own endpoints below.
+  ["order", "title", "artist", "key", "difficulty", "estTime", "levels", "published"],
   { orderBy: { order: "asc" } }
 );
 
