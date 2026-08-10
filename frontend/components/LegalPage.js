@@ -5,7 +5,7 @@ import RockWorksIcon from "@/components/RockWorksIcon";
 export default function LegalPage({ title, lastUpdated, intro, children }) {
   return (
     <div>
-      <section style={{ position: "relative", overflow: "hidden", background: "linear-gradient(155deg,#06192d 0%,#0b2f43 52%,#0b5563 100%)" }}>
+      <section style={{ position: "relative", overflow: "hidden", background: "linear-gradient(155deg,var(--rw-ink-deep) 0%,#0b2f43 52%,#0b5563 100%)" }}>
         <div style={{ position: "relative", maxWidth: 900, margin: "0 auto", padding: "56px 24px 70px", textAlign: "center" }}>
           <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
             <RockWorksIcon size={36} color="#ffcf8f" />
@@ -21,14 +21,14 @@ export default function LegalPage({ title, lastUpdated, intro, children }) {
         </div>
         <div style={{ lineHeight: 0 }}>
           <svg viewBox="0 0 1440 70" preserveAspectRatio="none" style={{ width: "100%", height: 50, display: "block" }}>
-            <path d="M0,40 C360,80 1080,0 1440,40 L1440,70 L0,70 Z" fill="#fbf5ec" />
+            <path d="M0,40 C360,80 1080,0 1440,40 L1440,70 L0,70 Z" fill="var(--rw-cream)" />
           </svg>
         </div>
       </section>
 
       <div style={{ maxWidth: 720, margin: "0 auto", padding: "36px 24px 100px" }}>
         <ReviewBanner />
-        {intro && <p style={{ ...paragraphStyle, fontSize: 16.5, color: "#33454f" }}>{intro}</p>}
+        {intro && <p style={{ ...paragraphStyle, fontSize: 16.5, color: "var(--rw-prose)" }}>{intro}</p>}
         {children}
       </div>
     </div>
@@ -46,18 +46,18 @@ function ReviewBanner() {
       style={{
         padding: "16px 18px",
         borderRadius: 12,
-        background: "#fdece6",
+        background: "var(--rw-orange-tint)",
         border: "1px solid #f3c7ba",
         marginBottom: 28,
       }}
     >
-      <div style={{ fontWeight: 800, fontSize: 13, color: "#cf3f20", marginBottom: 6 }}>
+      <div style={{ fontWeight: 800, fontSize: 13, color: "var(--rw-orange-deep)", marginBottom: 6 }}>
         Draft — not yet in force
       </div>
       <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.55, color: "#8a4b3a" }}>
         This document is a working draft awaiting review, and the sections marked below
         are incomplete. It does not yet form an agreement between you and the school.
-        Please <a href="/contact" style={{ color: "#cf3f20" }}>get in touch</a> with any
+        Please <a href="/contact" style={{ color: "var(--rw-orange-deep)" }}>get in touch</a> with any
         question about how your membership or your information is handled.
       </p>
     </div>
@@ -92,7 +92,7 @@ export function H2({ children }) {
         fontFamily: "var(--font-zilla-slab), serif",
         fontWeight: 600,
         fontSize: 23,
-        color: "#0a2338",
+        color: "var(--rw-ink)",
         margin: "36px 0 10px",
       }}
     >

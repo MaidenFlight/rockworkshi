@@ -40,7 +40,7 @@ export default function AdminStudents() {
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-        <h1 style={{ fontWeight: 600, fontSize: 24, color: "#0a2338", margin: 0 }}>Students</h1>
+        <h1 style={{ fontWeight: 600, fontSize: 24, color: "var(--rw-ink)", margin: 0 }}>Students</h1>
         <a href={`${API_URL}/admin/students/export.csv`} target="_blank" rel="noreferrer" style={ctaBtn}>
           Export CSV
         </a>
@@ -52,7 +52,7 @@ export default function AdminStudents() {
           onChange={(e) => setSearch(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && load()}
           placeholder="Search by name or email"
-          style={{ flex: 1, padding: "9px 12px", borderRadius: 8, border: "1px solid #d8cab8", fontSize: 13.5 }}
+          style={{ flex: 1, padding: "9px 12px", borderRadius: 8, border: "1px solid var(--rw-line)", fontSize: 13.5 }}
         />
         <button onClick={load} style={smallBtn}>
           Search
@@ -60,13 +60,13 @@ export default function AdminStudents() {
       </div>
 
       {loading ? (
-        <p style={{ color: "#8a7d6a" }}>Loading…</p>
+        <p style={{ color: "var(--rw-meta)" }}>Loading…</p>
       ) : students.length === 0 ? (
-        <p style={{ color: "#8a7d6a" }}>No students found.</p>
+        <p style={{ color: "var(--rw-meta)" }}>No students found.</p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {students.map((s) => (
-            <div key={s.id} style={{ border: "1px solid #ece0d5", borderRadius: 10, background: "#fffdf9" }}>
+            <div key={s.id} style={{ border: "1px solid var(--rw-border)", borderRadius: 10, background: "var(--rw-surface)" }}>
               <button
                 onClick={() => setOpenId(openId === s.id ? null : s.id)}
                 style={{
@@ -82,8 +82,8 @@ export default function AdminStudents() {
                 }}
               >
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: 14.5, color: "#0a2338" }}>{s.name || s.email}</div>
-                  <div style={{ fontSize: 12.5, color: "#8a7d6a" }}>
+                  <div style={{ fontWeight: 700, fontSize: 14.5, color: "var(--rw-ink)" }}>{s.name || s.email}</div>
+                  <div style={{ fontSize: 12.5, color: "var(--rw-meta)" }}>
                     {s.email} &middot; {s.instrument || "No instrument set"}
                   </div>
                 </div>
@@ -101,7 +101,7 @@ export default function AdminStudents() {
                 </span>
               </button>
               {openId === s.id && (
-                <div style={{ padding: "0 16px 16px", fontSize: 13.5, color: "#33454f" }}>
+                <div style={{ padding: "0 16px 16px", fontSize: 13.5, color: "var(--rw-prose)" }}>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 14 }}>
                     <div>Phone: {s.phone || "—"}</div>
                     <div>Age: {s.age || "—"}</div>
@@ -120,7 +120,7 @@ export default function AdminStudents() {
                     <button onClick={() => setStatus(s.id, s.status === "active" ? "paused" : "active")} style={smallBtn}>
                       {s.status === "active" ? "Pause" : "Reactivate"}
                     </button>
-                    <button onClick={() => remove(s.id)} style={{ ...smallBtn, color: "#cf3f20" }}>
+                    <button onClick={() => remove(s.id)} style={{ ...smallBtn, color: "var(--rw-orange-deep)" }}>
                       Remove
                     </button>
                   </div>
@@ -138,7 +138,7 @@ const ctaBtn = {
   padding: "10px 18px",
   borderRadius: 8,
   border: "none",
-  background: "#ef5130",
+  background: "var(--rw-orange)",
   color: "#fff",
   fontWeight: 700,
   fontSize: 13.5,
@@ -149,9 +149,9 @@ const ctaBtn = {
 const smallBtn = {
   padding: "7px 12px",
   borderRadius: 8,
-  border: "1px solid #d8cab8",
+  border: "1px solid var(--rw-line)",
   background: "#fff",
-  color: "#0a2338",
+  color: "var(--rw-ink)",
   fontWeight: 600,
   fontSize: 12.5,
   cursor: "pointer",

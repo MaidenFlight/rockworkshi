@@ -134,8 +134,8 @@ export default function Piano() {
 
   return (
     <div style={{ maxWidth: 760, margin: "0 auto", padding: "60px 24px 100px" }}>
-      <h1 style={{ fontWeight: 600, fontSize: 32, color: "#0a2338", marginBottom: 8 }}>Piano</h1>
-      <p style={{ color: "#6a6560", marginBottom: 28 }}>
+      <h1 style={{ fontWeight: 600, fontSize: 32, color: "var(--rw-ink)", marginBottom: 8 }}>Piano</h1>
+      <p style={{ color: "var(--rw-body)", marginBottom: 28 }}>
         {span === 1 ? "One octave" : "Two octaves"}, polyphonic — hold several keys to build a chord.
       </p>
 
@@ -144,7 +144,7 @@ export default function Piano() {
           <button onClick={() => setOctave((o) => Math.max(1, o - 1))} style={pillBtn}>
             &#9664; Octave
           </button>
-          <span style={{ fontWeight: 700, fontSize: 14, color: "#0a2338" }}>Octave {octave}</span>
+          <span style={{ fontWeight: 700, fontSize: 14, color: "var(--rw-ink)" }}>Octave {octave}</span>
           <button onClick={() => setOctave((o) => Math.min(6, o + 1))} style={pillBtn}>
             Octave &#9654;
           </button>
@@ -166,15 +166,15 @@ export default function Piano() {
               width: `${whitePct}%`,
               boxSizing: "border-box",
               height: WHITE_H,
-              background: down[wk.id] ? "#fdece6" : "#fff",
-              border: "1px solid #0a2338",
+              background: down[wk.id] ? "var(--rw-orange-tint)" : "#fff",
+              border: "1px solid var(--rw-ink)",
               borderRadius: "0 0 6px 6px",
               display: "flex",
               alignItems: "flex-end",
               justifyContent: "center",
               paddingBottom: 8,
               fontSize: 11,
-              color: "#8a7d6a",
+              color: "var(--rw-meta)",
               cursor: "pointer",
             }}
           >
@@ -192,7 +192,7 @@ export default function Piano() {
               top: 0,
               width: `${whitePct * BLACK_W_RATIO}%`,
               height: BLACK_H,
-              background: down[bk.id] ? "#ef5130" : "#0a2338",
+              background: down[bk.id] ? "var(--rw-orange)" : "var(--rw-ink)",
               borderRadius: "0 0 4px 4px",
               zIndex: 2,
               cursor: "pointer",
@@ -207,10 +207,10 @@ export default function Piano() {
 const pillBtn = {
   padding: "9px 16px",
   borderRadius: 999,
-  border: "1px solid #d8cab8",
+  border: "1px solid var(--rw-line)",
   background: "#fff",
   fontWeight: 700,
   fontSize: 13,
-  color: "#0a2338",
+  color: "var(--rw-ink)",
   cursor: "pointer",
 };

@@ -89,17 +89,17 @@ export default function CrudManager({ title, apiPath, listKey, fields, renderExt
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-        <h1 style={{ fontWeight: 600, fontSize: 24, color: "#0a2338", margin: 0 }}>{title}</h1>
+        <h1 style={{ fontWeight: 600, fontSize: 24, color: "var(--rw-ink)", margin: 0 }}>{title}</h1>
         <button onClick={openNew} style={ctaBtn}>
           + New
         </button>
       </div>
 
       {loading ? (
-        <p style={{ color: "#8a7d6a" }}>Loading…</p>
+        <p style={{ color: "var(--rw-meta)" }}>Loading…</p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {items.length === 0 && <p style={{ color: "#8a7d6a" }}>Nothing here yet.</p>}
+          {items.length === 0 && <p style={{ color: "var(--rw-meta)" }}>Nothing here yet.</p>}
           {items.map((item) => (
             <div
               key={item.id}
@@ -108,13 +108,13 @@ export default function CrudManager({ title, apiPath, listKey, fields, renderExt
                 justifyContent: "space-between",
                 alignItems: "center",
                 padding: "12px 16px",
-                border: "1px solid #ece0d5",
+                border: "1px solid var(--rw-border)",
                 borderRadius: 10,
-                background: "#fffdf9",
+                background: "var(--rw-surface)",
               }}
             >
               <div>
-                <div style={{ fontWeight: 700, fontSize: 14.5, color: "#0a2338" }}>
+                <div style={{ fontWeight: 700, fontSize: 14.5, color: "var(--rw-ink)" }}>
                   {item[fields[0].key]}
                   {"published" in item && (
                     <span
@@ -133,7 +133,7 @@ export default function CrudManager({ title, apiPath, listKey, fields, renderExt
                   )}
                 </div>
                 {fields[1] && (
-                  <div style={{ fontSize: 13, color: "#8a7d6a" }}>
+                  <div style={{ fontSize: 13, color: "var(--rw-meta)" }}>
                     {String(item[fields[1].key] ?? "").slice(0, 90)}
                   </div>
                 )}
@@ -143,7 +143,7 @@ export default function CrudManager({ title, apiPath, listKey, fields, renderExt
                 <button onClick={() => openEdit(item)} style={smallBtn}>
                   Edit
                 </button>
-                <button onClick={() => remove(item.id)} style={{ ...smallBtn, color: "#cf3f20" }}>
+                <button onClick={() => remove(item.id)} style={{ ...smallBtn, color: "var(--rw-orange-deep)" }}>
                   Delete
                 </button>
               </div>
@@ -155,10 +155,10 @@ export default function CrudManager({ title, apiPath, listKey, fields, renderExt
       {draft && (
         <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "rgba(10,35,56,0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
           <div style={{ background: "#fff", borderRadius: 14, padding: 26, maxWidth: 520, width: "100%", maxHeight: "84vh", overflowY: "auto" }}>
-            <h3 style={{ marginTop: 0, color: "#0a2338" }}>{draft.id ? "Edit" : "New"} {title.replace(/s$/, "")}</h3>
+            <h3 style={{ marginTop: 0, color: "var(--rw-ink)" }}>{draft.id ? "Edit" : "New"} {title.replace(/s$/, "")}</h3>
             {fields.map((f) => (
               <div key={f.key} style={{ marginBottom: 12 }}>
-                <label style={{ display: "block", fontSize: 12.5, fontWeight: 700, color: "#33454f", marginBottom: 4 }}>
+                <label style={{ display: "block", fontSize: 12.5, fontWeight: 700, color: "var(--rw-prose)", marginBottom: 4 }}>
                   {f.label}
                 </label>
                 {f.type === "checkbox" ? (
@@ -184,7 +184,7 @@ export default function CrudManager({ title, apiPath, listKey, fields, renderExt
                 )}
               </div>
             ))}
-            {error && <p style={{ color: "#cf3f20", fontSize: 13 }}>{error}</p>}
+            {error && <p style={{ color: "var(--rw-orange-deep)", fontSize: 13 }}>{error}</p>}
             <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
               <button onClick={save} style={ctaBtn}>
                 Save
@@ -204,7 +204,7 @@ const ctaBtn = {
   padding: "10px 18px",
   borderRadius: 8,
   border: "none",
-  background: "#ef5130",
+  background: "var(--rw-orange)",
   color: "#fff",
   fontWeight: 700,
   fontSize: 13.5,
@@ -214,9 +214,9 @@ const ctaBtn = {
 const smallBtn = {
   padding: "7px 12px",
   borderRadius: 8,
-  border: "1px solid #d8cab8",
+  border: "1px solid var(--rw-line)",
   background: "#fff",
-  color: "#0a2338",
+  color: "var(--rw-ink)",
   fontWeight: 600,
   fontSize: 12.5,
   cursor: "pointer",
@@ -225,6 +225,6 @@ const smallBtn = {
 const inputStyle = {
   padding: "9px 12px",
   borderRadius: 8,
-  border: "1px solid #d8cab8",
+  border: "1px solid var(--rw-line)",
   fontSize: 13.5,
 };

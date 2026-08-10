@@ -34,13 +34,13 @@ export default function HowItWorks() {
       />
       <div style={{ maxWidth: 800, margin: "0 auto", padding: "48px 24px 100px" }}>
         {STEPS.map((s) => (
-          <div key={s.n} style={{ display: "flex", gap: 18, padding: "20px 0", borderBottom: "1px solid #ece0d5" }}>
+          <div key={s.n} style={{ display: "flex", gap: 18, padding: "20px 0", borderBottom: "1px solid var(--rw-border)" }}>
             <span
               style={{
                 width: 34,
                 height: 34,
                 borderRadius: "50%",
-                background: "linear-gradient(135deg,#0e8a97,#0a2338)",
+                background: "linear-gradient(135deg,var(--rw-teal),var(--rw-ink))",
                 color: "#fff",
                 display: "flex",
                 alignItems: "center",
@@ -53,20 +53,20 @@ export default function HowItWorks() {
               {s.n}
             </span>
             <div>
-              <div style={{ fontWeight: 700, fontSize: 17, color: "#0a2338" }}>{s.title}</div>
-              <p style={{ margin: "5px 0 0", fontSize: 15, color: "#5f6f79", lineHeight: 1.6 }}>{s.desc}</p>
+              <div style={{ fontWeight: 700, fontSize: 17, color: "var(--rw-ink)" }}>{s.title}</div>
+              <p style={{ margin: "5px 0 0", fontSize: 15, color: "var(--rw-body-cool)", lineHeight: 1.6 }}>{s.desc}</p>
             </div>
           </div>
         ))}
 
         <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: 32 }}>
-          <Link href="/program/curriculum" style={{ fontSize: 14.5, fontWeight: 700, color: "#0e8a97", textDecoration: "none" }}>
+          <Link href="/program/curriculum" style={{ fontSize: 14.5, fontWeight: 700, color: "var(--rw-teal)", textDecoration: "none" }}>
             See the full curriculum &rarr;
           </Link>
-          <Link href="/program/format" style={{ fontSize: 14.5, fontWeight: 700, color: "#0e8a97", textDecoration: "none" }}>
+          <Link href="/program/format" style={{ fontSize: 14.5, fontWeight: 700, color: "var(--rw-teal)", textDecoration: "none" }}>
             See formats &amp; pricing &rarr;
           </Link>
-          <Link href="/tools" style={{ fontSize: 14.5, fontWeight: 700, color: "#0e8a97", textDecoration: "none" }}>
+          <Link href="/tools" style={{ fontSize: 14.5, fontWeight: 700, color: "var(--rw-teal)", textDecoration: "none" }}>
             Try the practice tools &rarr;
           </Link>
         </div>

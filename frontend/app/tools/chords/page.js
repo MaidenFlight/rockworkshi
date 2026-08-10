@@ -13,8 +13,8 @@ export default function ChordLibrary() {
 
   return (
     <div style={{ maxWidth: 960, margin: "0 auto", padding: "60px 24px 100px" }}>
-      <h1 style={{ fontWeight: 600, fontSize: 32, color: "#0a2338", marginBottom: 8 }}>Chord Library</h1>
-      <p style={{ color: "#6a6560", marginBottom: 28 }}>Year One basics for every instrument we teach.</p>
+      <h1 style={{ fontWeight: 600, fontSize: 32, color: "var(--rw-ink)", marginBottom: 8 }}>Chord Library</h1>
+      <p style={{ color: "var(--rw-body)", marginBottom: 28 }}>Year One basics for every instrument we teach.</p>
 
       <div style={{ display: "flex", gap: 8, marginBottom: 32 }}>
         {INSTRUMENTS.map((inst) => (
@@ -24,11 +24,11 @@ export default function ChordLibrary() {
             style={{
               padding: "9px 18px",
               borderRadius: 999,
-              border: inst === instrument ? "1px solid #ef5130" : "1px solid #d8cab8",
-              background: inst === instrument ? "#fdece6" : "#fff",
+              border: inst === instrument ? "1px solid var(--rw-orange)" : "1px solid var(--rw-line)",
+              background: inst === instrument ? "var(--rw-orange-tint)" : "#fff",
               fontWeight: 700,
               fontSize: 14,
-              color: "#0a2338",
+              color: "var(--rw-ink)",
               cursor: "pointer",
             }}
           >
@@ -39,7 +39,7 @@ export default function ChordLibrary() {
 
       {groups.map((group) => (
         <div key={group.group} style={{ marginBottom: 36 }}>
-          <div style={{ fontWeight: 700, fontSize: 13, letterSpacing: "0.1em", textTransform: "uppercase", color: "#0e8a97", marginBottom: 14 }}>
+          <div style={{ fontWeight: 700, fontSize: 13, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--rw-teal)", marginBottom: 14 }}>
             {group.group}
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 24 }}>
@@ -48,13 +48,13 @@ export default function ChordLibrary() {
                 key={chord.name}
                 style={{
                   textAlign: "center",
-                  background: "#fffdf9",
-                  border: "1px solid #ece0d5",
+                  background: "var(--rw-surface)",
+                  border: "1px solid var(--rw-border)",
                   borderRadius: 12,
                   padding: "16px 18px",
                 }}
               >
-                <div style={{ fontWeight: 700, fontSize: 15, color: "#0a2338", marginBottom: 10 }}>{chord.name}</div>
+                <div style={{ fontWeight: 700, fontSize: 15, color: "var(--rw-ink)", marginBottom: 10 }}>{chord.name}</div>
                 {isPiano ? (
                   <PianoDiagram notes={chord.notes} />
                 ) : (

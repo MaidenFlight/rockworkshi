@@ -22,7 +22,7 @@ export default function AdminPages() {
             await fetch(`${API_URL}/admin/pages/${item.id}/publish`, { method: "PATCH", credentials: "include" });
             reload();
           }}
-          style={{ padding: "7px 12px", borderRadius: 8, border: "1px solid #d8cab8", background: "#fff", fontWeight: 600, fontSize: 12.5, cursor: "pointer", color: "#0a2338" }}
+          style={{ padding: "7px 12px", borderRadius: 8, border: "1px solid var(--rw-line)", background: "#fff", fontWeight: 600, fontSize: 12.5, cursor: "pointer", color: "var(--rw-ink)" }}
         >
           {item.status === "Published" ? "Unpublish" : "Publish"}
         </button>

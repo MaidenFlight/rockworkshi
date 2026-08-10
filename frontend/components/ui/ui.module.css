@@ -1,0 +1,315 @@
+/* Styles for the shared primitives. CSS Modules rather than inline objects so
+ * that hover, focus and media queries are expressible at all — an inline style
+ * cannot have a :hover, which is why the old pages needed a parallel set of
+ * .rw-* classes in globals.css to do anything interactive. */
+
+/* ---- Container ---- */
+
+.container {
+  width: 100%;
+  margin: 0 auto;
+  padding-left: var(--rw-space-5);
+  padding-right: var(--rw-space-5);
+}
+
+.wide {
+  max-width: var(--rw-measure-wide);
+}
+.text {
+  max-width: var(--rw-measure-text);
+}
+.form {
+  max-width: var(--rw-measure-form);
+}
+
+/* ---- Section ---- */
+
+.section {
+  padding-top: var(--rw-space-8);
+  padding-bottom: var(--rw-space-8);
+}
+
+.sectionTight {
+  padding-top: var(--rw-space-7);
+  padding-bottom: var(--rw-space-7);
+}
+
+/* Bands are full-bleed grounds; the container inside keeps the measure. */
+.bandSand {
+  background: var(--rw-sand);
+  border-top: 1px solid var(--rw-border);
+  border-bottom: 1px solid var(--rw-border);
+}
+
+.bandInk {
+  background: linear-gradient(135deg, var(--rw-ink-deep), #0b3a4c 70%, #0e5561);
+  color: #fff;
+}
+
+/* ---- Section heading ----
+ * Slab title on the left, uppercase teal eyebrow on the right, hairline rule
+ * beneath. This pattern was copy-pasted three times on the homepage alone. */
+
+.head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--rw-space-5);
+  border-bottom: 1px solid var(--rw-rule);
+  padding-bottom: 18px;
+  margin-bottom: 26px;
+}
+
+/* When the content below carries its own top padding — the audience columns
+ * do, so their dividers can run the full height — the heading sits close and
+ * lets that padding supply the gap. Without this the space reads as double. */
+.headFlush {
+  margin-bottom: var(--rw-space-2);
+}
+
+.headTitle {
+  font-family: var(--rw-font-display);
+  font-weight: 600;
+  font-size: clamp(28px, 3.4vw, 40px);
+  letter-spacing: var(--rw-track-tight);
+  color: var(--rw-ink);
+  margin: 0;
+}
+
+.eyebrow {
+  font-weight: 700;
+  font-size: var(--rw-text-2xs);
+  letter-spacing: var(--rw-track-eyebrow);
+  text-transform: uppercase;
+  color: var(--rw-teal);
+  padding-bottom: 6px;
+  white-space: nowrap;
+}
+
+/* Standalone eyebrow, with no title beside it. */
+.eyebrowSolo {
+  composes: eyebrow;
+  padding-bottom: 0;
+  margin-bottom: 30px;
+}
+
+/* On a dark ground the teal goes muddy, so the eyebrow lifts to the pale
+ * sea-glass tint the hero already used. */
+.onDark .headTitle {
+  color: #fff;
+}
+.onDark .eyebrow {
+  color: #82d4dd;
+}
+.onDark .head {
+  border-bottom-color: rgba(255, 255, 255, 0.18);
+}
+
+@media (max-width: 640px) {
+  .head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--rw-space-2);
+  }
+  .eyebrow {
+    padding-bottom: 0;
+  }
+}
+
+/* ---- Page hero ----
+ * The dark banner with the wave cut into its foot, at the top of thirteen
+ * pages. Two sizes: the marketing pages give it room, the auth and onboarding
+ * pages keep it short so the form is closer to the fold. */
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(155deg, var(--rw-ink-deep) 0%, #0b2f43 52%, #0b5563 100%);
+}
+
+.heroInner {
+  position: relative;
+  max-width: var(--rw-measure-text);
+  margin: 0 auto;
+  padding: 70px var(--rw-space-5) 90px;
+  text-align: center;
+}
+
+.heroCompact .heroInner {
+  padding: 56px var(--rw-space-5) 70px;
+}
+
+.heroTitle {
+  font-weight: 500;
+  font-size: clamp(38px, 5vw, 58px);
+  letter-spacing: -0.015em;
+  color: #fff;
+  margin: 0;
+}
+
+.heroCompact .heroTitle {
+  font-size: clamp(34px, 4.6vw, 50px);
+}
+
+/* The logo mark, on the pages that introduce themselves before they speak:
+ * sign in, sign up, onboarding. */
+.heroMark {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--rw-space-4);
+}
+
+/* Gold rather than the teal of a section eyebrow: teal on this gradient is
+ * nearly invisible, and the gold picks up the hero's warm end. */
+.heroEyebrow {
+  display: inline-block;
+  font-size: var(--rw-text-xs);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #ffd89a;
+  margin-bottom: 14px;
+}
+
+.heroLead {
+  margin: 16px auto 0;
+  max-width: 560px;
+  font-size: var(--rw-text-md);
+  line-height: 1.6;
+  color: rgba(255, 245, 236, 0.82);
+}
+
+.heroWave {
+  line-height: 0;
+}
+
+.heroWave svg {
+  width: 100%;
+  height: 50px;
+  display: block;
+}
+
+/* ---- Button ---- */
+
+/* No border on the base: a 1px transparent border would silently make every
+ * solid button 2px larger than the one it replaced. Only the outlined variant
+ * pays for its own border. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--rw-space-2);
+  font-family: inherit;
+  font-weight: 700;
+  border: none;
+  border-radius: var(--rw-radius-sm);
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.18s ease, filter 0.18s ease, background 0.18s ease;
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--rw-teal);
+  outline-offset: 2px;
+}
+
+.btn:disabled,
+.btn[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* The lift belongs to the solid buttons. A text link that rises off its own
+ * underline on hover reads as a glitch, so .quiet is excluded. */
+.btn:not(.quiet):not(:disabled):not([aria-disabled="true"]):hover {
+  transform: translateY(-2px);
+  filter: brightness(1.04);
+}
+
+.quiet:hover {
+  border-bottom-color: currentColor;
+}
+
+/* Sizes */
+.md {
+  padding: 15px 32px;
+  font-size: 16px;
+}
+.sm {
+  padding: 10px 18px;
+  font-size: var(--rw-text-sm);
+}
+.xs {
+  padding: 7px 12px;
+  font-size: var(--rw-text-xs);
+  font-weight: 600;
+}
+
+/* Variants */
+.primary {
+  background: var(--rw-orange);
+  color: #fff;
+}
+
+.secondary {
+  background: #fff;
+  color: var(--rw-ink);
+  border: 1px solid var(--rw-line);
+}
+
+.danger {
+  composes: secondary;
+  color: var(--rw-orange-deep);
+}
+
+/* A text link that behaves like a button, with the underline the hero uses. */
+.quiet {
+  background: transparent;
+  color: var(--rw-ink);
+  border: none;
+  border-bottom: 1.5px solid rgba(10, 35, 56, 0.32);
+  border-radius: 0;
+  padding: 0 0 3px;
+  font-size: 15px;
+}
+.onDarkBtn.quiet {
+  color: #fff;
+  border-bottom-color: rgba(255, 255, 255, 0.38);
+}
+
+/* ---- Card ---- */
+
+.card {
+  background: var(--rw-surface);
+  border: 1px solid var(--rw-border);
+  border-radius: var(--rw-radius-md);
+  padding: var(--rw-space-5);
+}
+
+.cardLift {
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+.cardLift:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 22px 44px -22px rgba(90, 40, 70, 0.45);
+}
+
+/* ---- Prose ---- */
+
+.prose {
+  font-size: var(--rw-text-md);
+  line-height: 1.7;
+  color: var(--rw-prose);
+}
+
+.prose p {
+  margin: 0 0 var(--rw-space-4);
+}
+
+.lead {
+  font-size: var(--rw-text-lg);
+  line-height: 1.62;
+  color: var(--rw-body-cool);
+  margin: 0 0 var(--rw-space-6);
+}

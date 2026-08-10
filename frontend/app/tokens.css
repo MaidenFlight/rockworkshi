@@ -1,0 +1,93 @@
+/* The Rock Works design tokens.
+ *
+ * These are not new values. Every one was read out of the pages themselves —
+ * the palette here is what 796 inline style objects were already hardcoding,
+ * just named. So adopting a token never changes a pixel; it only moves the
+ * decision to one place. globals.css used to declare five of these and nothing
+ * imported them, which is how #0a2338 came to appear 128 times by hand.
+ *
+ * Naming is by role, not by hue: --rw-ink rather than --rw-navy, so a future
+ * change of colour doesn't leave every name lying.
+ */
+
+:root {
+  /* ---- Ink: text and the dark grounds ---- */
+  --rw-ink: #0a2338; /* headings, primary text, dark sections */
+  --rw-ink-deep: #06192d; /* the darkest stop in hero gradients */
+
+  /* ---- Grounds ---- */
+  --rw-cream: #fbf5ec; /* the page itself */
+  --rw-surface: #fffdf9; /* cards and panels sitting on cream */
+  --rw-sand: #f6ecdd; /* the alternate band (testimonials) */
+
+  /* ---- Lines ----
+   * Three weights, warm to cool, and they are genuinely different jobs:
+   * hairline rules under section headings, panel edges, and input borders. */
+  --rw-rule: #e6d8c6; /* section rules, column dividers */
+  --rw-border: #ece0d5; /* card and band edges */
+  --rw-line: #d8cab8; /* input and button borders */
+
+  /* ---- Accents ---- */
+  --rw-orange: #ef5130; /* the CTA colour; one job, used sparingly */
+  --rw-orange-deep: #cf3f20; /* inline links and the darker gradient stop */
+  --rw-orange-tint: #fdece6; /* orange at wash strength, for notices */
+  --rw-teal: #0e8a97; /* eyebrows, focus rings, quiet accents */
+
+  /* ---- Secondary text ----
+   * Four muted greys were in use. They are kept apart rather than merged
+   * because they differ in temperature and in the size they were tuned for;
+   * --rw-body and --rw-body-cool overlap in role and are the honest merge
+   * candidate if the palette is ever tightened. */
+  --rw-meta: #8a7d6a; /* captions and 12px labels, warm taupe */
+  --rw-body: #6a6560; /* 14-15px body on cream, warm */
+  --rw-body-cool: #5f6f79; /* 15-16px body, cool */
+  --rw-prose: #33454f; /* 16.5px long-form prose, cool slate */
+
+  /* ---- Type ----
+   * Zilla Slab carries the headings, Source Sans the rest. The display face is
+   * a slab with real personality, so it is kept to headings and never asked to
+   * set a paragraph. */
+  --rw-font-display: var(--font-zilla-slab), Georgia, serif;
+  --rw-font-body: var(--font-source-sans), system-ui, sans-serif;
+
+  /* The scale in use, half-points and all. These are the sizes the pages
+   * already set; they are listed so new work has somewhere to land instead of
+   * inventing a twenty-first size. */
+  --rw-text-2xs: 11px; /* uppercase micro-labels */
+  --rw-text-xs: 12.5px; /* captions, meta, eyebrows */
+  --rw-text-sm: 13.5px; /* buttons and dense UI */
+  --rw-text-base: 15px; /* default body */
+  --rw-text-md: 16.5px; /* long-form prose */
+  --rw-text-lg: 18.5px; /* hero standfirst */
+  --rw-text-xl: 22px;
+  --rw-text-2xl: 26px;
+  --rw-text-3xl: 32px;
+  --rw-text-4xl: 44px;
+
+  /* The eyebrow's letterspacing is a signature, not a coincidence: it appears
+   * on every section heading across the site. */
+  --rw-track-eyebrow: 0.22em;
+  --rw-track-tight: -0.01em;
+
+  /* ---- Spacing ---- */
+  --rw-space-1: 4px;
+  --rw-space-2: 8px;
+  --rw-space-3: 12px;
+  --rw-space-4: 16px;
+  --rw-space-5: 24px;
+  --rw-space-6: 32px;
+  --rw-space-7: 44px;
+  --rw-space-8: 64px;
+
+  /* ---- Measure ----
+   * Three column widths do all the work: the wide grid, the reading column,
+   * and the narrow one for forms. */
+  --rw-measure-wide: 1200px;
+  --rw-measure-text: 900px;
+  --rw-measure-form: 520px;
+
+  /* ---- Radii ---- */
+  --rw-radius-sm: 8px; /* buttons, inputs */
+  --rw-radius-md: 14px; /* cards and panels */
+  --rw-radius-pill: 999px;
+}

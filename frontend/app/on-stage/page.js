@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { API_URL } from "@/lib/api";
+import { PageHero } from "@/components/ui";
 
 export default function OnStage() {
   const [posts, setPosts] = useState(undefined);
@@ -24,38 +25,27 @@ export default function OnStage() {
 
   return (
     <div>
-      <section style={{ position: "relative", overflow: "hidden", background: "linear-gradient(155deg,#06192d 0%,#0b2f43 52%,#0b5563 100%)" }}>
-        <div style={{ position: "relative", maxWidth: 900, margin: "0 auto", padding: "70px 24px 90px", textAlign: "center" }}>
-          <h1 style={{ fontWeight: 500, fontSize: "clamp(38px,5vw,58px)", margin: 0, color: "#fff", letterSpacing: "-0.015em" }}>
-            On Stage
-          </h1>
-        </div>
-        <div style={{ lineHeight: 0 }}>
-          <svg viewBox="0 0 1440 70" preserveAspectRatio="none" style={{ width: "100%", height: 50, display: "block" }}>
-            <path d="M0,40 C360,80 1080,0 1440,40 L1440,70 L0,70 Z" fill="#fbf5ec" />
-          </svg>
-        </div>
-      </section>
+      <PageHero title={<>On Stage</>} />
 
       <div style={{ maxWidth: 1000, margin: "0 auto", padding: "36px 24px 100px" }}>
-        {posts === undefined && <p style={{ color: "#8a7d6a" }}>Loading…</p>}
-        {posts && posts.length === 0 && <p style={{ color: "#8a7d6a" }}>No performances posted yet — check back soon.</p>}
+        {posts === undefined && <p style={{ color: "var(--rw-meta)" }}>Loading…</p>}
+        {posts && posts.length === 0 && <p style={{ color: "var(--rw-meta)" }}>No performances posted yet — check back soon.</p>}
 
         {featured && (
-          <div style={{ background: "#fffdf9", border: "1px solid #ece0d5", borderRadius: 16, overflow: "hidden", marginBottom: 36, boxShadow: "0 24px 50px -34px rgba(6,25,45,0.3)" }}>
-            <div style={{ position: "relative", aspectRatio: "16/9", background: "linear-gradient(135deg,#06192d,#0b3a4c)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: 16, overflow: "hidden", marginBottom: 36, boxShadow: "0 24px 50px -34px rgba(6,25,45,0.3)" }}>
+            <div style={{ position: "relative", aspectRatio: "16/9", background: "linear-gradient(135deg,var(--rw-ink-deep),#0b3a4c)", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <span style={{ position: "absolute", left: 16, bottom: 16, background: "rgba(6,25,45,0.72)", color: "#fff", fontSize: 12, fontWeight: 700, letterSpacing: "0.05em", padding: "7px 14px", borderRadius: 6, display: "flex", alignItems: "center", gap: 7 }}>
-                <span style={{ color: "#ef5130" }}>&#9654;</span> Featured
+                <span style={{ color: "var(--rw-orange)" }}>&#9654;</span> Featured
               </span>
             </div>
             <div style={{ padding: "24px 28px" }}>
-              <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#ef5130", marginBottom: 8 }}>
+              <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--rw-orange)", marginBottom: 8 }}>
                 {featured.date}
               </div>
-              <h2 style={{ fontWeight: 700, fontSize: "clamp(24px,3vw,34px)", margin: "0 0 12px", color: "#0a2338", letterSpacing: "-0.015em" }}>
+              <h2 style={{ fontWeight: 700, fontSize: "clamp(24px,3vw,34px)", margin: "0 0 12px", color: "var(--rw-ink)", letterSpacing: "-0.015em" }}>
                 {featured.title}
               </h2>
-              <p style={{ margin: 0, fontSize: 16, lineHeight: 1.6, color: "#5f6f79" }}>{featured.description}</p>
+              <p style={{ margin: 0, fontSize: 16, lineHeight: 1.6, color: "var(--rw-body-cool)" }}>{featured.description}</p>
             </div>
           </div>
         )}
@@ -63,12 +53,12 @@ export default function OnStage() {
         {rest.length > 0 && (
           <div className="rw-cols-3" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 20, marginBottom: 40 }}>
             {rest.map((p) => (
-              <div key={p.id} style={{ background: "#fffdf9", border: "1px solid #ece0d5", borderRadius: 14, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+              <div key={p.id} style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: 14, overflow: "hidden", display: "flex", flexDirection: "column" }}>
                 <div style={{ position: "relative", aspectRatio: "16/10", background: "linear-gradient(135deg,#0b3a4c,#0e5561)" }} />
                 <div style={{ padding: "16px 18px", display: "flex", flexDirection: "column", flex: 1 }}>
-                  <h3 style={{ fontWeight: 600, fontSize: 17, margin: "0 0 9px", color: "#0a2338" }}>{p.title}</h3>
+                  <h3 style={{ fontWeight: 600, fontSize: 17, margin: "0 0 9px", color: "var(--rw-ink)" }}>{p.title}</h3>
                   <p style={{ margin: "0 0 12px", fontSize: 13.5, lineHeight: 1.5, color: "#7a6d78", flex: 1 }}>{p.description}</p>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: "#0e8a97" }}>{p.date}</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "var(--rw-teal)" }}>{p.date}</div>
                 </div>
               </div>
             ))}
@@ -78,7 +68,7 @@ export default function OnStage() {
         {songOfMonth && (
           <div
             style={{
-              background: "linear-gradient(135deg,#06192d,#0b3a4c)",
+              background: "linear-gradient(135deg,var(--rw-ink-deep),#0b3a4c)",
               borderRadius: 16,
               padding: 32,
               color: "#fff",
@@ -99,7 +89,7 @@ export default function OnStage() {
                 {songOfMonth.notes || "A student favorite this month — a great next song to learn."}
               </p>
             </div>
-            <Link href="/song-library" style={{ flexShrink: 0, padding: "13px 26px", borderRadius: 8, background: "#ef5130", color: "#fff", fontWeight: 700, fontSize: 14.5, textDecoration: "none", whiteSpace: "nowrap" }}>
+            <Link href="/song-library" style={{ flexShrink: 0, padding: "13px 26px", borderRadius: 8, background: "var(--rw-orange)", color: "#fff", fontWeight: 700, fontSize: 14.5, textDecoration: "none", whiteSpace: "nowrap" }}>
               View in Song Library &rarr;
             </Link>
           </div>

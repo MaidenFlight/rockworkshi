@@ -36,7 +36,7 @@ export default function AdminOverview() {
     load();
   }, []);
 
-  if (!stats) return <p style={{ color: "#8a7d6a" }}>Loading…</p>;
+  if (!stats) return <p style={{ color: "var(--rw-meta)" }}>Loading…</p>;
 
   const cards = [
     { label: "Students", value: stats.students },
@@ -47,29 +47,29 @@ export default function AdminOverview() {
 
   return (
     <div>
-      <h1 style={{ fontWeight: 600, fontSize: 24, color: "#0a2338", marginBottom: 20 }}>Overview</h1>
+      <h1 style={{ fontWeight: 600, fontSize: 24, color: "var(--rw-ink)", marginBottom: 20 }}>Overview</h1>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14, marginBottom: 32 }}>
         {cards.map((c) => (
-          <div key={c.label} style={{ background: "#fffdf9", border: "1px solid #ece0d5", borderRadius: 12, padding: 18 }}>
-            <div style={{ fontSize: 30, fontWeight: 700, color: "#0a2338" }}>{c.value}</div>
-            <div style={{ fontSize: 12.5, color: "#8a7d6a", marginTop: 4 }}>{c.label}</div>
+          <div key={c.label} style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: 12, padding: 18 }}>
+            <div style={{ fontSize: 30, fontWeight: 700, color: "var(--rw-ink)" }}>{c.value}</div>
+            <div style={{ fontSize: 12.5, color: "var(--rw-meta)", marginTop: 4 }}>{c.label}</div>
           </div>
         ))}
       </div>
 
-      <h2 style={{ fontWeight: 600, fontSize: 17, color: "#0a2338", marginBottom: 12 }}>Students by instrument</h2>
+      <h2 style={{ fontWeight: 600, fontSize: 17, color: "var(--rw-ink)", marginBottom: 12 }}>Students by instrument</h2>
       {stats.breakdown.length === 0 ? (
-        <p style={{ color: "#8a7d6a" }}>No students yet.</p>
+        <p style={{ color: "var(--rw-meta)" }}>No students yet.</p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {stats.breakdown.map((b) => (
             <div key={b.name}>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}>
-                <span style={{ color: "#33454f", fontWeight: 600 }}>{b.name}</span>
-                <span style={{ color: "#8a7d6a" }}>{b.count}</span>
+                <span style={{ color: "var(--rw-prose)", fontWeight: 600 }}>{b.name}</span>
+                <span style={{ color: "var(--rw-meta)" }}>{b.count}</span>
               </div>
-              <div style={{ height: 8, background: "#ece0d5", borderRadius: 999 }}>
-                <div style={{ height: "100%", width: `${b.pct}%`, background: "#0e8a97", borderRadius: 999 }} />
+              <div style={{ height: 8, background: "var(--rw-border)", borderRadius: 999 }}>
+                <div style={{ height: "100%", width: `${b.pct}%`, background: "var(--rw-teal)", borderRadius: 999 }} />
               </div>
             </div>
           ))}

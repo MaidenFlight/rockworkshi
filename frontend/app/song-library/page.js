@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { API_URL } from "@/lib/api";
+import { PageHero } from "@/components/ui";
 
 const GENERIC_LEVELS = [
   { n: 1, name: "Sing-a-long" },
@@ -40,35 +41,24 @@ export default function SongLibrary() {
 
   return (
     <div>
-      <section style={{ position: "relative", overflow: "hidden", background: "linear-gradient(155deg,#06192d 0%,#0b2f43 52%,#0b5563 100%)" }}>
-        <div style={{ position: "relative", maxWidth: 900, margin: "0 auto", padding: "70px 24px 90px", textAlign: "center" }}>
-          <h1 style={{ fontWeight: 500, fontSize: "clamp(38px,5vw,58px)", margin: 0, color: "#fff", letterSpacing: "-0.015em" }}>
-            Song Library
-          </h1>
-        </div>
-        <div style={{ lineHeight: 0 }}>
-          <svg viewBox="0 0 1440 70" preserveAspectRatio="none" style={{ width: "100%", height: 50, display: "block" }}>
-            <path d="M0,40 C360,80 1080,0 1440,40 L1440,70 L0,70 Z" fill="#fbf5ec" />
-          </svg>
-        </div>
-      </section>
+      <PageHero title={<>Song Library</>} />
 
       <div style={{ maxWidth: 800, margin: "0 auto", padding: "36px 24px 100px" }}>
-        {songs === undefined && <p style={{ color: "#8a7d6a" }}>Loading…</p>}
+        {songs === undefined && <p style={{ color: "var(--rw-meta)" }}>Loading…</p>}
 
         {openSong ? (
           <div>
             <button
               onClick={() => setOpenId(null)}
-              style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 14, fontWeight: 700, color: "#0e8a97", background: "none", border: "none", cursor: "pointer", marginBottom: 20, padding: 0 }}
+              style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 14, fontWeight: 700, color: "var(--rw-teal)", background: "none", border: "none", cursor: "pointer", marginBottom: 20, padding: 0 }}
             >
               &larr; All songs
             </button>
-            <div style={{ background: "#fffdf9", border: "1px solid #ece0d5", borderRadius: 16, overflow: "hidden" }}>
+            <div style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: 16, overflow: "hidden" }}>
               <div style={{ padding: "28px 30px", borderBottom: "1px solid #f0e7dc" }}>
                 <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 20, flexWrap: "wrap" }}>
                   <div>
-                    <h2 style={{ fontWeight: 700, fontSize: "clamp(26px,3.2vw,38px)", margin: "0 0 4px", color: "#0a2338", letterSpacing: "-0.015em" }}>
+                    <h2 style={{ fontWeight: 700, fontSize: "clamp(26px,3.2vw,38px)", margin: "0 0 4px", color: "var(--rw-ink)", letterSpacing: "-0.015em" }}>
                       {openSong.title}
                     </h2>
                     <div style={{ fontSize: 16, color: "#7a6d78" }}>{openSong.artist}</div>
@@ -86,20 +76,20 @@ export default function SongLibrary() {
                     )}
                   </div>
                 </div>
-                {openSong.notes && <p style={{ margin: "16px 0 0", fontSize: 16, lineHeight: 1.65, color: "#5f6f79" }}>{openSong.notes}</p>}
+                {openSong.notes && <p style={{ margin: "16px 0 0", fontSize: 16, lineHeight: 1.65, color: "var(--rw-body-cool)" }}>{openSong.notes}</p>}
               </div>
               <div style={{ padding: "24px 30px" }}>
-                <h3 style={{ fontWeight: 600, fontSize: 19, margin: "0 0 14px", color: "#0a2338" }}>How you&apos;ll learn it &mdash; five levels</h3>
+                <h3 style={{ fontWeight: 600, fontSize: 19, margin: "0 0 14px", color: "var(--rw-ink)" }}>How you&apos;ll learn it &mdash; five levels</h3>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 22 }}>
                   {GENERIC_LEVELS.map((lv) => (
-                    <div key={lv.n} style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 16px", background: "#fbf5ec", borderRadius: 10 }}>
+                    <div key={lv.n} style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 16px", background: "var(--rw-cream)", borderRadius: 10 }}>
                       <div
                         style={{
                           flexShrink: 0,
                           width: 32,
                           height: 32,
                           borderRadius: 9,
-                          background: "linear-gradient(135deg,#0e8a97,#0a2338)",
+                          background: "linear-gradient(135deg,var(--rw-teal),var(--rw-ink))",
                           color: "#fff",
                           display: "flex",
                           alignItems: "center",
@@ -110,15 +100,15 @@ export default function SongLibrary() {
                       >
                         {lv.n}
                       </div>
-                      <span style={{ fontWeight: 700, fontSize: 15, color: "#0a2338" }}>{lv.name}</span>
+                      <span style={{ fontWeight: 700, fontSize: 15, color: "var(--rw-ink)" }}>{lv.name}</span>
                     </div>
                   ))}
                 </div>
                 <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-                  <Link href="/signup" style={{ padding: "13px 28px", borderRadius: 8, background: "#ef5130", color: "#fff", fontWeight: 700, fontSize: 15, textDecoration: "none" }}>
+                  <Link href="/signup" style={{ padding: "13px 28px", borderRadius: 8, background: "var(--rw-orange)", color: "#fff", fontWeight: 700, fontSize: 15, textDecoration: "none" }}>
                     Start Lessons &rarr;
                   </Link>
-                  <Link href="/program/curriculum" style={{ fontSize: 14, fontWeight: 700, color: "#0e8a97", textDecoration: "none" }}>
+                  <Link href="/program/curriculum" style={{ fontSize: 14, fontWeight: 700, color: "var(--rw-teal)", textDecoration: "none" }}>
                     See the full curriculum
                   </Link>
                 </div>
@@ -132,7 +122,7 @@ export default function SongLibrary() {
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search by song or artist…"
               aria-label="Search songs"
-              style={{ width: "100%", boxSizing: "border-box", padding: "14px 18px", borderRadius: 10, border: "1px solid #d8cab8", fontSize: 15.5, fontFamily: "inherit", background: "#fff", color: "#0a2338", marginBottom: 16 }}
+              style={{ width: "100%", boxSizing: "border-box", padding: "14px 18px", borderRadius: 10, border: "1px solid var(--rw-line)", fontSize: 15.5, fontFamily: "inherit", background: "#fff", color: "var(--rw-ink)", marginBottom: 16 }}
             />
 
             {instruments.length > 0 && (
@@ -157,12 +147,12 @@ export default function SongLibrary() {
             )}
 
             {songs && filtered.length === 0 && (
-              <div style={{ textAlign: "center", padding: "44px 20px", background: "#fffdf9", border: "1px solid #ece0d5", borderRadius: 14, fontSize: 15, color: "#7a6d78" }}>
+              <div style={{ textAlign: "center", padding: "44px 20px", background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: 14, fontSize: 15, color: "#7a6d78" }}>
                 No songs match those filters yet.
               </div>
             )}
 
-            <div style={{ background: "#fffdf9", border: "1px solid #ece0d5", borderRadius: 14, overflow: "hidden" }}>
+            <div style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: 14, overflow: "hidden" }}>
               {filtered.map((s) => (
                 <div
                   key={s.id}
@@ -171,7 +161,7 @@ export default function SongLibrary() {
                   style={{ display: "flex", alignItems: "center", gap: 16, padding: "16px 20px", borderBottom: "1px solid #f0e6d8", cursor: "pointer" }}
                 >
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 600, fontSize: 17, color: "#0a2338" }}>{s.title}</div>
+                    <div style={{ fontWeight: 600, fontSize: 17, color: "var(--rw-ink)" }}>{s.title}</div>
                     <div style={{ fontSize: 13.5, color: "#8a7d86" }}>
                       {s.artist} {s.instrument ? `· ${s.instrument}` : ""}
                     </div>
@@ -179,7 +169,7 @@ export default function SongLibrary() {
                   {s.level && (
                     <span style={{ flexShrink: 0, fontSize: 12, fontWeight: 700, color: "#0e6b78" }}>{s.level}</span>
                   )}
-                  <span style={{ flexShrink: 0, fontSize: 13, fontWeight: 700, color: "#ef5130" }}>View &rarr;</span>
+                  <span style={{ flexShrink: 0, fontSize: 13, fontWeight: 700, color: "var(--rw-orange)" }}>View &rarr;</span>
                 </div>
               ))}
             </div>
@@ -194,11 +184,11 @@ function chipStyle(active) {
   return {
     padding: "6px 14px",
     borderRadius: 999,
-    border: active ? "1px solid #ef5130" : "1px solid #d8cab8",
-    background: active ? "#fdece6" : "#fff",
+    border: active ? "1px solid var(--rw-orange)" : "1px solid var(--rw-line)",
+    background: active ? "var(--rw-orange-tint)" : "#fff",
     fontWeight: 700,
     fontSize: 12.5,
-    color: "#0a2338",
+    color: "var(--rw-ink)",
     cursor: "pointer",
   };
 }

@@ -53,7 +53,7 @@ export default function ProtectedRoute({
 
   if (isLoading || !isAuthenticated || !roleAllowed || mustFinishSetup) {
     return (
-      <div style={{ maxWidth: 600, margin: "120px auto", textAlign: "center", color: "#6a6560" }}>
+      <div style={{ maxWidth: 600, margin: "120px auto", textAlign: "center", color: "var(--rw-body)" }}>
         Checking your session…
       </div>
     );

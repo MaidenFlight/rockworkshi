@@ -52,9 +52,9 @@ export default function AdminLessons() {
 const videosBtn = {
   padding: "7px 12px",
   borderRadius: 8,
-  border: "1px solid #d8cab8",
+  border: "1px solid var(--rw-line)",
   background: "#fff",
-  color: "#0a2338",
+  color: "var(--rw-ink)",
   fontWeight: 600,
   fontSize: 12.5,
   cursor: "pointer",
