@@ -9,9 +9,7 @@ const prisma = new PrismaClient({ adapter });
 // in development. It goes in as provider "direct", so nothing tries to sign it.
 const PLACEHOLDER_VIDEO = "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4";
 
-// Must match frontend/lib/content.js — the same strings are stored on
-// User.instrument at signup and matched against LessonVideo.instrument.
-const INSTRUMENTS = ["Guitar", "Piano", "Bass", "Drums", "Voice", "Ukulele"];
+const { INSTRUMENTS } = require("../src/lib/lessonVideos");
 
 const LEVELS = [
   { n: 1, name: "Sing-a-long", blurb: "Learn the melody and lyrics by ear, no instrument required yet." },

@@ -1,6 +1,7 @@
 const express = require("express");
 const prisma = require("../lib/prisma");
 const { requireAdmin } = require("../middleware/auth");
+const { validateSlot } = require("../lib/lessonVideos");
 
 const router = express.Router();
 router.use(requireAdmin);
@@ -140,6 +141,54 @@ contentCrud(
   ["order", "title", "artist", "key", "difficulty", "estTime", "levels", "published"],
   { orderBy: { order: "asc" } }
 );
+
+// ---------- Lesson videos ----------
+//
+// A video is addressed by its slot — (lesson, instrument, level, kind) — not by
+// a row id, because that is how the person filling the library thinks: "the
+// guitar level 1 lesson video for Riptide". So there is one write endpoint that
+// upserts, rather than a create and an update the caller has to choose between,
+// and clearing the id deletes the row instead of leaving an empty one that
+// reads as recorded.
+
+router.get("/lessons/:lessonId/videos", async (req, res) => {
+  const lesson = await prisma.lesson.findUnique({ where: { id: req.params.lessonId } });
+  if (!lesson) return res.status(404).json({ error: "Not found." });
+  const videos = await prisma.lessonVideo.findMany({
+    where: { lessonId: lesson.id },
+    orderBy: [{ level: "asc" }, { instrument: "asc" }, { kind: "asc" }],
+  });
+  res.json({ videos });
+});
+
+router.put("/lessons/:lessonId/videos", async (req, res) => {
+  const lesson = await prisma.lesson.findUnique({ where: { id: req.params.lessonId } });
+  if (!lesson) return res.status(404).json({ error: "Not found." });
+
+  const { error, slot } = validateSlot(req.body);
+  if (error) return res.status(400).json({ error });
+
+  // provider is an ordinary column; the slot that identifies the row is the
+  // other three plus the lesson.
+  const { provider, ...key } = slot;
+  const identity = { lessonId: lesson.id, ...key };
+
+  const videoId = (req.body.videoId || "").trim();
+  if (!videoId) {
+    // deleteMany, not delete, so clearing an already-empty slot is a no-op
+    // rather than a 500 — the editor sends every slot it has on screen.
+    await prisma.lessonVideo.deleteMany({ where: identity });
+    return res.json({ video: null });
+  }
+
+  const published = req.body.published === undefined ? true : !!req.body.published;
+  const video = await prisma.lessonVideo.upsert({
+    where: { lessonId_instrument_level_kind: identity },
+    create: { ...identity, provider, videoId, published },
+    update: { provider, videoId, published },
+  });
+  res.json({ video });
+});
 
 // ---------- Pages / Resources / Media (draft-editor pattern) ----------
 
