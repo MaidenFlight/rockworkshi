@@ -303,11 +303,11 @@ export default function VideoPlayer({ lesson }) {
             style={{
               padding: "8px 16px",
               borderRadius: 999,
-              border: videoType === t ? "1px solid #ef5130" : "1px solid #d8cab8",
-              background: videoType === t ? "#fdece6" : "#fff",
+              border: videoType === t ? "1px solid var(--rw-orange)" : "1px solid var(--rw-line)",
+              background: videoType === t ? "var(--rw-orange-tint)" : "#fff",
               fontWeight: 700,
               fontSize: 13,
-              color: "#0a2338",
+              color: "var(--rw-ink)",
               cursor: "pointer",
             }}
           >
@@ -316,7 +316,7 @@ export default function VideoPlayer({ lesson }) {
         ))}
       </div>
 
-      <div ref={playerBoxRef} style={{ position: "relative", background: "#06192d", borderRadius: 12, overflow: "hidden" }}>
+      <div ref={playerBoxRef} style={{ position: "relative", background: "var(--rw-ink-deep)", borderRadius: 12, overflow: "hidden" }}>
         {src ? (
           <video
             key={src}
@@ -334,15 +334,15 @@ export default function VideoPlayer({ lesson }) {
         )}
 
         {src && (
-          <div style={{ padding: "10px 14px", background: "#06192d" }}>
+          <div style={{ padding: "10px 14px", background: "var(--rw-ink-deep)" }}>
             <div onClick={onTimelineClick} style={{ position: "relative", height: 6, background: "rgba(255,255,255,0.18)", borderRadius: 999, cursor: "pointer", marginBottom: 10 }}>
-              <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: `${pct}%`, background: "#ef5130", borderRadius: 999 }} />
+              <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: `${pct}%`, background: "var(--rw-orange)", borderRadius: 999 }} />
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
               <button onClick={() => vpSkip(-5)} style={iconBtn}>
                 &#8630; 5s
               </button>
-              <button onClick={vpToggle} style={{ ...iconBtn, background: "#ef5130", color: "#fff", border: "none" }}>
+              <button onClick={vpToggle} style={{ ...iconBtn, background: "var(--rw-orange)", color: "#fff", border: "none" }}>
                 {playing ? "Pause" : "Play"}
               </button>
               <button onClick={() => vpSkip(5)} style={iconBtn}>
@@ -359,7 +359,7 @@ export default function VideoPlayer({ lesson }) {
                   <button
                     key={s}
                     onClick={() => vpSetSpeed(s)}
-                    style={{ ...iconBtn, background: speed === s ? "#ef5130" : "transparent", color: "#fff", fontSize: 11 }}
+                    style={{ ...iconBtn, background: speed === s ? "var(--rw-orange)" : "transparent", color: "#fff", fontSize: 11 }}
                   >
                     {s}x
                   </button>
@@ -373,7 +373,7 @@ export default function VideoPlayer({ lesson }) {
                 style={{ ...iconBtn, background: "transparent", color: "#fff", fontFamily: "inherit" }}
               >
                 {SPEEDS.map((s) => (
-                  <option key={s} value={s} style={{ color: "#0a2338" }}>
+                  <option key={s} value={s} style={{ color: "var(--rw-ink)" }}>
                     {s}x
                   </option>
                 ))}
@@ -401,8 +401,8 @@ export default function VideoPlayer({ lesson }) {
       </div>
 
       {activeLoop && (
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#fdece6", border: "1px solid #f3c7ba", borderRadius: 10, padding: "10px 16px", marginTop: 12 }}>
-          <span style={{ fontSize: 13.5, fontWeight: 700, color: "#cf3f20" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--rw-orange-tint)", border: "1px solid #f3c7ba", borderRadius: 10, padding: "10px 16px", marginTop: 12 }}>
+          <span style={{ fontSize: 13.5, fontWeight: 700, color: "var(--rw-orange-deep)" }}>
             Looping: {activeLoop.name} ({fmtT(activeLoop.start)}–{fmtT(activeLoop.end)})
           </span>
           <button onClick={stopLoop} style={{ ...iconBtn, background: "#fff" }}>
@@ -411,7 +411,7 @@ export default function VideoPlayer({ lesson }) {
         </div>
       )}
 
-      <h3 style={{ fontWeight: 700, fontSize: 16, color: "#0a2338", margin: "28px 0 12px" }}>Practice by section</h3>
+      <h3 style={{ fontWeight: 700, fontSize: 16, color: "var(--rw-ink)", margin: "28px 0 12px" }}>Practice by section</h3>
       <div className="rw-cols-4" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10 }}>
         {sections.map((sec) => (
           <div
@@ -419,12 +419,12 @@ export default function VideoPlayer({ lesson }) {
             style={{
               padding: 12,
               borderRadius: 10,
-              border: activeSectionId === sec.id ? "1px solid #ef5130" : "1px solid #ece0d5",
-              background: activeSectionId === sec.id ? "#fdece6" : "#fffdf9",
+              border: activeSectionId === sec.id ? "1px solid var(--rw-orange)" : "1px solid var(--rw-border)",
+              background: activeSectionId === sec.id ? "var(--rw-orange-tint)" : "var(--rw-surface)",
             }}
           >
-            <div style={{ fontWeight: 700, fontSize: 13, color: "#0a2338" }}>{sec.name}</div>
-            <div style={{ fontSize: 11.5, color: "#8a7d6a", marginBottom: 8 }}>
+            <div style={{ fontWeight: 700, fontSize: 13, color: "var(--rw-ink)" }}>{sec.name}</div>
+            <div style={{ fontSize: 11.5, color: "var(--rw-meta)", marginBottom: 8 }}>
               {fmtT(sec.start)}–{fmtT(sec.end)}
             </div>
             <div style={{ display: "flex", gap: 6 }}>
@@ -437,8 +437,8 @@ export default function VideoPlayer({ lesson }) {
                   ...iconBtn,
                   flex: 1,
                   fontSize: 11,
-                  background: sectionLoopId === sec.id ? "#ef5130" : "#fff",
-                  color: sectionLoopId === sec.id ? "#fff" : "#0a2338",
+                  background: sectionLoopId === sec.id ? "var(--rw-orange)" : "#fff",
+                  color: sectionLoopId === sec.id ? "#fff" : "var(--rw-ink)",
                 }}
               >
                 Loop
@@ -453,9 +453,9 @@ export default function VideoPlayer({ lesson }) {
           {customPanelOn ? "Hide custom loop" : "Custom A/B loop"}
         </button>
         {customPanelOn && (
-          <div style={{ marginTop: 12, padding: 16, border: "1px solid #ece0d5", borderRadius: 10, background: "#fffdf9" }}>
+          <div style={{ marginTop: 12, padding: 16, border: "1px solid var(--rw-border)", borderRadius: 10, background: "var(--rw-surface)" }}>
             <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
-              <label style={{ flex: 1, fontSize: 12.5, color: "#33454f" }}>
+              <label style={{ flex: 1, fontSize: 12.5, color: "var(--rw-prose)" }}>
                 Start
                 <div style={{ display: "flex", gap: 6, marginTop: 4 }}>
                   <input
@@ -472,7 +472,7 @@ export default function VideoPlayer({ lesson }) {
                   </button>
                 </div>
               </label>
-              <label style={{ flex: 1, fontSize: 12.5, color: "#33454f" }}>
+              <label style={{ flex: 1, fontSize: 12.5, color: "var(--rw-prose)" }}>
                 End
                 <div style={{ display: "flex", gap: 6, marginTop: 4 }}>
                   <input
@@ -491,7 +491,7 @@ export default function VideoPlayer({ lesson }) {
               </label>
             </div>
             <div style={{ display: "flex", gap: 8 }}>
-              <button onClick={startCustomLoop} className="rw-cta" style={{ ...iconBtn, background: "#ef5130", color: "#fff", border: "none" }}>
+              <button onClick={startCustomLoop} className="rw-cta" style={{ ...iconBtn, background: "var(--rw-orange)", color: "#fff", border: "none" }}>
                 Start Loop
               </button>
               <button onClick={clearCustomLoop} style={iconBtn}>
@@ -503,8 +503,8 @@ export default function VideoPlayer({ lesson }) {
       </div>
 
       <div className="rw-cols-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginTop: 28 }}>
-        <div style={{ border: "1px solid #ece0d5", borderRadius: 12, padding: 18, background: "#fffdf9" }}>
-          <div style={{ fontWeight: 700, fontSize: 13, letterSpacing: "0.08em", textTransform: "uppercase", color: "#0e8a97", marginBottom: 10 }}>
+        <div style={{ border: "1px solid var(--rw-border)", borderRadius: 12, padding: 18, background: "var(--rw-surface)" }}>
+          <div style={{ fontWeight: 700, fontSize: 13, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--rw-teal)", marginBottom: 10 }}>
             Backing track
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -519,9 +519,9 @@ export default function VideoPlayer({ lesson }) {
           </div>
         </div>
 
-        <div style={{ border: "1px solid #ece0d5", borderRadius: 12, padding: 18, background: "#fffdf9" }}>
+        <div style={{ border: "1px solid var(--rw-border)", borderRadius: 12, padding: 18, background: "var(--rw-surface)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 10 }}>
-            <div style={{ fontWeight: 700, fontSize: 13, letterSpacing: "0.08em", textTransform: "uppercase", color: "#0e8a97" }}>
+            <div style={{ fontWeight: 700, fontSize: 13, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--rw-teal)" }}>
               Chord sheet
             </div>
             <div style={{ display: "flex", gap: 6 }}>
@@ -544,10 +544,10 @@ export default function VideoPlayer({ lesson }) {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            style={{ background: "#fffdf9", borderRadius: 16, padding: 28, maxWidth: 640, width: "100%", maxHeight: "80vh", overflowY: "auto" }}
+            style={{ background: "var(--rw-surface)", borderRadius: 16, padding: 28, maxWidth: 640, width: "100%", maxHeight: "80vh", overflowY: "auto" }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
-              <h3 style={{ margin: 0, fontWeight: 700, color: "#0a2338" }}>
+              <h3 style={{ margin: 0, fontWeight: 700, color: "var(--rw-ink)" }}>
                 {lesson.title} &mdash; Chord Sheet
               </h3>
               <button onClick={() => setChordOverlayOn(false)} style={iconBtn}>
@@ -560,7 +560,7 @@ export default function VideoPlayer({ lesson }) {
       )}
 
       {toast && (
-        <div style={{ position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)", background: "#0a2338", color: "#fff", padding: "10px 20px", borderRadius: 999, fontSize: 13.5, zIndex: 90 }}>
+        <div style={{ position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)", background: "var(--rw-ink)", color: "#fff", padding: "10px 20px", borderRadius: 999, fontSize: 13.5, zIndex: 90 }}>
           {toast}
         </div>
       )}
@@ -572,11 +572,11 @@ function ChordSheetBody({ sections, progression, fmtT, compact }) {
   return (
     <div id="chordPrintArea" className="chord-scroll" style={{ maxHeight: compact ? 220 : "none", overflowY: compact ? "auto" : "visible" }}>
       {sections.map((sec, i) => (
-        <div key={sec.id} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid #ece0d5", fontSize: 13.5 }}>
-          <span style={{ color: "#33454f" }}>
-            {sec.name} <span style={{ color: "#8a7d6a", fontSize: 11.5 }}>({fmtT(sec.start)}–{fmtT(sec.end)})</span>
+        <div key={sec.id} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--rw-border)", fontSize: 13.5 }}>
+          <span style={{ color: "var(--rw-prose)" }}>
+            {sec.name} <span style={{ color: "var(--rw-meta)", fontSize: 11.5 }}>({fmtT(sec.start)}–{fmtT(sec.end)})</span>
           </span>
-          <span style={{ fontWeight: 700, color: "#0a2338", fontFamily: "monospace" }}>
+          <span style={{ fontWeight: 700, color: "var(--rw-ink)", fontFamily: "monospace" }}>
             {progression[i % progression.length]}
           </span>
         </div>
@@ -588,9 +588,9 @@ function ChordSheetBody({ sections, progression, fmtT, compact }) {
 const iconBtn = {
   padding: "9px 14px",
   borderRadius: 8,
-  border: "1px solid #d8cab8",
+  border: "1px solid var(--rw-line)",
   background: "#fff",
-  color: "#0a2338",
+  color: "var(--rw-ink)",
   fontWeight: 700,
   fontSize: 12.5,
   cursor: "pointer",
@@ -600,6 +600,6 @@ const textInput = {
   flex: 1,
   padding: "8px 10px",
   borderRadius: 8,
-  border: "1px solid #d8cab8",
+  border: "1px solid var(--rw-line)",
   fontSize: 13,
 };

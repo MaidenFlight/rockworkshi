@@ -4,7 +4,7 @@ const STR_SP = 20;
 const FRETS = 5;
 const MARGIN = 20;
 
-export function ChordDiagram({ frets, base = 1, accent = "#ef5130" }) {
+export function ChordDiagram({ frets, base = 1, accent = "var(--rw-orange)" }) {
   const n = frets.length;
   const width = MARGIN * 2 + (n - 1) * STR_SP;
   const height = TOP + FRETS * FSP + 14;
@@ -12,7 +12,7 @@ export function ChordDiagram({ frets, base = 1, accent = "#ef5130" }) {
   return (
     <svg viewBox={`0 0 ${width} ${height}`} width={width} height={height}>
       {base > 1 && (
-        <text x={MARGIN - 14} y={TOP + FSP / 2 + 4} fontSize={10} fill="#8a7d6a">
+        <text x={MARGIN - 14} y={TOP + FSP / 2 + 4} fontSize={10} fill="var(--rw-meta)">
           {base}fr
         </text>
       )}
@@ -23,7 +23,7 @@ export function ChordDiagram({ frets, base = 1, accent = "#ef5130" }) {
           y1={TOP + f * FSP}
           x2={MARGIN + (n - 1) * STR_SP}
           y2={TOP + f * FSP}
-          stroke="#33454f"
+          stroke="var(--rw-prose)"
           strokeWidth={f === 0 && base === 1 ? 3 : 1}
         />
       ))}
@@ -34,7 +34,7 @@ export function ChordDiagram({ frets, base = 1, accent = "#ef5130" }) {
           y1={TOP}
           x2={MARGIN + i * STR_SP}
           y2={TOP + FRETS * FSP}
-          stroke="#33454f"
+          stroke="var(--rw-prose)"
           strokeWidth={1}
         />
       ))}
@@ -42,13 +42,13 @@ export function ChordDiagram({ frets, base = 1, accent = "#ef5130" }) {
         const x = MARGIN + i * STR_SP;
         if (fret === -1) {
           return (
-            <text key={i} x={x} y={TOP - 10} fontSize={12} fill="#8a7d6a" textAnchor="middle">
+            <text key={i} x={x} y={TOP - 10} fontSize={12} fill="var(--rw-meta)" textAnchor="middle">
               &times;
             </text>
           );
         }
         if (fret === 0) {
-          return <circle key={i} cx={x} cy={TOP - 10} r={4} fill="none" stroke="#33454f" strokeWidth={1.5} />;
+          return <circle key={i} cx={x} cy={TOP - 10} r={4} fill="none" stroke="var(--rw-prose)" strokeWidth={1.5} />;
         }
         const disp = fret - (base - 1);
         const cy = TOP + (disp - 0.5) * FSP;
@@ -65,7 +65,7 @@ const WH = 66;
 const BW = 9;
 const BH = 42;
 
-export function PianoDiagram({ notes, accent = "#ef5130" }) {
+export function PianoDiagram({ notes, accent = "var(--rw-orange)" }) {
   const N = 19; // ~1.5 octaves of semitones shown
   const octaves = Math.ceil(N / 12) + 1;
   const whiteKeys = [];
@@ -89,7 +89,7 @@ export function PianoDiagram({ notes, accent = "#ef5130" }) {
           width={WW}
           height={WH}
           fill={highlighted.has(semitone % 12) ? accent : "#fff"}
-          stroke="#0a2338"
+          stroke="var(--rw-ink)"
           strokeWidth={1}
         />
       ))}
@@ -103,7 +103,7 @@ export function PianoDiagram({ notes, accent = "#ef5130" }) {
             y={0}
             width={BW}
             height={BH}
-            fill={highlighted.has(nextBlack % 12) ? accent : "#0a2338"}
+            fill={highlighted.has(nextBlack % 12) ? accent : "var(--rw-ink)"}
           />
         );
       })}

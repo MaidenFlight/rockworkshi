@@ -92,12 +92,12 @@ export default function RhythmTrainer() {
 
   return (
     <div style={{ maxWidth: 620, margin: "0 auto", padding: "60px 24px 100px" }}>
-      <h1 style={{ fontWeight: 600, fontSize: 32, color: "#0a2338", marginBottom: 8 }}>Rhythm Trainer</h1>
-      <p style={{ color: "#6a6560", marginBottom: 28 }}>
+      <h1 style={{ fontWeight: 600, fontSize: 32, color: "var(--rw-ink)", marginBottom: 8 }}>Rhythm Trainer</h1>
+      <p style={{ color: "var(--rw-body)", marginBottom: 28 }}>
         Clap or play along. A count-in leads you in, then follow the highlighted beat.
       </p>
 
-      <div style={{ background: "#fffdf9", border: "1px solid #ece0d5", borderRadius: 16, padding: 28 }}>
+      <div style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: 16, padding: 28 }}>
         <div style={{ display: "flex", gap: 9, flexWrap: "wrap", marginBottom: 20 }}>
           {Object.keys(PATTERNS).map((name) => (
             <button
@@ -109,11 +109,11 @@ export default function RhythmTrainer() {
               style={{
                 padding: "8px 16px",
                 borderRadius: 999,
-                border: name === patternName ? "1px solid #ef5130" : "1px solid #d8cab8",
-                background: name === patternName ? "#fdece6" : "#fff",
+                border: name === patternName ? "1px solid var(--rw-orange)" : "1px solid var(--rw-line)",
+                background: name === patternName ? "var(--rw-orange-tint)" : "#fff",
                 fontWeight: 700,
                 fontSize: 13,
-                color: "#0a2338",
+                color: "var(--rw-ink)",
                 cursor: "pointer",
               }}
             >
@@ -135,9 +135,9 @@ export default function RhythmTrainer() {
                 justifyContent: "center",
                 fontWeight: 700,
                 fontSize: 16,
-                background: activeCell === i ? "#ef5130" : glyph === "x" ? "#f0e7dc" : "#fbf5ec",
-                color: activeCell === i ? "#fff" : "#33454f",
-                border: "1px solid #ece0d5",
+                background: activeCell === i ? "var(--rw-orange)" : glyph === "x" ? "#f0e7dc" : "var(--rw-cream)",
+                color: activeCell === i ? "#fff" : "var(--rw-prose)",
+                border: "1px solid var(--rw-border)",
                 transition: "background 0.1s",
               }}
             >
@@ -150,7 +150,7 @@ export default function RhythmTrainer() {
           <button onClick={toggleRhythm} className="rw-cta" style={ctaBtn}>
             {running ? "Stop" : "Start"}
           </button>
-          <label style={{ display: "flex", alignItems: "center", gap: 11, fontSize: 13.5, fontWeight: 700, color: "#5f6f79" }}>
+          <label style={{ display: "flex", alignItems: "center", gap: 11, fontSize: 13.5, fontWeight: 700, color: "var(--rw-body-cool)" }}>
             Tempo
             <input
               type="range"
@@ -160,10 +160,10 @@ export default function RhythmTrainer() {
               onChange={(e) => setBpm(Number(e.target.value))}
               style={{ width: 150 }}
             />
-            <span style={{ color: "#0a2338", minWidth: 64 }}>{bpm} BPM</span>
+            <span style={{ color: "var(--rw-ink)", minWidth: 64 }}>{bpm} BPM</span>
           </label>
           {countIn >= 0 && (
-            <span style={{ fontFamily: "var(--font-zilla-slab), serif", fontWeight: 700, fontSize: 20, color: "#0e8a97" }}>
+            <span style={{ fontFamily: "var(--font-zilla-slab), serif", fontWeight: 700, fontSize: 20, color: "var(--rw-teal)" }}>
               Count-in&hellip; {countIn}
             </span>
           )}
@@ -177,7 +177,7 @@ const ctaBtn = {
   padding: "13px 26px",
   borderRadius: 999,
   border: "none",
-  background: "linear-gradient(135deg,#ef5130,#cf3f20)",
+  background: "linear-gradient(135deg,var(--rw-orange),var(--rw-orange-deep))",
   color: "#fff",
   fontWeight: 800,
   fontSize: 14.5,

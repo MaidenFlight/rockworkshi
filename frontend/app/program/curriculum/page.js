@@ -18,14 +18,14 @@ export default function Curriculum() {
       />
       <div style={{ maxWidth: 720, margin: "0 auto", padding: "48px 24px 100px" }}>
         {LEVELS.map((lv) => (
-          <div key={lv.n} style={{ display: "flex", gap: 18, padding: "18px 0", borderBottom: "1px solid #ece0d5" }}>
+          <div key={lv.n} style={{ display: "flex", gap: 18, padding: "18px 0", borderBottom: "1px solid var(--rw-border)" }}>
             <span
               style={{
                 width: 32,
                 height: 32,
                 borderRadius: "50%",
-                background: "#e6d8c6",
-                color: "#33454f",
+                background: "var(--rw-rule)",
+                color: "var(--rw-prose)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -37,8 +37,8 @@ export default function Curriculum() {
               {lv.n}
             </span>
             <div>
-              <div style={{ fontWeight: 700, fontSize: 16.5, color: "#0a2338" }}>{lv.name}</div>
-              <p style={{ margin: "4px 0 0", fontSize: 14.5, color: "#6a6560", lineHeight: 1.55 }}>{lv.desc}</p>
+              <div style={{ fontWeight: 700, fontSize: 16.5, color: "var(--rw-ink)" }}>{lv.name}</div>
+              <p style={{ margin: "4px 0 0", fontSize: 14.5, color: "var(--rw-body)", lineHeight: 1.55 }}>{lv.desc}</p>
             </div>
           </div>
         ))}

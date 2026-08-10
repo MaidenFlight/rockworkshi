@@ -1,4 +1,4 @@
-export default function RockWorksIcon({ size = 32, color = "#ef5130" }) {
+export default function RockWorksIcon({ size = 32, color = "var(--rw-orange)" }) {
   return (
     <svg width={size} height={size} viewBox="0 0 716 716" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path

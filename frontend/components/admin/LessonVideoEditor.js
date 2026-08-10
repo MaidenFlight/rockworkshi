@@ -130,9 +130,9 @@ export default function LessonVideoEditor({ lesson, onClose }) {
   return (
     <div style={overlay}>
       <div style={panel}>
-        <h3 style={{ marginTop: 0, color: "#0a2338" }}>
+        <h3 style={{ marginTop: 0, color: "var(--rw-ink)" }}>
           Videos — {lesson.title}
-          {lesson.artist ? <span style={{ color: "#8a7d6a", fontWeight: 400 }}> · {lesson.artist}</span> : null}
+          {lesson.artist ? <span style={{ color: "var(--rw-meta)", fontWeight: 400 }}> · {lesson.artist}</span> : null}
         </h3>
 
         <div style={{ display: "flex", gap: 6, marginBottom: 6 }}>
@@ -143,8 +143,8 @@ export default function LessonVideoEditor({ lesson, onClose }) {
               disabled={pending > 0 && n !== level}
               style={{
                 ...smallBtn,
-                background: n === level ? "#0a2338" : "#fff",
-                color: n === level ? "#fff" : "#0a2338",
+                background: n === level ? "var(--rw-ink)" : "#fff",
+                color: n === level ? "#fff" : "var(--rw-ink)",
                 opacity: pending > 0 && n !== level ? 0.4 : 1,
                 cursor: pending > 0 && n !== level ? "not-allowed" : "pointer",
               }}
@@ -153,13 +153,13 @@ export default function LessonVideoEditor({ lesson, onClose }) {
             </button>
           ))}
         </div>
-        <p style={{ fontSize: 12, color: "#8a7d6a", marginTop: 0, marginBottom: 16 }}>
+        <p style={{ fontSize: 12, color: "var(--rw-meta)", marginTop: 0, marginBottom: 16 }}>
           Paste the Bunny video id, or a full https:// URL to play a file directly. Clear a
           box to remove that video. {pending > 0 && <strong>Save before changing level.</strong>}
         </p>
 
         {loading ? (
-          <p style={{ color: "#8a7d6a" }}>Loading…</p>
+          <p style={{ color: "var(--rw-meta)" }}>Loading…</p>
         ) : (
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
@@ -175,7 +175,7 @@ export default function LessonVideoEditor({ lesson, onClose }) {
             <tbody>
               {instruments.map((inst) => (
                 <tr key={inst.name}>
-                  <td style={{ ...td, fontWeight: 700, color: "#0a2338" }}>
+                  <td style={{ ...td, fontWeight: 700, color: "var(--rw-ink)" }}>
                     <span style={{ marginRight: 6 }}>{inst.emoji}</span>
                     {inst.name}
                   </td>
@@ -190,7 +190,7 @@ export default function LessonVideoEditor({ lesson, onClose }) {
                           style={{ ...inputStyle, width: "100%" }}
                         />
                         {value.trim() && (
-                          <div style={{ fontSize: 11, color: "#8a7d6a", marginTop: 3 }}>
+                          <div style={{ fontSize: 11, color: "var(--rw-meta)", marginTop: 3 }}>
                             {providerFor(value) === "bunny" ? "Bunny id" : "Direct URL"}
                           </div>
                         )}
@@ -203,7 +203,7 @@ export default function LessonVideoEditor({ lesson, onClose }) {
           </table>
         )}
 
-        {error && <p style={{ color: "#cf3f20", fontSize: 13 }}>{error}</p>}
+        {error && <p style={{ color: "var(--rw-orange-deep)", fontSize: 13 }}>{error}</p>}
 
         <div style={{ display: "flex", gap: 8, marginTop: 18, alignItems: "center" }}>
           <button onClick={save} disabled={saving || pending === 0} style={{ ...ctaBtn, opacity: saving || pending === 0 ? 0.5 : 1 }}>
@@ -243,9 +243,9 @@ const th = {
   textAlign: "left",
   fontSize: 12,
   fontWeight: 700,
-  color: "#33454f",
+  color: "var(--rw-prose)",
   padding: "6px 8px 8px 0",
-  borderBottom: "1px solid #ece0d5",
+  borderBottom: "1px solid var(--rw-border)",
 };
 
 const td = {
@@ -258,7 +258,7 @@ const ctaBtn = {
   padding: "10px 18px",
   borderRadius: 8,
   border: "none",
-  background: "#ef5130",
+  background: "var(--rw-orange)",
   color: "#fff",
   fontWeight: 700,
   fontSize: 13.5,
@@ -268,9 +268,9 @@ const ctaBtn = {
 const smallBtn = {
   padding: "7px 12px",
   borderRadius: 8,
-  border: "1px solid #d8cab8",
+  border: "1px solid var(--rw-line)",
   background: "#fff",
-  color: "#0a2338",
+  color: "var(--rw-ink)",
   fontWeight: 600,
   fontSize: 12.5,
   cursor: "pointer",
@@ -279,6 +279,6 @@ const smallBtn = {
 const inputStyle = {
   padding: "9px 12px",
   borderRadius: 8,
-  border: "1px solid #d8cab8",
+  border: "1px solid var(--rw-line)",
   fontSize: 13.5,
 };

@@ -51,7 +51,7 @@ export default function Nav() {
         background: "rgba(251,245,236,0.86)",
         backdropFilter: "blur(14px)",
         WebkitBackdropFilter: "blur(14px)",
-        borderBottom: "1px solid #ece0d5",
+        borderBottom: "1px solid var(--rw-border)",
       }}
     >
       <div
@@ -67,7 +67,7 @@ export default function Nav() {
         }}
       >
         <Link href="/" style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0, textDecoration: "none" }}>
-          <RockWorksIcon size={38} color="#ef5130" />
+          <RockWorksIcon size={38} color="var(--rw-orange)" />
           <span
             style={{
               display: "flex",
@@ -75,7 +75,7 @@ export default function Nav() {
               lineHeight: 1,
             }}
           >
-            <span style={{ fontFamily: "var(--font-zilla-slab), serif", fontWeight: 700, fontSize: 25, letterSpacing: "0.01em", color: "#0a2338" }}>
+            <span style={{ fontFamily: "var(--font-zilla-slab), serif", fontWeight: 700, fontSize: 25, letterSpacing: "0.01em", color: "var(--rw-ink)" }}>
               Rock Works
             </span>
             <span
@@ -84,7 +84,7 @@ export default function Nav() {
                 fontSize: 10.5,
                 letterSpacing: "0.28em",
                 textTransform: "uppercase",
-                color: "#0e8a97",
+                color: "var(--rw-teal)",
                 marginTop: 4,
               }}
             >
@@ -113,8 +113,8 @@ export default function Nav() {
                         top: "100%",
                         left: 0,
                         minWidth: 210,
-                        background: "#fffdf9",
-                        border: "1px solid #ece0d5",
+                        background: "var(--rw-surface)",
+                        border: "1px solid var(--rw-border)",
                         borderRadius: 11,
                         boxShadow: "0 18px 40px -20px rgba(6,25,45,0.4)",
                         padding: 8,
@@ -126,7 +126,7 @@ export default function Nav() {
                           key={sub.href}
                           href={sub.href}
                           className="rw-dropitem"
-                          style={{ display: "block", padding: "10px 12px", borderRadius: 7, fontSize: 14, fontWeight: 600, color: "#33454f", textDecoration: "none" }}
+                          style={{ display: "block", padding: "10px 12px", borderRadius: 7, fontSize: 14, fontWeight: 600, color: "var(--rw-prose)", textDecoration: "none" }}
                         >
                           {sub.label}
                         </Link>
@@ -169,7 +169,7 @@ export default function Nav() {
             className="rw-burger"
             onClick={() => setMobileOpen(true)}
             aria-label="Menu"
-            style={{ display: "none", background: "transparent", border: "1px solid #d8cab8", borderRadius: 8, padding: "8px 10px", cursor: "pointer", color: "#0a2338" }}
+            style={{ display: "none", background: "transparent", border: "1px solid var(--rw-line)", borderRadius: 8, padding: "8px 10px", cursor: "pointer", color: "var(--rw-ink)" }}
           >
             <span style={{ display: "block", width: 20, height: 2, background: "currentColor", margin: "3px 0" }} />
             <span style={{ display: "block", width: 20, height: 2, background: "currentColor", margin: "3px 0" }} />
@@ -195,7 +195,7 @@ export default function Nav() {
               bottom: 0,
               zIndex: 71,
               width: "min(86vw,340px)",
-              background: "#fbf5ec",
+              background: "var(--rw-cream)",
               boxShadow: "-20px 0 50px -20px rgba(6,25,45,0.5)",
               display: "flex",
               flexDirection: "column",
@@ -203,12 +203,12 @@ export default function Nav() {
               animation: "rise .22s ease both",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 20px", borderBottom: "1px solid #ece0d5" }}>
-              <span style={{ fontFamily: "var(--font-zilla-slab), serif", fontWeight: 700, fontSize: 19, color: "#0a2338" }}>Menu</span>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 20px", borderBottom: "1px solid var(--rw-border)" }}>
+              <span style={{ fontFamily: "var(--font-zilla-slab), serif", fontWeight: 700, fontSize: 19, color: "var(--rw-ink)" }}>Menu</span>
               <button
                 onClick={() => setMobileOpen(false)}
                 aria-label="Close"
-                style={{ background: "transparent", border: "none", fontSize: 24, color: "#0a2338", cursor: "pointer", lineHeight: 1 }}
+                style={{ background: "transparent", border: "none", fontSize: 24, color: "var(--rw-ink)", cursor: "pointer", lineHeight: 1 }}
               >
                 &#10005;
               </button>
@@ -221,10 +221,10 @@ export default function Nav() {
                       <button
                         onClick={() => setMobileExpanded(mobileExpanded === item.label ? null : item.label)}
                         aria-expanded={mobileExpanded === item.label}
-                        style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", background: "transparent", border: "none", fontFamily: "inherit", padding: "15px 8px", fontSize: 16, fontWeight: 700, color: "#0a2338", cursor: "pointer" }}
+                        style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", background: "transparent", border: "none", fontFamily: "inherit", padding: "15px 8px", fontSize: 16, fontWeight: 700, color: "var(--rw-ink)", cursor: "pointer" }}
                       >
                         {item.label}
-                        <span style={{ fontSize: 12, color: "#8a7d6a" }}>&#9662;</span>
+                        <span style={{ fontSize: 12, color: "var(--rw-meta)" }}>&#9662;</span>
                       </button>
                       {mobileExpanded === item.label && (
                         <div style={{ padding: "0 8px 12px" }}>
@@ -233,7 +233,7 @@ export default function Nav() {
                               key={sub.href}
                               href={sub.href}
                               onClick={() => setMobileOpen(false)}
-                              style={{ display: "block", padding: "11px 14px", fontSize: 14.5, fontWeight: 600, color: "#33454f", textDecoration: "none", borderLeft: "2px solid #e6d8c6" }}
+                              style={{ display: "block", padding: "11px 14px", fontSize: 14.5, fontWeight: 600, color: "var(--rw-prose)", textDecoration: "none", borderLeft: "2px solid var(--rw-rule)" }}
                             >
                               {sub.label}
                             </Link>
@@ -245,7 +245,7 @@ export default function Nav() {
                     <Link
                       href={item.href}
                       onClick={() => setMobileOpen(false)}
-                      style={{ display: "block", padding: "15px 8px", fontSize: 16, fontWeight: 700, color: "#0a2338", textDecoration: "none" }}
+                      style={{ display: "block", padding: "15px 8px", fontSize: 16, fontWeight: 700, color: "var(--rw-ink)", textDecoration: "none" }}
                     >
                       {item.label}
                     </Link>
@@ -253,7 +253,7 @@ export default function Nav() {
                 </div>
               ))}
               {isAuthenticated ? (
-                <div style={{ marginTop: 20, padding: "14px 8px 0", borderTop: "1px solid #ece0d5" }}>
+                <div style={{ marginTop: 20, padding: "14px 8px 0", borderTop: "1px solid var(--rw-border)" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
                     <span
                       aria-hidden="true"
@@ -261,7 +261,7 @@ export default function Nav() {
                         width: 38,
                         height: 38,
                         borderRadius: "50%",
-                        background: "linear-gradient(135deg,#0e8a97,#0a2338)",
+                        background: "linear-gradient(135deg,var(--rw-teal),var(--rw-ink))",
                         color: "#fff",
                         display: "flex",
                         alignItems: "center",
@@ -273,7 +273,7 @@ export default function Nav() {
                     >
                       {initialsOf(user)}
                     </span>
-                    <span style={{ fontWeight: 700, fontSize: 16, color: "#0a2338" }}>{firstNameOf(user)}</span>
+                    <span style={{ fontWeight: 700, fontSize: 16, color: "var(--rw-ink)" }}>{firstNameOf(user)}</span>
                   </div>
                   <div style={{ display: "flex", flexDirection: "column" }}>
                     <Link href={dashboardHref} onClick={() => setMobileOpen(false)} style={mobileMenuLinkStyle}>
@@ -291,7 +291,7 @@ export default function Nav() {
                     <button
                       type="button"
                       onClick={handleMobileSignOut}
-                      style={{ ...mobileMenuLinkStyle, textAlign: "left", background: "transparent", border: "none", cursor: "pointer", color: "#cf3f20", fontFamily: "inherit" }}
+                      style={{ ...mobileMenuLinkStyle, textAlign: "left", background: "transparent", border: "none", cursor: "pointer", color: "var(--rw-orange-deep)", fontFamily: "inherit" }}
                     >
                       Sign Out
                     </button>
@@ -302,21 +302,21 @@ export default function Nav() {
                   <Link
                     href="/signin"
                     onClick={() => setMobileOpen(false)}
-                    style={{ textAlign: "center", padding: 12, borderRadius: 8, border: "1px solid #d8cab8", fontWeight: 600, fontSize: 15, color: "#33454f", textDecoration: "none" }}
+                    style={{ textAlign: "center", padding: 12, borderRadius: 8, border: "1px solid var(--rw-line)", fontWeight: 600, fontSize: 15, color: "var(--rw-prose)", textDecoration: "none" }}
                   >
                     Sign In
                   </Link>
                   <Link
                     href="/signup"
                     onClick={() => setMobileOpen(false)}
-                    style={{ textAlign: "center", padding: 12, borderRadius: 8, border: "1px solid #d8cab8", fontWeight: 600, fontSize: 15, color: "#33454f", textDecoration: "none" }}
+                    style={{ textAlign: "center", padding: 12, borderRadius: 8, border: "1px solid var(--rw-line)", fontWeight: 600, fontSize: 15, color: "var(--rw-prose)", textDecoration: "none" }}
                   >
                     Sign Up
                   </Link>
                   <Link
                     href="/trial"
                     onClick={() => setMobileOpen(false)}
-                    style={{ textAlign: "center", padding: 13, borderRadius: 8, background: "#ef5130", color: "#fff", fontWeight: 700, fontSize: 15, textDecoration: "none" }}
+                    style={{ textAlign: "center", padding: 13, borderRadius: 8, background: "var(--rw-orange)", color: "#fff", fontWeight: 700, fontSize: 15, textDecoration: "none" }}
                   >
                     Book a Trial
                   </Link>
@@ -336,15 +336,15 @@ const navLinkStyle = {
   borderRadius: 8,
   fontSize: 14.5,
   fontWeight: 600,
-  color: "#33454f",
+  color: "var(--rw-prose)",
   textDecoration: "none",
   cursor: "pointer",
 };
 
 const activeNavLinkStyle = {
   ...navLinkStyle,
-  color: "#ef5130",
-  boxShadow: "inset 0 -2px 0 #ef5130",
+  color: "var(--rw-orange)",
+  boxShadow: "inset 0 -2px 0 var(--rw-orange)",
 };
 
 const mobileMenuLinkStyle = {
@@ -352,7 +352,7 @@ const mobileMenuLinkStyle = {
   padding: "11px 8px",
   fontSize: 15,
   fontWeight: 600,
-  color: "#33454f",
+  color: "var(--rw-prose)",
   textDecoration: "none",
 };
 
@@ -362,7 +362,7 @@ const ctaStyle = {
   fontWeight: 700,
   fontSize: 14.5,
   color: "#fff",
-  background: "#ef5130",
+  background: "var(--rw-orange)",
   textDecoration: "none",
   cursor: "pointer",
 };

@@ -4,11 +4,11 @@ import { useEffect, useState } from "react";
 import { API_URL } from "@/lib/api";
 
 const STATUS_COLORS = {
-  New: { bg: "#fdece6", fg: "#cf3f20" },
+  New: { bg: "var(--rw-orange-tint)", fg: "var(--rw-orange-deep)" },
   Contacted: { bg: "#fdf3d9", fg: "#a06a2a" },
   "Trial Scheduled": { bg: "#e6f0fb", fg: "#1a5aa8" },
   Enrolled: { bg: "#e3f3ea", fg: "#1f7a4d" },
-  Closed: { bg: "#ece0d5", fg: "#6a6560" },
+  Closed: { bg: "var(--rw-border)", fg: "var(--rw-body)" },
 };
 
 export default function AdminTrials() {
@@ -34,11 +34,11 @@ export default function AdminTrials() {
 
   return (
     <div>
-      <h1 style={{ fontWeight: 600, fontSize: 24, color: "#0a2338", marginBottom: 20 }}>Trial Requests</h1>
+      <h1 style={{ fontWeight: 600, fontSize: 24, color: "var(--rw-ink)", marginBottom: 20 }}>Trial Requests</h1>
       {loading ? (
-        <p style={{ color: "#8a7d6a" }}>Loading…</p>
+        <p style={{ color: "var(--rw-meta)" }}>Loading…</p>
       ) : trials.length === 0 ? (
-        <p style={{ color: "#8a7d6a" }}>No trial requests yet.</p>
+        <p style={{ color: "var(--rw-meta)" }}>No trial requests yet.</p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {trials.map((t) => {
@@ -51,14 +51,14 @@ export default function AdminTrials() {
                   justifyContent: "space-between",
                   alignItems: "center",
                   padding: "14px 16px",
-                  border: "1px solid #ece0d5",
+                  border: "1px solid var(--rw-border)",
                   borderRadius: 10,
-                  background: "#fffdf9",
+                  background: "var(--rw-surface)",
                 }}
               >
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: 14.5, color: "#0a2338" }}>{t.studentName}</div>
-                  <div style={{ fontSize: 12.5, color: "#8a7d6a" }}>
+                  <div style={{ fontWeight: 700, fontSize: 14.5, color: "var(--rw-ink)" }}>{t.studentName}</div>
+                  <div style={{ fontSize: 12.5, color: "var(--rw-meta)" }}>
                     {t.email} &middot; {t.instrument || "No instrument"} &middot; {new Date(t.createdAt).toLocaleDateString()}
                   </div>
                 </div>

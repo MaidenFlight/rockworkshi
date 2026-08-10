@@ -27,7 +27,7 @@ export default function AdminLayout({ children }) {
     <ProtectedRoute allow={[ROLES.ADMINISTRATOR]}>
       <div className="rw-admin-shell" style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 24px 100px", display: "flex", gap: 32 }}>
         <nav className="rw-admin-nav" style={{ width: 200, flexShrink: 0 }}>
-          <div style={{ fontWeight: 700, fontSize: 12, letterSpacing: "0.1em", textTransform: "uppercase", color: "#0e8a97", marginBottom: 14 }}>
+          <div style={{ fontWeight: 700, fontSize: 12, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--rw-teal)", marginBottom: 14 }}>
             Admin
           </div>
           {NAV.map((item) => (
@@ -40,8 +40,8 @@ export default function AdminLayout({ children }) {
                 borderRadius: 8,
                 fontSize: 14,
                 fontWeight: 600,
-                color: pathname === item.href ? "#fff" : "#33454f",
-                background: pathname === item.href ? "#0a2338" : "transparent",
+                color: pathname === item.href ? "#fff" : "var(--rw-prose)",
+                background: pathname === item.href ? "var(--rw-ink)" : "transparent",
                 textDecoration: "none",
                 marginBottom: 2,
               }}
@@ -50,7 +50,7 @@ export default function AdminLayout({ children }) {
             </Link>
           ))}
 
-          <div style={{ borderTop: "1px solid #ece0d5", margin: "16px 0 10px" }} />
+          <div style={{ borderTop: "1px solid var(--rw-border)", margin: "16px 0 10px" }} />
           <Link
             href="/member"
             target="_blank"
@@ -61,7 +61,7 @@ export default function AdminLayout({ children }) {
               borderRadius: 8,
               fontSize: 14,
               fontWeight: 700,
-              color: "#0e8a97",
+              color: "var(--rw-teal)",
               textDecoration: "none",
             }}
           >

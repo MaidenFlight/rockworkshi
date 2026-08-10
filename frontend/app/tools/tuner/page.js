@@ -252,21 +252,21 @@ export default function Tuner() {
 
   return (
     <div style={{ maxWidth: 560, margin: "0 auto", padding: "60px 24px 100px" }}>
-      <h1 style={{ fontWeight: 600, fontSize: 32, color: "#0a2338", marginBottom: 8 }}>Tuner</h1>
-      <p style={{ color: "#6a6560", marginBottom: 32 }}>
+      <h1 style={{ fontWeight: 600, fontSize: 32, color: "var(--rw-ink)", marginBottom: 8 }}>Tuner</h1>
+      <p style={{ color: "var(--rw-body)", marginBottom: 32 }}>
         Use your microphone to tune by ear, or play a reference tone for any string.
       </p>
 
-      <div style={{ textAlign: "center", background: "#fffdf9", border: "1px solid #ece0d5", borderRadius: 16, padding: 32, marginBottom: 32 }}>
-        <div style={{ fontSize: 64, fontWeight: 700, color: inTune && micOn ? "#0e8a97" : "#0a2338", lineHeight: 1 }}>
+      <div style={{ textAlign: "center", background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: 16, padding: 32, marginBottom: 32 }}>
+        <div style={{ fontSize: 64, fontWeight: 700, color: inTune && micOn ? "var(--rw-teal)" : "var(--rw-ink)", lineHeight: 1 }}>
           {note}
-          <span style={{ fontSize: 28, color: "#8a7d6a" }}>{octave}</span>
+          <span style={{ fontSize: 28, color: "var(--rw-meta)" }}>{octave}</span>
         </div>
-        <div style={{ fontSize: 14, color: "#6a6560", marginTop: 8 }}>
+        <div style={{ fontSize: 14, color: "var(--rw-body)", marginTop: 8 }}>
           {freq ? `${freq} Hz` : "—"} {micOn && freq ? `· ${cents > 0 ? "+" : ""}${cents} cents` : ""}
         </div>
 
-        <div style={{ position: "relative", height: 10, borderRadius: 999, margin: "24px 0", background: "linear-gradient(90deg,#ef5130,#f6e4d5,#0e8a97,#f6e4d5,#ef5130)" }}>
+        <div style={{ position: "relative", height: 10, borderRadius: 999, margin: "24px 0", background: "linear-gradient(90deg,var(--rw-orange),#f6e4d5,var(--rw-teal),#f6e4d5,var(--rw-orange))" }}>
           <div
             style={{
               position: "absolute",
@@ -276,20 +276,20 @@ export default function Tuner() {
               width: 4,
               height: 18,
               borderRadius: 2,
-              background: "#0a2338",
+              background: "var(--rw-ink)",
             }}
           />
         </div>
 
-        {micError && <p style={{ color: "#cf3f20", fontSize: 13.5 }}>{micError}</p>}
+        {micError && <p style={{ color: "var(--rw-orange-deep)", fontSize: 13.5 }}>{micError}</p>}
 
         <button onClick={micOn ? stopMic : startMic} className="rw-cta" style={ctaBtnStyle}>
           {micOn ? "Stop Microphone" : "Start Microphone"}
         </button>
       </div>
 
-      <div style={{ background: "#fffdf9", border: "1px solid #ece0d5", borderRadius: 16, padding: 24 }}>
-        <div style={{ fontWeight: 700, fontSize: 13, letterSpacing: "0.1em", textTransform: "uppercase", color: "#0e8a97", marginBottom: 14 }}>
+      <div style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: 16, padding: 24 }}>
+        <div style={{ fontWeight: 700, fontSize: 13, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--rw-teal)", marginBottom: 14 }}>
           Reference tones
         </div>
 
@@ -330,11 +330,11 @@ export default function Tuner() {
                 style={{
                   padding: "14px 6px",
                   borderRadius: 10,
-                  border: refPlaying === id ? "1px solid #ef5130" : "1px solid #d8cab8",
-                  background: refPlaying === id ? "#fdece6" : "#fff",
+                  border: refPlaying === id ? "1px solid var(--rw-orange)" : "1px solid var(--rw-line)",
+                  background: refPlaying === id ? "var(--rw-orange-tint)" : "#fff",
                   fontWeight: 700,
                   fontSize: 13,
-                  color: "#0a2338",
+                  color: "var(--rw-ink)",
                   cursor: "pointer",
                 }}
               >
@@ -352,11 +352,11 @@ function pillStyle(active) {
   return {
     padding: "8px 14px",
     borderRadius: 999,
-    border: active ? "1px solid #ef5130" : "1px solid #d8cab8",
-    background: active ? "#fdece6" : "#fff",
+    border: active ? "1px solid var(--rw-orange)" : "1px solid var(--rw-line)",
+    background: active ? "var(--rw-orange-tint)" : "#fff",
     fontWeight: 700,
     fontSize: 13,
-    color: "#0a2338",
+    color: "var(--rw-ink)",
     cursor: "pointer",
   };
 }
@@ -366,7 +366,7 @@ const ctaBtnStyle = {
   padding: "13px 26px",
   borderRadius: 999,
   border: "none",
-  background: "linear-gradient(135deg,#ef5130,#cf3f20)",
+  background: "linear-gradient(135deg,var(--rw-orange),var(--rw-orange-deep))",
   color: "#fff",
   fontWeight: 800,
   fontSize: 14.5,

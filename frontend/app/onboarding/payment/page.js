@@ -12,6 +12,7 @@ import {
   startStripeCheckout,
 } from "@/lib/billingApi";
 import { dashboardFor } from "@/lib/auth/enrolment";
+import { PageHero } from "@/components/ui";
 
 function PaymentContent() {
   const { user, refresh } = useAuth();
@@ -141,7 +142,7 @@ function PaymentContent() {
       <div style={cardStyle}>
         <div style={{ fontSize: 44, marginBottom: 10 }}>🎸</div>
         <h2 style={headingStyle}>Confirming your payment…</h2>
-        <p style={{ margin: 0, fontSize: 15.5, color: "#5f6f79" }}>
+        <p style={{ margin: 0, fontSize: 15.5, color: "var(--rw-body-cool)" }}>
           One moment — don&apos;t close this page.
         </p>
       </div>
@@ -153,7 +154,7 @@ function PaymentContent() {
       <div style={cardStyle}>
         <div style={{ fontSize: 44, marginBottom: 10 }}>🌺</div>
         <h2 style={headingStyle}>You&apos;re enrolled!</h2>
-        <p style={{ margin: 0, fontSize: 15.5, color: "#5f6f79" }}>Taking you to your dashboard…</p>
+        <p style={{ margin: 0, fontSize: 15.5, color: "var(--rw-body-cool)" }}>Taking you to your dashboard…</p>
       </div>
     );
   }
@@ -161,17 +162,17 @@ function PaymentContent() {
   return (
     <div>
       <div style={{ ...cardStyle, textAlign: "left", padding: 28 }}>
-        <div style={{ fontWeight: 700, fontSize: 12.5, letterSpacing: "0.1em", textTransform: "uppercase", color: "#0e8a97", marginBottom: 16 }}>
+        <div style={{ fontWeight: 700, fontSize: 12.5, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--rw-teal)", marginBottom: 16 }}>
           Order summary
         </div>
 
         {loadError && (
-          <p role="alert" style={{ margin: 0, fontSize: 14, color: "#cf3f20" }}>
+          <p role="alert" style={{ margin: 0, fontSize: 14, color: "var(--rw-orange-deep)" }}>
             {loadError}
           </p>
         )}
 
-        {!summary && !loadError && <p style={{ margin: 0, color: "#8a7d6a" }}>Loading your plan…</p>}
+        {!summary && !loadError && <p style={{ margin: 0, color: "var(--rw-meta)" }}>Loading your plan…</p>}
 
         {summary && (
           <>
@@ -181,24 +182,24 @@ function PaymentContent() {
                 style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 16, padding: "10px 0" }}
               >
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: 15.5, color: "#0a2338" }}>{line.label}</div>
-                  {line.detail && <div style={{ fontSize: 13, color: "#8a7d6a" }}>{line.detail}</div>}
+                  <div style={{ fontWeight: 700, fontSize: 15.5, color: "var(--rw-ink)" }}>{line.label}</div>
+                  {line.detail && <div style={{ fontSize: 13, color: "var(--rw-meta)" }}>{line.detail}</div>}
                 </div>
-                <div style={{ fontWeight: 700, fontSize: 15.5, color: "#33454f", whiteSpace: "nowrap" }}>
+                <div style={{ fontWeight: 700, fontSize: 15.5, color: "var(--rw-prose)", whiteSpace: "nowrap" }}>
                   {line.amount}
                 </div>
               </div>
             ))}
 
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 16, marginTop: 8, paddingTop: 14, borderTop: "1px solid #ece0d5" }}>
-              <div style={{ fontWeight: 800, fontSize: 16, color: "#0a2338" }}>Due today</div>
-              <div style={{ fontFamily: "var(--font-zilla-slab), serif", fontWeight: 600, fontSize: 28, color: "#ef5130", whiteSpace: "nowrap" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 16, marginTop: 8, paddingTop: 14, borderTop: "1px solid var(--rw-border)" }}>
+              <div style={{ fontWeight: 800, fontSize: 16, color: "var(--rw-ink)" }}>Due today</div>
+              <div style={{ fontFamily: "var(--font-zilla-slab), serif", fontWeight: 600, fontSize: 28, color: "var(--rw-orange)", whiteSpace: "nowrap" }}>
                 {summary.total}
               </div>
             </div>
             {/* The fine print comes from the plan, not from here — a term is a
                 commitment and must not claim you can cancel any time. */}
-            <div style={{ fontSize: 12.5, color: "#8a7d6a", marginTop: 4 }}>
+            <div style={{ fontSize: 12.5, color: "var(--rw-meta)", marginTop: 4 }}>
               Billed every {summary.cadence}. {summary.note}
             </div>
 
@@ -244,7 +245,7 @@ function PaymentContent() {
             )}
 
             {payError && (
-              <p role="alert" style={{ margin: "16px 2px 0", fontSize: 13.5, color: "#cf3f20" }}>
+              <p role="alert" style={{ margin: "16px 2px 0", fontSize: 13.5, color: "var(--rw-orange-deep)" }}>
                 {payError}
               </p>
             )}
@@ -268,8 +269,8 @@ function PaymentContent() {
                 border: "none",
                 cursor: paying || !canPay ? "default" : "pointer",
                 opacity: paying || !canPay ? 0.7 : 1,
-                background: "linear-gradient(135deg,#ef5130,#cf3f20)",
-                boxShadow: "0 12px 26px -12px #ef5130",
+                background: "linear-gradient(135deg,var(--rw-orange),var(--rw-orange-deep))",
+                boxShadow: "0 12px 26px -12px var(--rw-orange)",
               }}
             >
               {payButtonLabel(paying, canPay, isStripe, summary.total)}
@@ -286,24 +287,7 @@ export default function OnboardingPayment() {
   return (
     <ProtectedRoute requireEnrolment={false}>
       <div>
-        <section style={{ position: "relative", overflow: "hidden", background: "linear-gradient(155deg,#06192d 0%,#0b2f43 52%,#0b5563 100%)" }}>
-          <div style={{ position: "relative", maxWidth: 900, margin: "0 auto", padding: "56px 24px 70px", textAlign: "center" }}>
-            <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
-              <RockWorksIcon size={40} color="#ffcf8f" />
-            </div>
-            <div style={{ display: "inline-block", fontSize: 12.5, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#ffd89a", marginBottom: 14 }}>
-              Last step
-            </div>
-            <h1 style={{ fontWeight: 500, fontSize: "clamp(34px,4.6vw,50px)", margin: 0, color: "#fff", letterSpacing: "-0.015em" }}>
-              Confirm your enrolment
-            </h1>
-          </div>
-          <div style={{ lineHeight: 0 }}>
-            <svg viewBox="0 0 1440 70" preserveAspectRatio="none" style={{ width: "100%", height: 50, display: "block" }}>
-              <path d="M0,40 C360,80 1080,0 1440,40 L1440,70 L0,70 Z" fill="#fbf5ec" />
-            </svg>
-          </div>
-        </section>
+        <PageHero mark={<RockWorksIcon size={40} color="#ffcf8f" />} eyebrow="Last step" title={<>Confirm your enrolment</>} compact />
 
         <div style={{ maxWidth: 520, margin: "0 auto", padding: "40px 24px 80px" }}>
           {/* PaymentContent reads the query string Stripe redirects back with. */}
@@ -328,27 +312,27 @@ const headingStyle = {
   fontWeight: 600,
   fontSize: 26,
   margin: "0 0 10px",
-  color: "#0a2338",
+  color: "var(--rw-ink)",
 };
 
 const noticeStyle = {
   marginTop: 20,
   padding: "14px 16px",
   borderRadius: 10,
-  background: "#fdece6",
+  background: "var(--rw-orange-tint)",
   border: "1px solid #f3c7ba",
 };
 
 const noticeTitleStyle = {
   fontWeight: 800,
   fontSize: 13,
-  color: "#cf3f20",
+  color: "var(--rw-orange-deep)",
   marginBottom: 4,
 };
 
 const cardStyle = {
-  background: "#fffdf9",
-  border: "1px solid #ece0d5",
+  background: "var(--rw-surface)",
+  border: "1px solid var(--rw-border)",
   borderRadius: 24,
   padding: "48px 36px",
   textAlign: "center",

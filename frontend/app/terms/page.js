@@ -139,4 +139,4 @@ export default function Terms() {
   );
 }
 
-const linkStyle = { color: "#0e8a97", fontWeight: 600 };
+const linkStyle = { color: "var(--rw-teal)", fontWeight: 600 };

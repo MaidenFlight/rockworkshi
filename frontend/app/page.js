@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { instruments, audiences, testimonials } from "@/lib/content";
 import RockWorksIcon from "@/components/RockWorksIcon";
+import { Section, Container, SectionHead, Eyebrow, Button } from "@/components/ui";
+
+// The hero and the stats band keep their own styles rather than going through
+// the primitives. Both are one-offs built on custom gradients, and a primitive
+// that exists to serve a single caller is just indirection.
 
 export default function Home() {
   return (
@@ -11,7 +16,7 @@ export default function Home() {
           position: "relative",
           overflow: "hidden",
           background:
-            "linear-gradient(168deg,#06192d 0%,#0a2f43 34%,#0d5561 60%,#127a86 74%,#c94b2c 92%,#e86a37 100%)",
+            "linear-gradient(168deg,var(--rw-ink-deep) 0%,#0a2f43 34%,#0d5561 60%,#127a86 74%,#c94b2c 92%,#e86a37 100%)",
           color: "#fff5ec",
         }}
       >
@@ -65,39 +70,10 @@ export default function Home() {
               write their own music — one real song at a time.
             </p>
             <div style={{ display: "flex", gap: 20, flexWrap: "wrap", alignItems: "center" }}>
-              <Link
-                href="/signup"
-                className="rw-cta"
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  padding: "15px 32px",
-                  borderRadius: 8,
-                  fontWeight: 700,
-                  fontSize: 16,
-                  background: "#ef5130",
-                  color: "#fff",
-                  textDecoration: "none",
-                }}
-              >
-                Start Lessons
-              </Link>
-              <Link
-                href="/program/curriculum"
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 8,
-                  fontWeight: 700,
-                  fontSize: 15,
-                  color: "#fff",
-                  textDecoration: "none",
-                  borderBottom: "1.5px solid rgba(255,255,255,0.38)",
-                  paddingBottom: 3,
-                }}
-              >
+              <Button href="/signup">Start Lessons</Button>
+              <Button href="/program/curriculum" variant="quiet" onDark>
                 See the curriculum &rarr;
-              </Link>
+              </Button>
             </div>
           </div>
           <div
@@ -119,13 +95,13 @@ export default function Home() {
                 position: "absolute",
                 left: -14,
                 bottom: -16,
-                background: "#06192d",
+                background: "var(--rw-ink-deep)",
                 color: "#fff",
                 fontSize: 12.5,
                 fontWeight: 600,
                 letterSpacing: "0.04em",
                 padding: "11px 18px",
-                borderLeft: "3px solid #ef5130",
+                borderLeft: "3px solid var(--rw-orange)",
               }}
             >
               On the Rock Works stage &middot; Honolulu
@@ -134,13 +110,14 @@ export default function Home() {
         </div>
         <div style={{ position: "relative", lineHeight: 0 }}>
           <svg viewBox="0 0 1440 90" preserveAspectRatio="none" style={{ width: "100%", height: 64, display: "block" }}>
-            <path d="M0,48 C240,96 480,10 720,40 C960,70 1200,20 1440,52 L1440,90 L0,90 Z" fill="#fbf5ec" />
+            <path d="M0,48 C240,96 480,10 720,40 C960,70 1200,20 1440,52 L1440,90 L0,90 Z" fill="var(--rw-cream)" />
           </svg>
         </div>
       </section>
 
-      {/* VALUE PROPS */}
-      <section style={{ maxWidth: 1160, margin: "0 auto", padding: "44px 24px 8px" }}>
+      {/* VALUE PROPS — sits tight under the hero wave, so it keeps its own
+          asymmetric padding rather than the standard section rhythm. */}
+      <Container style={{ padding: "44px 24px 8px" }}>
         <div className="rw-cols-3" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)" }}>
           {[
             {
@@ -164,42 +141,25 @@ export default function Home() {
               className={i < 2 ? "rw-editorial-col" : ""}
               style={{
                 padding: i === 0 ? "8px 40px 8px 0" : i === 1 ? "8px 40px" : "8px 0 8px 40px",
-                borderRight: i < 2 ? "1px solid #e6d8c6" : "none",
+                borderRight: i < 2 ? "1px solid var(--rw-rule)" : "none",
               }}
             >
-              <div style={{ fontStyle: "italic", fontSize: 26, color: "#ef5130", lineHeight: 1 }}>{v.n}</div>
-              <h3 style={{ fontWeight: 560, fontSize: 22, margin: "16px 0 9px", color: "#0a2338", letterSpacing: "-0.01em" }}>
+              <div style={{ fontStyle: "italic", fontSize: 26, color: "var(--rw-orange)", lineHeight: 1 }}>{v.n}</div>
+              <h3 style={{ fontWeight: 560, fontSize: 22, margin: "16px 0 9px", color: "var(--rw-ink)", letterSpacing: "-0.01em" }}>
                 {v.title}
               </h3>
-              <p style={{ margin: 0, fontSize: 15.5, lineHeight: 1.62, color: "#6a6560" }}>{v.body}</p>
+              <p style={{ margin: 0, fontSize: 15.5, lineHeight: 1.62, color: "var(--rw-body)" }}>{v.body}</p>
             </div>
           ))}
         </div>
-      </section>
+      </Container>
 
       {/* INSTRUMENTS */}
-      <section style={{ maxWidth: 1200, margin: "0 auto", padding: "60px 24px" }}>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "flex-end",
-            justifyContent: "space-between",
-            gap: 20,
-            marginBottom: 26,
-            borderBottom: "1px solid #e6d8c6",
-            paddingBottom: 18,
-          }}
-        >
-          <h2 style={{ fontWeight: 600, fontSize: "clamp(28px,3.4vw,40px)", margin: 0, color: "#0a2338", letterSpacing: "-0.01em" }}>
-            Choose your instrument
-          </h2>
-          <div style={{ fontWeight: 700, fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase", color: "#0e8a97", paddingBottom: 6, whiteSpace: "nowrap" }}>
-            Pick your sound
-          </div>
-        </div>
+      <Section>
+        <SectionHead title="Choose your instrument" eyebrow="Pick your sound" />
         <div
           className="rw-cols-6"
-          style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", border: "1px solid #e6d8c6", borderRadius: 14, overflow: "hidden" }}
+          style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", border: "1px solid var(--rw-rule)", borderRadius: 14, overflow: "hidden" }}
         >
           {instruments.map((inst, i) => (
             <Link
@@ -212,20 +172,20 @@ export default function Home() {
                 alignItems: "center",
                 gap: 11,
                 padding: "30px 12px",
-                background: "#fffdf9",
+                background: "var(--rw-surface)",
                 borderRight: i < instruments.length - 1 ? "1px solid #eee2d3" : "none",
                 textDecoration: "none",
               }}
             >
               <span style={{ fontSize: 34 }}>{inst.emoji}</span>
-              <span style={{ fontWeight: 700, fontSize: 14.5, color: "#0a2338" }}>{inst.name}</span>
+              <span style={{ fontWeight: 700, fontSize: 14.5, color: "var(--rw-ink)" }}>{inst.name}</span>
             </Link>
           ))}
         </div>
-      </section>
+      </Section>
 
       {/* STATS BAND */}
-      <section style={{ position: "relative", overflow: "hidden", background: "linear-gradient(135deg,#0a2338,#0e3a4a 55%,#cf3f20)" }}>
+      <section style={{ position: "relative", overflow: "hidden", background: "linear-gradient(135deg,var(--rw-ink),#0e3a4a 55%,var(--rw-orange-deep))" }}>
         <div
           style={{
             position: "relative",
@@ -281,98 +241,60 @@ export default function Home() {
       </section>
 
       {/* WHO IT'S FOR */}
-      <section style={{ maxWidth: 1200, margin: "0 auto", padding: "64px 24px" }}>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "flex-end",
-            justifyContent: "space-between",
-            gap: 20,
-            marginBottom: 8,
-            borderBottom: "1px solid #e6d8c6",
-            paddingBottom: 18,
-          }}
-        >
-          <h2 style={{ fontWeight: 600, fontSize: "clamp(28px,3.4vw,40px)", margin: 0, color: "#0a2338", letterSpacing: "-0.01em" }}>
-            One school, three ways in
-          </h2>
-          <div style={{ fontWeight: 700, fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase", color: "#0e8a97", paddingBottom: 6, whiteSpace: "nowrap" }}>
-            Who it&apos;s for
-          </div>
-        </div>
+      <Section>
+        <SectionHead title="One school, three ways in" eyebrow="Who it's for" flush />
         <div className="rw-cols-3" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)" }}>
           {audiences.map((a, i) => (
             <div
               key={a.title}
               style={{
                 padding: "28px 34px 8px",
-                borderRight: i < audiences.length - 1 ? "1px solid #e6d8c6" : "none",
+                borderRight: i < audiences.length - 1 ? "1px solid var(--rw-rule)" : "none",
                 display: "flex",
                 flexDirection: "column",
               }}
             >
-              <h3 style={{ fontWeight: 600, fontSize: 23, margin: "0 0 10px", color: "#0a2338" }}>{a.title}</h3>
-              <p style={{ margin: "0 0 18px", fontSize: 15, lineHeight: 1.62, color: "#6a6560", flex: 1 }}>{a.desc}</p>
-              <Link href={a.href} style={{ fontWeight: 700, fontSize: 14, color: "#cf3f20", textDecoration: "none" }}>
+              <h3 style={{ fontWeight: 600, fontSize: 23, margin: "0 0 10px", color: "var(--rw-ink)" }}>{a.title}</h3>
+              <p style={{ margin: "0 0 18px", fontSize: 15, lineHeight: 1.62, color: "var(--rw-body)", flex: 1 }}>{a.desc}</p>
+              <Link href={a.href} style={{ fontWeight: 700, fontSize: 14, color: "var(--rw-orange-deep)", textDecoration: "none" }}>
                 {a.cta} &rarr;
               </Link>
             </div>
           ))}
         </div>
-      </section>
+      </Section>
 
       {/* TESTIMONIALS */}
-      <section style={{ background: "#f6ecdd", borderTop: "1px solid #ece0d5", borderBottom: "1px solid #ece0d5" }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "66px 24px" }}>
-          <div style={{ fontWeight: 700, fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase", color: "#0e8a97", marginBottom: 30 }}>
-            From our &lsquo;ohana
-          </div>
-          <div className="rw-cols-3" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 44 }}>
-            {testimonials.map((t) => (
-              <div key={t.name} style={{ borderTop: "2px solid #ef5130", paddingTop: 18 }}>
-                <p style={{ margin: "0 0 16px", fontSize: 18, lineHeight: 1.5, color: "#22323d", fontWeight: 500 }}>
-                  &ldquo;{t.quote}&rdquo;
-                </p>
-                <p style={{ margin: 0, fontWeight: 700, fontSize: 13.5, letterSpacing: "0.04em", textTransform: "uppercase", color: "#8a7d6a" }}>
-                  {t.name}
-                </p>
-              </div>
-            ))}
-          </div>
+      <Section band="sand">
+        <Eyebrow>From our &lsquo;ohana</Eyebrow>
+        <div className="rw-cols-3" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 44 }}>
+          {testimonials.map((t) => (
+            <div key={t.name} style={{ borderTop: "2px solid var(--rw-orange)", paddingTop: 18 }}>
+              <p style={{ margin: "0 0 16px", fontSize: 18, lineHeight: 1.5, color: "var(--rw-prose)", fontWeight: 500 }}>
+                &ldquo;{t.quote}&rdquo;
+              </p>
+              <p style={{ margin: 0, fontWeight: 700, fontSize: 13.5, letterSpacing: "0.04em", textTransform: "uppercase", color: "var(--rw-meta)" }}>
+                {t.name}
+              </p>
+            </div>
+          ))}
         </div>
-      </section>
+      </Section>
 
       {/* CTA */}
-      <section style={{ position: "relative", overflow: "hidden", background: "linear-gradient(135deg,#06192d,#0b3a4c 70%,#0e5561)", color: "#fff" }}>
+      <section style={{ position: "relative", overflow: "hidden", background: "linear-gradient(135deg,var(--rw-ink-deep),#0b3a4c 70%,#0e5561)", color: "#fff" }}>
         <div style={{ position: "absolute", right: "-6%", top: "50%", transform: "translateY(-50%)", opacity: 0.08, pointerEvents: "none" }}>
           <RockWorksIcon size={420} color="#fff" />
         </div>
-        <div style={{ position: "relative", maxWidth: 900, margin: "0 auto", padding: "80px 24px", textAlign: "center" }}>
+        <Container width="text" style={{ position: "relative", padding: "80px 24px", textAlign: "center" }}>
           <h2 style={{ fontWeight: 700, fontSize: "clamp(32px,4.2vw,52px)", margin: "0 0 16px", color: "#fff", letterSpacing: "-0.015em", lineHeight: 1.02 }}>
             Ready to play your first song?
           </h2>
           <p style={{ margin: "0 auto 30px", maxWidth: 520, fontSize: 17.5, lineHeight: 1.55, color: "rgba(255,245,236,0.82)" }}>
             Sign up today and pick up your instrument — we&apos;ll build the rest around a song you love.
           </p>
-          <Link
-            href="/signup"
-            className="rw-cta"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              padding: "15px 32px",
-              borderRadius: 8,
-              fontWeight: 700,
-              fontSize: 16,
-              background: "#ef5130",
-              color: "#fff",
-              textDecoration: "none",
-            }}
-          >
-            Sign Up Now
-          </Link>
-        </div>
+          <Button href="/signup">Sign Up Now</Button>
+        </Container>
       </section>
     </div>
   );

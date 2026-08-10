@@ -88,7 +88,7 @@ export default function Refunds() {
       <H2>Questions</H2>
       <P>
         Email denny.landika@rockworksschoolofmusichawaii.com or use the{" "}
-        <a href="/contact" style={{ color: "#0e8a97", fontWeight: 600 }}>contact form</a>.
+        <a href="/contact" style={{ color: "var(--rw-teal)", fontWeight: 600 }}>contact form</a>.
         If something looks wrong on your bill, please talk to us before disputing it with your
         bank — it is almost always quicker to sort out directly.
       </P>

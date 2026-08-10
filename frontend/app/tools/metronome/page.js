@@ -102,12 +102,12 @@ export default function Metronome() {
 
   return (
     <div style={{ maxWidth: 520, margin: "0 auto", padding: "60px 24px 100px" }}>
-      <h1 style={{ fontWeight: 600, fontSize: 32, color: "#0a2338", marginBottom: 8 }}>Metronome</h1>
-      <p style={{ color: "#6a6560", marginBottom: 40 }}>Steady click for practicing at any tempo.</p>
+      <h1 style={{ fontWeight: 600, fontSize: 32, color: "var(--rw-ink)", marginBottom: 8 }}>Metronome</h1>
+      <p style={{ color: "var(--rw-body)", marginBottom: 40 }}>Steady click for practicing at any tempo.</p>
 
-      <div style={{ textAlign: "center", background: "#fffdf9", border: "1px solid #ece0d5", borderRadius: 16, padding: 32 }}>
-        <div style={{ fontSize: 72, fontWeight: 700, color: "#0a2338", lineHeight: 1 }}>{bpm}</div>
-        <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#0e8a97", marginTop: 6 }}>
+      <div style={{ textAlign: "center", background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: 16, padding: 32 }}>
+        <div style={{ fontSize: 72, fontWeight: 700, color: "var(--rw-ink)", lineHeight: 1 }}>{bpm}</div>
+        <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--rw-teal)", marginTop: 6 }}>
           BPM
         </div>
 
@@ -119,7 +119,7 @@ export default function Metronome() {
                 width: 14,
                 height: 14,
                 borderRadius: "50%",
-                background: beat === i ? "#ef5130" : "#e6d8c6",
+                background: beat === i ? "var(--rw-orange)" : "var(--rw-rule)",
                 transition: "background 0.1s",
               }}
             />
@@ -151,9 +151,9 @@ export default function Metronome() {
               style={{
                 padding: "8px 14px",
                 borderRadius: 8,
-                border: b === beats ? "1px solid #ef5130" : "1px solid #d8cab8",
-                background: b === beats ? "#fdece6" : "#fff",
-                color: "#0a2338",
+                border: b === beats ? "1px solid var(--rw-orange)" : "1px solid var(--rw-line)",
+                background: b === beats ? "var(--rw-orange-tint)" : "#fff",
+                color: "var(--rw-ink)",
                 fontWeight: 700,
                 cursor: "pointer",
               }}
@@ -180,22 +180,22 @@ const nudgeBtnStyle = {
   width: 36,
   height: 36,
   borderRadius: "50%",
-  border: "1px solid #d8cab8",
+  border: "1px solid var(--rw-line)",
   background: "#fff",
   fontSize: 20,
   cursor: "pointer",
-  color: "#0a2338",
+  color: "var(--rw-ink)",
 };
 
 const secondaryBtnStyle = {
   flex: 1,
   padding: "13px 20px",
   borderRadius: 999,
-  border: "1px solid #d8cab8",
+  border: "1px solid var(--rw-line)",
   background: "#fff",
   fontWeight: 700,
   fontSize: 14.5,
-  color: "#33454f",
+  color: "var(--rw-prose)",
   cursor: "pointer",
 };
 
@@ -204,7 +204,7 @@ const ctaBtnStyle = {
   padding: "13px 20px",
   borderRadius: 999,
   border: "none",
-  background: "linear-gradient(135deg,#ef5130,#cf3f20)",
+  background: "linear-gradient(135deg,var(--rw-orange),var(--rw-orange-deep))",
   color: "#fff",
   fontWeight: 800,
   fontSize: 14.5,

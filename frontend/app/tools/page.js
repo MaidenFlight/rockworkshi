@@ -2,7 +2,7 @@ import Link from "next/link";
 import EditorialHero from "@/components/EditorialHero";
 
 const TOOLS = [
-  { title: "Metronome", desc: "A steady click at any tempo, with tap tempo.", emoji: "⏱️", bg: "#fdece6", href: "/tools/metronome" },
+  { title: "Metronome", desc: "A steady click at any tempo, with tap tempo.", emoji: "⏱️", bg: "var(--rw-orange-tint)", href: "/tools/metronome" },
   { title: "Tuner", desc: "Mic-based tuning plus plucked reference tones.", emoji: "\u{1F3B8}", bg: "#e6f0fb", href: "/tools/tuner" },
   { title: "Chord Library", desc: "Real fingerings for guitar, ukulele, bass, and piano.", emoji: "\u{1F4D6}", bg: "#fdf3d9", href: "/tools/chords" },
   { title: "Piano", desc: "A two-octave, polyphonic on-screen keyboard.", emoji: "\u{1F3B9}", bg: "#e3f3ea", href: "/tools/piano" },
@@ -28,8 +28,8 @@ export default function ToolsHub() {
                 display: "flex",
                 alignItems: "center",
                 gap: 18,
-                background: "#fffdf9",
-                border: "1px solid #ece0d5",
+                background: "var(--rw-surface)",
+                border: "1px solid var(--rw-border)",
                 borderRadius: 14,
                 padding: "22px 24px",
                 textDecoration: "none",
@@ -51,23 +51,23 @@ export default function ToolsHub() {
                 {t.emoji}
               </div>
               <div>
-                <div style={{ fontWeight: 700, fontSize: 17, color: "#0a2338" }}>{t.title}</div>
+                <div style={{ fontWeight: 700, fontSize: 17, color: "var(--rw-ink)" }}>{t.title}</div>
                 <div style={{ fontSize: 14, color: "#7a6d78", marginTop: 2 }}>{t.desc}</div>
               </div>
             </Link>
           ))}
         </div>
 
-        <div style={{ display: "flex", gap: 16, flexWrap: "wrap", justifyContent: "center", padding: 22, background: "#f6ecdd", borderRadius: 14 }}>
-          <Link href="/trial" style={{ fontSize: 14, fontWeight: 700, color: "#ef5130", textDecoration: "none" }}>
+        <div style={{ display: "flex", gap: 16, flexWrap: "wrap", justifyContent: "center", padding: 22, background: "var(--rw-sand)", borderRadius: 14 }}>
+          <Link href="/trial" style={{ fontSize: 14, fontWeight: 700, color: "var(--rw-orange)", textDecoration: "none" }}>
             Book a Trial
           </Link>
-          <span style={{ color: "#d8cab8" }}>&middot;</span>
-          <Link href="/program/curriculum" style={{ fontSize: 14, fontWeight: 700, color: "#0e8a97", textDecoration: "none" }}>
+          <span style={{ color: "var(--rw-line)" }}>&middot;</span>
+          <Link href="/program/curriculum" style={{ fontSize: 14, fontWeight: 700, color: "var(--rw-teal)", textDecoration: "none" }}>
             See the Curriculum
           </Link>
-          <span style={{ color: "#d8cab8" }}>&middot;</span>
-          <Link href="/signin" style={{ fontSize: 14, fontWeight: 700, color: "#0e8a97", textDecoration: "none" }}>
+          <span style={{ color: "var(--rw-line)" }}>&middot;</span>
+          <Link href="/signin" style={{ fontSize: 14, fontWeight: 700, color: "var(--rw-teal)", textDecoration: "none" }}>
             Student Sign In
           </Link>
         </div>

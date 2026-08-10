@@ -4,8 +4,8 @@ import RockWorksIcon from "@/components/RockWorksIcon";
 
 export default function Footer() {
   return (
-    <footer style={{ background: "linear-gradient(135deg,#06192d,#0a2a38)", color: "rgba(255,245,236,0.72)", marginTop: "auto" }}>
-      <div style={{ height: 4, background: "linear-gradient(90deg,#0e8a97,#f4b64a,#ef5130,#0e7d8a)" }} />
+    <footer style={{ background: "linear-gradient(135deg,var(--rw-ink-deep),#0a2a38)", color: "rgba(255,245,236,0.72)", marginTop: "auto" }}>
+      <div style={{ height: 4, background: "linear-gradient(90deg,var(--rw-teal),#f4b64a,var(--rw-orange),#0e7d8a)" }} />
       <div
         style={{
           maxWidth: 1200,

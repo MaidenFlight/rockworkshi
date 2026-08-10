@@ -35,10 +35,10 @@ export default function AccountSettings() {
 
   return (
     <div style={{ maxWidth: 560, margin: "0 auto", padding: "48px 24px 100px" }}>
-      <h1 style={{ fontWeight: 600, fontSize: 30, color: "#0a2338", marginBottom: 4 }}>Account Settings</h1>
-      <p style={{ color: "#6a6560", marginBottom: 32 }}>Update the details on your Rock Works account.</p>
+      <h1 style={{ fontWeight: 600, fontSize: 30, color: "var(--rw-ink)", marginBottom: 4 }}>Account Settings</h1>
+      <p style={{ color: "var(--rw-body)", marginBottom: 32 }}>Update the details on your Rock Works account.</p>
 
-      <form onSubmit={handleSubmit} style={{ background: "#fffdf9", border: "1px solid #ece0d5", borderRadius: 14, padding: 28 }}>
+      <form onSubmit={handleSubmit} style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: 14, padding: 28 }}>
         <label style={fieldLabelStyle}>
           Full name
           <input value={name} onChange={(e) => setName(e.target.value)} style={inputStyle} placeholder="Your name" />
@@ -57,12 +57,12 @@ export default function AccountSettings() {
         </label>
 
         {error && (
-          <p role="alert" style={{ margin: "14px 2px 0", fontSize: 13.5, color: "#cf3f20" }}>
+          <p role="alert" style={{ margin: "14px 2px 0", fontSize: 13.5, color: "var(--rw-orange-deep)" }}>
             {error}
           </p>
         )}
         {success && (
-          <p role="status" style={{ margin: "14px 2px 0", fontSize: 13.5, color: "#0e8a97", fontWeight: 700 }}>
+          <p role="status" style={{ margin: "14px 2px 0", fontSize: 13.5, color: "var(--rw-teal)", fontWeight: 700 }}>
             Saved.
           </p>
         )}
@@ -134,18 +134,18 @@ function MembershipSection() {
   const endDate = formatDate(subscription?.currentPeriodEnd);
 
   return (
-    <section style={{ background: "#fffdf9", border: "1px solid #ece0d5", borderRadius: 14, padding: 28, marginTop: 24 }}>
-      <h2 style={{ fontWeight: 600, fontSize: 20, color: "#0a2338", margin: "0 0 4px" }}>Membership</h2>
+    <section style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: 14, padding: 28, marginTop: 24 }}>
+      <h2 style={{ fontWeight: 600, fontSize: 20, color: "var(--rw-ink)", margin: "0 0 4px" }}>Membership</h2>
 
       {error && (
-        <p role="alert" style={{ margin: "8px 2px 0", fontSize: 13.5, color: "#cf3f20" }}>
+        <p role="alert" style={{ margin: "8px 2px 0", fontSize: 13.5, color: "var(--rw-orange-deep)" }}>
           {error}
         </p>
       )}
 
       {subscription && (
         <>
-          <p style={{ margin: "0 0 18px", fontSize: 13.5, color: "#8a7d6a" }}>
+          <p style={{ margin: "0 0 18px", fontSize: 13.5, color: "var(--rw-meta)" }}>
             {subscription.plan} — {subscription.amount} every {subscription.cadence}.
           </p>
 
@@ -169,12 +169,12 @@ function MembershipSection() {
             </>
           ) : (
             <>
-              <p style={{ margin: "0 0 4px", fontSize: 13.5, color: "#33454f" }}>
+              <p style={{ margin: "0 0 4px", fontSize: 13.5, color: "var(--rw-prose)" }}>
                 {endDate ? `Renews on ${endDate}.` : "Renews automatically."}
               </p>
 
               {confirming ? (
-                <div style={{ marginTop: 14, padding: "14px 16px", borderRadius: 10, background: "#fdece6", border: "1px solid #f3c7ba" }}>
+                <div style={{ marginTop: 14, padding: "14px 16px", borderRadius: 10, background: "var(--rw-orange-tint)", border: "1px solid #f3c7ba" }}>
                   <p style={{ margin: "0 0 12px", fontSize: 13.5, lineHeight: 1.5, color: "#8a4b3a" }}>
                     Cancel your membership? You&apos;ll keep access
                     {endDate ? ` until ${endDate}` : " until the end of the period you've paid for"},
@@ -185,7 +185,7 @@ function MembershipSection() {
                       type="button"
                       disabled={busy}
                       onClick={() => run(cancelSubscription)}
-                      style={{ ...secondaryButtonStyle, borderColor: "#cf3f20", color: "#cf3f20", opacity: busy ? 0.7 : 1 }}
+                      style={{ ...secondaryButtonStyle, borderColor: "var(--rw-orange-deep)", color: "var(--rw-orange-deep)", opacity: busy ? 0.7 : 1 }}
                     >
                       {busy ? "Cancelling…" : "Yes, cancel it"}
                     </button>
@@ -255,10 +255,10 @@ function ChangePasswordForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      style={{ background: "#fffdf9", border: "1px solid #ece0d5", borderRadius: 14, padding: 28, marginTop: 24 }}
+      style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: 14, padding: 28, marginTop: 24 }}
     >
-      <h2 style={{ fontWeight: 600, fontSize: 20, color: "#0a2338", margin: "0 0 4px" }}>Change password</h2>
-      <p style={{ margin: "0 0 18px", fontSize: 13.5, color: "#8a7d6a" }}>
+      <h2 style={{ fontWeight: 600, fontSize: 20, color: "var(--rw-ink)", margin: "0 0 4px" }}>Change password</h2>
+      <p style={{ margin: "0 0 18px", fontSize: 13.5, color: "var(--rw-meta)" }}>
         You&apos;ll stay signed in here. Any other devices will be signed out.
       </p>
 
@@ -295,12 +295,12 @@ function ChangePasswordForm() {
       </label>
 
       {error && (
-        <p role="alert" style={{ margin: "14px 2px 0", fontSize: 13.5, color: "#cf3f20" }}>
+        <p role="alert" style={{ margin: "14px 2px 0", fontSize: 13.5, color: "var(--rw-orange-deep)" }}>
           {error}
         </p>
       )}
       {done && (
-        <p role="status" style={{ margin: "14px 2px 0", fontSize: 13.5, color: "#0e8a97", fontWeight: 700 }}>
+        <p role="status" style={{ margin: "14px 2px 0", fontSize: 13.5, color: "var(--rw-teal)", fontWeight: 700 }}>
           Password changed. We&apos;ve emailed you to confirm.
         </p>
       )}
@@ -318,16 +318,16 @@ const fieldLabelStyle = {
   gap: 6,
   fontSize: 13.5,
   fontWeight: 700,
-  color: "#33454f",
+  color: "var(--rw-prose)",
 };
 
 const inputStyle = {
   padding: "12px 14px",
   borderRadius: 10,
-  border: "1px solid #d8cab8",
+  border: "1px solid var(--rw-line)",
   fontSize: 15,
   fontFamily: "inherit",
-  color: "#0a2338",
+  color: "var(--rw-ink)",
 };
 
 // Quieter than the orange CTA on purpose — cancelling shouldn't be the most
@@ -338,9 +338,9 @@ const secondaryButtonStyle = {
   fontWeight: 700,
   fontSize: 14,
   fontFamily: "inherit",
-  color: "#33454f",
+  color: "var(--rw-prose)",
   background: "transparent",
-  border: "1px solid #d8cab8",
+  border: "1px solid var(--rw-line)",
   cursor: "pointer",
 };
 
@@ -357,6 +357,6 @@ const ctaButtonStyle = {
   color: "#fff",
   border: "none",
   cursor: "pointer",
-  background: "linear-gradient(135deg,#ef5130,#cf3f20)",
-  boxShadow: "0 12px 26px -12px #ef5130",
+  background: "linear-gradient(135deg,var(--rw-orange),var(--rw-orange-deep))",
+  boxShadow: "0 12px 26px -12px var(--rw-orange)",
 };

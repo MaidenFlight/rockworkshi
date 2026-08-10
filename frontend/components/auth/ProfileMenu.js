@@ -59,8 +59,8 @@ export default function ProfileMenu() {
         <span aria-hidden="true" style={avatarStyle}>
           {initialsOf(user)}
         </span>
-        <span style={{ fontWeight: 700, fontSize: 14, color: "#0a2338" }}>{firstNameOf(user)}</span>
-        <span aria-hidden="true" style={{ fontSize: 9, opacity: 0.7, color: "#33454f" }}>
+        <span style={{ fontWeight: 700, fontSize: 14, color: "var(--rw-ink)" }}>{firstNameOf(user)}</span>
+        <span aria-hidden="true" style={{ fontSize: 9, opacity: 0.7, color: "var(--rw-prose)" }}>
           &#9662;
         </span>
       </button>
@@ -72,13 +72,13 @@ export default function ProfileMenu() {
               {item.label}
             </Link>
           ))}
-          <div style={{ borderTop: "1px solid #ece0d5", margin: "6px 0" }} />
+          <div style={{ borderTop: "1px solid var(--rw-border)", margin: "6px 0" }} />
           <button
             type="button"
             role="menuitem"
             className="rw-menu-item"
             onClick={handleSignOut}
-            style={{ ...menuItemStyle, width: "100%", textAlign: "left", background: "transparent", border: "none", cursor: "pointer", color: "#cf3f20" }}
+            style={{ ...menuItemStyle, width: "100%", textAlign: "left", background: "transparent", border: "none", cursor: "pointer", color: "var(--rw-orange-deep)" }}
           >
             Sign Out
           </button>
@@ -94,8 +94,8 @@ const triggerStyle = {
   gap: 9,
   padding: "6px 12px 6px 6px",
   borderRadius: 999,
-  border: "1px solid #ece0d5",
-  background: "#fffdf9",
+  border: "1px solid var(--rw-border)",
+  background: "var(--rw-surface)",
   cursor: "pointer",
 };
 
@@ -103,7 +103,7 @@ const avatarStyle = {
   width: 30,
   height: 30,
   borderRadius: "50%",
-  background: "linear-gradient(135deg,#0e8a97,#0a2338)",
+  background: "linear-gradient(135deg,var(--rw-teal),var(--rw-ink))",
   color: "#fff",
   display: "flex",
   alignItems: "center",
@@ -118,8 +118,8 @@ const menuStyle = {
   top: "calc(100% + 8px)",
   right: 0,
   minWidth: 220,
-  background: "#fffdf9",
-  border: "1px solid #ece0d5",
+  background: "var(--rw-surface)",
+  border: "1px solid var(--rw-border)",
   borderRadius: 12,
   boxShadow: "0 20px 44px -20px rgba(6,25,45,0.4)",
   padding: 8,
@@ -132,6 +132,6 @@ const menuItemStyle = {
   borderRadius: 8,
   fontSize: 14,
   fontWeight: 700,
-  color: "#33454f",
+  color: "var(--rw-prose)",
   textDecoration: "none",
 };

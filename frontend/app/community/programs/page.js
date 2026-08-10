@@ -13,11 +13,11 @@ export default function SpecialPrograms() {
               key={p.slug}
               href={`/community/programs/${p.slug}`}
               className="rw-card"
-              style={{ display: "block", border: "1px solid #ece0d5", borderRadius: 14, padding: 22, background: "#fffdf9", textDecoration: "none" }}
+              style={{ display: "block", border: "1px solid var(--rw-border)", borderRadius: 14, padding: 22, background: "var(--rw-surface)", textDecoration: "none" }}
             >
-              <h3 style={{ fontWeight: 600, fontSize: 17.5, color: "#0a2338", margin: "0 0 10px" }}>{p.title}</h3>
-              <p style={{ margin: "0 0 14px", fontSize: 14, lineHeight: 1.6, color: "#6a6560" }}>{p.desc}</p>
-              <span style={{ fontSize: 13, fontWeight: 700, color: "#cf3f20" }}>Learn more &rarr;</span>
+              <h3 style={{ fontWeight: 600, fontSize: 17.5, color: "var(--rw-ink)", margin: "0 0 10px" }}>{p.title}</h3>
+              <p style={{ margin: "0 0 14px", fontSize: 14, lineHeight: 1.6, color: "var(--rw-body)" }}>{p.desc}</p>
+              <span style={{ fontSize: 13, fontWeight: 700, color: "var(--rw-orange-deep)" }}>Learn more &rarr;</span>
             </Link>
           ))}
         </div>

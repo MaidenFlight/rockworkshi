@@ -14,11 +14,11 @@ export default function History() {
       <div style={{ maxWidth: 720, margin: "0 auto", padding: "48px 24px 100px" }}>
         <div className="rw-timeline" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 20 }}>
           {TIMELINE.map((item) => (
-            <div key={item.year} style={{ borderTop: "2px solid #ef5130", paddingTop: 14 }}>
-              <div style={{ fontWeight: 700, fontSize: 20, color: "#0a2338", fontFamily: "var(--font-zilla-slab), serif" }}>
+            <div key={item.year} style={{ borderTop: "2px solid var(--rw-orange)", paddingTop: 14 }}>
+              <div style={{ fontWeight: 700, fontSize: 20, color: "var(--rw-ink)", fontFamily: "var(--font-zilla-slab), serif" }}>
                 {item.year}
               </div>
-              <p style={{ marginTop: 8, fontSize: 14, lineHeight: 1.55, color: "#6a6560" }}>{item.text}</p>
+              <p style={{ marginTop: 8, fontSize: 14, lineHeight: 1.55, color: "var(--rw-body)" }}>{item.text}</p>
             </div>
           ))}
         </div>

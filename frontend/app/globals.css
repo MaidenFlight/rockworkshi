@@ -1,10 +1,5 @@
-:root {
-  --rw-cream: #fbf5ec;
-  --rw-ink: #0a2338;
-  --rw-teal: #0e8a97;
-  --rw-orange: #ef5130;
-  --rw-border: #ece0d5;
-}
+/* Tokens first: everything below, and every component, reads from these. */
+@import "./tokens.css";
 
 html {
   height: 100%;
@@ -22,7 +17,7 @@ body {
   padding: 0;
   background: var(--rw-cream);
   color: var(--rw-ink);
-  font-family: var(--font-source-sans), system-ui, sans-serif;
+  font-family: var(--rw-font-body);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -37,7 +32,7 @@ a {
 h1,
 h2,
 h3 {
-  font-family: var(--font-zilla-slab), Georgia, serif;
+  font-family: var(--rw-font-display);
 }
 
 ::selection {
@@ -122,7 +117,7 @@ h3 {
 .rw-menu-trigger:focus-visible,
 .rw-menu-item:focus-visible,
 .rw-cta:focus-visible {
-  outline: 2px solid #0e8a97;
+  outline: 2px solid var(--rw-teal);
   outline-offset: 2px;
 }
 
