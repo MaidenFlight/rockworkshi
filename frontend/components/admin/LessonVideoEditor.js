@@ -13,6 +13,7 @@
 import { useEffect, useState } from "react";
 import { API_URL } from "@/lib/api";
 import { instruments } from "@/lib/content";
+import InstrumentIcon from "@/components/InstrumentIcon";
 
 const KINDS = [
   { key: "lesson", label: "Lesson" },
@@ -176,8 +177,10 @@ export default function LessonVideoEditor({ lesson, onClose }) {
               {instruments.map((inst) => (
                 <tr key={inst.name}>
                   <td style={{ ...td, fontWeight: 700, color: "var(--rw-ink)" }}>
-                    <span style={{ marginRight: 6 }}>{inst.emoji}</span>
-                    {inst.name}
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                      <InstrumentIcon name={inst.name} size={22} />
+                      {inst.name}
+                    </span>
                   </td>
                   {KINDS.map((k) => {
                     const value = valueOf(inst.name, k.key);

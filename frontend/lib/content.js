@@ -34,13 +34,16 @@ export const primaryNav = [
   { label: "Contact", href: "/contact" },
 ];
 
+// These six names are load-bearing: signup stores the string, and the backend
+// matches lesson videos against it (backend/src/lib/lessonVideos.js). The
+// artwork lives in components/InstrumentIcon.js, keyed by these same names.
 export const instruments = [
-  { name: "Guitar", emoji: "\u{1F3B8}" },
-  { name: "Piano", emoji: "\u{1F3B9}" },
-  { name: "Bass", emoji: "\u{1F3B8}" },
-  { name: "Drums", emoji: "\u{1F941}" },
-  { name: "Voice", emoji: "\u{1F3A4}" },
-  { name: "Ukulele", emoji: "\u{1FA95}" },
+  { name: "Guitar" },
+  { name: "Piano" },
+  { name: "Bass" },
+  { name: "Drums" },
+  { name: "Voice" },
+  { name: "Ukulele" },
 ];
 
 export const audiences = [

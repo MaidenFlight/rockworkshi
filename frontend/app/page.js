@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { instruments, audiences, testimonials } from "@/lib/content";
 import RockWorksIcon from "@/components/RockWorksIcon";
+import InstrumentIcon from "@/components/InstrumentIcon";
 import { Section, Container, SectionHead, Eyebrow, Button } from "@/components/ui";
 
 // The hero and the stats band keep their own styles rather than going through
@@ -177,7 +178,9 @@ export default function Home() {
                 textDecoration: "none",
               }}
             >
-              <span style={{ fontSize: 34 }}>{inst.emoji}</span>
+              <span style={{ color: "var(--rw-ink)", display: "flex" }}>
+                <InstrumentIcon name={inst.name} />
+              </span>
               <span style={{ fontWeight: 700, fontSize: 14.5, color: "var(--rw-ink)" }}>{inst.name}</span>
             </Link>
           ))}

@@ -70,12 +70,42 @@ h3 {
   filter: brightness(1.04);
 }
 
+/* The instrument cards. The accent is the sound-making part of each mark: teal
+   at rest, orange on hover, because orange is this site's action colour and
+   each card is a link — the mark warms up exactly when the card becomes
+   clickable.
+   Carried on a custom property rather than by setting stroke directly on a
+   hover selector: the accent is a stroke on five of the marks and a fill on the
+   piano's key, and one variable serves both. It also keeps the class off the
+   stroke/fill of anything it shouldn't touch — a CSS `stroke` declaration would
+   override an inline stroke="none" and outline the piano key. */
 .rw-instr {
+  --rw-icon-accent: var(--rw-teal);
   transition: transform 0.2s ease, border-color 0.2s ease;
 }
 .rw-instr:hover {
+  --rw-icon-accent: var(--rw-orange);
   transform: translateY(-5px);
   border-color: rgba(224, 91, 74, 0.5);
+}
+.rw-icon-accent {
+  stroke: var(--rw-icon-accent, var(--rw-teal));
+  transition: stroke 0.2s ease;
+}
+.rw-icon-accent-fill {
+  fill: var(--rw-icon-accent, var(--rw-teal));
+  transition: fill 0.2s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rw-instr,
+  .rw-icon-accent,
+  .rw-icon-accent-fill {
+    transition: none;
+  }
+  .rw-instr:hover {
+    transform: none;
+  }
 }
 
 .dash-song {
