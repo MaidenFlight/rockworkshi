@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { instruments, audiences, testimonials } from "@/lib/content";
+import { instruments, audiences, songLevels } from "@/lib/content";
 import RockWorksIcon from "@/components/RockWorksIcon";
 import InstrumentIcon from "@/components/InstrumentIcon";
-import { Section, Container, SectionHead, Eyebrow, Button } from "@/components/ui";
+import { Section, Container, SectionHead, Button } from "@/components/ui";
 
-// The hero and the stats band keep their own styles rather than going through
+// The hero and the levels band keep their own styles rather than going through
 // the primitives. Both are one-offs built on custom gradients, and a primitive
 // that exists to serve a single caller is just indirection.
 
@@ -41,13 +41,13 @@ export default function Home() {
                 fontWeight: 700,
                 letterSpacing: "0.24em",
                 textTransform: "uppercase",
-                color: "#82d4dd",
+                color: "var(--rw-sea-glass)",
                 display: "flex",
                 alignItems: "center",
                 gap: 13,
               }}
             >
-              <span style={{ width: 28, height: 1.5, background: "#82d4dd", display: "inline-block" }} />
+              <span style={{ width: 28, height: 1.5, background: "var(--rw-sea-glass)", display: "inline-block" }} />
               Honolulu &middot; Est. 1982
             </div>
             <h1
@@ -64,7 +64,7 @@ export default function Home() {
               <br />
               Real bands.
               <br />
-              <em style={{ fontStyle: "italic", fontWeight: 600, color: "#ffcf8f" }}>From day one.</em>
+              <em style={{ fontStyle: "italic", fontWeight: 600, color: "var(--rw-gold)" }}>From day one.</em>
             </h1>
             <p style={{ fontSize: 18.5, lineHeight: 1.62, maxWidth: 466, margin: "26px 0 34px", color: "rgba(255,245,236,0.86)" }}>
               A ten-year, song-based curriculum where every student learns to play, perform, and eventually
@@ -102,7 +102,6 @@ export default function Home() {
                 fontWeight: 600,
                 letterSpacing: "0.04em",
                 padding: "11px 18px",
-                borderLeft: "3px solid var(--rw-orange)",
               }}
             >
               On the Rock Works stage &middot; Honolulu
@@ -119,34 +118,30 @@ export default function Home() {
       {/* VALUE PROPS — sits tight under the hero wave, so it keeps its own
           asymmetric padding rather than the standard section rhythm. */}
       <Container style={{ padding: "44px 24px 8px" }}>
-        <div className="rw-cols-3" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)" }}>
+        <div className="rw-cols-3 rw-editorial-row" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)" }}>
           {[
             {
-              n: "01",
               title: "One song a month",
               body: "Every song is taught in five levels — sing-a-long, chords, scales & fills, melody, and improv.",
             },
             {
-              n: "02",
               title: "Solo or in a band",
               body: "Learn one-on-one, or sign up with friends and siblings to form your own Rock Band.",
             },
             {
-              n: "03",
               title: "A ten-year path",
               body: "We can tell you exactly where you'll be in 6 months, 1, 2, 3, 5, and 10 years.",
             },
           ].map((v, i) => (
             <div
-              key={v.n}
+              key={v.title}
               className={i < 2 ? "rw-editorial-col" : ""}
               style={{
                 padding: i === 0 ? "8px 40px 8px 0" : i === 1 ? "8px 40px" : "8px 0 8px 40px",
                 borderRight: i < 2 ? "1px solid var(--rw-rule)" : "none",
               }}
             >
-              <div style={{ fontStyle: "italic", fontSize: 26, color: "var(--rw-orange)", lineHeight: 1 }}>{v.n}</div>
-              <h3 style={{ fontWeight: 560, fontSize: 22, margin: "16px 0 9px", color: "var(--rw-ink)", letterSpacing: "-0.01em" }}>
+              <h3 style={{ fontWeight: 560, fontSize: 22, margin: "0 0 9px", color: "var(--rw-ink)", letterSpacing: "-0.01em" }}>
                 {v.title}
               </h3>
               <p style={{ margin: 0, fontSize: 15.5, lineHeight: 1.62, color: "var(--rw-body)" }}>{v.body}</p>
@@ -187,60 +182,47 @@ export default function Home() {
         </div>
       </Section>
 
-      {/* STATS BAND */}
-      <section style={{ position: "relative", overflow: "hidden", background: "linear-gradient(135deg,var(--rw-ink),#0e3a4a 55%,var(--rw-orange-deep))" }}>
-        <div
-          style={{
-            position: "relative",
-            maxWidth: 1000,
-            margin: "0 auto",
-            padding: "64px 24px",
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 40,
-            textAlign: "center",
-          }}
-        >
-          <div>
-            <div
+      {/* THE FIVE LEVELS
+          Replaces a stats band whose two figures ("96% of families", "9 in 10
+          students") and its "Rock Works Family Survey, 2026" attribution were
+          invented — see PRODUCT.md, Evidence on Hand. What stands here instead
+          is the school's actual method, which was previously buried in a single
+          clause higher up the page, and which is the one thing on this page a
+          neighbouring school could not truthfully copy.
+
+          The numerals are earned here in a way 01/02/03 above them were not:
+          1-5 is a real sequence the reader needs, and the rule threading the
+          markers is the argument — one path through one song, not five
+          separate offerings. */}
+      <section style={{ position: "relative", overflow: "hidden", background: "linear-gradient(120deg,var(--rw-ink-deep) 0%,#0b3446 46%,#0d5a66 100%)" }}>
+        <Container style={{ padding: "74px 24px 80px", position: "relative" }}>
+          <div style={{ maxWidth: 620, marginBottom: 46 }}>
+            <h2
               style={{
                 fontWeight: 600,
-                fontSize: 64,
-                lineHeight: 1,
-                background: "linear-gradient(135deg,#ffd77a,#ff9d5c)",
-                WebkitBackgroundClip: "text",
-                backgroundClip: "text",
-                color: "transparent",
+                fontSize: "clamp(28px,3.4vw,40px)",
+                letterSpacing: "var(--rw-track-tight)",
+                color: "#fff",
+                margin: 0,
               }}
             >
-              96%
-            </div>
-            <p style={{ margin: "14px auto 0", maxWidth: 280, color: "rgba(255,245,236,0.82)", fontSize: 15.5, lineHeight: 1.55 }}>
-              of families say their keiki look forward to lessons every single week.
+              How one song gets taught
+            </h2>
+            <p style={{ margin: "14px 0 0", fontSize: "var(--rw-text-md)", lineHeight: 1.6, color: "rgba(255,245,236,0.82)" }}>
+              Five passes over the same song — so by the end you understand it inside and out, not just how to
+              play along.
             </p>
           </div>
-          <div>
-            <div
-              style={{
-                fontWeight: 600,
-                fontSize: 64,
-                lineHeight: 1,
-                background: "linear-gradient(135deg,#ffd77a,#ff9d5c)",
-                WebkitBackgroundClip: "text",
-                backgroundClip: "text",
-                color: "transparent",
-              }}
-            >
-              9 in 10
-            </div>
-            <p style={{ margin: "14px auto 0", maxWidth: 280, color: "rgba(255,245,236,0.82)", fontSize: 15.5, lineHeight: 1.55 }}>
-              students are still playing music five years after they start.
-            </p>
-          </div>
-          <p style={{ gridColumn: "1/-1", margin: 0, fontSize: 12, letterSpacing: "0.05em", color: "rgba(255,245,236,0.5)" }}>
-            Rock Works Family Survey, 2026
-          </p>
-        </div>
+          <ol className="rw-levels">
+            {songLevels.map((lv) => (
+              <li key={lv.n} className="rw-level">
+                <span className="rw-level-n">{lv.n}</span>
+                <h3 className="rw-level-name">{lv.name}</h3>
+                <p className="rw-level-desc">{lv.desc}</p>
+              </li>
+            ))}
+          </ol>
+        </Container>
       </section>
 
       {/* WHO IT'S FOR */}
@@ -267,22 +249,13 @@ export default function Home() {
         </div>
       </Section>
 
-      {/* TESTIMONIALS */}
-      <Section band="sand">
-        <Eyebrow>From our &lsquo;ohana</Eyebrow>
-        <div className="rw-cols-3" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 44 }}>
-          {testimonials.map((t) => (
-            <div key={t.name} style={{ borderTop: "2px solid var(--rw-orange)", paddingTop: 18 }}>
-              <p style={{ margin: "0 0 16px", fontSize: 18, lineHeight: 1.5, color: "var(--rw-prose)", fontWeight: 500 }}>
-                &ldquo;{t.quote}&rdquo;
-              </p>
-              <p style={{ margin: 0, fontWeight: 700, fontSize: 13.5, letterSpacing: "0.04em", textTransform: "uppercase", color: "var(--rw-meta)" }}>
-                {t.name}
-              </p>
-            </div>
-          ))}
-        </div>
-      </Section>
+      {/* A testimonial band sat here with three quotes attributed to "A Rock
+          Works parent / student / family". None of them came from a real
+          person — see PRODUCT.md, Evidence on Hand — so on a site that takes
+          payment they were removed rather than restyled. This is the slot for
+          real quotes when the school has them: a sand band between the
+          audience columns and the closing CTA. Do not refill it with invented
+          proof. */}
 
       {/* CTA */}
       <section style={{ position: "relative", overflow: "hidden", background: "linear-gradient(135deg,var(--rw-ink-deep),#0b3a4c 70%,#0e5561)", color: "#fff" }}>

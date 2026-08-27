@@ -3,7 +3,7 @@ export default function EditorialHero({ eyebrow, title, intro }) {
     <section style={{ position: "relative", overflow: "hidden", background: "linear-gradient(155deg,var(--rw-ink-deep) 0%,#0b2f43 52%,#0b5563 100%)" }}>
       <div style={{ position: "relative", maxWidth: 800, margin: "0 auto", padding: "70px 24px 90px", textAlign: "center" }}>
         {eyebrow && (
-          <div style={{ display: "inline-block", fontSize: 12.5, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#ffd89a", marginBottom: 14 }}>
+          <div style={{ display: "inline-block", fontSize: 12.5, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--rw-gold)", marginBottom: 14 }}>
             {eyebrow}
           </div>
         )}

@@ -323,7 +323,7 @@ const fieldLabelStyle = {
 
 const inputStyle = {
   padding: "12px 14px",
-  borderRadius: 10,
+  borderRadius: "var(--rw-radius-field)",
   border: "1px solid var(--rw-line)",
   fontSize: 15,
   fontFamily: "inherit",

@@ -1,12 +1,5 @@
 import EditorialHero from "@/components/EditorialHero";
-
-const LEVELS = [
-  { n: 1, name: "Sing-a-long", desc: "Learn the melody and lyrics by ear — no instrument required yet." },
-  { n: 2, name: "Chords", desc: "Play the song's core chord progression in a simple strum or comp pattern." },
-  { n: 3, name: "Scales & fills", desc: "Add the scale the song lives in, plus a few signature fills." },
-  { n: 4, name: "Melody", desc: "Play the actual vocal or lead melody on your instrument." },
-  { n: 5, name: "Improv", desc: "Solo over the changes using everything from the earlier levels." },
-];
+import { songLevels as LEVELS } from "@/lib/content";
 
 export default function Curriculum() {
   return (

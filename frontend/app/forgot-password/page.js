@@ -30,7 +30,7 @@ export default function ForgotPassword() {
   return (
     <div>
       <PageHero
-        mark={<RockWorksIcon size={40} color="#ffcf8f" />}
+        mark={<RockWorksIcon size={40} color="var(--rw-gold)" />}
         eyebrow="Account help"
         title="Reset your password"
         compact
@@ -119,7 +119,7 @@ const fieldLabelStyle = {
 
 const inputStyle = {
   padding: "12px 14px",
-  borderRadius: 10,
+  borderRadius: "var(--rw-radius-field)",
   border: "1px solid var(--rw-line)",
   fontSize: 15,
   fontFamily: "inherit",
