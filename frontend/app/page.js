@@ -17,24 +17,42 @@ export default function Home() {
           position: "relative",
           overflow: "hidden",
           background:
-            "linear-gradient(168deg,var(--rw-ink-deep) 0%,#0a2f43 34%,#0d5561 60%,#127a86 74%,#c94b2c 92%,#e86a37 100%)",
+            // The warm end is now a light source rather than a colour field.
+            // The old gradient ran through two orange stops and painted roughly
+            // a quarter of the hero solid orange — which the system bans
+            // outright ("never a background for a large area") and which put a
+            // 400px orange shape in the same viewport as the orange button, so
+            // nothing read as primary. Removing the image column made it worse
+            // by handing that corner even more room.
+            // A radial bloom falling off to nothing keeps the last-light read
+            // the north star asks for, without ever becoming a field: it is
+            // spill from a rig, not a sunset.
+            "radial-gradient(115% 85% at 94% 112%, rgba(232,106,55,0.5) 0%, rgba(232,106,55,0.14) 42%, rgba(232,106,55,0) 66%)," +
+            "linear-gradient(168deg,var(--rw-ink-deep) 0%,#0a2f43 36%,#0d5561 66%,#127a86 100%)",
           color: "#fff5ec",
         }}
       >
+        {/* One column, not two. The right-hand column held /band.svg — a drawn
+            stick figure captioned as though it were a photograph of the school.
+            It was the largest element on the page and the first thing a visitor
+            saw, and it read as unfinished on a site that takes payment. A
+            confident type-only hero beats a two-column hero whose second column
+            is a placeholder, so the column is gone until a real photograph
+            exists. The caption chip went with it; it was being clipped by its
+            own overflow:hidden parent anyway.
+
+            The measure is held at 15ch on the headline rather than the full
+            1200 — 84px type running the whole container width would break the
+            line wherever the viewport happened to fall. */}
         <div
-          className="rw-hero-grid"
           style={{
             position: "relative",
             maxWidth: 1240,
             margin: "0 auto",
-            padding: "76px 24px 132px",
-            display: "grid",
-            gridTemplateColumns: "0.92fr 1.08fr",
-            gap: 56,
-            alignItems: "center",
+            padding: "84px 24px 104px",
           }}
         >
-          <div style={{ animation: "rise .7s ease both" }}>
+          <div style={{ animation: "rise .7s ease both", maxWidth: 940 }}>
             <div
               style={{
                 fontSize: 12.5,
@@ -53,10 +71,15 @@ export default function Home() {
             <h1
               style={{
                 fontWeight: 700,
-                fontSize: "clamp(46px,5.7vw,84px)",
-                lineHeight: 0.99,
-                letterSpacing: "-0.015em",
-                margin: "24px 0 0",
+                // Larger than it was. With the image column gone the headline
+                // is the only thing holding the hero, and at 84px in a 1240
+                // container it sat in a narrow stack with half the band empty
+                // beside it. Type carrying a space has to be sized for that
+                // space or the space reads as missing content.
+                fontSize: "clamp(46px,7.4vw,106px)",
+                lineHeight: 0.96,
+                letterSpacing: "-0.022em",
+                margin: "22px 0 0",
                 color: "#fff",
               }}
             >
@@ -77,36 +100,6 @@ export default function Home() {
               </Button>
             </div>
           </div>
-          <div
-            style={{
-              position: "relative",
-              alignSelf: "stretch",
-              minHeight: 340,
-              marginTop: 26,
-              animation: "rise .9s ease both",
-              borderRadius: 3,
-              overflow: "hidden",
-              boxShadow: "0 30px 60px -34px rgba(0,0,0,0.55)",
-            }}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/band.svg" alt="A band on the Rock Works stage" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-            <div
-              style={{
-                position: "absolute",
-                left: -14,
-                bottom: -16,
-                background: "var(--rw-ink-deep)",
-                color: "#fff",
-                fontSize: 12.5,
-                fontWeight: 600,
-                letterSpacing: "0.04em",
-                padding: "11px 18px",
-              }}
-            >
-              On the Rock Works stage &middot; Honolulu
-            </div>
-          </div>
         </div>
         <div style={{ position: "relative", lineHeight: 0 }}>
           <svg viewBox="0 0 1440 90" preserveAspectRatio="none" style={{ width: "100%", height: 64, display: "block" }}>
@@ -115,10 +108,18 @@ export default function Home() {
         </div>
       </section>
 
-      {/* VALUE PROPS — sits tight under the hero wave, so it keeps its own
-          asymmetric padding rather than the standard section rhythm. */}
-      <Container style={{ padding: "44px 24px 8px" }}>
-        <div className="rw-cols-3 rw-editorial-row" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)" }}>
+      {/* THE STRAPLINE — three parallel facts, set tight.
+          This used to be a three-column row with vertical rules, generous
+          padding and 22px slab headings — which is exactly what the audience
+          section further down also was. Two near-identical rows 900px apart
+          made the page read as one repeated move, and the eye stopped
+          expecting anything new after the second screen.
+          It is now the denser of the two: smaller headings, a single hairline
+          above rather than rules between, sitting close under the hero wave
+          like a masthead strapline. The audience section keeps the generous
+          treatment. The contrast between them is the rhythm. */}
+      <Container style={{ padding: "40px 24px 4px" }}>
+        <ul className="rw-strapline">
           {[
             {
               title: "One song a month",
@@ -132,23 +133,69 @@ export default function Home() {
               title: "A ten-year path",
               body: "We can tell you exactly where you'll be in 6 months, 1, 2, 3, 5, and 10 years.",
             },
-          ].map((v, i) => (
-            <div
-              key={v.title}
-              className={i < 2 ? "rw-editorial-col" : ""}
-              style={{
-                padding: i === 0 ? "8px 40px 8px 0" : i === 1 ? "8px 40px" : "8px 0 8px 40px",
-                borderRight: i < 2 ? "1px solid var(--rw-rule)" : "none",
-              }}
-            >
-              <h3 style={{ fontWeight: 560, fontSize: 22, margin: "0 0 9px", color: "var(--rw-ink)", letterSpacing: "-0.01em" }}>
-                {v.title}
-              </h3>
-              <p style={{ margin: 0, fontSize: 15.5, lineHeight: 1.62, color: "var(--rw-body)" }}>{v.body}</p>
-            </div>
+          ].map((v) => (
+            <li key={v.title}>
+              <h2 className="rw-strapline-title">{v.title}</h2>
+              <p className="rw-strapline-body">{v.body}</p>
+            </li>
           ))}
-        </div>
+        </ul>
       </Container>
+
+      {/* THE FIVE LEVELS
+          Replaces a stats band whose two figures ("96% of families", "9 in 10
+          students") and its "Rock Works Family Survey, 2026" attribution were
+          invented — see PRODUCT.md, Evidence on Hand. What stands here instead
+          is the school's actual method, which was previously buried in a single
+          clause higher up the page, and which is the one thing on this page a
+          neighbouring school could not truthfully copy.
+
+          The numerals are earned here in a way 01/02/03 above them were not:
+          1-5 is a real sequence the reader needs, and the rule threading the
+          markers is the argument — one path through one song, not five
+          separate offerings. */}
+      <section style={{ position: "relative", overflow: "hidden", background: "linear-gradient(120deg,var(--rw-ink-deep) 0%,#0b3446 46%,#0d5a66 100%)" }}>
+        {/* The band rises out of the paper and sinks back into it on the same
+            cubic the page heroes use, flipped for the top edge. This is the
+            only dark band on the site that sits between two cream sections, so
+            it is the only one that needs the wave twice — and it was shipping
+            with two straight edges, which is the one thing the form language
+            says never to do. */}
+        <div className="rw-wave rw-wave-top" aria-hidden="true">
+          <svg viewBox="0 0 1440 70" preserveAspectRatio="none">
+            <path d="M0,40 C360,80 1080,0 1440,40 L1440,70 L0,70 Z" fill="var(--rw-cream)" />
+          </svg>
+        </div>
+        <Container style={{ padding: "18px 24px 84px", position: "relative" }}>
+          <SectionHead title="How one song gets taught" eyebrow="The method" onDark flush />
+          <p
+            style={{
+              maxWidth: 620,
+              margin: "18px 0 46px",
+              fontSize: "var(--rw-text-md)",
+              lineHeight: 1.6,
+              color: "rgba(255,245,236,0.82)",
+            }}
+          >
+            Five passes over the same song — so by the end you understand it inside and out, not just how to
+            play along.
+          </p>
+          <ol className="rw-levels">
+            {songLevels.map((lv) => (
+              <li key={lv.n} className="rw-level">
+                <span className="rw-level-n">{lv.n}</span>
+                <h3 className="rw-level-name">{lv.name}</h3>
+                <p className="rw-level-desc">{lv.desc}</p>
+              </li>
+            ))}
+          </ol>
+        </Container>
+        <div className="rw-wave rw-wave-bottom" aria-hidden="true">
+          <svg viewBox="0 0 1440 70" preserveAspectRatio="none">
+            <path d="M0,40 C360,80 1080,0 1440,40 L1440,70 L0,70 Z" fill="var(--rw-cream)" />
+          </svg>
+        </div>
+      </section>
 
       {/* INSTRUMENTS */}
       <Section>
@@ -182,70 +229,34 @@ export default function Home() {
         </div>
       </Section>
 
-      {/* THE FIVE LEVELS
-          Replaces a stats band whose two figures ("96% of families", "9 in 10
-          students") and its "Rock Works Family Survey, 2026" attribution were
-          invented — see PRODUCT.md, Evidence on Hand. What stands here instead
-          is the school's actual method, which was previously buried in a single
-          clause higher up the page, and which is the one thing on this page a
-          neighbouring school could not truthfully copy.
+      {/* WHO IT'S FOR — the page's one asymmetric section.
+          This was a third row of equal columns divided by vertical rules, and
+          with the strapline above it that made three of the page's five
+          sections the same shape. It is now a heading held in a narrow left
+          column against a vertical list on the right: the only place the page
+          changes its measure mid-section, and the moment the grid breaks.
 
-          The numerals are earned here in a way 01/02/03 above them were not:
-          1-5 is a real sequence the reader needs, and the rule threading the
-          markers is the argument — one path through one song, not five
-          separate offerings. */}
-      <section style={{ position: "relative", overflow: "hidden", background: "linear-gradient(120deg,var(--rw-ink-deep) 0%,#0b3446 46%,#0d5a66 100%)" }}>
-        <Container style={{ padding: "74px 24px 80px", position: "relative" }}>
-          <div style={{ maxWidth: 620, marginBottom: 46 }}>
-            <h2
-              style={{
-                fontWeight: 600,
-                fontSize: "clamp(28px,3.4vw,40px)",
-                letterSpacing: "var(--rw-track-tight)",
-                color: "#fff",
-                margin: 0,
-              }}
-            >
-              How one song gets taught
-            </h2>
-            <p style={{ margin: "14px 0 0", fontSize: "var(--rw-text-md)", lineHeight: 1.6, color: "rgba(255,245,236,0.82)" }}>
-              Five passes over the same song — so by the end you understand it inside and out, not just how to
-              play along.
-            </p>
+          It also settles a misalignment nobody would have named but everyone
+          could see — the old columns carried a 34px inner inset, so their
+          headings started at x=178 while every other heading, rule and level
+          name on the page started at x=144. Nothing lines up with 34px of
+          nothing. */}
+      <Section>
+        <div className="rw-split">
+          <div className="rw-split-head">
+            <SectionHead title="One school, three ways in" eyebrow="Who it's for" as="h2" flush />
           </div>
-          <ol className="rw-levels">
-            {songLevels.map((lv) => (
-              <li key={lv.n} className="rw-level">
-                <span className="rw-level-n">{lv.n}</span>
-                <h3 className="rw-level-name">{lv.name}</h3>
-                <p className="rw-level-desc">{lv.desc}</p>
+          <ul className="rw-ways">
+            {audiences.map((a) => (
+              <li key={a.title} className="rw-way">
+                <h3 className="rw-way-title">{a.title}</h3>
+                <p className="rw-way-desc">{a.desc}</p>
+                <Link href={a.href} className="rw-way-cta">
+                  {a.cta} &rarr;
+                </Link>
               </li>
             ))}
-          </ol>
-        </Container>
-      </section>
-
-      {/* WHO IT'S FOR */}
-      <Section>
-        <SectionHead title="One school, three ways in" eyebrow="Who it's for" flush />
-        <div className="rw-cols-3" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)" }}>
-          {audiences.map((a, i) => (
-            <div
-              key={a.title}
-              style={{
-                padding: "28px 34px 8px",
-                borderRight: i < audiences.length - 1 ? "1px solid var(--rw-rule)" : "none",
-                display: "flex",
-                flexDirection: "column",
-              }}
-            >
-              <h3 style={{ fontWeight: 600, fontSize: 23, margin: "0 0 10px", color: "var(--rw-ink)" }}>{a.title}</h3>
-              <p style={{ margin: "0 0 18px", fontSize: 15, lineHeight: 1.62, color: "var(--rw-body)", flex: 1 }}>{a.desc}</p>
-              <Link href={a.href} style={{ fontWeight: 700, fontSize: 14, color: "var(--rw-orange-deep)", textDecoration: "none" }}>
-                {a.cta} &rarr;
-              </Link>
-            </div>
-          ))}
+          </ul>
         </div>
       </Section>
 
@@ -259,7 +270,12 @@ export default function Home() {
 
       {/* CTA */}
       <section style={{ position: "relative", overflow: "hidden", background: "linear-gradient(135deg,var(--rw-ink-deep),#0b3a4c 70%,#0e5561)", color: "#fff" }}>
-        <div style={{ position: "absolute", right: "-6%", top: "50%", transform: "translateY(-50%)", opacity: 0.08, pointerEvents: "none" }}>
+        {/* The watermark is a wide-viewport detail. right:-6% puts it safely off
+            the right edge at 1440, but at 390 that same percentage lands it dead
+            centre behind the headline, where 8% white reads as a grey smudge
+            through the type rather than as a mark. Hidden below the breakpoint
+            where it stops being decoration and starts being dirt. */}
+        <div className="rw-watermark" aria-hidden="true">
           <RockWorksIcon size={420} color="#fff" />
         </div>
         <Container width="text" style={{ position: "relative", padding: "80px 24px", textAlign: "center" }}>

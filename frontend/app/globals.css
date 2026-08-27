@@ -186,6 +186,178 @@ summary:focus-visible,
   }
 }
 
+/* ---- The strapline ----
+ * Three parallel facts under the hero wave. Deliberately the densest type on
+ * the page: 18.5px headings against the 22-23px the sections below use, and a
+ * single hairline above the row instead of rules between the items. The row
+ * below it (the instrument grid) and the one below that (the ways in) both get
+ * generous treatment, so this one earns its keep by being tight. */
+.rw-strapline {
+  list-style: none;
+  margin: 0;
+  padding: 26px 0 0;
+  border-top: 1px solid var(--rw-rule);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--rw-space-6);
+}
+
+.rw-strapline-title {
+  font-family: var(--rw-font-display);
+  font-weight: 600;
+  font-size: var(--rw-text-lg);
+  letter-spacing: var(--rw-track-tight);
+  color: var(--rw-ink);
+  margin: 0 0 6px;
+}
+
+.rw-strapline-body {
+  margin: 0;
+  font-size: var(--rw-text-base);
+  line-height: 1.6;
+  color: var(--rw-body);
+}
+
+@media (max-width: 860px) {
+  .rw-strapline {
+    grid-template-columns: 1fr;
+    gap: var(--rw-space-5);
+  }
+}
+
+/* ---- Waves ----
+ * The signature edge, as a positioned element so a dark band can carry one at
+ * the top, the foot, or both. The top copy is flipped on Y so the paper spills
+ * down into the dark rather than the dark rising into the paper. */
+.rw-wave {
+  position: relative;
+  line-height: 0;
+}
+
+.rw-wave svg {
+  width: 100%;
+  height: 46px;
+  display: block;
+}
+
+.rw-wave-top svg {
+  transform: scaleY(-1);
+}
+
+/* ---- The ways in ----
+ * The page's one asymmetric section: heading held left at a narrow measure,
+ * the three ways stacked as a list on the right. The list is the only place
+ * the page runs horizontal rules *between* stacked items rather than vertical
+ * rules between columns, which is what stops it reading as another row. */
+.rw-split {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.72fr) 1.6fr;
+  gap: var(--rw-space-8);
+  align-items: start;
+}
+
+.rw-split-head {
+  position: sticky;
+  top: 96px;
+}
+
+/* SectionHead lays its title and eyebrow side by side and only stacks them at
+ * a 640px *viewport*. Here it sits in a ~300px column at full desktop width,
+ * so the viewport query never fires and the eyebrow wedges itself against a
+ * three-line title. The column knows it is narrow even when the window does
+ * not, so it stacks its own head. */
+.rw-split-head > div {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--rw-space-2);
+}
+.rw-split-head > div > div {
+  padding-bottom: 0;
+}
+
+.rw-ways {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.rw-way {
+  padding: var(--rw-space-5) 0;
+  border-top: 1px solid var(--rw-rule);
+}
+
+.rw-way:first-child {
+  padding-top: 0;
+  border-top: none;
+}
+
+.rw-way:last-child {
+  padding-bottom: 0;
+}
+
+.rw-way-title {
+  font-family: var(--rw-font-display);
+  font-weight: 600;
+  font-size: var(--rw-text-xl);
+  letter-spacing: var(--rw-track-tight);
+  color: var(--rw-ink);
+  margin: 0 0 6px;
+}
+
+.rw-way-desc {
+  margin: 0 0 10px;
+  max-width: 54ch;
+  font-size: var(--rw-text-base);
+  line-height: 1.62;
+  color: var(--rw-body);
+}
+
+/* The link sits on its own line with real vertical padding: as an inline run
+ * it measured 20px tall, which is under any sane target floor. */
+.rw-way-cta {
+  display: inline-block;
+  padding: 6px 0;
+  font-weight: 700;
+  font-size: var(--rw-text-sm);
+  color: var(--rw-orange-deep);
+  text-decoration: none;
+  border-bottom: 1.5px solid transparent;
+  transition: border-color 0.16s ease;
+}
+.rw-way-cta:hover {
+  border-bottom-color: currentColor;
+}
+.rw-way-cta:focus-visible {
+  outline: 2px solid var(--rw-teal);
+  outline-offset: 3px;
+}
+
+@media (max-width: 860px) {
+  .rw-split {
+    grid-template-columns: 1fr;
+    gap: var(--rw-space-5);
+  }
+  .rw-split-head {
+    position: static;
+  }
+}
+
+/* ---- The CTA watermark ---- */
+.rw-watermark {
+  position: absolute;
+  right: -6%;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.08;
+  pointer-events: none;
+}
+
+@media (max-width: 860px) {
+  .rw-watermark {
+    display: none;
+  }
+}
+
 /* ---- The five levels ----
  * The rule threading the markers carries the argument: these are five passes
  * over one song, not five things you can buy. It is drawn per item, from the
@@ -393,9 +565,6 @@ summary:focus-visible,
 }
 
 @media (max-width: 860px) {
-  .rw-hero-grid {
-    grid-template-columns: 1fr !important;
-  }
   .rw-cols-3 {
     grid-template-columns: 1fr !important;
   }
@@ -410,20 +579,6 @@ summary:focus-visible,
   }
   .rw-featured-grid {
     grid-template-columns: 1fr !important;
-  }
-  .rw-editorial-col {
-    border-right: none !important;
-    border-bottom: 1px solid var(--rw-border);
-    padding-bottom: 20px !important;
-  }
-  /* The columns carry asymmetric side padding so their dividers sit centred in
-   * the gutters. Stacked, that padding has nothing to separate and simply
-   * indents two of the three items off the page's left margin — the first
-   * column starts flush and the other two do not, which reads as broken
-   * alignment rather than as a rhythm. */
-  .rw-editorial-row > * {
-    padding-left: 0 !important;
-    padding-right: 0 !important;
   }
 }
 
