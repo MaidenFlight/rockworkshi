@@ -33,6 +33,18 @@
   --rw-orange-tint: #fdece6; /* orange at wash strength, for notices */
   --rw-teal: #0e8a97; /* eyebrows, focus rings, quiet accents */
 
+  /* ---- The dark-ground accents ----
+   * Teal goes muddy on the hero gradient, so anything sitting on ink needs its
+   * own pair. Both were in use and neither was named, which is how 19 hardcoded
+   * hexes survived the pass that removed every other one.
+   *
+   * Gold was two values, #ffd89a and #ffcf8f, nine units apart and doing the
+   * same job — the hero eyebrow used one, the logo mark and the hero's italic
+   * used the other. Nobody could see the difference and no rule explained it,
+   * so they are one colour now. */
+  --rw-gold: #ffd89a; /* eyebrows, marks and emphasis on a dark ground */
+  --rw-sea-glass: #82d4dd; /* a section eyebrow on a dark band, where gold competes */
+
   /* ---- Secondary text ----
    * Four muted greys were in use. They are kept apart rather than merged
    * because they differ in temperature and in the size they were tuned for;
@@ -87,7 +99,15 @@
   --rw-measure-form: 520px;
 
   /* ---- Radii ---- */
-  --rw-radius-sm: 8px; /* buttons, inputs */
+  --rw-radius-sm: 8px; /* buttons */
+  --rw-radius-field: 10px; /* inputs and selects */
   --rw-radius-md: 14px; /* cards and panels */
   --rw-radius-pill: 999px;
+
+  /* The field radius is not a fourth opinion — every text input on the site was
+   * already hardcoding 10px while the tokens claimed 8px, so the value existed
+   * and the name did not. A field reads as slightly softer than a button on
+   * purpose: the button is the thing you strike, the field is the thing you
+   * rest in. Nav dropdowns were separately drifting at 11px and now take
+   * --rw-radius-md, since a floating panel is a panel. */
 }

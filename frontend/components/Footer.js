@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { footerLinks, footerSocial } from "@/lib/content";
 import RockWorksIcon from "@/components/RockWorksIcon";
+import SocialIcon from "@/components/SocialIcon";
 
 export default function Footer() {
   return (
@@ -20,10 +21,10 @@ export default function Footer() {
       >
         <div style={{ maxWidth: 320 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <RockWorksIcon size={28} color="#ffcf8f" />
+            <RockWorksIcon size={28} color="var(--rw-gold)" />
             <div style={{ display: "flex", flexDirection: "column", lineHeight: 1 }}>
               <span style={{ fontFamily: "var(--font-zilla-slab), serif", fontWeight: 600, fontSize: 18, color: "#fff" }}>Rock Works</span>
-              <span style={{ fontWeight: 700, fontSize: 8.5, letterSpacing: "0.26em", textTransform: "uppercase", color: "#82d4dd", marginTop: 3 }}>
+              <span style={{ fontWeight: 700, fontSize: 8.5, letterSpacing: "0.26em", textTransform: "uppercase", color: "var(--rw-sea-glass)", marginTop: 3 }}>
                 School of Music
               </span>
             </div>
@@ -36,22 +37,22 @@ export default function Footer() {
               <a
                 key={s.label}
                 href={s.href}
-                title={s.label}
+                aria-label={s.label}
+                className="rw-social"
                 style={{
-                  width: 32,
-                  height: 32,
+                  width: 34,
+                  height: 34,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   borderRadius: "50%",
                   border: "1px solid rgba(255,255,255,0.18)",
-                  fontSize: 11,
-                  fontWeight: 700,
+                  fontSize: 17,
                   color: "rgba(255,245,236,0.82)",
                   textDecoration: "none",
                 }}
               >
-                {s.icon}
+                <SocialIcon name={s.label} />
               </a>
             ))}
           </div>

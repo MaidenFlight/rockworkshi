@@ -54,7 +54,7 @@ function SignInForm() {
 
   return (
     <div>
-      <PageHero mark={<RockWorksIcon size={40} color="#ffcf8f" />} eyebrow="Welcome back" title={<>Sign in</>} compact />
+      <PageHero mark={<RockWorksIcon size={40} color="var(--rw-gold)" />} eyebrow="Welcome back" title={<>Sign in</>} compact />
 
       <div style={{ maxWidth: 460, margin: "0 auto", padding: "36px 24px 90px" }}>
         <div style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: 16, padding: 32, boxShadow: "0 26px 54px -34px rgba(90,40,70,0.4)" }}>
@@ -138,7 +138,7 @@ const fieldLabelStyle = {
 
 const inputStyle = {
   padding: "12px 14px",
-  borderRadius: 10,
+  borderRadius: "var(--rw-radius-field)",
   border: "1px solid var(--rw-line)",
   fontSize: 15,
   fontFamily: "inherit",

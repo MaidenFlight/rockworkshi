@@ -35,8 +35,86 @@ h3 {
   font-family: var(--rw-font-display);
 }
 
+/* ---- Browser surfaces ----
+ * The parts of the page nobody draws still ship with somebody's design, and by
+ * default it is the browser's. Every one of these was a stock UA value sitting
+ * inside an otherwise warm palette: a blue caret, a blue checkbox, a grey
+ * scrollbar, a hairline-tight underline, and proportional digits that made
+ * stacked prices fail to line up. */
+
 ::selection {
   background: rgba(224, 91, 74, 0.22);
+}
+
+html {
+  /* The caret and every native control tick take the site's accent instead of
+   * the platform blue. accent-color covers checkbox, radio, range and progress
+   * in one declaration. */
+  caret-color: var(--rw-orange);
+  accent-color: var(--rw-teal);
+  /* Anchors land clear of the sticky header rather than underneath it. */
+  scroll-behavior: smooth;
+}
+
+:target {
+  scroll-margin-top: 96px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* Firefox takes the two-value form; WebKit and Blink need the parts. Both are
+ * given the same warm pair so the scrollbar belongs to the page. */
+html {
+  scrollbar-color: var(--rw-line) var(--rw-cream);
+  scrollbar-width: thin;
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+::-webkit-scrollbar-track {
+  background: var(--rw-cream);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--rw-line);
+  border: 3px solid var(--rw-cream);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--rw-meta);
+}
+
+/* An underline sitting on the baseline clips descenders. Pushing it clear and
+ * thinning it is the difference between a link that was set and one that was
+ * left. */
+a:not([class]) {
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1px;
+}
+
+/* Prices, durations and table figures must align down the column; the body
+ * face defaults to proportional digits and they do not. */
+.rw-tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Focus ----
+ * Buttons and nav links already carried the teal ring; form controls were
+ * still answering with the browser default, which on a warm cream ground is
+ * the one blue on the site. Fields are the surface where focus matters most —
+ * they are the only place a keyboard user has to know exactly where they are. */
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible,
+[tabindex]:not([tabindex="-1"]):focus-visible {
+  outline: 2px solid var(--rw-teal);
+  outline-offset: 2px;
 }
 
 @keyframes rise {
@@ -106,6 +184,159 @@ h3 {
   .rw-instr:hover {
     transform: none;
   }
+}
+
+/* ---- The five levels ----
+ * The rule threading the markers carries the argument: these are five passes
+ * over one song, not five things you can buy. It is drawn per item, from the
+ * right edge of each marker across the grid gap to the next, rather than as
+ * one line behind the row — a single line would need each marker to paint an
+ * opaque disc matching the gradient underneath it, and the gradient is a
+ * different colour at every marker. */
+.rw-levels {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 30px;
+}
+
+.rw-level {
+  position: relative;
+}
+
+.rw-level::after {
+  content: "";
+  position: absolute;
+  top: 17px;
+  left: 46px;
+  right: -30px;
+  height: 1px;
+  background: rgba(255, 216, 154, 0.28);
+}
+
+.rw-level:last-child::after {
+  display: none;
+}
+
+.rw-level-n {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--rw-radius-pill);
+  border: 1px solid rgba(255, 216, 154, 0.45);
+  font-family: var(--rw-font-display);
+  font-weight: 600;
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+  color: var(--rw-gold);
+}
+
+.rw-level-name {
+  font-family: var(--rw-font-display);
+  font-weight: 600;
+  font-size: 19px;
+  letter-spacing: var(--rw-track-tight);
+  color: #fff;
+  margin: 18px 0 7px;
+}
+
+.rw-level-desc {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: rgba(255, 245, 236, 0.74);
+}
+
+/* Below the grid breakpoint the path turns vertical: marker in a 34px gutter,
+ * text beside it, and the connector runs down the gutter instead of across. */
+@media (max-width: 860px) {
+  .rw-levels {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .rw-level {
+    display: grid;
+    grid-template-columns: 34px 1fr;
+    column-gap: 18px;
+    padding-bottom: 26px;
+  }
+  .rw-level-n {
+    grid-row: 1 / span 2;
+  }
+  .rw-level::after {
+    top: 42px;
+    bottom: 6px;
+    left: 17px;
+    right: auto;
+    width: 1px;
+    height: auto;
+  }
+  .rw-level-name {
+    margin: 5px 0 6px;
+  }
+}
+
+/* ---- The auth gate ----
+ * The waiting screen behind every protected page. The pulse is on opacity
+ * alone so it costs no layout and no paint beyond the mark itself, and it
+ * breathes rather than spins: a spinner promises a measurable wait, and this
+ * one usually resolves before the first cycle finishes. */
+.rw-gate {
+  min-height: 46vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--rw-space-4);
+}
+
+.rw-gate > svg {
+  animation: rw-breathe 1.9s ease-in-out infinite;
+}
+
+.rw-gate-text {
+  margin: 0;
+  font-size: var(--rw-text-sm);
+  font-weight: 600;
+  letter-spacing: var(--rw-track-eyebrow);
+  text-transform: uppercase;
+  color: var(--rw-meta);
+}
+
+@keyframes rw-breathe {
+  0%,
+  100% {
+    opacity: 0.32;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rw-gate > svg {
+    animation: none;
+    opacity: 0.75;
+  }
+}
+
+/* The footer social marks. Warming the ring and the glyph together on hover is
+ * what makes a 34px target feel like a control rather than a decal. */
+.rw-social {
+  transition: color 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+}
+.rw-social:hover {
+  color: #fff;
+  border-color: rgba(255, 216, 154, 0.55);
+  background: rgba(255, 255, 255, 0.06);
+}
+.rw-social:focus-visible {
+  outline: 2px solid var(--rw-gold);
+  outline-offset: 2px;
 }
 
 .dash-song {
@@ -184,6 +415,15 @@ h3 {
     border-right: none !important;
     border-bottom: 1px solid var(--rw-border);
     padding-bottom: 20px !important;
+  }
+  /* The columns carry asymmetric side padding so their dividers sit centred in
+   * the gutters. Stacked, that padding has nothing to separate and simply
+   * indents two of the three items off the page's left margin — the first
+   * column starts flush and the other two do not, which reads as broken
+   * alignment rather than as a rhythm. */
+  .rw-editorial-row > * {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
   }
 }
 

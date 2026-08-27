@@ -67,19 +67,16 @@ export const audiences = [
   },
 ];
 
-export const testimonials = [
-  {
-    quote: "My daughter looks forward to Rock Works more than anything else in her week.",
-    name: "A Rock Works parent",
-  },
-  {
-    quote: "I never thought I'd be on a real stage — and now I can't imagine not playing.",
-    name: "A Rock Works student",
-  },
-  {
-    quote: "Ten years in, and the curriculum still surprises me with how well it's built.",
-    name: "A Rock Works family",
-  },
+// The five levels every song is taught through. This is the school's actual
+// method and its clearest differentiator, so it is shared rather than restated:
+// /program/curriculum sets it out in full and the homepage runs the same five.
+// One list means the two can never disagree about what level 3 is called.
+export const songLevels = [
+  { n: 1, name: "Sing-a-long", desc: "Learn the melody and lyrics by ear — no instrument required yet." },
+  { n: 2, name: "Chords", desc: "Play the song's core chord progression in a simple strum or comp pattern." },
+  { n: 3, name: "Scales & fills", desc: "Add the scale the song lives in, plus a few signature fills." },
+  { n: 4, name: "Melody", desc: "Play the actual vocal or lead melody on your instrument." },
+  { n: 5, name: "Improv", desc: "Solo over the changes using everything from the earlier levels." },
 ];
 
 export const programs = [
@@ -176,8 +173,11 @@ export const footerLinks = [
   { label: "Contact", href: "/contact" },
 ];
 
+// `label` is load-bearing twice over: it names the link for a screen reader and
+// it selects the artwork in components/SocialIcon.js. The hrefs are still
+// placeholders — the school's real profile URLs go here.
 export const footerSocial = [
-  { label: "Instagram", icon: "IG", href: "#" },
-  { label: "Facebook", icon: "FB", href: "#" },
-  { label: "YouTube", icon: "YT", href: "#" },
+  { label: "Instagram", href: "#" },
+  { label: "Facebook", href: "#" },
+  { label: "YouTube", href: "#" },
 ];

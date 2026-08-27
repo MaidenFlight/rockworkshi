@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { nextEnrolmentStep } from "@/lib/auth/enrolment";
+import RockWorksIcon from "@/components/RockWorksIcon";
 
 // Gates any page/layout behind sign-in (and optionally a role allow-list).
 // Renders nothing but a loading state until the auth check resolves, so
@@ -52,9 +53,15 @@ export default function ProtectedRoute({
   ]);
 
   if (isLoading || !isAuthenticated || !roleAllowed || mustFinishSetup) {
+    // Every gated page in the site passes through here, so this is one of the
+    // most-seen screens in the product and it was a bare grey sentence on an
+    // otherwise empty page. It now carries the mark and a pulse, which does two
+    // jobs: it says the page is working rather than broken, and it keeps the
+    // brand present during the one moment the content cannot be.
     return (
-      <div style={{ maxWidth: 600, margin: "120px auto", textAlign: "center", color: "var(--rw-body)" }}>
-        Checking your session…
+      <div className="rw-gate" role="status" aria-live="polite">
+        <RockWorksIcon size={34} color="var(--rw-orange)" />
+        <p className="rw-gate-text">Checking your session…</p>
       </div>
     );
   }

@@ -65,6 +65,7 @@ typography:
     letterSpacing: "0.22em"
 rounded:
   sm: "8px"
+  field: "10px"
   md: "14px"
   pill: "999px"
 spacing:
@@ -108,7 +109,7 @@ components:
   input-field:
     backgroundColor: "#ffffff"
     textColor: "{colors.ink}"
-    rounded: "10px"
+    rounded: "{rounded.field}"
     padding: "12px 14px"
   nav-link:
     backgroundColor: "transparent"
@@ -370,8 +371,9 @@ whole page cold.
 A calm, low-radius form language with one recurring organic gesture cutting
 across it.
 
-Corners: **8px** on buttons and inputs, **14px** on cards and panels, **999px**
-for pills. Borders are always exactly 1px and always one of the three hairlines —
+Corners: **8px** on buttons, **10px** on fields, **14px** on cards and panels,
+**999px** for pills. A field is a step softer than a button on purpose — the
+button is the thing you strike, the field is the thing you rest in. Borders are always exactly 1px and always one of the three hairlines —
 there is no 2px border in the system, and no border on a solid button.
 
 The exception, and the signature, is **the wave**. Every dark banner ends in the
@@ -430,9 +432,10 @@ thickness.
 
 - **Style:** white fill, 1px Driftwood Stroke, 10px radius, 12px/14px padding at
   15px type, inheriting the body font.
-- **Focus:** currently the browser default outline on most fields — the one place
-  the system is incomplete. New fields should take the 2px Reef Teal ring at 2px
-  offset that buttons and nav links already use.
+- **Focus:** the 2px Reef Teal ring at 2px offset, identical to buttons and nav
+  links. Applied globally to `input`, `select`, `textarea`, `summary` and any
+  element carrying a non-negative `tabindex`, so a new field inherits it without
+  opting in.
 
 ### Navigation
 
@@ -465,6 +468,29 @@ terminals are the point: they echo Zilla Slab's flat terminals and are what keep
 the set from looking like an off-the-shelf icon library. The accent is Reef Teal
 at rest and Lava Orange on hover, driven by a `--rw-icon-accent` custom property
 on the card so one variable serves both a stroke and a fill.
+
+### Browser Surfaces
+
+The parts of the page nobody draws still ship with somebody's design, and by
+default it is the browser's. All of these are themed from the palette:
+
+- **Selection:** Lava Orange at 22%.
+- **Caret:** Lava Orange. **Native control accent** (checkbox, radio, range,
+  progress): Reef Teal.
+- **Scrollbar:** Driftwood Stroke thumb on a Coral Sand track, 12px, pill-capped
+  with a 3px track-coloured border so it reads inset; Driftwood on hover. Both
+  the Firefox two-value form and the WebKit pseudo-elements are set.
+- **Underlines:** unclassed links take a `0.18em` offset and a 1px thickness, so
+  the rule clears descenders instead of striking them.
+- **Figures:** `.rw-tnum` switches to tabular numerals wherever numbers must
+  align down a column.
+- **Anchors:** `:target` carries 96px of scroll margin so a jump lands clear of
+  the sticky header rather than beneath it.
+
+**The Nothing-Ships-Blue Rule.** This palette contains no blue. Any browser
+default that arrives blue — caret, checkbox, focus ring, selection — is an
+unstyled surface, not a neutral one, and is themed before the component
+counts as finished.
 
 ### Named Rules
 
@@ -520,12 +546,19 @@ variant is explicitly excluded and answers with its underline instead.
 
 ### Known drift (accurate as of this writing, not prescriptive)
 
-Three honest inconsistencies a future pass should resolve rather than propagate:
-
-1. **Two primary button treatments coexist** — the `Button` primitive (8px, flat
-   orange) and the auth submit (pill, gradient, glow). Both are deliberate today;
-   they should not multiply into a third.
-2. **Radius drift below the token scale** — inputs are 10px and nav dropdowns
-   11px, where the tokens declare 8px and 14px.
-3. **`Card` and `Prose` primitives exist but are not adopted anywhere.** Pages
+1. ~~Radius drift below the token scale~~ — **resolved.** `--rw-radius-field`
+   (10px) now names the value every text input was already hardcoding, and nav
+   dropdowns moved from a stray 11px to `--rw-radius-md`.
+2. ~~Two golds~~ — **resolved.** `#ffd89a` and `#ffcf8f` were nine units apart
+   doing the same job across 19 hardcoded hexes; they are now one `--rw-gold`,
+   with `--rw-sea-glass` named alongside it.
+3. **Two primary button treatments coexist** — the `Button` primitive (8px, flat
+   orange) and the auth submit (pill, gradient, glow). Both are deliberate; they
+   should not multiply into a third.
+4. **`Card` and `Prose` primitives exist but are not adopted anywhere.** Pages
    still hand-roll both. New work should use the primitives.
+5. **The hero photograph is a placeholder** (`/band.svg`, a drawn stick figure
+   on a stage). It is the largest single element on the homepage and the one
+   asset the design cannot supply for itself.
+6. **The footer's social links point at `#`.** The marks are real; the
+   destinations are not.

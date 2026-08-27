@@ -115,7 +115,7 @@ export default function Nav() {
                         minWidth: 210,
                         background: "var(--rw-surface)",
                         border: "1px solid var(--rw-border)",
-                        borderRadius: 11,
+                        borderRadius: "var(--rw-radius-md)",
                         boxShadow: "0 18px 40px -20px rgba(6,25,45,0.4)",
                         padding: 8,
                         marginTop: 6,

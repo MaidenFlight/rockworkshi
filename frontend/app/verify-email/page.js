@@ -162,7 +162,7 @@ function VerifyEmailContent() {
 export default function VerifyEmail() {
   return (
     <div>
-      <PageHero mark={<RockWorksIcon size={40} color="#ffcf8f" />} eyebrow="One quick thing" title={<>Confirm your email</>} compact />
+      <PageHero mark={<RockWorksIcon size={40} color="var(--rw-gold)" />} eyebrow="One quick thing" title={<>Confirm your email</>} compact />
 
       <div style={{ maxWidth: 520, margin: "0 auto", padding: "40px 24px 80px" }}>
         <Suspense fallback={null}>

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-08-27T04:34:16.780Z",
+  "generatedAt": "2026-08-27T04:56:13.421Z",
   "title": "Design System: Rock Works School of Music",
   "extensions": {
     "colorMeta": {
@@ -498,6 +498,14 @@
       "css": ".ds-hero { position:relative; overflow:hidden; background:linear-gradient(155deg, var(--rw-ink-deep,#06192d) 0%, #0b2f43 52%, #0b5563 100%); } .ds-hero-inner { max-width:900px; margin:0 auto; padding:56px 24px 70px; text-align:center; } .ds-hero-eyebrow { display:inline-block; font-family:var(--rw-font-body,system-ui,sans-serif); font-size:12.5px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:var(--rw-gold,#ffd89a); margin-bottom:14px; } .ds-hero-title { font-family:var(--rw-font-display,Georgia,serif); font-weight:500; font-size:clamp(34px,4.6vw,50px); letter-spacing:-.015em; color:#fff; margin:0; } .ds-hero-lead { margin:16px auto 0; max-width:560px; font-family:var(--rw-font-body,system-ui,sans-serif); font-size:16.5px; line-height:1.6; color:rgba(255,245,236,.82); } .ds-hero-wave { line-height:0; } .ds-hero-wave svg { width:100%; height:50px; display:block; }"
     },
     {
+      "name": "Level Path",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "The five levels a song is taught through, on the stage-lit ink band. The rule threading the markers is the argument — one path through one song, not five things you can buy. Numerals are earned here because 1-5 is a real sequence. Turns vertical below 860px.",
+      "html": "<ol class=\"ds-levels\"><li class=\"ds-level\"><span class=\"ds-level-n\">1</span><h3 class=\"ds-level-name\">Sing-a-long</h3><p class=\"ds-level-desc\">Learn the melody and lyrics by ear — no instrument required yet.</p></li><li class=\"ds-level\"><span class=\"ds-level-n\">2</span><h3 class=\"ds-level-name\">Chords</h3><p class=\"ds-level-desc\">Play the song's core chord progression in a simple strum or comp pattern.</p></li><li class=\"ds-level\"><span class=\"ds-level-n\">3</span><h3 class=\"ds-level-name\">Scales &amp; fills</h3><p class=\"ds-level-desc\">Add the scale the song lives in, plus a few signature fills.</p></li></ol>",
+      "css": ".ds-levels { list-style:none; margin:0; padding:28px; display:grid; grid-template-columns:repeat(3,1fr); gap:30px; background:linear-gradient(120deg,var(--rw-ink-deep,#06192d) 0%,#0b3446 46%,#0d5a66 100%); } .ds-level { position:relative; } .ds-level::after { content:\"\"; position:absolute; top:17px; left:46px; right:-30px; height:1px; background:rgba(255,216,154,.28); } .ds-level:last-child::after { display:none; } .ds-level-n { display:flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:999px; border:1px solid rgba(255,216,154,.45); font-family:var(--rw-font-display,Georgia,serif); font-weight:600; font-size:16px; font-variant-numeric:tabular-nums; color:var(--rw-gold,#ffd89a); } .ds-level-name { font-family:var(--rw-font-display,Georgia,serif); font-weight:600; font-size:19px; letter-spacing:-.01em; color:#fff; margin:18px 0 7px; } .ds-level-desc { margin:0; font-family:var(--rw-font-body,system-ui,sans-serif); font-size:14.5px; line-height:1.55; color:rgba(255,245,236,.74); }"
+    },
+    {
       "name": "Instrument Mark",
       "kind": "custom",
       "refersTo": null,
@@ -582,6 +590,11 @@
         "name": "The Lift Is for Solids Rule",
         "section": "components",
         "body": "The -2px hover lift belongs to solid buttons. A text link that rises off its own underline reads as a glitch, so the quiet variant is explicitly excluded and answers with its underline instead."
+      },
+      {
+        "name": "The Nothing-Ships-Blue Rule",
+        "section": "components",
+        "body": "This palette contains no blue. Any browser default that arrives blue — caret, checkbox, focus ring, selection — is an unstyled surface, not a neutral one, and is themed before the component counts as finished."
       },
       {
         "name": "The Wave Is the Signature Rule",

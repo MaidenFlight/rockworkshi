@@ -80,7 +80,7 @@ export default function OnStage() {
             }}
           >
             <div style={{ maxWidth: 520 }}>
-              <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#ffcf8f", marginBottom: 10 }}>
+              <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--rw-gold)", marginBottom: 10 }}>
                 Song of the Month
               </div>
               <h3 style={{ fontWeight: 700, fontSize: 26, margin: "0 0 4px" }}>{songOfMonth.title}</h3>

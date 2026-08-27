@@ -26,7 +26,7 @@ function OnboardingContent() {
   return (
     <div>
       <PageHero
-        mark={<RockWorksIcon size={40} color="#ffcf8f" />}
+        mark={<RockWorksIcon size={40} color="var(--rw-gold)" />}
         eyebrow="Almost there"
         title="Finish setting up your account"
         lead="Just a few quick questions so we can build your curriculum."

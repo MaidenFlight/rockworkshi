@@ -8,7 +8,7 @@ export default function LegalPage({ title, lastUpdated, intro, children }) {
       <section style={{ position: "relative", overflow: "hidden", background: "linear-gradient(155deg,var(--rw-ink-deep) 0%,#0b2f43 52%,#0b5563 100%)" }}>
         <div style={{ position: "relative", maxWidth: 900, margin: "0 auto", padding: "56px 24px 70px", textAlign: "center" }}>
           <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
-            <RockWorksIcon size={36} color="#ffcf8f" />
+            <RockWorksIcon size={36} color="var(--rw-gold)" />
           </div>
           <h1 style={{ fontWeight: 500, fontSize: "clamp(32px,4.4vw,48px)", margin: 0, color: "#fff", letterSpacing: "-0.015em" }}>
             {title}
