@@ -392,7 +392,10 @@ watermark at 420px.
 
 **The Wave Is the Signature Rule.** Dark meets paper on the wave, never on a
 straight edge. Reuse the existing cubic rather than drawing a new curve; a second
-wave shape would dilute the first.
+wave shape would dilute the first. A dark band sitting *between* two cream
+sections meets paper twice and carries the wave twice — the top copy is the same
+path flipped on Y, so the paper spills down into the dark rather than the dark
+rising into the paper.
 
 **The One-Pixel Rule.** Every border in the system is 1px. Weight comes from the
 hairline's color — Bleached Rule, Shell Edge or Driftwood Stroke — not from
@@ -468,6 +471,33 @@ terminals are the point: they echo Zilla Slab's flat terminals and are what keep
 the set from looking like an off-the-shelf icon library. The accent is Reef Teal
 at rest and Lava Orange on hover, driven by a `--rw-icon-accent` custom property
 on the card so one variable serves both a stroke and a fill.
+
+### Section Topologies
+
+The homepage runs six sections and no two share a shape. That is deliberate: a
+page whose every section is a row of equal columns teaches the reader its one
+move by the second screen, and then nothing else registers. Each topology is
+chosen for what its content actually is.
+
+- **Type-led hero** — one full-measure column, left-aligned, display type sized
+  to carry the band (`clamp(46px, 7.4vw, 106px)`). No image column. The warm end
+  of the gradient is a radial bloom that falls off to nothing, not a field.
+- **Strapline** — three parallel facts, set tight: 18.5px slab headings, one
+  hairline above the row rather than rules between items. The densest type on
+  the page, immediately under the hero wave.
+- **Threaded path** — the five levels. Numbered markers joined by a rule drawn
+  per item across each gap. Rotates to a vertical spine below 860px.
+- **Grid** — the six instrument tiles. A real grid for genuinely equivalent
+  options, inside one bordered container.
+- **Asymmetric split** — heading held in a narrow sticky left column against a
+  vertical list on the right. The only place the page changes measure
+  mid-section, and the only place rules run horizontally between stacked items
+  rather than vertically between columns.
+- **Centered ask** — the closing CTA.
+
+**The One-Shape-Per-Section Rule.** Two sections on one page may not share a
+topology. If a new section wants to be a row of equal columns and one already
+is, the new one is wrong — change its shape or merge it into the existing row.
 
 ### Browser Surfaces
 
@@ -557,8 +587,12 @@ variant is explicitly excluded and answers with its underline instead.
    should not multiply into a third.
 4. **`Card` and `Prose` primitives exist but are not adopted anywhere.** Pages
    still hand-roll both. New work should use the primitives.
-5. **The hero photograph is a placeholder** (`/band.svg`, a drawn stick figure
-   on a stage). It is the largest single element on the homepage and the one
-   asset the design cannot supply for itself.
+5. **The school has no photograph of itself.** The homepage hero previously
+   carried `/band.svg` — a drawn stick figure captioned as though it were
+   documentary — and the image column was removed rather than restyled, so the
+   hero is now type-led. That is a deliberate holding position, not the finished
+   state: a real photograph of the room, a recital or the 1982 sign would earn
+   the column back. `/band.svg` is still in `public/` and still referenced
+   nowhere else.
 6. **The footer's social links point at `#`.** The marks are real; the
    destinations are not.
