@@ -10,3 +10,11 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 .claude/settings.local.json
+
+# Agent tooling, installed per-machine by `npx impeccable install` rather than
+# checked in. .claude/settings.json above it is tracked on purpose — the shared
+# project config belongs in the repo, the vendored skill tree does not.
+.claude/skills/
+.agents/
+.codex/
+skills-lock.json
