@@ -1,0 +1,618 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-27T04:34:16.780Z",
+  "title": "Design System: Rock Works School of Music",
+  "extensions": {
+    "colorMeta": {
+      "ink": {
+        "role": "neutral",
+        "displayName": "Basalt",
+        "canonical": "oklch(24.9% 0.050 247.0)",
+        "purpose": "All primary text, all headings, and the standard dark section ground.",
+        "tonalRamp": [
+          "#000c1f",
+          "#0e273c",
+          "#2b445c",
+          "#4a647d",
+          "#6a869f",
+          "#8ca9c4",
+          "#b0cde9",
+          "#d4f3ff"
+        ]
+      },
+      "ink-deep": {
+        "role": "neutral",
+        "displayName": "Volcanic Ink",
+        "canonical": "oklch(21.0% 0.047 251.5)",
+        "purpose": "The darkest stop in every hero and CTA gradient. A gradient terminus, not a text color.",
+        "tonalRamp": [
+          "#000b1e",
+          "#13263b",
+          "#2f445b",
+          "#4e637c",
+          "#6e859e",
+          "#90a8c2",
+          "#b3cce8",
+          "#d8f1ff"
+        ]
+      },
+      "cream": {
+        "role": "neutral",
+        "displayName": "Coral Sand",
+        "canonical": "oklch(97.2% 0.014 78.3)",
+        "purpose": "The page itself. Warm, and never substituted with white.",
+        "tonalRamp": [
+          "#0e0a05",
+          "#29241e",
+          "#46413a",
+          "#656059",
+          "#878179",
+          "#aaa49c",
+          "#cec8c0",
+          "#f4eee5"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Bleached Shell",
+        "canonical": "oklch(99.4% 0.006 84.6)",
+        "purpose": "Cards and panels sitting on Coral Sand.",
+        "tonalRamp": [
+          "#0c0b09",
+          "#262522",
+          "#43423f",
+          "#63615e",
+          "#84827e",
+          "#a7a5a1",
+          "#cbc9c5",
+          "#f0eeea"
+        ]
+      },
+      "sand": {
+        "role": "neutral",
+        "displayName": "Dune",
+        "canonical": "oklch(94.7% 0.023 78.2)",
+        "purpose": "The alternate band, separating a section without going dark.",
+        "tonalRamp": [
+          "#100a02",
+          "#2b2419",
+          "#494135",
+          "#686053",
+          "#8a8173",
+          "#ada496",
+          "#d1c8b9",
+          "#f7edde"
+        ]
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Bleached Rule",
+        "canonical": "oklch(88.9% 0.029 74.3)",
+        "purpose": "Section rules and column dividers.",
+        "tonalRamp": [
+          "#120901",
+          "#2d2315",
+          "#4b4031",
+          "#6b5f4f",
+          "#8d8070",
+          "#b0a392",
+          "#d5c7b5",
+          "#faecda"
+        ]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Shell Edge",
+        "canonical": "oklch(91.3% 0.020 65.1)",
+        "purpose": "Card and band edges.",
+        "tonalRamp": [
+          "#110904",
+          "#2c231b",
+          "#4a4037",
+          "#695f56",
+          "#8b8076",
+          "#aea398",
+          "#d3c7bc",
+          "#f8ece1"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Driftwood Stroke",
+        "canonical": "oklch(84.6% 0.029 74.3)",
+        "purpose": "Input and outlined-button borders.",
+        "tonalRamp": [
+          "#120901",
+          "#2e2315",
+          "#4b4031",
+          "#6b5f4f",
+          "#8d806f",
+          "#b0a391",
+          "#d5c7b5",
+          "#fbecda"
+        ]
+      },
+      "orange": {
+        "role": "primary",
+        "displayName": "Lava Orange",
+        "canonical": "oklch(64.8% 0.200 33.5)",
+        "purpose": "The action color. Primary buttons, active nav, hover accents. One per viewport.",
+        "tonalRamp": [
+          "#3f0000",
+          "#670000",
+          "#8f0000",
+          "#b70d00",
+          "#e04321",
+          "#ff6a49",
+          "#ff906d",
+          "#ffb792"
+        ]
+      },
+      "orange-deep": {
+        "role": "primary",
+        "displayName": "Lava Orange Deep",
+        "canonical": "oklch(57.4% 0.186 33.6)",
+        "purpose": "Inline links in running text and the far stop of the CTA gradient.",
+        "tonalRamp": [
+          "#3c0000",
+          "#630000",
+          "#8b0000",
+          "#b21f00",
+          "#db4a2c",
+          "#ff7051",
+          "#ff9675",
+          "#ffbc99"
+        ]
+      },
+      "orange-tint": {
+        "role": "primary",
+        "displayName": "Lava Wash",
+        "canonical": "oklch(95.5% 0.020 40.5)",
+        "purpose": "Orange at wash strength. Notices and tinted callouts.",
+        "tonalRamp": [
+          "#120805",
+          "#2e221e",
+          "#4c3f3a",
+          "#6c5e59",
+          "#8e7f79",
+          "#b1a19c",
+          "#d6c5bf",
+          "#fbeae4"
+        ]
+      },
+      "teal": {
+        "role": "secondary",
+        "displayName": "Reef Teal",
+        "canonical": "oklch(58.0% 0.097 206.8)",
+        "purpose": "The quiet accent: eyebrows, focus rings, instrument marks at rest. Paper only.",
+        "tonalRamp": [
+          "#00121f",
+          "#00303c",
+          "#004f5c",
+          "#00707d",
+          "#20929f",
+          "#4eb6c4",
+          "#75dbe9",
+          "#9cffff"
+        ]
+      },
+      "gold": {
+        "role": "secondary",
+        "displayName": "Last-Light Gold",
+        "canonical": "oklch(90.1% 0.090 78.8)",
+        "purpose": "The dark-ground accent: hero eyebrows, the mark on a hero, stat figures.",
+        "tonalRamp": [
+          "#1e0200",
+          "#3b1d00",
+          "#5b3b00",
+          "#7d5a1b",
+          "#9f7c3f",
+          "#c49e62",
+          "#e9c385",
+          "#ffe8aa"
+        ]
+      },
+      "sea-glass": {
+        "role": "secondary",
+        "displayName": "Sea Glass",
+        "canonical": "oklch(82.1% 0.081 204.7)",
+        "purpose": "A section eyebrow sitting on a dark band, where gold would compete with a stat.",
+        "tonalRamp": [
+          "#00121b",
+          "#002f37",
+          "#004e56",
+          "#0d6e77",
+          "#3d9099",
+          "#62b4bd",
+          "#87d9e2",
+          "#acffff"
+        ]
+      },
+      "meta": {
+        "role": "neutral",
+        "displayName": "Driftwood",
+        "canonical": "oklch(59.6% 0.032 77.4)",
+        "purpose": "Captions and 12px labels, warm taupe.",
+        "tonalRamp": [
+          "#130900",
+          "#2e2313",
+          "#4c402f",
+          "#6c5f4d",
+          "#8d806d",
+          "#b1a38f",
+          "#d5c7b2",
+          "#fbecd7"
+        ]
+      },
+      "body": {
+        "role": "neutral",
+        "displayName": "Warm Body",
+        "canonical": "oklch(51.0% 0.010 67.6)",
+        "purpose": "14-15px body on cream, warm.",
+        "tonalRamp": [
+          "#0e0a07",
+          "#282420",
+          "#46413c",
+          "#65605b",
+          "#86817c",
+          "#a9a49e",
+          "#cec8c2",
+          "#f3ede7"
+        ]
+      },
+      "body-cool": {
+        "role": "neutral",
+        "displayName": "Cool Body",
+        "canonical": "oklch(53.2% 0.025 235.4)",
+        "purpose": "15-16px body and hero standfirsts, cool.",
+        "tonalRamp": [
+          "#020d14",
+          "#192730",
+          "#35444e",
+          "#54646e",
+          "#75858f",
+          "#97a8b3",
+          "#baccd7",
+          "#dff2fd"
+        ]
+      },
+      "prose": {
+        "role": "neutral",
+        "displayName": "Slate Prose",
+        "canonical": "oklch(37.9% 0.029 232.8)",
+        "purpose": "16.5px long-form prose, cool slate.",
+        "tonalRamp": [
+          "#010d15",
+          "#162831",
+          "#33454f",
+          "#51646f",
+          "#728691",
+          "#94a9b4",
+          "#b8cdd9",
+          "#ddf2ff"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Page hero titles only. Set at 500, not bold — at this size the slab already has presence."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Section headings, always paired with the hairline rule beneath."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Card and panel headings."
+      },
+      "lead": {
+        "displayName": "Lead",
+        "purpose": "The standfirst under a heading. One per section, never two."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "The default. Interface copy, card text, lists."
+      },
+      "prose": {
+        "displayName": "Prose",
+        "purpose": "Long-form reading, held to the 900px measure."
+      },
+      "eyebrow": {
+        "displayName": "Eyebrow",
+        "purpose": "The uppercase label above or beside a heading. 0.22em tracking is a signature and never varies."
+      }
+    },
+    "shadows": [
+      {
+        "name": "stage-glow",
+        "value": "0 12px 26px -12px var(--rw-orange)",
+        "purpose": "Under a primary CTA on paper. The button appears lit rather than casting. The only colored shadow in the system."
+      },
+      {
+        "name": "hover-lift",
+        "value": "0 22px 44px -22px rgba(90, 40, 70, 0.45)",
+        "purpose": "Paired with translateY(-6px) on a lifting card. Warm plum tint, never black."
+      },
+      {
+        "name": "floating-panel",
+        "value": "0 18px 40px -20px rgba(6, 25, 45, 0.4)",
+        "purpose": "Nav dropdowns and menus — surfaces genuinely above the page."
+      },
+      {
+        "name": "deep-panel",
+        "value": "0 26px 54px -34px rgba(90, 40, 70, 0.4)",
+        "purpose": "The largest resting panels, where a card border alone is not enough separation."
+      },
+      {
+        "name": "active-underline",
+        "value": "inset 0 -2px 0 var(--rw-orange)",
+        "purpose": "The nav current-page marker. A shadow used as a rule, so it costs no layout."
+      }
+    ],
+    "motion": [
+      {
+        "name": "menu",
+        "value": "0.16s ease",
+        "purpose": "Dropdowns, menu items, background washes."
+      },
+      {
+        "name": "button",
+        "value": "0.18s ease",
+        "purpose": "Button transform, filter and background."
+      },
+      {
+        "name": "card",
+        "value": "0.22s ease",
+        "purpose": "Card transform and shadow on lift."
+      },
+      {
+        "name": "lift-button",
+        "value": "translateY(-2px) + brightness(1.04)",
+        "purpose": "Solid button hover. Excluded from the quiet variant, where a rising text link reads as a glitch."
+      },
+      {
+        "name": "lift-card",
+        "value": "translateY(-6px)",
+        "purpose": "Content card hover, paired with hover-lift."
+      },
+      {
+        "name": "lift-tile",
+        "value": "translateY(-5px)",
+        "purpose": "Instrument card hover, paired with the accent warming from teal to orange."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "@media (prefers-reduced-motion: reduce) { * { animation-duration: 0.01ms; transition-duration: 0.01ms } }",
+        "purpose": "Global. Every animation and transition collapses; the instrument tiles additionally drop their hover transform."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "nav",
+        "value": "940px",
+        "purpose": "Desktop nav is replaced by the burger and a full-screen sheet."
+      },
+      {
+        "name": "grid",
+        "value": "860px",
+        "purpose": "Hero and 2/3-column grids go single-column; 5-col to 3, 4-col to 2."
+      },
+      {
+        "name": "shell",
+        "value": "720px",
+        "purpose": "Admin shell stacks; video player swaps speed pills for a native select."
+      },
+      {
+        "name": "head",
+        "value": "640px",
+        "purpose": "Section heading stacks, eyebrow beneath title."
+      },
+      {
+        "name": "tiles",
+        "value": "560px",
+        "purpose": "5- and 6-column grids go to 2."
+      }
+    ],
+    "measures": [
+      {
+        "name": "wide",
+        "value": "1200px",
+        "purpose": "The wide grid."
+      },
+      {
+        "name": "text",
+        "value": "900px",
+        "purpose": "A reading column."
+      },
+      {
+        "name": "form",
+        "value": "520px",
+        "purpose": "A narrow column for inputs."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The standard call to action. Solid Lava Orange, no border, lifts on hover.",
+      "html": "<button class=\"ds-btn-primary\">Start Lessons</button>",
+      "css": ".ds-btn-primary { display:inline-flex; align-items:center; justify-content:center; gap:8px; background:var(--rw-orange,#ef5130); color:#fff; font-family:var(--rw-font-body,system-ui,sans-serif); font-weight:700; font-size:16px; padding:15px 32px; border:none; border-radius:var(--rw-radius-sm,8px); cursor:pointer; transition:transform .18s ease, filter .18s ease, background .18s ease; } .ds-btn-primary:hover { transform:translateY(-2px); filter:brightness(1.04); } .ds-btn-primary:focus-visible { outline:2px solid var(--rw-teal,#0e8a97); outline-offset:2px; } .ds-btn-primary:disabled { opacity:.5; cursor:not-allowed; transform:none; }"
+    },
+    {
+      "name": "Stage CTA",
+      "kind": "button",
+      "refersTo": "button-stage",
+      "description": "The signature lit-from-the-stage treatment: pill, orange gradient, wearing its own orange glow. Reserved for the single most important action on a page (auth submits, checkout).",
+      "html": "<button class=\"ds-btn-stage\">Sign in</button>",
+      "css": ".ds-btn-stage { display:inline-flex; align-items:center; justify-content:center; background:linear-gradient(135deg, var(--rw-orange,#ef5130), var(--rw-orange-deep,#cf3f20)); color:#fff; font-family:var(--rw-font-body,system-ui,sans-serif); font-weight:800; font-size:15.5px; padding:14px 22px; border:none; border-radius:999px; cursor:pointer; box-shadow:0 12px 26px -12px var(--rw-orange,#ef5130); transition:transform .18s ease, filter .18s ease; } .ds-btn-stage:hover { transform:translateY(-2px); filter:brightness(1.04); } .ds-btn-stage:focus-visible { outline:2px solid var(--rw-teal,#0e8a97); outline-offset:2px; }"
+    },
+    {
+      "name": "Quiet Link Button",
+      "kind": "button",
+      "refersTo": "button-quiet",
+      "description": "A text link that behaves like a button. No radius, no lift — the underline goes to full strength instead.",
+      "html": "<a class=\"ds-btn-quiet\" href=\"#\">See the curriculum →</a>",
+      "css": ".ds-btn-quiet { display:inline-flex; align-items:center; gap:8px; background:transparent; color:var(--rw-ink,#0a2338); font-family:var(--rw-font-body,system-ui,sans-serif); font-weight:700; font-size:15px; padding:0 0 3px; border:none; border-bottom:1.5px solid rgba(10,35,56,.32); border-radius:0; text-decoration:none; cursor:pointer; transition:border-color .18s ease; } .ds-btn-quiet:hover { border-bottom-color:currentColor; } .ds-btn-quiet:focus-visible { outline:2px solid var(--rw-teal,#0e8a97); outline-offset:2px; }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "The standard form field. Note: the incumbent implementation leaves focus to the browser default — this snippet shows the Reef Teal ring new fields should adopt.",
+      "html": "<input class=\"ds-input\" type=\"email\" placeholder=\"you@email.com\" aria-label=\"Email\">",
+      "css": ".ds-input { display:block; width:100%; background:#fff; color:var(--rw-ink,#0a2338); font-family:var(--rw-font-body,system-ui,sans-serif); font-size:15px; padding:12px 14px; border:1px solid var(--rw-line,#d8cab8); border-radius:10px; } .ds-input::placeholder { color:var(--rw-meta,#8a7d6a); } .ds-input:focus-visible { outline:2px solid var(--rw-teal,#0e8a97); outline-offset:2px; }"
+    },
+    {
+      "name": "Nav Link",
+      "kind": "nav",
+      "refersTo": "nav-link",
+      "description": "Header navigation link, shown in default and current-page states. The active marker is an inset shadow so it costs no layout.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-link ds-nav-link--active\" href=\"#\">Home</a><a class=\"ds-nav-link\" href=\"#\">Lessons</a><a class=\"ds-nav-link\" href=\"#\">On Stage</a></nav>",
+      "css": ".ds-nav { display:flex; align-items:center; gap:2px; background:rgba(251,245,236,.86); backdrop-filter:blur(14px); border-bottom:1px solid var(--rw-border,#ece0d5); padding:10px 8px; } .ds-nav-link { font-family:var(--rw-font-body,system-ui,sans-serif); font-size:14.5px; font-weight:600; color:var(--rw-prose,#33454f); text-decoration:none; padding:10px 14px; border-radius:var(--rw-radius-sm,8px); transition:background .16s ease; } .ds-nav-link:hover { background:rgba(42,26,51,.05); } .ds-nav-link:focus-visible { outline:2px solid var(--rw-teal,#0e8a97); outline-offset:2px; } .ds-nav-link--active { color:var(--rw-orange,#ef5130); box-shadow:inset 0 -2px 0 var(--rw-orange,#ef5130); }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Bleached Shell on Coral Sand, hairline edge, flat at rest. The lift and its warm-plum shadow are opt-in and arrive only on hover.",
+      "html": "<div class=\"ds-card ds-card--lift\"><h3 class=\"ds-card-title\">One song a month</h3><p class=\"ds-card-body\">Every song is taught in five levels — sing-a-long, chords, scales &amp; fills, melody, and improv.</p></div>",
+      "css": ".ds-card { background:var(--rw-surface,#fffdf9); border:1px solid var(--rw-border,#ece0d5); border-radius:var(--rw-radius-md,14px); padding:24px; max-width:320px; } .ds-card-title { font-family:var(--rw-font-display,Georgia,serif); font-weight:700; font-size:22px; color:var(--rw-ink,#0a2338); margin:0 0 8px; } .ds-card-body { font-family:var(--rw-font-body,system-ui,sans-serif); font-size:15px; line-height:1.6; color:var(--rw-body,#6a6560); margin:0; } .ds-card--lift { transition:transform .22s ease, box-shadow .22s ease; } .ds-card--lift:hover { transform:translateY(-6px); box-shadow:0 22px 44px -22px rgba(90,40,70,.45); }"
+    },
+    {
+      "name": "Section Head",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "The connective tissue of the site: slab title left, uppercase Reef Teal eyebrow right, hairline rule beneath. Stacks below 640px.",
+      "html": "<div class=\"ds-head\"><h2 class=\"ds-head-title\">Choose your instrument</h2><div class=\"ds-head-eyebrow\">Pick your sound</div></div>",
+      "css": ".ds-head { display:flex; align-items:flex-end; justify-content:space-between; gap:24px; border-bottom:1px solid var(--rw-rule,#e6d8c6); padding-bottom:18px; margin-bottom:26px; } .ds-head-title { font-family:var(--rw-font-display,Georgia,serif); font-weight:600; font-size:clamp(28px,3.4vw,40px); letter-spacing:-.01em; color:var(--rw-ink,#0a2338); margin:0; } .ds-head-eyebrow { font-family:var(--rw-font-body,system-ui,sans-serif); font-weight:700; font-size:11px; letter-spacing:.22em; text-transform:uppercase; color:var(--rw-teal,#0e8a97); padding-bottom:6px; white-space:nowrap; } @media (max-width:640px) { .ds-head { flex-direction:column; align-items:flex-start; gap:8px; } .ds-head-eyebrow { padding-bottom:0; } }"
+    },
+    {
+      "name": "Page Hero",
+      "kind": "custom",
+      "refersTo": "page-hero",
+      "description": "The clearest statement of the North Star: the dusk gradient, a Last-Light Gold eyebrow, the display title, and the signature wave cut into the foot. Reuse this cubic rather than drawing a new curve.",
+      "html": "<section class=\"ds-hero\"><div class=\"ds-hero-inner\"><div class=\"ds-hero-eyebrow\">Welcome back</div><h1 class=\"ds-hero-title\">Sign in</h1><p class=\"ds-hero-lead\">Pick up where you left off.</p></div><div class=\"ds-hero-wave\" aria-hidden=\"true\"><svg viewBox=\"0 0 1440 70\" preserveAspectRatio=\"none\"><path d=\"M0,40 C360,80 1080,0 1440,40 L1440,70 L0,70 Z\" fill=\"var(--rw-cream,#fbf5ec)\"/></svg></div></section>",
+      "css": ".ds-hero { position:relative; overflow:hidden; background:linear-gradient(155deg, var(--rw-ink-deep,#06192d) 0%, #0b2f43 52%, #0b5563 100%); } .ds-hero-inner { max-width:900px; margin:0 auto; padding:56px 24px 70px; text-align:center; } .ds-hero-eyebrow { display:inline-block; font-family:var(--rw-font-body,system-ui,sans-serif); font-size:12.5px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:var(--rw-gold,#ffd89a); margin-bottom:14px; } .ds-hero-title { font-family:var(--rw-font-display,Georgia,serif); font-weight:500; font-size:clamp(34px,4.6vw,50px); letter-spacing:-.015em; color:#fff; margin:0; } .ds-hero-lead { margin:16px auto 0; max-width:560px; font-family:var(--rw-font-body,system-ui,sans-serif); font-size:16.5px; line-height:1.6; color:rgba(255,245,236,.82); } .ds-hero-wave { line-height:0; } .ds-hero-wave svg { width:100%; height:50px; display:block; }"
+    },
+    {
+      "name": "Instrument Mark",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "One of six hand-drawn marks. Butt caps and miter joins are the point — they echo the flat terminals of Zilla Slab. The accent marks where the sound comes out and warms from Reef Teal to Lava Orange when the card becomes clickable.",
+      "html": "<a class=\"ds-instr\" href=\"#\"><svg width=\"52\" height=\"52\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"butt\" stroke-linejoin=\"miter\" aria-hidden=\"true\"><path d=\"M9.8 1.6H14.2V4.4H9.8Z\"/><path d=\"M10.7 4.4V12M13.3 4.4V12\"/><path d=\"M12 11.6C9.6 11.6 7.8 12.4 7.8 14C7.8 15.4 9.1 15.6 9.1 16.6C9.1 17.8 6.2 18 6.2 19.8C6.2 21.5 8.8 22.6 12 22.6C15.2 22.6 17.8 21.5 17.8 19.8C17.8 18 14.9 17.8 14.9 16.6C14.9 15.6 16.2 15.4 16.2 14C16.2 12.4 14.4 11.6 12 11.6Z\"/><path d=\"M9.8 20.4H14.2\"/><circle class=\"ds-instr-accent\" cx=\"12\" cy=\"15.2\" r=\"1.7\"/></svg><span class=\"ds-instr-label\">Guitar</span></a>",
+      "css": ".ds-instr { --ds-accent: var(--rw-teal,#0e8a97); display:flex; flex-direction:column; align-items:center; gap:10px; width:150px; padding:28px 12px; background:var(--rw-surface,#fffdf9); border:1px solid var(--rw-border,#ece0d5); border-radius:var(--rw-radius-md,14px); color:var(--rw-ink,#0a2338); text-decoration:none; transition:transform .2s ease, border-color .2s ease; } .ds-instr:hover { --ds-accent: var(--rw-orange,#ef5130); transform:translateY(-5px); border-color:rgba(224,91,74,.5); } .ds-instr:focus-visible { outline:2px solid var(--rw-teal,#0e8a97); outline-offset:2px; } .ds-instr-accent { stroke:var(--ds-accent); transition:stroke .2s ease; } .ds-instr-label { font-family:var(--rw-font-body,system-ui,sans-serif); font-weight:700; font-size:14.5px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Last Light on the North Shore",
+    "overview": "The whole system is one moment: the sun is gone, the water still holds the light, and the house lights are already up. Everything dark in this design is that sky — #06192d falling through #0b2f43 to a lit teal #0b5563, warm at the edges, never neutral. Everything light is what sits below the waterline: sun-warmed paper, not white. And the two are always separated by the same wave, cut into the foot of every dark banner on the site.\n\nIt reads as a concert venue with a Hawaiian twist, and that is deliberate. The gradient behind a page title is stage lighting; the gold on it is the warm spill off a rig; the single hot orange is the only thing on screen allowed to shout. The energy is meant to feel warm, loud and alive — a room where people are actually playing — but the loudness comes from contrast and restraint, not from volume everywhere. A page is mostly quiet paper so that one orange button lands like a downbeat.\n\nThe type carries the rock half. Zilla Slab is a slab with blunt, flat terminals and no politeness about it; it sets every heading and is never asked to set a paragraph. Source Sans does the reading. Beneath both runs an editorial discipline the site inherited and should keep: uppercase eyebrows at 0.22em, a hairline rule under every section heading, and exactly three column measures for the entire site. Forty-plus years of school, set like a broadsheet, lit like a stage.",
+    "keyCharacteristics": [
+      "Warm-first: there is no neutral grey ground and no pure white page anywhere.",
+      "One hot ink. Orange means act, and nothing else is allowed to mean it.",
+      "A hard waterline: teal belongs to paper, gold belongs to the dark.",
+      "Flat at rest; light and lift arrive only as a response to touch.",
+      "The wave is the signature — the same cubic on every dark banner.",
+      "Slab headings, sans body, and a 0.22em eyebrow that never varies."
+    ],
+    "rules": [
+      {
+        "name": "The One Hot Ink Rule",
+        "section": "colors",
+        "body": "Lava Orange is the only color in the system that means act. One primary orange element per viewport is the target; two is a smell; three means the page has no hierarchy. Its rarity is what makes it work."
+      },
+      {
+        "name": "The Waterline Rule",
+        "section": "colors",
+        "body": "Reef Teal lives above the waterline, on paper. Last-Light Gold lives below it, on the dark. Teal on a hero gradient is nearly invisible and is a bug, not a style choice."
+      },
+      {
+        "name": "The No-Grey Rule",
+        "section": "colors",
+        "body": "There is no neutral grey and no pure white ground in this palette. If a surface needs to recede, it goes to Coral Sand or Dune; if text needs to soften, it takes one of the four warm/cool tones."
+      },
+      {
+        "name": "The Slab Stays Short Rule",
+        "section": "typography",
+        "body": "Zilla Slab sets headings and nothing else. It never sets a paragraph, a form label, a table cell, or a button."
+      },
+      {
+        "name": "The 0.22em Rule",
+        "section": "typography",
+        "body": "The letterspacing of the eyebrow is a signature, not a coincidence — it is identical on every section heading across the site. The only sanctioned variant is the hero eyebrow at 0.16em."
+      },
+      {
+        "name": "The Twenty-First Size Rule",
+        "section": "typography",
+        "body": "The scale has ten steps for a reason. If a new design needs a size that is not in it, the answer is almost always the nearest existing step, not a new token."
+      },
+      {
+        "name": "The Three Measures Rule",
+        "section": "layout",
+        "body": "1200, 900, 520 — and nothing else. Before this system there were ten container widths across the site and no two pages agreed. A new surface picks one of the three; it does not introduce a fourth."
+      },
+      {
+        "name": "The Band-and-Container Rule",
+        "section": "layout",
+        "body": "A colored ground and its contents are always two elements: the band runs full-bleed, the container inside holds the measure. Never put a max-width on the thing carrying the background."
+      },
+      {
+        "name": "The Flat-At-Rest Rule",
+        "section": "elevation",
+        "body": "Surfaces are flat until touched. If a new component needs a resting shadow to feel separated, the separation is wrong — change the ground or the border instead."
+      },
+      {
+        "name": "The Glow Belongs to Orange Rule",
+        "section": "elevation",
+        "body": "The only colored shadow in the system is orange, beneath an orange element. Never tint a shadow teal, gold or ink to match a component."
+      },
+      {
+        "name": "The Black Shadow Ban",
+        "section": "elevation",
+        "body": "No shadow uses neutral black. Every one is tinted warm plum or deep ink, because a black shadow on Coral Sand reads grey and drags the whole page cold."
+      },
+      {
+        "name": "The Border Tax Rule",
+        "section": "components",
+        "body": "Only the outlined variant carries a border. A 1px solid transparent on a base button silently makes every solid button 2px larger than the inline one it replaced — this has already broken the system once and is why the base class declares border: none."
+      },
+      {
+        "name": "The Lift Is for Solids Rule",
+        "section": "components",
+        "body": "The -2px hover lift belongs to solid buttons. A text link that rises off its own underline reads as a glitch, so the quiet variant is explicitly excluded and answers with its underline instead."
+      },
+      {
+        "name": "The Wave Is the Signature Rule",
+        "section": "shapes",
+        "body": "Dark meets paper on the wave, never on a straight edge. Reuse the existing cubic rather than drawing a new curve; a second wave shape would dilute the first."
+      },
+      {
+        "name": "The One-Pixel Rule",
+        "section": "shapes",
+        "body": "Every border in the system is 1px. Weight comes from the color of the hairline — Bleached Rule, Shell Edge or Driftwood Stroke — not from thickness."
+      }
+    ],
+    "dos": [
+      "Do reach for an existing token. The palette, the ten-step type scale, the 8px spacing scale and the three measures were read out of the built pages — everything a new surface needs is already named in app/tokens.css.",
+      "Do put the eyebrow in Reef Teal on paper and Last-Light Gold on the dark, per The Waterline Rule.",
+      "Do give a new section the SectionHead pattern — slab title left, uppercase eyebrow right, hairline rule beneath. It is the connective tissue of the site.",
+      "Do end a dark band on the wave.",
+      "Do use the 2px Reef Teal focus ring at 2px offset on every interactive element, including new form fields.",
+      "Do keep colored shadows orange and shadow tints warm.",
+      "Do let one orange element own the page. If a second wants to be orange, one of them is not the primary action."
+    ],
+    "donts": [
+      "Do not introduce a neutral grey, a pure-white page ground, or a black shadow. This palette has no cold values and should not acquire one.",
+      "Do not set body copy, labels or buttons in Zilla Slab.",
+      "Do not put a border on a solid button. A 1px solid transparent base makes every solid button 2px larger than the one it replaced — this bug has already been fixed once.",
+      "Do not give a resting surface a shadow to make it feel separated.",
+      "Do not re-tune the 0.22em eyebrow tracking, or add an eleventh type size.",
+      "Do not draw a second wave shape or a second logo mark; reuse the existing geometry.",
+      "Do not let this drift toward generic SaaS — purple gradients, glassmorphism, floating cards on white, stock illustration of people high-fiving. Confirmed rejection.",
+      "Do not let it drift toward a kids learning app — bubble corners, cartoon mascots, confetti, badges shouting at you. The primary reader is a student who wants to look like a musician. Confirmed rejection.",
+      "Do not let the Hawaiian half become tourist clip-art — hibiscus borders, tiki lettering, palm silhouettes on a sunset gradient. The island shows up as the wave, the light and the palette, never as decoration. Confirmed rejection."
+    ]
+  }
+}
