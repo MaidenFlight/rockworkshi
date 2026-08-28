@@ -5,8 +5,8 @@ import SocialIcon from "@/components/SocialIcon";
 
 export default function Footer() {
   return (
-    <footer style={{ background: "linear-gradient(135deg,var(--rw-ink-deep),#0a2a38)", color: "rgba(255,245,236,0.72)", marginTop: "auto" }}>
-      <div style={{ height: 4, background: "linear-gradient(90deg,var(--rw-teal),#f4b64a,var(--rw-orange),#0e7d8a)" }} />
+    <footer style={{ background: "linear-gradient(168deg,var(--rw-ink),var(--rw-ink-deep))", color: "rgba(255,245,236,0.72)", marginTop: "auto" }}>
+      <div style={{ height: 4, background: "linear-gradient(90deg,var(--rw-teal),var(--rw-gold),var(--rw-flare),var(--rw-sea-glass))" }} />
       <div
         style={{
           maxWidth: 1200,
@@ -69,7 +69,7 @@ export default function Footer() {
               <Link
                 key={f.href}
                 href={f.href}
-                style={{ display: "block", fontSize: 14, color: "rgba(255,245,236,0.72)", textDecoration: "none", padding: "3px 0" }}
+                style={{ display: "block", fontSize: 14, color: "rgba(255,245,236,0.72)", textDecoration: "none", padding: "7px 0" }}
               >
                 {f.label}
               </Link>

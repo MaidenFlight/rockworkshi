@@ -134,7 +134,7 @@ summary:focus-visible,
 }
 
 .rw-nav-link:hover {
-  background: rgba(42, 26, 51, 0.05);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .rw-card {
@@ -449,8 +449,8 @@ summary:focus-visible,
 .rw-level::after {
   content: "";
   position: absolute;
-  top: 17px;
-  left: 46px;
+  top: 30px;
+  left: 64px;
   right: -30px;
   height: 1px;
   background: rgba(255, 216, 154, 0.28);
@@ -460,17 +460,17 @@ summary:focus-visible,
   display: none;
 }
 
+/* The numerals were 34px inside a hairline circle — the smallest thing in the
+   section that is entirely about a sequence of five. They are the largest
+   objects here now, because 1 to 5 IS the argument, and the circle is gone: a
+   condensed signage face does not need a ring to be a marker. */
 .rw-level-n {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  border-radius: var(--rw-radius-pill);
-  border: 1px solid rgba(255, 216, 154, 0.45);
+  display: block;
   font-family: var(--rw-font-display);
-  font-weight: 600;
-  font-size: 16px;
+  font-weight: 800;
+  font-size: clamp(56px, 6vw, 92px);
+  line-height: 0.82;
+  letter-spacing: var(--rw-track-poster);
   font-variant-numeric: tabular-nums;
   color: var(--rw-gold);
 }
@@ -759,5 +759,291 @@ main:focus {
     top: 0;
     width: 100%;
     padding: 12px 6px;
+  }
+}
+
+/* ==========================================================================
+   THE SILKIE — the redesigned marketing surface (2026-08-28).
+   Field, border band, label stock. See app/tokens.css for why the world
+   changed and the direction contract in app/layout.js for what it promises.
+   ========================================================================== */
+
+/* ---- The field ----
+ * The saturated ground, and the loud element the previous homepage did not
+ * have. Type on it is lacquer rather than white: 5.06:1 against 3.65:1, and
+ * ink on colour is what printing on cloth actually looks like. */
+.rw-field {
+  position: relative;
+  overflow: hidden;
+  background: var(--rw-flare);
+  color: var(--rw-ink);
+}
+
+.rw-field-ask {
+  padding-top: 46px;
+}
+
+/* The motif repeat. Pure decoration, aria-hidden, and kept under 10% so it
+ * never competes with the type it sits behind — a shirt's pattern is a ground,
+ * not a subject. */
+.rw-repeat {
+  position: absolute;
+  inset: -6% -10%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 52px;
+  pointer-events: none;
+}
+
+.rw-repeat-row {
+  display: flex;
+  justify-content: center;
+  gap: 76px;
+  flex-shrink: 0;
+}
+
+.rw-repeat-row span {
+  display: block;
+  flex-shrink: 0;
+}
+
+/* ---- Poster type ----
+ * Big Shoulders is a condensed signage face, so it wants to be set enormous
+ * and tight — it is built to be read at distance, and set timidly it just
+ * looks narrow. Line height goes under 1 because condensed caps have short
+ * extenders and the stack should read as one block of lettering. */
+.rw-poster {
+  margin: 18px 0 0;
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: clamp(58px, 11.5vw, 158px);
+  line-height: 0.85;
+  letter-spacing: var(--rw-track-poster);
+  text-transform: uppercase;
+  color: var(--rw-ink);
+}
+
+/* The third line in label stock rather than lacquer: a silkie's border print
+ * changes colour where the motif changes, and the sentence turns there too. */
+.rw-poster-em {
+  color: var(--rw-cream);
+}
+
+.rw-poster-ask {
+  margin: 0 0 18px;
+  font-size: clamp(42px, 6.4vw, 92px);
+}
+
+.rw-field-tag {
+  font-family: var(--rw-font-display);
+  font-weight: 700;
+  font-size: var(--rw-text-sm);
+  letter-spacing: var(--rw-track-eyebrow);
+  text-transform: uppercase;
+  color: var(--rw-ink);
+}
+
+.rw-field-lead {
+  max-width: 46ch;
+  margin: 26px 0 0;
+  font-size: var(--rw-text-lg);
+  line-height: 1.5;
+  color: var(--rw-ink);
+}
+
+/* ---- The border band ----
+ * The hem of the garment, where the print concentrates and the object states
+ * what it is. It carries the whole offer, which is why the price sits here and
+ * not four steps inside a wizard. */
+.rw-band {
+  background: var(--rw-ink);
+  color: var(--rw-cream);
+}
+
+.rw-band-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--rw-space-8);
+  padding-top: 8px;
+}
+
+.rw-band-label {
+  font-family: var(--rw-font-display);
+  font-weight: 700;
+  font-size: var(--rw-text-xl);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--rw-gold);
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--rw-gold);
+  margin-bottom: 16px;
+}
+
+.rw-band-copy {
+  max-width: 46ch;
+  margin: 0 0 20px;
+  font-size: var(--rw-text-base);
+  line-height: 1.6;
+  color: rgba(238, 240, 236, 0.88);
+}
+
+.rw-band-price {
+  font-family: var(--rw-font-display);
+  font-weight: 600;
+  font-size: var(--rw-text-base);
+  letter-spacing: 0.01em;
+  color: var(--rw-gold);
+}
+
+.rw-band-link {
+  font-weight: 700;
+  font-size: var(--rw-text-sm);
+  color: var(--rw-sea-glass);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+@media (max-width: 860px) {
+  .rw-band-grid {
+    grid-template-columns: 1fr;
+    gap: var(--rw-space-6);
+  }
+}
+
+/* ---- Section ledes ---- */
+.rw-ink-lead {
+  max-width: 58ch;
+  margin: 20px 0 48px;
+  font-size: var(--rw-text-md);
+  line-height: 1.6;
+  color: rgba(238, 240, 236, 0.86);
+}
+
+.rw-lede {
+  max-width: 58ch;
+  margin: 18px 0 30px;
+  font-size: var(--rw-text-md);
+  line-height: 1.6;
+  color: var(--rw-prose);
+}
+
+/* ---- The motifs ----
+ * The six marks were rendered at the visual weight of a settings menu on the
+ * previous homepage, in a hairline row of six equal cells. They are the print
+ * motif now, which means they get scale and their own ground. */
+.rw-motifs {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+}
+
+.rw-motif {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 34px 10px 24px;
+  background: var(--rw-surface);
+  border: 1px solid var(--rw-border);
+  border-radius: var(--rw-radius-md);
+  color: var(--rw-ink);
+  text-decoration: none;
+  transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
+}
+
+.rw-motif-mark {
+  display: flex;
+  color: currentColor;
+}
+
+.rw-motif-name {
+  font-family: var(--rw-font-display);
+  font-weight: 700;
+  font-size: var(--rw-text-xl);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* The mark warms up exactly when the cell becomes clickable — the same idea
+ * the previous world had, moved from a stroke accent to the whole panel,
+ * because the panel is now big enough to carry it. */
+.rw-motif:hover {
+  background: var(--rw-ink);
+  border-color: var(--rw-ink);
+  color: var(--rw-gold);
+  transform: translateY(-4px);
+}
+
+.rw-motif:focus-visible {
+  outline: 2px solid var(--rw-teal);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rw-motif {
+    transition: background 0.16s ease, color 0.16s ease;
+  }
+  .rw-motif:hover {
+    transform: none;
+  }
+}
+
+@media (max-width: 860px) {
+  .rw-motifs {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .rw-motifs {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.rw-mark-chrome {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+  color: var(--rw-ink);
+}
+
+.rw-ask-price {
+  margin: 22px auto 0;
+  max-width: 46ch;
+  font-family: var(--rw-font-display);
+  font-weight: 600;
+  font-size: var(--rw-text-lg);
+  letter-spacing: 0.01em;
+  color: var(--rw-ink);
+}
+
+/* ---- The wordmark ----
+ * The single chrome object on the site. Chrome is a reflection rather than a
+ * colour, so a flat grey reads as dead metal — it only becomes chrome when a
+ * light band runs across the letterforms, which is what the ramp in
+ * --rw-chrome is doing. background-clip carries it into the type.
+ *
+ * The fallback matters: where background-clip:text is unsupported the colour
+ * declaration below still paints label stock, so the wordmark is never
+ * invisible. A second chrome object anywhere on the site would mean the page
+ * has none, so this selector is the whole budget. */
+.rw-wordmark {
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: 30px;
+  letter-spacing: 0.005em;
+  text-transform: uppercase;
+  color: var(--rw-cream);
+  background: var(--rw-chrome);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@supports not ((background-clip: text) or (-webkit-background-clip: text)) {
+  .rw-wordmark {
+    background: none;
+    -webkit-text-fill-color: currentColor;
   }
 }

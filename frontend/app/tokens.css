@@ -1,124 +1,138 @@
-/* The Rock Works design tokens.
+/* The Rock Works design tokens — THE SILKIE.
  *
- * These are not new values. Every one was read out of the pages themselves —
- * the palette here is what 796 inline style objects were already hardcoding,
- * just named. So adopting a token never changes a pixel; it only moves the
- * decision to one place. globals.css used to declare five of these and nothing
- * imported them, which is how #0a2338 came to appear 128 times by hand.
+ * Replaced wholesale on 2026-08-28. The world before this was cream ground,
+ * high-contrast slab serif, one warm orange: verbatim the first entry on the
+ * list of looks AI-generated interfaces converge on regardless of what they
+ * are for. On a school selling rock and roll to teenagers it also produced a
+ * page with no loud element on it — the largest, brightest thing on the
+ * homepage was a small button.
  *
- * Naming is by role, not by hue: --rw-ink rather than --rw-navy, so a future
- * change of colour doesn't leave every name lying.
+ * The world is the 1950s Hawaiian rayon "silkie": the tailored, saturated,
+ * collector-grade shirt, not the souvenir rack. A silkie is built from a
+ * saturated ground, a repeating motif field, and an engineered border band
+ * where the print concentrates and the garment says what it is. That is the
+ * page: field on top, band at the bottom, label stock wherever prose runs.
+ * Blue Hawaii, 1961, is the hinge that makes this rock and roll rather than
+ * tourism — it is the one place old-school rock and Hawaii genuinely meet.
+ *
+ * Naming stays by role, not by hue, and every token name from the previous
+ * world survives: 48 routes reference these, and renaming would have been a
+ * second, invisible refactor riding along with a redesign.
  */
 
 :root {
-  /* ---- Ink: text and the dark grounds ---- */
-  --rw-ink: #0a2338; /* headings, primary text, dark sections */
-  --rw-ink-deep: #06192d; /* the darkest stop in hero gradients */
+  /* ---- Ink: text and the dark grounds ----
+   * Lacquer, not navy. A black with plum in it reads as finished surface —
+   * sprayed and buffed — where a neutral black reads as absence. */
+  --rw-ink: #16121c; /* headings, primary text, dark sections */
+  --rw-ink-deep: #0c0910; /* the darkest stop in gradients */
 
-  /* ---- Grounds ---- */
-  --rw-cream: #fbf5ec; /* the page itself */
-  --rw-surface: #fffdf9; /* cards and panels sitting on cream */
-  --rw-sand: #f6ecdd; /* the alternate band (testimonials) */
+  /* ---- Grounds ----
+   * Label stock, deliberately cool. The old grounds were cream (#fbf5ec) and
+   * warm sand; keeping any warm off-white would have left two thirds of the
+   * AI-cluster look in place while claiming a redesign. These read as printed
+   * cotton tag rather than paper. */
+  --rw-cream: #eef0ec; /* the page itself */
+  --rw-surface: #f8faf6; /* cards and panels sitting on the page */
+  --rw-sand: #e3e7df; /* the alternate band */
 
-  /* ---- Lines ----
-   * Three weights, warm to cool, and they are genuinely different jobs:
-   * hairline rules under section headings, panel edges, and input borders. */
-  --rw-rule: #e6d8c6; /* section rules, column dividers */
-  --rw-border: #ece0d5; /* card and band edges */
-  --rw-line: #d8cab8; /* input and button borders */
+  /* ---- Lines ---- */
+  --rw-rule: #cdd3c9; /* section rules, column dividers */
+  --rw-border: #d8ddd4; /* card and band edges */
+  --rw-line: #b9c1b5; /* input and button borders */
 
   /* ---- Accents ----
-   * Both oranges were darkened on 2026-08-27, and the reason is the same one
-   * for both: they carry text, and they were failing at it.
+   * Two reds and they are not interchangeable, for the same reason the old
+   * palette needed two oranges: one is a SURFACE, one is an INK.
    *
-   * White on the old #ef5130 measured 3.57:1 against a 4.5:1 floor, and the
-   * .rw-cta hover brightens by 4%, which took the state a visitor is actually
-   * pointing at down to 3.31:1. That is every primary button on the site, not
-   * one screen. #c94428 measures 4.84:1 at rest and 4.52:1 hovered, so the
-   * button passes in the state it is read in and in the state it is used in.
+   * --rw-flare is the field. It is allowed to be as loud as it likes because
+   * nothing small is ever set in it: display type at 40px and up, and large
+   * areas of colour. White on it is 3.65:1, which clears the large-text floor
+   * and nothing else, and that constraint is the point.
    *
-   * The old #cf3f20 failed its own job in the other direction: as inline link
-   * text on cream it measured 4.42:1. #b6371c measures 5.45:1 there, and white
-   * on it 5.91:1, which keeps the auth gradient legible across its whole
-   * sweep — the light stop used to be the failing #ef5130.
+   * --rw-orange keeps its name (48 routes call it) but is now the deep flare
+   * that carries white text: 6.07:1 at rest and 5.73:1 under the .rw-cta
+   * hover's 4% brightening, so the button passes in the state it is read in
+   * and the state it is used in. --rw-orange-deep is the reading-weight
+   * sibling for links in running text at 7.73:1 on the page.
    *
-   * Darkening was chosen over the alternatives on purpose. Putting ink on the
-   * orange instead measures 4.49:1, which fails by a hair and changes the
-   * design language besides. Leaving the bright orange for decoration and
-   * introducing a separate darker fill for buttons would break "one action
-   * colour" and add a value the system does not need. Both new values are
-   * plain darkenings along the same hue: the green-to-red ratio that makes
-   * this colour read as orange rather than red is 0.339 before and 0.338
-   * after, and the gradient's step is preserved (R 239->207 became 201->182).
-   *
-   * The consequence to respect: white text is now legible on both, so nothing
-   * here needs a lighter variant for "emphasis". If a future surface wants a
-   * brighter orange, it wants decoration, and decoration does not carry copy.
-   */
-  --rw-orange: #c94428; /* the CTA colour; one job, used sparingly. White on it: 4.84:1 */
-  --rw-orange-deep: #b6371c; /* inline links and the darker gradient stop. On cream: 5.45:1 */
-  --rw-orange-tint: #fdece6; /* orange at wash strength, for notices */
-  /* Darkened from #0e8a97 on 2026-08-27. The eyebrow is 11px at 0.22em
-   * tracking — small text by every measure — and it was reading 3.80:1 on
-   * cream. Every section on the site opens with one.
-   *
-   * This token is pulled two ways, and the two constraints very nearly meet.
-   * As text it has to clear 4.5:1 on the darkest paper it lands on, which is
-   * Coral Sand, not cream — the record band opens with an eyebrow. As the
-   * focus ring it has to clear 3:1 against the dark bands. Measured:
-   *
-   *   #0c7782   sand 4.52:1   cream 4.87:1   shell 5.20:1
-   *             ring on Ink Deep 3.36:1      ring on Ink 3.03:1
-   *
-   * One notch lighter fails sand; one notch darker fails the ring on Ink.
-   * The value is pinned from both ends, so treat it as fixed: darkening Ink,
-   * or darkening this, breaks the ring. If a future surface needs a deeper
-   * teal for text, it wants a second token, not this one moved. The
-   * blue-to-green ratio holds at 1.092 against 1.094 — same Reef Teal.
-   *
-   * (The ring is drawn at a 2px offset, so its neighbour is the ground behind
-   * the control, not the control's own fill. That is why the numbers above are
-   * against the grounds and not against Lava Orange.) */
-  --rw-teal: #0c7782; /* eyebrows, focus rings, quiet accents. On sand: 4.52:1 */
+   * Surface or ink: if red sits behind white it is a surface; if red IS the
+   * letterform at reading size it is the ink. Carried over from the previous
+   * world, where it was learned the expensive way. */
+  --rw-flare: #ff2d55; /* the field. Large type and big areas ONLY */
+  --rw-orange: #c2143c; /* the action colour. White on it: 6.07:1 */
+  --rw-orange-deep: #96082c; /* links in running text. On the page: 7.73:1 */
+  --rw-orange-tint: #ffe8ec; /* red at wash strength, for notices */
+
+  /* Lagoon is the Hawaii note and the cool counterweight, and it inherits the
+   * old teal's problem exactly: it is both eyebrow text and the focus ring, so
+   * it is squeezed from both ends. Text needs 4.5:1 on the darkest paper it
+   * lands on (the alternate band, not the page); the ring needs 3:1 on the
+   * dark grounds. #0c735d is 5.05:1 on the page, 4.62:1 on the band, and the
+   * ring measures 3.19:1 on Ink and 3.41:1 on Ink Deep. Unlike its
+   * predecessor this has real margin at both ends rather than 0.03. */
+  --rw-teal: #0c735d; /* eyebrows, focus rings, quiet accents. On band: 4.62:1 */
 
   /* ---- The dark-ground accents ----
-   * Teal goes muddy on the hero gradient, so anything sitting on ink needs its
-   * own pair. Both were in use and neither was named, which is how 19 hardcoded
-   * hexes survived the pass that removed every other one.
-   *
-   * Gold was two values, #ffd89a and #ffcf8f, nine units apart and doing the
-   * same job — the hero eyebrow used one, the logo mark and the hero's italic
-   * used the other. Nobody could see the difference and no rule explained it,
-   * so they are one colour now. */
-  --rw-gold: #ffd89a; /* eyebrows, marks and emphasis on a dark ground */
-  --rw-sea-glass: #82d4dd; /* a section eyebrow on a dark band, where gold competes */
+   * Vibrant on purpose: these are what a teenager sees against the lacquer,
+   * and the previous palette's dark-ground accents were a pale gold and a pale
+   * sea-glass that whispered. Gold is 12.02:1 on Ink, sea glass 12.28:1. */
+  --rw-gold: #ffc93c; /* marks and emphasis on a dark ground */
+  --rw-sea-glass: #5ce1c6; /* a section eyebrow on a dark band, where gold competes */
+
+  /* ---- Chrome ----
+   * The heavy-metal signature, and the reason it is a ramp rather than a
+   * colour: chrome is not grey, it is a reflection, so it only reads as metal
+   * when light runs across it. Used on the wordmark and nothing else — a page
+   * with two chrome objects has none. Blackletter was considered for the metal
+   * note and rejected: it skews cheap where this brief asked for classy. */
+  --rw-chrome-hi: #ffffff;
+  --rw-chrome-mid: #b6bcc4;
+  --rw-chrome-lo: #5c626b;
+  --rw-chrome: linear-gradient(
+    177deg,
+    var(--rw-chrome-hi) 0%,
+    var(--rw-chrome-mid) 34%,
+    var(--rw-chrome-lo) 52%,
+    var(--rw-chrome-mid) 68%,
+    var(--rw-chrome-hi) 100%
+  );
 
   /* ---- Secondary text ----
-   * Four muted greys were in use. They are kept apart rather than merged
-   * because they differ in temperature and in the size they were tuned for;
-   * --rw-body and --rw-body-cool overlap in role and are the honest merge
-   * candidate if the palette is ever tightened. */
-  /* Darkened from #8a7d6a on 2026-08-27: 3.71:1 on cream, and this token's
-   * whole job is 12.5px captions, which is exactly the size the 4.5:1 floor
-   * exists for. #746959 is 4.96:1 on cream, 5.29:1 on Bleached Shell and
-   * 4.60:1 on Coral Sand — the sand band is the reason it goes this far rather
-   * than stopping at the first value that cleared cream. Still a warm taupe;
-   * the palette acquires no grey. */
-  --rw-meta: #746959; /* captions and 12px labels, warm taupe. On cream: 4.96:1 */
-  --rw-body: #6a6560; /* 14-15px body on cream, warm */
-  --rw-body-cool: #5f6f79; /* 15-16px body, cool */
-  --rw-prose: #33454f; /* 16.5px long-form prose, cool slate */
+   * Cooled to sit on label stock rather than cream, and every one measured on
+   * the ground it actually lands on. --rw-meta is 12.5px captions, which is
+   * the size the 4.5:1 floor exists for: 5.33:1 on the page and 4.88:1 on the
+   * band, because captions appear on both. */
+  --rw-meta: #5d6459; /* captions and 12px labels. On the page: 5.33:1 */
+  --rw-body: #4a5147; /* 14-15px body. On the page: 7.16:1 */
+  --rw-body-cool: #46514c; /* 15-16px body, cooler */
+  --rw-prose: #2b312a; /* 16.5px long-form prose. On the page: 11.62:1 */
 
   /* ---- Type ----
-   * Zilla Slab carries the headings, Source Sans the rest. The display face is
-   * a slab with real personality, so it is kept to headings and never asked to
-   * set a paragraph. */
-  --rw-font-display: var(--font-zilla-slab), Georgia, serif;
-  --rw-font-body: var(--font-source-sans), system-ui, sans-serif;
+   * Big Shoulders Display is a condensed American signage face: built to be
+   * read tall and loud at distance, which is what a poster does and what the
+   * previous slab serif could not do at any size. It is the poster voice and
+   * takes nothing under 20px.
+   *
+   * Libre Franklin carries every word anyone actually reads. Franklin Gothic
+   * is the American newspaper and poster workhorse, so it is the correct
+   * company for a signage display face, and it has no opinion at 15px.
+   *
+   * The two aliases below are a migration bridge, not a design decision. The
+   * 29 app, auth and admin routes hardcode `var(--font-zilla-slab)` and
+   * `var(--font-source-sans)` in inline styles; pointing the old names at the
+   * new faces means those routes inherit the new type instead of falling back
+   * to Georgia. Move a call site to --rw-font-display or --rw-font-body when
+   * you touch it, and delete these two lines when the last one is gone. */
+  --font-zilla-slab: var(--font-big-shoulders);
+  --font-source-sans: var(--font-libre-franklin);
+  --rw-font-display: var(--font-big-shoulders), "Haettenschweiler", "Arial Narrow", sans-serif;
+  --rw-font-body: var(--font-libre-franklin), system-ui, sans-serif;
 
-  /* The scale in use, half-points and all. These are the sizes the pages
-   * already set; they are listed so new work has somewhere to land instead of
-   * inventing a twenty-first size. */
+  /* The scale. Unchanged from the previous world: it was measured off real
+   * pages, the ten steps still fit, and a redesign is not a reason to
+   * renumber something that was not broken. The Fluid Endpoint Exception
+   * (DESIGN.md) still governs clamp() endpoints. */
   --rw-text-2xs: 11px; /* uppercase micro-labels */
   --rw-text-xs: 12.5px; /* captions, meta, eyebrows */
   --rw-text-sm: 13.5px; /* buttons and dense UI */
@@ -130,10 +144,12 @@
   --rw-text-3xl: 32px;
   --rw-text-4xl: 44px;
 
-  /* The eyebrow's letterspacing is a signature, not a coincidence: it appears
-   * on every section heading across the site. */
+  /* Condensed signage type wants tighter tracking at scale and looser tracking
+   * when it is set small in caps, which is the opposite of the slab it
+   * replaces. The eyebrow keeps its 0.22em signature. */
   --rw-track-eyebrow: 0.22em;
-  --rw-track-tight: -0.01em;
+  --rw-track-tight: -0.02em;
+  --rw-track-poster: -0.03em; /* display type at 40px and up */
 
   /* ---- Spacing ---- */
   --rw-space-1: 4px;
@@ -145,23 +161,18 @@
   --rw-space-7: 44px;
   --rw-space-8: 64px;
 
-  /* ---- Measure ----
-   * Three column widths do all the work: the wide grid, the reading column,
-   * and the narrow one for forms. */
+  /* ---- Measure ---- */
   --rw-measure-wide: 1200px;
   --rw-measure-text: 900px;
   --rw-measure-form: 520px;
 
-  /* ---- Radii ---- */
-  --rw-radius-sm: 8px; /* buttons */
-  --rw-radius-field: 10px; /* inputs and selects */
-  --rw-radius-md: 14px; /* cards and panels */
+  /* ---- Radii ----
+   * Tightened. The old world rounded everything to 8-14px, which is the
+   * friendly-SaaS reflex; a printed garment label and a signage panel have
+   * corners. The pill survives for the auth submit, which is a genuine second
+   * button treatment and not drift. */
+  --rw-radius-sm: 3px; /* buttons */
+  --rw-radius-field: 3px; /* inputs and selects */
+  --rw-radius-md: 4px; /* cards and panels */
   --rw-radius-pill: 999px;
-
-  /* The field radius is not a fourth opinion — every text input on the site was
-   * already hardcoding 10px while the tokens claimed 8px, so the value existed
-   * and the name did not. A field reads as slightly softer than a button on
-   * purpose: the button is the thing you strike, the field is the thing you
-   * rest in. Nav dropdowns were separately drifting at 11px and now take
-   * --rw-radius-md, since a floating panel is a panel. */
 }
