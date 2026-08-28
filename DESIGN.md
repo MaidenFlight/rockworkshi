@@ -309,8 +309,26 @@ tune it per page. The only sanctioned variant is the hero eyebrow at `0.16em`,
 which is tighter because it sits at 12.5px on a dark ground.
 
 **The Twenty-First Size Rule.** The scale has ten steps for a reason. If a new
-design needs a size that isn't in it, the answer is almost always the nearest
-existing step, not a new token.
+design needs a *fixed* size that isn't in it, the answer is almost always the
+nearest existing step, not a new token.
+
+**The Fluid Endpoint Exception.** Text set in `clamp()` may use endpoints that
+are not on the scale. Fixed sizes may not. Confirmed by the user on 2026-08-27.
+
+A clamp's two numbers are the ends of a range, not sizes anyone chose — at most
+window widths the text renders at neither of them — so holding them to a
+ten-step scale constrains a value nobody reads. The system had in fact been
+working this way since it was written: **Display** (`clamp(38px, 5vw, 58px)`)
+and **Headline** (`clamp(28px, 3.4vw, 40px)`), the two roles at the top of this
+very section, use four off-scale endpoints between them. The rule above
+described an intent the system never followed; this exception makes the pair
+describe what is actually built.
+
+What the exception does not license: reaching for `clamp()` to dodge the scale.
+If the type does not need to grow with the viewport, it is a fixed size and the
+ten steps apply. Currently sanctioned fluid roles are Display, Headline, and the
+record band (`clamp(25px, 3.1vw, 38px)` for its lead, `clamp(20px, 2.2vw, 28px)`
+for its lines).
 
 ## Layout
 
@@ -601,7 +619,9 @@ variant is explicitly excluded and answers with its underline instead.
   every solid button 2px larger than the inline one it replaced — this bug has
   already been fixed once.
 - **Don't** give a resting surface a shadow to make it feel separated.
-- **Don't** re-tune the 0.22em eyebrow tracking, or add an eleventh type size.
+- **Don't** re-tune the 0.22em eyebrow tracking, or add an eleventh *fixed*
+  type size. Fluid `clamp()` endpoints are exempt — see The Fluid Endpoint
+  Exception.
 - **Don't** draw a second wave shape or a second logo mark; reuse the existing
   geometry.
 - **Don't** let this drift toward **generic SaaS** — purple gradients,
