@@ -21,6 +21,7 @@ colors:
   body: "#4a5147"
   body-cool: "#46514c"
   prose: "#2b312a"
+  white: "#ffffff"
 typography:
   poster:
     fontFamily: "Big Shoulders Display, Haettenschweiler, Arial Narrow, sans-serif"
@@ -158,6 +159,8 @@ The strategy is **committed**: one saturated colour owns whole regions rather th
 ### Text tones
 
 **Meta** (`#5d6459`, 12.5px captions), **Body** (`#4a5147`), **Body Cool** (`#46514c`), **Prose** (`#2b312a`, long-form).
+
+**White** (`#ffffff`) is a token because the system genuinely uses it, in exactly two places and nowhere else: as type on a dark ground, and as an input’s field. It is not a ground and never a page background — see The No-Grey Rule.
 
 ### Named rules
 
