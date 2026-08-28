@@ -23,7 +23,7 @@ export default function Teachers() {
         {teachers && teachers.length === 0 && <p style={{ color: "var(--rw-meta)" }}>Teacher profiles coming soon.</p>}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 24 }} className="rw-cols-3">
           {teachers?.map((t) => (
-            <div key={t.id} className="rw-card" style={{ border: "1px solid var(--rw-border)", borderRadius: 14, padding: 22, background: "var(--rw-surface)" }}>
+            <div key={t.id} className="rw-card" style={{ border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)", padding: 22, background: "var(--rw-surface)" }}>
               <div
                 style={{
                   width: 64,

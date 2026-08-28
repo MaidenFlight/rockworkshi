@@ -129,56 +129,82 @@
   background: linear-gradient(168deg, var(--rw-ink) 0%, var(--rw-ink-deep) 100%);
 }
 
+/* Left-aligned, not centred. A centred banner over a centred intro is the
+   template arrangement every school site ships, and condensed poster type
+   needs a left edge to push against — centring it wastes the one thing the
+   face is good at. */
 .heroInner {
   position: relative;
-  max-width: var(--rw-measure-text);
+  max-width: var(--rw-measure-wide);
   margin: 0 auto;
-  padding: 70px var(--rw-space-5) 90px;
-  text-align: center;
+  padding: 66px var(--rw-space-5) 76px;
+  text-align: left;
 }
 
 .heroCompact .heroInner {
   padding: 56px var(--rw-space-5) 70px;
 }
 
+/* Poster scale. The flare FIELD stays reserved for the homepage and the
+   closing ask — if all nineteen routes opened on full red, the homepage would
+   stop being the loud one and the site would be back to every band looking
+   alike, which is the fault the redesign started from. Inner pages get the
+   lacquer ground and the poster voice, with flare as a rule rather than a
+   field. */
 .heroTitle {
-  font-weight: 500;
-  font-size: clamp(38px, 5vw, 58px);
-  letter-spacing: -0.015em;
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: clamp(44px, 7vw, 104px);
+  line-height: 0.88;
+  letter-spacing: var(--rw-track-poster);
+  text-transform: uppercase;
   color: #fff;
   margin: 0;
 }
 
 .heroCompact .heroTitle {
-  font-size: clamp(34px, 4.6vw, 50px);
+  font-size: clamp(38px, 5.4vw, 72px);
 }
 
 /* The logo mark, on the pages that introduce themselves before they speak:
  * sign in, sign up, onboarding. */
 .heroMark {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   margin-bottom: var(--rw-space-4);
 }
 
 /* Gold rather than the teal of a section eyebrow: teal on this gradient is
  * nearly invisible, and the gold picks up the hero's warm end. */
+/* The flare rule. Flare is a surface colour and carries no text, so on a
+   lacquer ground it earns its place as a mark rather than a word: a short bar
+   above the eyebrow, the same red the homepage field is made of, tying the
+   inner pages to it without repeating it. */
 .heroEyebrow {
-  display: inline-block;
+  display: block;
   font-size: var(--rw-text-xs);
   font-weight: 700;
-  letter-spacing: 0.16em;
+  letter-spacing: var(--rw-track-eyebrow);
   text-transform: uppercase;
   color: var(--rw-gold);
-  margin-bottom: 14px;
+  margin-bottom: 16px;
+}
+
+.heroEyebrow::before {
+  content: "";
+  display: block;
+  width: 62px;
+  height: 6px;
+  background: var(--rw-flare);
+  margin-bottom: 16px;
 }
 
 .heroLead {
-  margin: 16px auto 0;
-  max-width: 560px;
-  font-size: var(--rw-text-md);
-  line-height: 1.6;
-  color: rgba(255, 245, 236, 0.82);
+  margin: 20px 0 0;
+  max-width: 54ch;
+  font-size: var(--rw-text-lg);
+  line-height: 1.55;
+  color: rgba(238, 240, 236, 0.86);
 }
 
 .heroWave {
@@ -324,4 +350,49 @@
   line-height: 1.62;
   color: var(--rw-body-cool);
   margin: 0 0 var(--rw-space-6);
+}
+
+/* ---- Classic ----
+ * The page hero as it shipped: centred, serif, 500 weight, no flare rule.
+ * These live beside the Silkie rules rather than in globals.css because the
+ * class names are module-hashed and only resolvable from this file. */
+:global([data-world="classic"]) .heroInner {
+  max-width: var(--rw-measure-text);
+  padding: 70px var(--rw-space-5) 90px;
+  text-align: center;
+}
+
+:global([data-world="classic"]) .heroTitle {
+  font-family: var(--rw-font-display);
+  font-weight: 500;
+  font-size: clamp(38px, 5vw, 58px);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+  text-transform: none;
+}
+
+:global([data-world="classic"]) .heroCompact .heroTitle {
+  font-size: clamp(34px, 4.6vw, 50px);
+}
+
+:global([data-world="classic"]) .heroMark {
+  justify-content: center;
+}
+
+:global([data-world="classic"]) .heroEyebrow {
+  display: inline-block;
+  letter-spacing: 0.16em;
+  margin-bottom: 14px;
+}
+
+:global([data-world="classic"]) .heroEyebrow::before {
+  content: none;
+}
+
+:global([data-world="classic"]) .heroLead {
+  margin: 16px auto 0;
+  max-width: 560px;
+  font-size: var(--rw-text-md);
+  line-height: 1.6;
+  color: rgba(255, 245, 236, 0.82);
 }

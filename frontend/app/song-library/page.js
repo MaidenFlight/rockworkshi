@@ -54,7 +54,7 @@ export default function SongLibrary() {
             >
               &larr; All songs
             </button>
-            <div style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: 16, overflow: "hidden" }}>
+            <div style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)", overflow: "hidden" }}>
               <div style={{ padding: "28px 30px", borderBottom: "1px solid #f0e7dc" }}>
                 <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 20, flexWrap: "wrap" }}>
                   <div>
@@ -82,13 +82,13 @@ export default function SongLibrary() {
                 <h3 style={{ fontWeight: 600, fontSize: 19, margin: "0 0 14px", color: "var(--rw-ink)" }}>How you&apos;ll learn it &mdash; five levels</h3>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 22 }}>
                   {GENERIC_LEVELS.map((lv) => (
-                    <div key={lv.n} style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 16px", background: "var(--rw-cream)", borderRadius: 10 }}>
+                    <div key={lv.n} style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 16px", background: "var(--rw-cream)", borderRadius: "var(--rw-radius-md)" }}>
                       <div
                         style={{
                           flexShrink: 0,
                           width: 32,
                           height: 32,
-                          borderRadius: 9,
+                          borderRadius: "var(--rw-radius-sm)",
                           background: "linear-gradient(135deg,var(--rw-teal),var(--rw-ink))",
                           color: "#fff",
                           display: "flex",
@@ -105,7 +105,7 @@ export default function SongLibrary() {
                   ))}
                 </div>
                 <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-                  <Link href="/signup" style={{ padding: "13px 28px", borderRadius: 8, background: "var(--rw-orange)", color: "#fff", fontWeight: 700, fontSize: 15, textDecoration: "none" }}>
+                  <Link href="/signup" style={{ padding: "13px 28px", borderRadius: "var(--rw-radius-sm)", background: "var(--rw-orange)", color: "#fff", fontWeight: 700, fontSize: 15, textDecoration: "none" }}>
                     Join the member area &rarr;
                   </Link>
                   <Link href="/program/curriculum" style={{ fontSize: 14, fontWeight: 700, color: "var(--rw-teal)", textDecoration: "none" }}>
@@ -122,7 +122,7 @@ export default function SongLibrary() {
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search by song or artist…"
               aria-label="Search songs"
-              style={{ width: "100%", boxSizing: "border-box", padding: "14px 18px", borderRadius: 10, border: "1px solid var(--rw-line)", fontSize: 15.5, fontFamily: "inherit", background: "#fff", color: "var(--rw-ink)", marginBottom: 16 }}
+              style={{ width: "100%", boxSizing: "border-box", padding: "14px 18px", borderRadius: "var(--rw-radius-md)", border: "1px solid var(--rw-line)", fontSize: 15.5, fontFamily: "inherit", background: "#fff", color: "var(--rw-ink)", marginBottom: 16 }}
             />
 
             {instruments.length > 0 && (
@@ -147,12 +147,12 @@ export default function SongLibrary() {
             )}
 
             {songs && filtered.length === 0 && (
-              <div style={{ textAlign: "center", padding: "44px 20px", background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: 14, fontSize: 15, color: "#7a6d78" }}>
+              <div style={{ textAlign: "center", padding: "44px 20px", background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)", fontSize: 15, color: "#7a6d78" }}>
                 No songs match those filters yet.
               </div>
             )}
 
-            <div style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: 14, overflow: "hidden" }}>
+            <div style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)", overflow: "hidden" }}>
               {filtered.map((s) => (
                 <div
                   key={s.id}

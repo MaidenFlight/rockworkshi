@@ -20,7 +20,7 @@ export default async function ProgramDetail({ params }) {
       <div
         style={{
           aspectRatio: "16/6",
-          borderRadius: 16,
+          borderRadius: "var(--rw-radius-md)",
           overflow: "hidden",
           background: "linear-gradient(135deg,var(--rw-ink-deep),#0b3a4c)",
           margin: "18px 0 28px",
@@ -69,7 +69,7 @@ export default async function ProgramDetail({ params }) {
           </p>
         </div>
 
-        <div style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: 14, padding: 24 }}>
+        <div style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)", padding: 24 }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 20 }}>
             <div>
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--rw-teal)", marginBottom: 4 }}>
@@ -92,7 +92,7 @@ export default async function ProgramDetail({ params }) {
           </div>
           <Link
             href="/contact"
-            style={{ display: "block", textAlign: "center", padding: 13, borderRadius: 8, background: "var(--rw-orange)", color: "#fff", fontWeight: 700, fontSize: 15, textDecoration: "none" }}
+            style={{ display: "block", textAlign: "center", padding: 13, borderRadius: "var(--rw-radius-sm)", background: "var(--rw-orange)", color: "#fff", fontWeight: 700, fontSize: 15, textDecoration: "none" }}
           >
             {program.ctaLabel} &rarr;
           </Link>

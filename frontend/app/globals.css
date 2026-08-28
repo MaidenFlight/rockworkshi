@@ -1133,3 +1133,224 @@ main:focus {
   outline: 2px solid var(--rw-sea-glass);
   outline-offset: 2px;
 }
+
+/* ---- Tags ----
+ * The Silkie replacement for "a row of three equal rounded cards", which is
+ * the arrangement every inner page was built from and the one the homepage
+ * layout pass had already thrown out. A tag is the garment's own object: label
+ * stock, a hard edge, and a coloured rule across the top where a sewn tag
+ * carries its band of colour. The rule is what makes a row of them read as a
+ * set rather than as three boxes.
+ *
+ * Deliberately NOT a card component: these are laid out by the page that owns
+ * them, because the old row-of-three was a layout decision hiding inside a
+ * component and it produced the same shape on six different pages. */
+.rw-tags {
+  display: grid;
+  gap: 14px;
+}
+
+.rw-tags-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.rw-tags-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.rw-tag {
+  position: relative;
+  padding: 26px 22px 24px;
+  background: var(--rw-surface);
+  border: 1px solid var(--rw-border);
+  border-radius: var(--rw-radius-md);
+  border-top: 5px solid var(--rw-flare);
+}
+
+.rw-tag-title {
+  margin: 0 0 10px;
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: var(--rw-text-2xl);
+  line-height: 1.02;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--rw-ink);
+}
+
+.rw-tag-body {
+  margin: 0;
+  font-size: var(--rw-text-base);
+  line-height: 1.6;
+  color: var(--rw-body);
+}
+
+/* The price tag. A number is the loudest thing on a pricing page and it was
+ * set at 30px in the display face beside a 13.5px label — the same weight the
+ * page gave its section headings. */
+.rw-price {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 6px 0 12px;
+}
+
+.rw-price-figure {
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: clamp(44px, 5vw, 68px);
+  line-height: 0.9;
+  letter-spacing: var(--rw-track-poster);
+  font-variant-numeric: tabular-nums;
+  color: var(--rw-orange-deep);
+}
+
+.rw-price-per {
+  font-family: var(--rw-font-display);
+  font-weight: 700;
+  font-size: var(--rw-text-base);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--rw-meta);
+}
+
+@media (max-width: 860px) {
+  .rw-tags-3,
+  .rw-tags-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* A tag that is itself the link. The whole panel is the target rather than the
+ * "Learn more" run inside it, which was a 13px text link doing the work of a
+ * 300px panel. */
+.rw-tag-link {
+  display: block;
+  text-decoration: none;
+  transition: transform 0.16s ease, border-color 0.16s ease;
+}
+
+.rw-tag-link:hover {
+  transform: translateY(-3px);
+  border-color: var(--rw-ink);
+}
+
+.rw-tag-link:focus-visible {
+  outline: 2px solid var(--rw-teal);
+  outline-offset: 3px;
+}
+
+.rw-tag-cta {
+  display: inline-block;
+  margin-top: 14px;
+  font-family: var(--rw-font-display);
+  font-weight: 700;
+  font-size: var(--rw-text-base);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--rw-orange-deep);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rw-tag-link {
+    transition: border-color 0.16s ease;
+  }
+  .rw-tag-link:hover {
+    transform: none;
+  }
+}
+
+/* ==========================================================================
+   CLASSIC OVERRIDES
+   ==========================================================================
+   The world toggle promised the old site, and the inner-page pass changed
+   shared STRUCTURE, not only colour: the page hero went left-aligned and
+   poster-scale, and six rows of rounded cards became tags. A token swap alone
+   would leave Classic showing Silkie layouts in old paint — a hybrid that
+   never shipped and nobody chose.
+
+   Overriding the handful of shared components here costs about sixty lines and
+   keeps Classic faithful. The alternative was forking every page the way the
+   homepage is forked, which doubles the DOM on nineteen routes and every
+   future edit with it. That trade is only worth paying where the composition
+   genuinely differs beyond recovery, which is the homepage alone. */
+
+[data-world="classic"] .rw-worldswitch-label,
+[data-world="classic"] .rw-worldswitch-btn {
+  color: rgba(255, 255, 255, 0.66);
+}
+
+[data-world="classic"] .rw-worldswitch-btn[data-active="true"] {
+  background: var(--rw-gold);
+  color: var(--rw-ink);
+}
+
+/* The tags return to the rounded cards they were. The flare rule is a Silkie
+   device with no classic reading, so it is removed rather than recoloured. */
+[data-world="classic"] .rw-tag {
+  padding: 22px;
+  border: 1px solid var(--rw-border);
+  border-radius: var(--rw-radius-md);
+}
+
+[data-world="classic"] .rw-tags {
+  gap: 24px;
+}
+
+[data-world="classic"] .rw-tag-title {
+  font-family: var(--rw-font-display);
+  font-weight: 600;
+  font-size: 17.5px;
+  line-height: 1.2;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+[data-world="classic"] .rw-tag-body {
+  font-size: 14px;
+}
+
+[data-world="classic"] .rw-price-figure {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: var(--rw-orange);
+}
+
+[data-world="classic"] .rw-price-per {
+  font-family: var(--rw-font-body);
+  font-weight: 400;
+  font-size: 13.5px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+[data-world="classic"] .rw-tag-cta {
+  font-family: var(--rw-font-body);
+  font-size: 13px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* ---- Sub-section heading ----
+ * The hand-rolled `<h2 style={{fontSize: 22}}>` that four public pages use to
+ * label a block inside a page. At 22px in a condensed face it read smaller
+ * than the tags beneath it, so on the pricing page the word "Membership" was
+ * quieter than the thing it introduced. */
+.rw-subhead {
+  margin: 56px 0 20px;
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: var(--rw-text-3xl);
+  line-height: 1.05;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--rw-ink);
+}
+
+[data-world="classic"] .rw-subhead {
+  font-weight: 600;
+  font-size: var(--rw-text-xl);
+  letter-spacing: 0;
+  text-transform: none;
+}
