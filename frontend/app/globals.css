@@ -616,11 +616,11 @@ summary:focus-visible,
   transform: translateY(0);
 }
 .rw-dropitem:hover {
-  background: rgba(42, 26, 51, 0.05);
+  background: var(--rw-nav-hover);
 }
 
 .rw-menu-item:hover {
-  background: rgba(42, 26, 51, 0.05);
+  background: var(--rw-nav-hover);
 }
 
 .rw-nav-link:focus-visible,
@@ -1360,4 +1360,169 @@ main:focus {
   font-size: var(--rw-text-xl);
   letter-spacing: 0;
   text-transform: none;
+}
+
+/* ---- Program detail ----
+ * The one public route the shared-header pass could not reach, because it
+ * hand-rolled its own banner instead of using PageHero. */
+.rw-backlink {
+  display: inline-block;
+  padding: 6px 0;
+  font-family: var(--rw-font-display);
+  font-weight: 700;
+  font-size: var(--rw-text-base);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--rw-meta);
+  text-decoration: none;
+}
+
+.rw-backlink:hover {
+  color: var(--rw-ink);
+}
+
+.rw-detail-grid {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: var(--rw-space-8);
+  align-items: start;
+  margin-top: var(--rw-space-5);
+}
+
+.rw-subhead-flush {
+  margin-top: 0;
+}
+
+.rw-detail-method {
+  max-width: 62ch;
+  margin: 0 0 26px;
+  font-size: var(--rw-text-md);
+  line-height: 1.68;
+  color: var(--rw-prose);
+}
+
+/* A spec list. Each row is marked by a flare rule on its leading edge rather
+ * than a tick glyph in a tinted circle — the previous world used a Unicode
+ * check, which is an icon standing in for an icon. */
+.rw-spec {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--rw-rule);
+}
+
+.rw-spec li {
+  position: relative;
+  padding: 14px 0 14px 20px;
+  border-bottom: 1px solid var(--rw-rule);
+  font-size: var(--rw-text-md);
+  line-height: 1.5;
+  color: var(--rw-prose);
+}
+
+.rw-spec li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 20px;
+  width: 9px;
+  height: 3px;
+  background: var(--rw-flare);
+}
+
+.rw-detail-progress {
+  margin: 22px 0 0;
+  font-size: var(--rw-text-base);
+  line-height: 1.6;
+  color: var(--rw-body);
+}
+
+.rw-detail-progress b {
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: 1.12em;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--rw-ink);
+}
+
+/* The facts panel is a tag: it is the same object as the ones on the programs
+ * index, so it takes the same treatment rather than inventing a second card. */
+.rw-detail-aside {
+  position: sticky;
+  top: 96px;
+}
+
+.rw-facts {
+  margin: 0 0 22px;
+}
+
+.rw-facts dt {
+  font-family: var(--rw-font-display);
+  font-weight: 700;
+  font-size: var(--rw-text-sm);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--rw-teal);
+  margin-bottom: 4px;
+}
+
+.rw-facts dd {
+  margin: 0 0 16px;
+  font-size: var(--rw-text-base);
+  line-height: 1.5;
+  color: var(--rw-prose);
+}
+
+.rw-facts dd:last-child {
+  margin-bottom: 0;
+}
+
+.rw-detail-cta {
+  width: 100%;
+}
+
+.rw-detail-alt {
+  display: block;
+  margin-top: 12px;
+  text-align: center;
+}
+
+@media (max-width: 860px) {
+  .rw-detail-grid {
+    grid-template-columns: 1fr;
+    gap: var(--rw-space-6);
+  }
+  .rw-detail-aside {
+    position: static;
+  }
+}
+
+[data-world="classic"] .rw-backlink,
+[data-world="classic"] .rw-facts dt,
+[data-world="classic"] .rw-detail-progress b {
+  font-family: var(--rw-font-body);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: none;
+}
+
+[data-world="classic"] .rw-facts dt {
+  font-size: var(--rw-text-2xs);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+[data-world="classic"] .rw-spec li::before {
+  background: var(--rw-teal);
+}
+
+.rw-legal-updated {
+  margin: 16px 0 0;
+  font-family: var(--rw-font-display);
+  font-weight: 700;
+  font-size: var(--rw-text-sm);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--rw-sea-glass);
 }

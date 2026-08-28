@@ -115,10 +115,10 @@ export default function Nav() {
                         top: "100%",
                         left: 0,
                         minWidth: 210,
-                        background: "var(--rw-surface)",
-                        border: "1px solid var(--rw-border)",
+                        background: "var(--rw-nav-panel)",
+                        border: "1px solid var(--rw-nav-border)",
                         borderRadius: "var(--rw-radius-md)",
-                        boxShadow: "0 18px 40px -20px rgba(6,25,45,0.4)",
+                        boxShadow: "var(--rw-nav-shadow)",
                         padding: 8,
                         marginTop: 6,
                       }}
@@ -128,7 +128,7 @@ export default function Nav() {
                           key={sub.href}
                           href={sub.href}
                           className="rw-dropitem"
-                          style={{ display: "block", padding: "10px 12px", borderRadius: 7, fontSize: 14, fontWeight: 600, color: "var(--rw-prose)", textDecoration: "none" }}
+                          style={{ display: "block", padding: "10px 12px", borderRadius: "var(--rw-radius-sm)", fontSize: 14, fontWeight: 600, color: "var(--rw-nav-panel-fg)", textDecoration: "none" }}
                         >
                           {sub.label}
                         </Link>
@@ -192,7 +192,7 @@ export default function Nav() {
       {mobileOpen && createPortal(
         <>
           <div
-            style={{ position: "fixed", inset: 0, zIndex: 70, background: "rgba(6,25,45,0.4)" }}
+            style={{ position: "fixed", inset: 0, zIndex: 70, background: "color-mix(in srgb, var(--rw-ink) 55%, transparent)" }}
             onClick={() => setMobileOpen(false)}
           />
           <div
@@ -212,7 +212,7 @@ export default function Nav() {
             }}
           >
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 20px", borderBottom: "1px solid var(--rw-border)" }}>
-              <span style={{ fontFamily: "var(--font-zilla-slab), serif", fontWeight: 700, fontSize: 19, color: "var(--rw-ink)" }}>Menu</span>
+              <span style={{ fontFamily: "var(--rw-font-display)", fontWeight: 800, fontSize: "var(--rw-text-xl)", letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--rw-ink)" }}>Menu</span>
               <button
                 onClick={() => setMobileOpen(false)}
                 aria-label="Close"
