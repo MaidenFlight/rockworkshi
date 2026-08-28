@@ -1699,7 +1699,9 @@ main:focus {
 .rw-bill-skeleton span {
   display: block;
   background: var(--rw-rule);
-  border-radius: 2px;
+  /* On the scale. 2px was a value I picked by eye for a skeleton bar, which is
+     exactly how a radius scale acquires a fifth step nobody decided on. */
+  border-radius: var(--rw-radius-sm);
   animation: rw-pulse 1.4s ease-in-out infinite;
 }
 
