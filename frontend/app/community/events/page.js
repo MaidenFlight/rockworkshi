@@ -16,6 +16,27 @@ import { API_URL } from "@/lib/api";
 // backend and a quiet month were indistinguishable to a visitor, and both read
 // as "this school does nothing". They are three different states now and each
 // says something true.
+
+// The API returns dates as ISO strings ("2026-04-18"). The previous design hid
+// that in 12.5px grey; making the date the row's lead element turned machine
+// output into the most prominent thing on the page, which is a defect this
+// redesign introduced rather than inherited.
+//
+// Parsed by hand rather than with new Date(iso): the Date constructor reads a
+// bare ISO date as UTC midnight, and formatting that in a timezone behind UTC
+// renders the previous day. Honolulu is UTC-10, so every date on this page
+// would have been wrong by one.
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+function formatDate(value) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value || "").trim());
+  if (!match) return value;
+  const [, year, month, day] = match;
+  const name = MONTHS[Number(month) - 1];
+  if (!name) return value;
+  return `${Number(day)} ${name} ${year}`;
+}
+
 export default function Events() {
   const [posts, setPosts] = useState(undefined);
   const [failed, setFailed] = useState(false);
@@ -58,7 +79,9 @@ export default function Events() {
           <ul className="rw-bill">
             {posts.map((p) => (
               <li key={p.id} className="rw-bill-row">
-                <span className="rw-bill-date">{p.date}</span>
+                <time className="rw-bill-date" dateTime={p.date}>
+                  {formatDate(p.date)}
+                </time>
                 <div>
                   <h2 className="rw-bill-title">{p.title}</h2>
                   <p className="rw-bill-desc">{p.description}</p>
