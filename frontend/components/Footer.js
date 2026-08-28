@@ -2,6 +2,7 @@ import Link from "next/link";
 import { footerLinks, footerSocial } from "@/lib/content";
 import RockWorksIcon from "@/components/RockWorksIcon";
 import SocialIcon from "@/components/SocialIcon";
+import WorldToggle from "@/components/WorldToggle";
 
 export default function Footer() {
   return (
@@ -101,8 +102,21 @@ export default function Footer() {
           </div>
         </div>
       </div>
-      <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", padding: "14px 24px", textAlign: "center", fontSize: 12.5, color: "rgba(255,245,236,0.5)" }}>
-        © {new Date().getFullYear()} Rock Works School of Music
+      <div
+        style={{
+          borderTop: "1px solid rgba(255,255,255,0.1)",
+          padding: "14px 24px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 16,
+          flexWrap: "wrap",
+          fontSize: 12.5,
+          color: "rgba(255,245,236,0.5)",
+        }}
+      >
+        <span>© {new Date().getFullYear()} Rock Works School of Music</span>
+        <WorldToggle />
       </div>
     </footer>
   );
