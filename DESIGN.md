@@ -10,8 +10,8 @@ colors:
   rule: "#e6d8c6"
   border: "#ece0d5"
   line: "#d8cab8"
-  orange: "#ef5130"
-  orange-deep: "#cf3f20"
+  orange: "#c94428"
+  orange-deep: "#b6371c"
   orange-tint: "#fdece6"
   teal: "#0e8a97"
   gold: "#ffd89a"
@@ -175,13 +175,28 @@ accents, and paper the color of sun-bleached sand. Nothing in it is grey.
 
 ### Primary
 
-- **Lava Orange** (`#ef5130`): the action color, and the system's only voice for
-  "do this". Primary buttons, the active nav underline, the hover state of an
-  instrument mark, inline emphasis. Never decorative, never a background for a
-  large area.
-- **Lava Orange Deep** (`#cf3f20`): inline links in running text, and the far
-  stop of the CTA gradient. The reading-weight sibling — it exists because the
-  bright orange fails on cream at body size.
+- **Lava Orange** (`#c94428`): the action color, and the system's only voice for
+  "do this". Primary buttons, large display numerals, the hover state of an
+  instrument mark. Never decorative, never a background for a large area.
+  **White on it measures 4.84:1, and 4.52:1 under the `.rw-cta` hover's 4%
+  brightening** — the state a visitor is pointing at has to pass too.
+- **Lava Orange Deep** (`#b6371c`): all orange *text* — inline links in running
+  text, the active nav link and its underline, small labels — and the far stop
+  of the CTA gradient. The reading-weight sibling. **5.45:1 on cream, 5.82:1 on
+  Bleached Shell, and white on it is 5.91:1.**
+
+  The division between the two is the whole point and is easy to get wrong:
+  **Lava Orange is a surface, Lava Orange Deep is an ink.** If orange is behind
+  white, it is Lava Orange; if orange *is* the letterform at reading size, it is
+  Lava Orange Deep. The one exception is display numerals at 24px and up, where
+  the large-text floor is 3:1 and Lava Orange clears it at 4.76:1.
+
+  Both were darkened on 2026-08-27. The previous pair (`#ef5130` / `#cf3f20`)
+  put white on orange at 3.57:1 — every primary button on the site, against a
+  4.5:1 floor — and orange-deep as link text on cream at 4.42:1. The darkening
+  holds hue: the green-to-red ratio that makes this read as orange rather than
+  red is 0.339 before and 0.338 after, and the CTA gradient's step is preserved.
+  See the reasoning block in `app/tokens.css`.
 - **Lava Wash** (`#fdece6`): orange at 8% strength. Notices, tinted callouts, and
   the ground beneath a warning. The only tinted surface in the system.
 
@@ -446,7 +461,8 @@ thickness.
   1px Shell Edge bottom border. Links are 14.5px/600 in Slate Prose, 8px radius,
   10px/14px padding.
 - **Hover:** a 5% ink wash behind the link.
-- **Active:** Lava Orange text plus the inset 2px orange underline.
+- **Active:** Lava Orange Deep text plus the inset 2px underline in the same
+  ink. It is text, so it takes the ink, not the surface color.
 - **Dropdowns:** Bleached Shell panel, 11px radius, floating-panel shadow, fading
   in over 0.16s with a 6px rise, opened on hover *and* focus-within.
 - **Mobile (≤940px):** the row is replaced by a burger and a full-screen sheet

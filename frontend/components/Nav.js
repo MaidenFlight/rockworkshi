@@ -341,10 +341,16 @@ const navLinkStyle = {
   cursor: "pointer",
 };
 
+// The active link is orange TEXT, not an orange surface, so it takes the text
+// orange. On the nav's translucent cream, --rw-orange measures 4.46:1 at
+// 14.5px — under the 4.5 floor by a hair, and this is the one nav item a
+// reader is meant to find. --rw-orange-deep is 5.45:1 there. The underline goes
+// with it: two oranges a few units apart, stacked, reads as a mistake rather
+// than as a pair.
 const activeNavLinkStyle = {
   ...navLinkStyle,
-  color: "var(--rw-orange)",
-  boxShadow: "inset 0 -2px 0 var(--rw-orange)",
+  color: "var(--rw-orange-deep)",
+  boxShadow: "inset 0 -2px 0 var(--rw-orange-deep)",
 };
 
 const mobileMenuLinkStyle = {

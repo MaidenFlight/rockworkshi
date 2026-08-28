@@ -59,7 +59,7 @@ export default function ToolsHub() {
         </div>
 
         <div style={{ display: "flex", gap: 16, flexWrap: "wrap", justifyContent: "center", padding: 22, background: "var(--rw-sand)", borderRadius: 14 }}>
-          <Link href="/trial" style={{ fontSize: 14, fontWeight: 700, color: "var(--rw-orange)", textDecoration: "none" }}>
+          <Link href="/trial" style={{ fontSize: 14, fontWeight: 700, color: "var(--rw-orange-deep)", textDecoration: "none" }}>
             Book a Trial
           </Link>
           <span style={{ color: "var(--rw-line)" }}>&middot;</span>

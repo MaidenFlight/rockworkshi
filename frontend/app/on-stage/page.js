@@ -35,11 +35,11 @@ export default function OnStage() {
           <div style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: 16, overflow: "hidden", marginBottom: 36, boxShadow: "0 24px 50px -34px rgba(6,25,45,0.3)" }}>
             <div style={{ position: "relative", aspectRatio: "16/9", background: "linear-gradient(135deg,var(--rw-ink-deep),#0b3a4c)", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <span style={{ position: "absolute", left: 16, bottom: 16, background: "rgba(6,25,45,0.72)", color: "#fff", fontSize: 12, fontWeight: 700, letterSpacing: "0.05em", padding: "7px 14px", borderRadius: 6, display: "flex", alignItems: "center", gap: 7 }}>
-                <span style={{ color: "var(--rw-orange)" }}>&#9654;</span> Featured
+                <span style={{ color: "var(--rw-orange-deep)" }}>&#9654;</span> Featured
               </span>
             </div>
             <div style={{ padding: "24px 28px" }}>
-              <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--rw-orange)", marginBottom: 8 }}>
+              <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--rw-orange-deep)", marginBottom: 8 }}>
                 {featured.date}
               </div>
               <h2 style={{ fontWeight: 700, fontSize: "clamp(24px,3vw,34px)", margin: "0 0 12px", color: "var(--rw-ink)", letterSpacing: "-0.015em" }}>
