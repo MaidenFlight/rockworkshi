@@ -134,7 +134,7 @@ summary:focus-visible,
 }
 
 .rw-nav-link:hover {
-  background: rgba(42, 26, 51, 0.05);
+  background: var(--rw-nav-hover);
 }
 
 .rw-card {
@@ -268,22 +268,32 @@ summary:focus-visible,
   list-style: none;
   margin: 0;
   padding: 28px 0 0;
-  border-top: 1px solid var(--rw-rule);
+  border-top: 2px dashed color-mix(in srgb, var(--rw-ink) 28%, transparent);
   display: grid;
   gap: 15px;
 }
 
+/* Set in the READING face, not the display face. Big Shoulders is condensed
+   signage built to be read at distance; asking it to carry five full sentences
+   is asking a poster to be a paragraph, and it fatigues immediately. The
+   emphasis keeps the display face, so the countable runs still pop off the
+   line and a skimmer still gets 1982 / Six / Five / four to six weeks without
+   reading a sentence — which was the point of the band. */
 .rw-record li {
-  font-family: var(--rw-font-display);
-  font-weight: 500;
-  font-size: clamp(20px, 2.2vw, 28px);
-  line-height: 1.26;
-  letter-spacing: var(--rw-track-tight);
-  color: var(--rw-ink);
+  font-family: var(--rw-font-body);
+  font-weight: 400;
+  font-size: var(--rw-text-lg);
+  line-height: 1.5;
+  letter-spacing: 0;
+  color: var(--rw-prose);
 }
 
 .rw-record b {
-  font-weight: 700;
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: 1.24em;
+  letter-spacing: 0.01em;
+  color: var(--rw-ink);
 }
 
 @media (max-width: 720px) {
@@ -449,28 +459,28 @@ summary:focus-visible,
 .rw-level::after {
   content: "";
   position: absolute;
-  top: 17px;
-  left: 46px;
+  top: 30px;
+  left: 64px;
   right: -30px;
   height: 1px;
-  background: rgba(255, 216, 154, 0.28);
+  background: color-mix(in srgb, var(--rw-gold) 28%, transparent);
 }
 
 .rw-level:last-child::after {
   display: none;
 }
 
+/* The numerals were 34px inside a hairline circle — the smallest thing in the
+   section that is entirely about a sequence of five. They are the largest
+   objects here now, because 1 to 5 IS the argument, and the circle is gone: a
+   condensed signage face does not need a ring to be a marker. */
 .rw-level-n {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  border-radius: var(--rw-radius-pill);
-  border: 1px solid rgba(255, 216, 154, 0.45);
+  display: block;
   font-family: var(--rw-font-display);
-  font-weight: 600;
-  font-size: 16px;
+  font-weight: 800;
+  font-size: clamp(56px, 6vw, 92px);
+  line-height: 0.82;
+  letter-spacing: var(--rw-track-poster);
   font-variant-numeric: tabular-nums;
   color: var(--rw-gold);
 }
@@ -478,7 +488,7 @@ summary:focus-visible,
 .rw-level-name {
   font-family: var(--rw-font-display);
   font-weight: 600;
-  font-size: 19px;
+  font-size: var(--rw-text-lg);
   letter-spacing: var(--rw-track-tight);
   color: #fff;
   margin: 18px 0 7px;
@@ -486,7 +496,7 @@ summary:focus-visible,
 
 .rw-level-desc {
   margin: 0;
-  font-size: 14.5px;
+  font-size: var(--rw-text-base);
   line-height: 1.55;
   color: rgba(255, 245, 236, 0.74);
 }
@@ -571,7 +581,7 @@ summary:focus-visible,
 }
 .rw-social:hover {
   color: #fff;
-  border-color: rgba(255, 216, 154, 0.55);
+  border-color: color-mix(in srgb, var(--rw-gold) 55%, transparent);
   background: rgba(255, 255, 255, 0.06);
 }
 .rw-social:focus-visible {
@@ -760,4 +770,594 @@ main:focus {
     width: 100%;
     padding: 12px 6px;
   }
+}
+
+/* ==========================================================================
+   THE SILKIE — the redesigned marketing surface (2026-08-28).
+   Field, border band, label stock. See app/tokens.css for why the world
+   changed and the direction contract in app/layout.js for what it promises.
+   ========================================================================== */
+
+/* ---- The field ----
+ * The saturated ground, and the loud element the previous homepage did not
+ * have. Type on it is lacquer rather than white: 5.06:1 against 3.65:1, and
+ * ink on colour is what printing on cloth actually looks like. */
+.rw-field {
+  position: relative;
+  overflow: hidden;
+  background: var(--rw-flare);
+  color: var(--rw-ink);
+}
+
+.rw-field-ask {
+  padding-top: 46px;
+}
+
+/* The motif repeat. Pure decoration, aria-hidden, and kept under 10% so it
+ * never competes with the type it sits behind — a shirt's pattern is a ground,
+ * not a subject. */
+.rw-repeat {
+  position: absolute;
+  inset: -6% -10%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 52px;
+  pointer-events: none;
+}
+
+.rw-repeat-row {
+  display: flex;
+  justify-content: center;
+  gap: 76px;
+  flex-shrink: 0;
+}
+
+.rw-repeat-row span {
+  display: block;
+  flex-shrink: 0;
+}
+
+/* ---- Poster type ----
+ * Big Shoulders is a condensed signage face, so it wants to be set enormous
+ * and tight — it is built to be read at distance, and set timidly it just
+ * looks narrow. Line height goes under 1 because condensed caps have short
+ * extenders and the stack should read as one block of lettering. */
+.rw-poster {
+  margin: 18px 0 0;
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: clamp(58px, 11.5vw, 158px);
+  line-height: 0.85;
+  letter-spacing: var(--rw-track-poster);
+  text-transform: uppercase;
+  color: var(--rw-ink);
+}
+
+/* The third line in label stock rather than lacquer: a silkie's border print
+ * changes colour where the motif changes, and the sentence turns there too. */
+.rw-poster-em {
+  color: var(--rw-cream);
+}
+
+.rw-poster-ask {
+  margin: 0 0 18px;
+  font-size: clamp(42px, 6.4vw, 92px);
+}
+
+.rw-field-tag {
+  font-family: var(--rw-font-display);
+  font-weight: 700;
+  font-size: var(--rw-text-sm);
+  letter-spacing: var(--rw-track-eyebrow);
+  text-transform: uppercase;
+  color: var(--rw-ink);
+}
+
+.rw-field-lead {
+  max-width: 46ch;
+  margin: 26px 0 0;
+  font-size: var(--rw-text-lg);
+  line-height: 1.5;
+  color: var(--rw-ink);
+}
+
+/* ---- The border band ----
+ * The hem of the garment, where the print concentrates and the object states
+ * what it is. It carries the whole offer, which is why the price sits here and
+ * not four steps inside a wizard. */
+.rw-band {
+  background: var(--rw-ink);
+  color: var(--rw-cream);
+}
+
+.rw-band-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--rw-space-8);
+  padding-top: 8px;
+}
+
+.rw-band-label {
+  font-family: var(--rw-font-display);
+  font-weight: 700;
+  font-size: var(--rw-text-xl);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--rw-gold);
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--rw-gold);
+  margin-bottom: 16px;
+}
+
+.rw-band-copy {
+  max-width: 46ch;
+  margin: 0 0 20px;
+  font-size: var(--rw-text-base);
+  line-height: 1.6;
+  color: rgba(238, 240, 236, 0.88);
+}
+
+.rw-band-price {
+  font-family: var(--rw-font-display);
+  font-weight: 600;
+  font-size: var(--rw-text-base);
+  letter-spacing: 0.01em;
+  color: var(--rw-gold);
+}
+
+.rw-band-link {
+  font-weight: 700;
+  font-size: var(--rw-text-sm);
+  color: var(--rw-sea-glass);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+@media (max-width: 860px) {
+  .rw-band-grid {
+    grid-template-columns: 1fr;
+    gap: var(--rw-space-6);
+  }
+}
+
+/* ---- Section ledes ---- */
+.rw-ink-lead {
+  max-width: 58ch;
+  margin: 20px 0 48px;
+  font-size: var(--rw-text-md);
+  line-height: 1.6;
+  color: rgba(238, 240, 236, 0.86);
+}
+
+.rw-lede {
+  max-width: 58ch;
+  margin: 18px 0 30px;
+  font-size: var(--rw-text-md);
+  line-height: 1.6;
+  color: var(--rw-prose);
+}
+
+/* ---- The motifs ----
+ * The six marks were rendered at the visual weight of a settings menu on the
+ * previous homepage, in a hairline row of six equal cells. They are the print
+ * motif now, which means they get scale and their own ground. */
+.rw-motifs {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+}
+
+.rw-motif {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 34px 10px 24px;
+  background: var(--rw-surface);
+  border: 1px solid var(--rw-border);
+  border-radius: var(--rw-radius-md);
+  color: var(--rw-ink);
+  text-decoration: none;
+  transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
+}
+
+.rw-motif-mark {
+  display: flex;
+  color: currentColor;
+}
+
+.rw-motif-name {
+  font-family: var(--rw-font-display);
+  font-weight: 700;
+  font-size: var(--rw-text-xl);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* The mark warms up exactly when the cell becomes clickable — the same idea
+ * the previous world had, moved from a stroke accent to the whole panel,
+ * because the panel is now big enough to carry it. */
+.rw-motif:hover {
+  background: var(--rw-ink);
+  border-color: var(--rw-ink);
+  color: var(--rw-gold);
+  transform: translateY(-4px);
+}
+
+.rw-motif:focus-visible {
+  outline: 2px solid var(--rw-teal);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rw-motif {
+    transition: background 0.16s ease, color 0.16s ease;
+  }
+  .rw-motif:hover {
+    transform: none;
+  }
+}
+
+@media (max-width: 860px) {
+  .rw-motifs {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .rw-motifs {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.rw-mark-chrome {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+  color: var(--rw-ink);
+}
+
+.rw-ask-price {
+  margin: 22px auto 0;
+  max-width: 46ch;
+  font-family: var(--rw-font-display);
+  font-weight: 600;
+  font-size: var(--rw-text-lg);
+  letter-spacing: 0.01em;
+  color: var(--rw-ink);
+}
+
+/* ---- The wordmark ----
+ * The single chrome object on the site. Chrome is a reflection rather than a
+ * colour, so a flat grey reads as dead metal — it only becomes chrome when a
+ * light band runs across the letterforms, which is what the ramp in
+ * --rw-chrome is doing. background-clip carries it into the type.
+ *
+ * The fallback matters: where background-clip:text is unsupported the colour
+ * declaration below still paints label stock, so the wordmark is never
+ * invisible. A second chrome object anywhere on the site would mean the page
+ * has none, so this selector is the whole budget. */
+.rw-wordmark {
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  /* On the ramp. 30px was a genuine eleventh fixed size — not a clamp
+     endpoint, so the Fluid Endpoint Exception does not cover it, and the
+     wordmark is exactly the kind of one-off that earns a stray value if
+     nobody checks. */
+  font-size: var(--rw-text-3xl);
+  letter-spacing: 0.005em;
+  text-transform: uppercase;
+  color: var(--rw-cream);
+  background: var(--rw-chrome);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@supports not ((background-clip: text) or (-webkit-background-clip: text)) {
+  .rw-wordmark {
+    background: none;
+    -webkit-text-fill-color: currentColor;
+  }
+}
+
+/* ---- The world switch ----
+ * Two complete designs ship and one attribute on <html> decides which paints.
+ * The homepage is the only route that carries both compositions; every other
+ * route reads shared token names, so it changes world without knowing one
+ * exists. display:none rather than visibility or opacity: the inactive
+ * composition must leave the accessibility tree, not merely go transparent. */
+.rw-world-classic {
+  display: none;
+}
+
+[data-world="classic"] .rw-world-silkie {
+  display: none;
+}
+
+[data-world="classic"] .rw-world-classic {
+  display: block;
+}
+
+.rw-worldswitch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rw-worldswitch-label {
+  font-size: var(--rw-text-2xs);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.rw-worldswitch-track {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--rw-radius-sm);
+}
+
+.rw-worldswitch-btn {
+  padding: 7px 14px;
+  min-height: 30px;
+  border: none;
+  border-radius: var(--rw-radius-sm);
+  background: transparent;
+  font-family: inherit;
+  font-size: var(--rw-text-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.66);
+  cursor: pointer;
+  transition: background 0.16s ease, color 0.16s ease;
+}
+
+.rw-worldswitch-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* The active side is filled rather than merely brighter: with two labels of
+ * equal weight, colour alone leaves people guessing which one is on. */
+.rw-worldswitch-btn[data-active="true"] {
+  background: var(--rw-gold);
+  color: var(--rw-ink);
+}
+
+.rw-worldswitch-btn:focus-visible {
+  outline: 2px solid var(--rw-sea-glass);
+  outline-offset: 2px;
+}
+
+/* ---- Tags ----
+ * The Silkie replacement for "a row of three equal rounded cards", which is
+ * the arrangement every inner page was built from and the one the homepage
+ * layout pass had already thrown out. A tag is the garment's own object: label
+ * stock, a hard edge, and a coloured rule across the top where a sewn tag
+ * carries its band of colour. The rule is what makes a row of them read as a
+ * set rather than as three boxes.
+ *
+ * Deliberately NOT a card component: these are laid out by the page that owns
+ * them, because the old row-of-three was a layout decision hiding inside a
+ * component and it produced the same shape on six different pages. */
+.rw-tags {
+  display: grid;
+  gap: 14px;
+}
+
+.rw-tags-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.rw-tags-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.rw-tag {
+  position: relative;
+  padding: 26px 22px 24px;
+  background: var(--rw-surface);
+  border: 1px solid var(--rw-border);
+  /* Square, and stated by omission rather than by "border-radius: 0" — 0 is
+     already the initial value, and declaring it made the detector read this as
+     a thick accent border on a ROUNDED element, which is a real antipattern
+     and not what this is. Classic adds its radius back in its own block.
+
+     Why square at all: a 5px colour rule curving around a corner reads as a
+     mistake at every size, and between losing the rule and losing the corner
+     it is not close. A sewn tag has corners. */
+  border-top: 5px solid var(--rw-flare);
+}
+
+.rw-tag-title {
+  margin: 0 0 10px;
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: var(--rw-text-2xl);
+  line-height: 1.02;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--rw-ink);
+}
+
+.rw-tag-body {
+  margin: 0;
+  font-size: var(--rw-text-base);
+  line-height: 1.6;
+  color: var(--rw-body);
+}
+
+/* The price tag. A number is the loudest thing on a pricing page and it was
+ * set at 30px in the display face beside a 13.5px label — the same weight the
+ * page gave its section headings. */
+.rw-price {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 6px 0 12px;
+}
+
+.rw-price-figure {
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: clamp(44px, 5vw, 68px);
+  line-height: 0.9;
+  letter-spacing: var(--rw-track-poster);
+  font-variant-numeric: tabular-nums;
+  color: var(--rw-orange-deep);
+}
+
+.rw-price-per {
+  font-family: var(--rw-font-display);
+  font-weight: 700;
+  font-size: var(--rw-text-base);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--rw-meta);
+}
+
+@media (max-width: 860px) {
+  .rw-tags-3,
+  .rw-tags-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* A tag that is itself the link. The whole panel is the target rather than the
+ * "Learn more" run inside it, which was a 13px text link doing the work of a
+ * 300px panel. */
+.rw-tag-link {
+  display: block;
+  text-decoration: none;
+  transition: transform 0.16s ease, border-color 0.16s ease;
+}
+
+.rw-tag-link:hover {
+  transform: translateY(-3px);
+  border-color: var(--rw-ink);
+}
+
+.rw-tag-link:focus-visible {
+  outline: 2px solid var(--rw-teal);
+  outline-offset: 3px;
+}
+
+.rw-tag-cta {
+  display: inline-block;
+  margin-top: 14px;
+  font-family: var(--rw-font-display);
+  font-weight: 700;
+  font-size: var(--rw-text-base);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--rw-orange-deep);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rw-tag-link {
+    transition: border-color 0.16s ease;
+  }
+  .rw-tag-link:hover {
+    transform: none;
+  }
+}
+
+/* ==========================================================================
+   CLASSIC OVERRIDES
+   ==========================================================================
+   The world toggle promised the old site, and the inner-page pass changed
+   shared STRUCTURE, not only colour: the page hero went left-aligned and
+   poster-scale, and six rows of rounded cards became tags. A token swap alone
+   would leave Classic showing Silkie layouts in old paint — a hybrid that
+   never shipped and nobody chose.
+
+   Overriding the handful of shared components here costs about sixty lines and
+   keeps Classic faithful. The alternative was forking every page the way the
+   homepage is forked, which doubles the DOM on nineteen routes and every
+   future edit with it. That trade is only worth paying where the composition
+   genuinely differs beyond recovery, which is the homepage alone. */
+
+[data-world="classic"] .rw-worldswitch-label,
+[data-world="classic"] .rw-worldswitch-btn {
+  color: rgba(255, 255, 255, 0.66);
+}
+
+[data-world="classic"] .rw-worldswitch-btn[data-active="true"] {
+  background: var(--rw-gold);
+  color: var(--rw-ink);
+}
+
+/* The tags return to the rounded cards they were. The flare rule is a Silkie
+   device with no classic reading, so it is removed rather than recoloured. */
+[data-world="classic"] .rw-tag {
+  padding: 22px;
+  border: 1px solid var(--rw-border);
+  border-radius: var(--rw-radius-md);
+}
+
+[data-world="classic"] .rw-tags {
+  gap: 24px;
+}
+
+[data-world="classic"] .rw-tag-title {
+  font-family: var(--rw-font-display);
+  font-weight: 600;
+  font-size: var(--rw-text-lg);
+  line-height: 1.2;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+[data-world="classic"] .rw-tag-body {
+  font-size: var(--rw-text-base);
+}
+
+[data-world="classic"] .rw-price-figure {
+  font-size: var(--rw-text-3xl);
+  font-weight: 700;
+  letter-spacing: 0;
+  color: var(--rw-orange);
+}
+
+[data-world="classic"] .rw-price-per {
+  font-family: var(--rw-font-body);
+  font-weight: 400;
+  font-size: var(--rw-text-sm);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+[data-world="classic"] .rw-tag-cta {
+  font-family: var(--rw-font-body);
+  font-size: var(--rw-text-xs);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* ---- Sub-section heading ----
+ * The hand-rolled `<h2 style={{fontSize: 22}}>` that four public pages use to
+ * label a block inside a page. At 22px in a condensed face it read smaller
+ * than the tags beneath it, so on the pricing page the word "Membership" was
+ * quieter than the thing it introduced. */
+.rw-subhead {
+  margin: 56px 0 20px;
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: var(--rw-text-3xl);
+  line-height: 1.05;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--rw-ink);
+}
+
+[data-world="classic"] .rw-subhead {
+  font-weight: 600;
+  font-size: var(--rw-text-xl);
+  letter-spacing: 0;
+  text-transform: none;
 }

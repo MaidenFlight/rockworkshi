@@ -32,7 +32,7 @@ export default function OnStage() {
         {posts && posts.length === 0 && <p style={{ color: "var(--rw-meta)" }}>No performances posted yet — check back soon.</p>}
 
         {featured && (
-          <div style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: 16, overflow: "hidden", marginBottom: 36, boxShadow: "0 24px 50px -34px rgba(6,25,45,0.3)" }}>
+          <div style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)", overflow: "hidden", marginBottom: 36, boxShadow: "0 24px 50px -34px rgba(6,25,45,0.3)" }}>
             <div style={{ position: "relative", aspectRatio: "16/9", background: "linear-gradient(135deg,var(--rw-ink-deep),#0b3a4c)", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <span style={{ position: "absolute", left: 16, bottom: 16, background: "rgba(6,25,45,0.72)", color: "#fff", fontSize: 12, fontWeight: 700, letterSpacing: "0.05em", padding: "7px 14px", borderRadius: 6, display: "flex", alignItems: "center", gap: 7 }}>
                 <span style={{ color: "var(--rw-orange-deep)" }}>&#9654;</span> Featured
@@ -53,7 +53,7 @@ export default function OnStage() {
         {rest.length > 0 && (
           <div className="rw-cols-3" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 20, marginBottom: 40 }}>
             {rest.map((p) => (
-              <div key={p.id} style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: 14, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+              <div key={p.id} style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)", overflow: "hidden", display: "flex", flexDirection: "column" }}>
                 <div style={{ position: "relative", aspectRatio: "16/10", background: "linear-gradient(135deg,#0b3a4c,#0e5561)" }} />
                 <div style={{ padding: "16px 18px", display: "flex", flexDirection: "column", flex: 1 }}>
                   <h3 style={{ fontWeight: 600, fontSize: 17, margin: "0 0 9px", color: "var(--rw-ink)" }}>{p.title}</h3>
@@ -69,7 +69,7 @@ export default function OnStage() {
           <div
             style={{
               background: "linear-gradient(135deg,var(--rw-ink-deep),#0b3a4c)",
-              borderRadius: 16,
+              borderRadius: "var(--rw-radius-md)",
               padding: 32,
               color: "#fff",
               display: "flex",
@@ -89,7 +89,7 @@ export default function OnStage() {
                 {songOfMonth.notes || "A student favorite this month — a great next song to learn."}
               </p>
             </div>
-            <Link href="/song-library" style={{ flexShrink: 0, padding: "13px 26px", borderRadius: 8, background: "var(--rw-orange)", color: "#fff", fontWeight: 700, fontSize: 14.5, textDecoration: "none", whiteSpace: "nowrap" }}>
+            <Link href="/song-library" style={{ flexShrink: 0, padding: "13px 26px", borderRadius: "var(--rw-radius-sm)", background: "var(--rw-orange)", color: "#fff", fontWeight: 700, fontSize: 14.5, textDecoration: "none", whiteSpace: "nowrap" }}>
               View in Song Library &rarr;
             </Link>
           </div>

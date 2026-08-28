@@ -2,11 +2,12 @@ import Link from "next/link";
 import { footerLinks, footerSocial } from "@/lib/content";
 import RockWorksIcon from "@/components/RockWorksIcon";
 import SocialIcon from "@/components/SocialIcon";
+import WorldToggle from "@/components/WorldToggle";
 
 export default function Footer() {
   return (
-    <footer style={{ background: "linear-gradient(135deg,var(--rw-ink-deep),#0a2a38)", color: "rgba(255,245,236,0.72)", marginTop: "auto" }}>
-      <div style={{ height: 4, background: "linear-gradient(90deg,var(--rw-teal),#f4b64a,var(--rw-orange),#0e7d8a)" }} />
+    <footer style={{ background: "linear-gradient(168deg,var(--rw-ink),var(--rw-ink-deep))", color: "rgba(255,245,236,0.72)", marginTop: "auto" }}>
+      <div style={{ height: 4, background: "linear-gradient(90deg,var(--rw-teal),var(--rw-gold),var(--rw-flare),var(--rw-sea-glass))" }} />
       <div
         style={{
           maxWidth: 1200,
@@ -69,7 +70,7 @@ export default function Footer() {
               <Link
                 key={f.href}
                 href={f.href}
-                style={{ display: "block", fontSize: 14, color: "rgba(255,245,236,0.72)", textDecoration: "none", padding: "3px 0" }}
+                style={{ display: "block", fontSize: 14, color: "rgba(255,245,236,0.72)", textDecoration: "none", padding: "7px 0" }}
               >
                 {f.label}
               </Link>
@@ -101,8 +102,21 @@ export default function Footer() {
           </div>
         </div>
       </div>
-      <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", padding: "14px 24px", textAlign: "center", fontSize: 12.5, color: "rgba(255,245,236,0.5)" }}>
-        © {new Date().getFullYear()} Rock Works School of Music
+      <div
+        style={{
+          borderTop: "1px solid rgba(255,255,255,0.1)",
+          padding: "14px 24px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 16,
+          flexWrap: "wrap",
+          fontSize: 12.5,
+          color: "rgba(255,245,236,0.5)",
+        }}
+      >
+        <span>© {new Date().getFullYear()} Rock Works School of Music</span>
+        <WorldToggle />
       </div>
     </footer>
   );

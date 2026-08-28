@@ -1,0 +1,139 @@
+{
+  "title": "Rock Works — choose the visual world",
+  "question": "The roll assigned The Pressing. Keep it, take an alternate, or re-roll. Every direction keeps the school's logomark, the six instrument marks and the wave edge, and every one still answers the pinned brief: cool to rockers, hawaiian vibe.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "The Pressing",
+      "kicker": "THE ROLL",
+      "lineage": "Hawaiian independent record labels, sleeve to inner label, c.1982",
+      "thesis": "The school is a label and every student is a release, so the site is the pressing rather than a brochure about one.",
+      "palette": ["#12100f", "#d81e5b", "#f0c04a", "#00795c"],
+      "materials": ["flat spot ink on board", "paper label", "hype sticker", "die-cut"],
+      "viewport": "Full-bleed bougainvillea field with the school name at sleeve-front scale, a catalog block reading RW-1982-HNL top left, the five levels running down the right as a tracklist with 4-6 weeks where the durations go, and the offer as a hype sticker.",
+      "risk": "A sleeve is loud and nineteen pages of curriculum copy have to stay readable inside it, so prose must sit on label paper and never on the field.",
+      "raised": [
+        { "from": "Nightboard", "raise": "One constructive unit: every element is built from the record system's own grid, label ring, sleeve field and tracklist rule, with nothing imported from outside it." },
+        { "from": "Six-Pack", "raise": "Trend, not just value: the five levels must show where a student stands on the ten-year path rather than merely listing themselves." },
+        { "from": "Curved Crease", "raise": "Structural honesty: every form on the page is the consequence of a real physical fact of the object, spine, die-cut or label ring, and never decoration." }
+      ],
+      "wireframe": { "cols": 12, "rows": 10, "regions": [
+        { "label": "catalog block RW-1982-HNL", "x": 0, "y": 0, "w": 3, "h": 1 },
+        { "label": "school name, sleeve-front scale", "x": 0, "y": 1, "w": 8, "h": 4, "accent": true },
+        { "label": "tracklist: the five levels", "x": 8, "y": 1, "w": 4, "h": 6 },
+        { "label": "hype sticker = primary action", "x": 0, "y": 5, "w": 4, "h": 2, "accent": true },
+        { "label": "die-cut wave", "x": 0, "y": 7, "w": 12, "h": 1 },
+        { "label": "label paper: prose sits here", "x": 0, "y": 8, "w": 12, "h": 2 }
+      ] }
+    },
+    {
+      "id": "model-pick",
+      "label": "The Handbill",
+      "kicker": "IMPECCABLE’S PICK",
+      "lineage": "xerox gig flyers stapled to Honolulu telephone poles",
+      "thesis": "A band's first act is a flyer, so the school announces itself the same way, a lineup of levels instead of bands.",
+      "palette": ["#f4f4f2", "#0b0b0b", "#e12a1d", "#1e3a8a"],
+      "materials": ["photocopy halftone", "overprint misregister", "staple", "tape"],
+      "viewport": "One tall bill with the school name hand-set at the top, the five levels as the lineup, the trial as the door price, all high-contrast toner black with a single overprint slipping off register.",
+      "risk": "This topped my own list, which is the problem: it is where most runs land for a rock subject, and it sits one step from the near-black rut this redesign is escaping.",
+      "wireframe": { "cols": 12, "rows": 10, "regions": [
+        { "label": "hand-set masthead", "x": 0, "y": 0, "w": 12, "h": 2, "accent": true },
+        { "label": "the lineup = five levels", "x": 1, "y": 2, "w": 10, "h": 4 },
+        { "label": "door price / trial", "x": 1, "y": 6, "w": 10, "h": 1, "accent": true },
+        { "label": "tear-off tabs = instruments", "x": 0, "y": 7, "w": 12, "h": 3 }
+      ] }
+    },
+    {
+      "id": "challenger-neo-tokyo",
+      "label": "Neon Night",
+      "verdict": "competitive",
+      "lineage": "neo-tokyo neon night, stacked signage on rain-black",
+      "thesis": "The school as the venue strip at night, stacked signage with one red sign holding the centre.",
+      "palette": ["#0a0b10", "#ff2d78", "#22d3ee", "#e11d2e"],
+      "materials": ["tube light", "wet asphalt", "hazard stencil"],
+      "viewport": "A rain-black tower of stacked vertical signage where each instrument is a lit sign and one scarlet sign is the primary action.",
+      "case": "Holds audience identification, because neon and venues genuinely read as rock, but loses product clarity and fights the pinned Hawaiian half of the brief by relocating the school to another city.",
+      "risk": "Near-black plus neon is the predictable opposite of the current site, and dense curriculum copy on rain-black reopens every contrast problem just fixed.",
+      "wireframe": { "cols": 12, "rows": 10, "regions": [
+        { "label": "stacked vertical signage", "x": 0, "y": 0, "w": 4, "h": 10, "accent": true },
+        { "label": "wet street, content", "x": 4, "y": 0, "w": 8, "h": 7 },
+        { "label": "one scarlet sign = action", "x": 4, "y": 7, "w": 8, "h": 3, "accent": true }
+      ] }
+    },
+    {
+      "id": "challenger-mesophotic",
+      "label": "The Descent",
+      "verdict": "competitive",
+      "lineage": "a technical dive down a volcanic island wall",
+      "thesis": "Learning as depth: five levels are five stages down the wall and you can always see how deep you are.",
+      "palette": ["#04121f", "#2ad4d8", "#eef4f5", "#1b2b33"],
+      "materials": ["marine snow", "lamp cone", "thermocline band"],
+      "viewport": "A vertical depth axis ruling the whole page, the surface at top, each level a marked stage, and the offer at the depth where a student commits.",
+      "case": "Holds audience identification through Honolulu's own ocean and the depth axis is the clearest spine on the table, but it loses clarity because lessons and membership have no natural home on a dive profile.",
+      "risk": "Deep blue is where the site already lives, so it risks reading as a repaint rather than a redesign, and it renders a school about noise as silence.",
+      "wireframe": { "cols": 12, "rows": 10, "regions": [
+        { "label": "depth axis", "x": 0, "y": 0, "w": 1, "h": 10, "accent": true },
+        { "label": "surface: the offer", "x": 1, "y": 0, "w": 11, "h": 2 },
+        { "label": "thermocline: five stages", "x": 1, "y": 2, "w": 11, "h": 6 },
+        { "label": "turnaround: the ask", "x": 1, "y": 8, "w": 11, "h": 2, "accent": true }
+      ] }
+    },
+    {
+      "id": "challenger-ansi-bbs",
+      "label": "Nightboard",
+      "verdict": "declined",
+      "lineage": "a dial-up BBS at 2 a.m., ANSI art on an 80x25 grid",
+      "thesis": "The school as a text board where presence is scarce and every screen is a numbered exit.",
+      "palette": ["#000000", "#00aaaa", "#aa00aa", "#ffffff"],
+      "materials": ["CP437 block glyphs", "phosphor", "box-drawing rule"],
+      "viewport": "Centred ANSI title art pouring in at modem speed over a numbered menu.",
+      "case": "Fuses poorly: a 2026 Honolulu teenager has no memory of a BBS, and instrument marks, faces and stages cannot render inside a character cell.",
+      "kept": "One constructive unit, every piece of chrome built from a single repeating element.",
+      "risk": "Nostalgia aimed at a tribe that is not this one."
+    },
+    {
+      "id": "challenger-night-flight",
+      "label": "Six-Pack",
+      "verdict": "declined",
+      "lineage": "a small aircraft's night instrument panel",
+      "thesis": "Progress as six luminous gauges a practised eye sweeps in order.",
+      "palette": ["#0d0f10", "#e8e8e4", "#7dd87d", "#ffb020"],
+      "materials": ["matte panel", "radium glow", "placard caps"],
+      "viewport": "Two ranked rows of three dials, each owning one truth, every needle damped.",
+      "case": "Aviation instruments carry no identification for a music student, and a panel hides the offer on a page whose whole job is to make the offer desirable.",
+      "kept": "Every reading shows trend as well as value.",
+      "risk": "Turns a persuasion surface into a dashboard."
+    },
+    {
+      "id": "challenger-paper-pleats",
+      "label": "Curved Crease",
+      "verdict": "declined",
+      "lineage": "a deployable curved-crease folded shell",
+      "thesis": "The curriculum as a structure that unfolds from one flat sheet.",
+      "palette": ["#f2efe9", "#c8c2b6", "#2b2b28"],
+      "materials": ["scored stock", "cast shadow", "crease line"],
+      "viewport": "A shell caught mid-deployment, each fold a stage of the method.",
+      "case": "Abstract where the product is physical: five levels unfolding is a metaphor, and the audience wants a room, a teacher and a stage.",
+      "kept": "Structural honesty, every visible form the consequence of one physical operation.",
+      "risk": "Reads as a design exercise rather than a school."
+    }
+  ],
+  "reroll": { "registers": ["safer", "bolder"] },
+  "buildPath": { "value": "code" },
+  "canon": true,
+  "canonCard": {
+    "label": "The category standard",
+    "thesis": "The music-school site every competitor ships, executed impeccably.",
+    "palette": ["#ffffff", "#1f2937", "#f97316"],
+    "materials": ["rounded cards", "student photography", "soft shadow"],
+    "viewport": "A smiling student with a guitar, a headline, three benefit cards and Book a Free Trial.",
+    "risk": "Indistinguishable from every other school in Honolulu by design, and it needs photography the school does not have yet.",
+    "wireframe": { "cols": 12, "rows": 10, "regions": [
+      { "label": "photo hero + headline", "x": 0, "y": 0, "w": 12, "h": 4, "accent": true },
+      { "label": "three benefit cards", "x": 0, "y": 4, "w": 12, "h": 3 },
+      { "label": "testimonials", "x": 0, "y": 7, "w": 12, "h": 2 },
+      { "label": "CTA band", "x": 0, "y": 9, "w": 12, "h": 1, "accent": true }
+    ] }
+  },
+  "steer": true
+}

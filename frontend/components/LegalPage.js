@@ -45,7 +45,7 @@ function ReviewBanner() {
       role="note"
       style={{
         padding: "16px 18px",
-        borderRadius: 12,
+        borderRadius: "var(--rw-radius-md)",
         background: "var(--rw-orange-tint)",
         border: "1px solid #f3c7ba",
         marginBottom: 28,
