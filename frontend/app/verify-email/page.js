@@ -125,7 +125,7 @@ function VerifyEmailContent() {
         <strong style={{ color: "var(--rw-ink)" }}>{user?.email || "your email address"}</strong>. Click it
         to finish signing up.
       </p>
-      <p style={{ margin: "0 0 22px", fontSize: 13.5, color: "#a3927f" }}>
+      <p style={{ margin: "0 0 22px", fontSize: 13.5, color: "var(--rw-meta)" }}>
         The link is good for 24 hours.
       </p>
 

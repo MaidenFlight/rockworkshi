@@ -42,8 +42,13 @@ h3 {
  * scrollbar, a hairline-tight underline, and proportional digits that made
  * stacked prices fail to line up. */
 
+/* DESIGN.md calls this "Lava Orange at 22%", and it was a hardcoded
+   rgba(224,91,74) that matched no token in the system — close enough to the
+   old orange to look intentional, far enough to drift. Now derived from the
+   token, so the selection highlight follows the palette instead of being
+   re-tuned by hand every time the palette moves. */
 ::selection {
-  background: rgba(224, 91, 74, 0.22);
+  background: color-mix(in srgb, var(--rw-orange) 22%, transparent);
 }
 
 html {
@@ -164,7 +169,7 @@ summary:focus-visible,
 .rw-instr:hover {
   --rw-icon-accent: var(--rw-orange);
   transform: translateY(-5px);
-  border-color: rgba(224, 91, 74, 0.5);
+  border-color: color-mix(in srgb, var(--rw-orange) 50%, transparent);
 }
 .rw-icon-accent {
   stroke: var(--rw-icon-accent, var(--rw-teal));
@@ -617,6 +622,48 @@ summary:focus-visible,
   outline-offset: 2px;
 }
 
+/* ---- Skip link ----
+ * Off-canvas rather than display:none or visibility:hidden, because both of
+ * those take it out of the tab order and a skip link that cannot be focused is
+ * not a skip link. It rides down into view on focus.
+ *
+ * It is a solid Lava Orange button, not the usual grey slab: it is the first
+ * thing a keyboard user sees on the site, and the site's own primary control
+ * is the right thing for it to look like. White on Lava Orange is 4.84:1.
+ */
+.rw-skip {
+  position: fixed;
+  top: 0;
+  left: 12px;
+  z-index: 200;
+  transform: translateY(-120%);
+  padding: 12px 20px;
+  border-radius: 0 0 var(--rw-radius-sm) var(--rw-radius-sm);
+  background: var(--rw-orange);
+  color: #fff;
+  font-weight: 700;
+  font-size: var(--rw-text-base);
+  text-decoration: none;
+  transition: transform 0.18s ease;
+}
+
+/* :focus, not :focus-visible. Everywhere else on the site focus-visible is the
+   right selector, because it suppresses the ring for mouse users. Here it is
+   wrong: focus-visible is a browser heuristic, and a skip link that stays
+   off-screen when the heuristic declines is a control that silently does not
+   exist. It can only be reached by keyboard anyway. */
+.rw-skip:focus {
+  transform: translateY(0);
+  outline: 2px solid var(--rw-teal);
+  outline-offset: 2px;
+}
+
+/* The main landmark takes focus programmatically via the skip link, so it must
+   not draw a ring when it is merely clicked through. */
+main:focus {
+  outline: none;
+}
+
 .rw-burger {
   display: none;
 }
@@ -649,8 +696,11 @@ summary:focus-visible,
   .rw-desktop-nav {
     display: none !important;
   }
+  /* flex, not block: the button is a fixed 44x44 box now and the three bars
+     have to centre inside it. Still !important, because it is overriding the
+     inline display:none the button ships with. */
   .rw-burger {
-    display: block !important;
+    display: flex !important;
   }
 }
 

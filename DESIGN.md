@@ -13,10 +13,10 @@ colors:
   orange: "#c94428"
   orange-deep: "#b6371c"
   orange-tint: "#fdece6"
-  teal: "#0e8a97"
+  teal: "#0c7782"
   gold: "#ffd89a"
   sea-glass: "#82d4dd"
-  meta: "#8a7d6a"
+  meta: "#746959"
   body: "#6a6560"
   body-cool: "#5f6f79"
   prose: "#33454f"
@@ -202,9 +202,19 @@ accents, and paper the color of sun-bleached sand. Nothing in it is grey.
 
 ### Secondary
 
-- **Reef Teal** (`#0e8a97`): the quiet accent. Every section eyebrow, every focus
+- **Reef Teal** (`#0c7782`): the quiet accent. Every section eyebrow, every focus
   ring, the instrument marks at rest, the "School of Music" line under the
   wordmark. It carries structure, never action.
+
+  **Treat this value as pinned.** It is the only token doing two jobs with
+  opposing contrast needs, and after the 2026-08-27 darkening (from `#0e8a97`,
+  where the 11px eyebrow read 3.80:1) the two constraints nearly meet: as text
+  it must clear 4.5:1 on Coral Sand, the darkest paper an eyebrow lands on, and
+  as the focus ring it must clear 3:1 on the dark bands. Measured — sand
+  4.52:1, cream 4.87:1, shell 5.20:1; ring 3.36:1 on Ink Deep and 3.03:1 on
+  Ink. A notch lighter fails the sand; a notch darker fails the ring. Darkening
+  Ink breaks it too. A surface needing a deeper teal for text wants a second
+  token, not this one moved.
 - **Last-Light Gold** (`#ffd89a`): the dark-ground accent. Hero eyebrows, the
   logo mark on the page hero, stat figures on an ink band. It exists because
   Reef Teal goes muddy on the gradient and disappears.
@@ -228,7 +238,9 @@ accents, and paper the color of sun-bleached sand. Nothing in it is grey.
   jobs — section rules and column dividers, card and band edges, input and
   button borders. They are close on purpose; they are not interchangeable.
 - **Four secondary text tones**, kept apart because they differ in temperature
-  and were each tuned to a size: **Driftwood** (`#8a7d6a`, warm, 12px captions),
+  and were each tuned to a size: **Driftwood** (`#746959`, warm, 12px captions —
+  darkened from `#8a7d6a` on 2026-08-27, which read 3.71:1 on cream at exactly
+  the size the 4.5:1 floor exists for; now 4.96:1 on cream and 4.60:1 on sand),
   **Warm Body** (`#6a6560`, 14–15px on cream), **Cool Body** (`#5f6f79`, 15–16px
   and hero standfirsts), **Slate Prose** (`#33454f`, 16.5px long-form).
 
@@ -434,7 +446,8 @@ thickness.
 - **Hover:** `translateY(-2px)` plus `brightness(1.04)`, 0.18s ease — on solid
   variants only.
 - **Focus:** a 2px Reef Teal outline at 2px offset. This is the system-wide focus
-  ring; it is identical on nav links, menu items and CTAs.
+  ring; it is identical on nav links, menu items and CTAs. It is drawn on
+  `:focus-visible` everywhere except the skip link — see below.
 - **Disabled:** 50% opacity, no lift, `not-allowed`.
 
 ### Cards / Containers
@@ -463,6 +476,16 @@ thickness.
 - **Hover:** a 5% ink wash behind the link.
 - **Active:** Lava Orange Deep text plus the inset 2px underline in the same
   ink. It is text, so it takes the ink, not the surface color.
+- **Skip link:** the first focusable element in the document, a solid Lava
+  Orange button pinned top-left, translated off-canvas and riding down on
+  focus. It is styled on `:focus`, not `:focus-visible` — focus-visible is a
+  heuristic, and a skip link the heuristic declines to reveal is a control that
+  silently does not exist. It targets `#main`, which carries `tabIndex={-1}` so
+  focus actually lands there rather than the browser merely scrolling.
+- **Touch targets:** interactive controls are at least 44x44. The mobile menu
+  button (was 42x36) and the footer social marks (were 34x34) are fixed boxes
+  at that size with their contents centred; the glyphs inside did not change.
+  Inline links inside running prose are exempt and stay at their line height.
 - **Dropdowns:** Bleached Shell panel, 11px radius, floating-panel shadow, fading
   in over 0.16s with a 6px rise, opened on hover *and* focus-within.
 - **Mobile (≤940px):** the row is replaced by a burger and a full-screen sheet
@@ -520,7 +543,8 @@ is, the new one is wrong — change its shape or merge it into the existing row.
 The parts of the page nobody draws still ship with somebody's design, and by
 default it is the browser's. All of these are themed from the palette:
 
-- **Selection:** Lava Orange at 22%.
+- **Selection:** Lava Orange at 22%, derived from the token via `color-mix`
+  rather than hardcoded, so it tracks the palette.
 - **Caret:** Lava Orange. **Native control accent** (checkbox, radio, range,
   progress): Reef Teal.
 - **Scrollbar:** Driftwood Stroke thumb on a Coral Sand track, 12px, pill-capped

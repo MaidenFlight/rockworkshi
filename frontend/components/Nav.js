@@ -169,7 +169,13 @@ export default function Nav() {
             className="rw-burger"
             onClick={() => setMobileOpen(true)}
             aria-label="Menu"
-            style={{ display: "none", background: "transparent", border: "1px solid var(--rw-line)", borderRadius: 8, padding: "8px 10px", cursor: "pointer", color: "var(--rw-ink)" }}
+            /* Was 42x36, which is under the 44x44 floor in both directions —
+               and this is the only way into navigation on a phone, so it is
+               the worst control on the site to make people aim at. The bars
+               keep their size and spacing; the button grows around them, which
+               is why this is a fixed box with centred content rather than more
+               padding. */
+            style={{ display: "none", width: 44, height: 44, flexDirection: "column", alignItems: "center", justifyContent: "center", background: "transparent", border: "1px solid var(--rw-line)", borderRadius: 8, padding: 0, cursor: "pointer", color: "var(--rw-ink)" }}
           >
             <span style={{ display: "block", width: 20, height: 2, background: "currentColor", margin: "3px 0" }} />
             <span style={{ display: "block", width: 20, height: 2, background: "currentColor", margin: "3px 0" }} />
