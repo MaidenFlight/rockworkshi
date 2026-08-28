@@ -216,9 +216,34 @@ export default function Home() {
         </div>
       </section>
 
-      {/* INSTRUMENTS */}
+      {/* INSTRUMENTS
+          All six tiles pointed at /program/format — six distinct doors into
+          one room that never mentions bass, so the choice the section invites
+          was thrown away at the click. Each one carries its own name into
+          signup now, where the wizard already stores that exact string and the
+          backend matches lesson videos against it.
+
+          Which makes the line below load-bearing rather than decorative: the
+          section asks a lessons-shaped question and now answers it with the
+          paid product, so it has to say what picking an instrument actually
+          buys. That is a real thing — membership gates the videos per
+          instrument — and it is the only honest bridge between the two. It is
+          not a third printing of the lessons-versus-membership note the page
+          carries twice already; it names a feature. */}
       <Section>
         <SectionHead title="Choose your instrument" eyebrow="Pick your sound" />
+        <p
+          style={{
+            maxWidth: 620,
+            margin: "18px 0 26px",
+            fontSize: "var(--rw-text-md)",
+            lineHeight: 1.6,
+            color: "var(--rw-prose)",
+          }}
+        >
+          Lesson videos in the member area are organised by instrument. Pick yours and we&apos;ll carry it
+          into signup.
+        </p>
         <div
           className="rw-cols-6"
           style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", border: "1px solid var(--rw-rule)", borderRadius: 14, overflow: "hidden" }}
@@ -226,7 +251,7 @@ export default function Home() {
           {instruments.map((inst, i) => (
             <Link
               key={inst.name}
-              href="/program/format"
+              href={`/signup?instrument=${encodeURIComponent(inst.name)}`}
               className="rw-instr"
               style={{
                 display: "flex",
