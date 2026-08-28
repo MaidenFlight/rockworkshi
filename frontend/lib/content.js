@@ -46,22 +46,32 @@ export const instruments = [
   { name: "Ukulele" },
 ];
 
+// The three ways in, in the order the homepage reads them.
+//
+// Teens leads because the recorded primary reader is the student who enrols
+// themselves (PRODUCT.md, Users). This list previously opened with "Keiki
+// (ages 5+) — built for little hands" in the most-read column, which is copy
+// addressed to a parent about a child; a sixteen-year-old reading the section
+// whose whole job is to say where you belong was told, first, that the school
+// is for small children. Keiki still comes second, and its own line is written
+// about what happens in the room rather than cooed over the student's head —
+// the guardian reading it is deciding, not being charmed.
 export const audiences = [
   {
-    title: "Keiki (ages 5+)",
-    desc: "A gentle, song-based start built for little hands — sing-along first, instrument second.",
-    cta: "See the early years",
-    href: "/program/curriculum",
-  },
-  {
     title: "Teens & bands",
-    desc: "Pair up with friends and siblings to form a real band, or go one-on-one at your own pace.",
+    desc: "Form a band with friends and siblings and take a song to a stage — or go one-on-one and set your own pace.",
     cta: "Explore band lessons",
     href: "/program/format",
   },
   {
+    title: "Keiki (ages 5+)",
+    desc: "From age five up, singing the song comes before playing it — so a first lesson is music, not setup.",
+    cta: "See the early years",
+    href: "/program/curriculum",
+  },
+  {
     title: "Adults",
-    desc: "It's never too late to learn your first song. Flexible scheduling for busy grown-up lives.",
+    desc: "Start at any age, on the same five levels everyone else gets. Scheduling works around a working week.",
     cta: "Start as an adult",
     href: "/program/format",
   },

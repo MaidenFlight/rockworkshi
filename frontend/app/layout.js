@@ -36,7 +36,9 @@ const sourceSans = localFont({
 });
 
 export const metadata = {
-  title: "Rock Works School of Music",
+  // "Honolulu" belongs in the tab and the search result, not only in the
+  // description below it. The school is a physical place first.
+  title: "Rock Works School of Music — Honolulu",
   description:
     "A ten-year, song-based music curriculum for individuals and rock bands, in Honolulu since 1982.",
 };

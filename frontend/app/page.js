@@ -2,7 +2,7 @@ import Link from "next/link";
 import { instruments, audiences, songLevels } from "@/lib/content";
 import RockWorksIcon from "@/components/RockWorksIcon";
 import InstrumentIcon from "@/components/InstrumentIcon";
-import { Section, Container, SectionHead, Button } from "@/components/ui";
+import { Section, Container, SectionHead, Eyebrow, Button } from "@/components/ui";
 
 // The hero and the levels band keep their own styles rather than going through
 // the primitives. Both are one-offs built on custom gradients, and a primitive
@@ -93,12 +93,31 @@ export default function Home() {
               A ten-year, song-based curriculum where every student learns to play, perform, and eventually
               write their own music — one real song at a time.
             </p>
+            {/* This button said "Start Lessons" and led to a paid signup for
+                member-area access — a different product from the lessons, which
+                are arranged with the school and are deliberately never priced
+                on the site. So the page's largest action named the one thing
+                its destination does not sell, and the visitor who actually
+                wanted lessons had no route at all. Both are named now, and the
+                note below is the only place on the page that had to explain
+                the difference — the CTA repeats it with the price attached. */}
             <div style={{ display: "flex", gap: 20, flexWrap: "wrap", alignItems: "center" }}>
-              <Button href="/signup">Start Lessons</Button>
+              <Button href="/signup">Join the member area</Button>
               <Button href="/program/curriculum" variant="quiet" onDark>
                 See the curriculum &rarr;
               </Button>
             </div>
+            <p style={{ margin: "20px 0 0", maxWidth: 466, fontSize: 14.5, lineHeight: 1.6, color: "rgba(255,245,236,0.78)" }}>
+              Membership opens the lesson videos, song library and practice tools. Lessons at the school
+              are arranged with us &mdash;{" "}
+              <Link
+                href="/trial"
+                style={{ color: "var(--rw-gold)", fontWeight: 600, textDecoration: "underline", textUnderlineOffset: 3 }}
+              >
+                start with a free trial
+              </Link>
+              .
+            </p>
           </div>
         </div>
         <div style={{ position: "relative", lineHeight: 0 }}>
@@ -260,13 +279,35 @@ export default function Home() {
         </div>
       </Section>
 
-      {/* A testimonial band sat here with three quotes attributed to "A Rock
-          Works parent / student / family". None of them came from a real
-          person — see PRODUCT.md, Evidence on Hand — so on a site that takes
-          payment they were removed rather than restyled. This is the slot for
-          real quotes when the school has them: a sand band between the
-          audience columns and the closing CTA. Do not refill it with invented
-          proof. */}
+      {/* THE RECORD — the proof band. See .rw-record in globals.css for why it
+          is shaped the way it is, and for the provenance of every line.
+
+          The slot is no longer empty, but the rule that guarded it still
+          holds: nothing goes in here that the school cannot stand behind. If
+          real customer quotes ever arrive, they belong in this band and these
+          lines make room for them — they do not belong anywhere else on the
+          page, and neither does anything counted for the occasion. */}
+      <Section band="sand">
+        <Eyebrow>The record</Eyebrow>
+        <h2 className="rw-record-lead">Teaching in Honolulu since 1982.</h2>
+        <ul className="rw-record">
+          <li>
+            <b>Six</b> instruments — guitar, piano, bass, drums, voice and ukulele.
+          </li>
+          <li>
+            <b>Five</b> levels to every song, sing-a-long through improv.
+          </li>
+          <li>
+            Most students finish a song every <b>four to six weeks</b>.
+          </li>
+          <li>
+            Membership opens every lesson video, the song library and <b>five practice tools</b>.
+          </li>
+          <li>
+            Bands rehearse weekly and finish at a <b>Rock Works recital</b>.
+          </li>
+        </ul>
+      </Section>
 
       {/* CTA */}
       <section style={{ position: "relative", overflow: "hidden", background: "linear-gradient(135deg,var(--rw-ink-deep),#0b3a4c 70%,#0e5561)", color: "#fff" }}>
@@ -275,17 +316,57 @@ export default function Home() {
             centre behind the headline, where 8% white reads as a grey smudge
             through the type rather than as a mark. Hidden below the breakpoint
             where it stops being decoration and starts being dirt. */}
+        {/* The CTA met the paper above it on a straight edge, which the form
+            language forbids outright — "dark meets paper on the wave, never on
+            a straight edge". It was survivable while the section above was
+            cream; with the sand record band now landing directly on it the
+            tonal step is larger and the hard line is the first thing the eye
+            catches. Same cubic as everywhere else, flipped on Y so the paper
+            spills down into the dark, filled Coral Sand to match what is
+            actually above it. The container's top padding drops by the wave's
+            height so the ask does not sink down the section. */}
+        <div className="rw-wave rw-wave-top" aria-hidden="true">
+          <svg viewBox="0 0 1440 70" preserveAspectRatio="none">
+            <path d="M0,40 C360,80 1080,0 1440,40 L1440,70 L0,70 Z" fill="var(--rw-sand)" />
+          </svg>
+        </div>
         <div className="rw-watermark" aria-hidden="true">
           <RockWorksIcon size={420} color="#fff" />
         </div>
-        <Container width="text" style={{ position: "relative", padding: "80px 24px", textAlign: "center" }}>
+        <Container width="text" style={{ position: "relative", padding: "34px 24px 80px", textAlign: "center" }}>
           <h2 style={{ fontWeight: 700, fontSize: "clamp(32px,4.2vw,52px)", margin: "0 0 16px", color: "#fff", letterSpacing: "-0.015em", lineHeight: 1.02 }}>
             Ready to play your first song?
           </h2>
           <p style={{ margin: "0 auto 30px", maxWidth: 520, fontSize: 17.5, lineHeight: 1.55, color: "rgba(255,245,236,0.82)" }}>
-            Sign up today and pick up your instrument — we&apos;ll build the rest around a song you love.
+            Membership opens every lesson video, the song library and the practice tools &mdash; the part
+            of learning that happens between lessons.
           </p>
-          <Button href="/signup">Sign Up Now</Button>
+          {/* The same pairing the hero uses — solid primary beside a quiet
+              underlined link — so the two read as one decision with a cheaper
+              option rather than as two competing buttons. The trial was a
+              sentence-level link under the price a moment ago; at the point of
+              the ask it has to be a control, because it is exactly what a
+              visitor who is not ready to pay is looking for. */}
+          <div style={{ display: "flex", gap: 22, flexWrap: "wrap", alignItems: "center", justifyContent: "center" }}>
+            <Button href="/signup">Join the member area</Button>
+            <Button href="/trial" variant="quiet" onDark>
+              Book a free trial &rarr;
+            </Button>
+          </div>
+          {/* The price appeared nowhere on this page, and the button above bills
+              for it four steps later. Someone who reaches a card form having
+              never seen a number is a refund request, and the site takes real
+              cards. Both plans are stated here; "cancel any time" is attached
+              only to the monthly, because the term renews and does not. The
+              amounts are display copy — the server holds the real ones
+              (backend/src/lib/plans.js) and the client never sends a price. */}
+          <p style={{ margin: "20px auto 0", maxWidth: 520, fontSize: 15, lineHeight: 1.6, color: "rgba(255,245,236,0.9)" }}>
+            $55 a month, cancel any time &mdash; or $135 for a three-month term.
+          </p>
+          <p style={{ margin: "10px auto 0", maxWidth: 520, fontSize: 14.5, lineHeight: 1.6, color: "rgba(255,245,236,0.74)" }}>
+            Lessons at the school are arranged with us, not booked here &mdash; the trial is where that
+            starts.
+          </p>
         </Container>
       </section>
     </div>
