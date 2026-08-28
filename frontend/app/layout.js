@@ -31,6 +31,34 @@ const libreFranklin = localFont({
   src: [{ path: "./fonts/libre-franklin-variable.woff2", weight: "400 800", style: "normal" }],
 });
 
+// The Classic world's faces. They are loaded on every page, which is the
+// honest cost of a switchable design: ~107KB of woff2 for the pair against
+// ~65KB for the Silkie's. They are only fetched when a glyph actually needs
+// them, so a visitor who never touches the toggle pays for the Silkie pair
+// alone — but the <link rel=preload> next/font emits is per-face, so this is
+// a real trade the toggle buys and not a free one.
+//
+// The `-real` suffix exists because tokens.css owns the names --font-zilla-slab
+// and --font-source-sans as ALIASES that point at whichever world is active.
+// If these declared those names directly they would win on the html element
+// and the alias could never switch.
+const zillaSlab = localFont({
+  variable: "--font-zilla-slab-real",
+  display: "swap",
+  src: [
+    { path: "./fonts/zilla-slab-500.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/zilla-slab-600.woff2", weight: "600", style: "normal" },
+    { path: "./fonts/zilla-slab-600-italic.woff2", weight: "600", style: "italic" },
+    { path: "./fonts/zilla-slab-700.woff2", weight: "700", style: "normal" },
+  ],
+});
+
+const sourceSans = localFont({
+  variable: "--font-source-sans-real",
+  display: "swap",
+  src: [{ path: "./fonts/source-sans-3-variable.woff2", weight: "400 700", style: "normal" }],
+});
+
 export const metadata = {
   // "Honolulu" belongs in the tab and the search result, not only in the
   // description below it. The school is a physical place first.
@@ -41,8 +69,19 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${bigShoulders.variable} ${libreFranklin.variable}`}>
+    <html lang="en" className={`${bigShoulders.variable} ${libreFranklin.variable} ${zillaSlab.variable} ${sourceSans.variable}`}
+      suppressHydrationWarning>
       <body>
+        {/* Applied before first paint, which is the whole reason it is a
+            blocking inline script rather than an effect: setting the world
+            after hydration would show every Classic visitor a frame of Silkie
+            on every navigation. It touches one attribute and nothing else. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{if(localStorage.getItem('rw-world')==='classic'){document.documentElement.dataset.world='classic'}}catch(e){}",
+          }}
+        />
         {/* eslint-disable-next-line react/no-danger */}
         <div
           suppressHydrationWarning

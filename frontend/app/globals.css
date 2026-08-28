@@ -134,7 +134,7 @@ summary:focus-visible,
 }
 
 .rw-nav-link:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--rw-nav-hover);
 }
 
 .rw-card {
@@ -268,22 +268,32 @@ summary:focus-visible,
   list-style: none;
   margin: 0;
   padding: 28px 0 0;
-  border-top: 1px solid var(--rw-rule);
+  border-top: 2px dashed rgba(22, 18, 28, 0.28);
   display: grid;
   gap: 15px;
 }
 
+/* Set in the READING face, not the display face. Big Shoulders is condensed
+   signage built to be read at distance; asking it to carry five full sentences
+   is asking a poster to be a paragraph, and it fatigues immediately. The
+   emphasis keeps the display face, so the countable runs still pop off the
+   line and a skimmer still gets 1982 / Six / Five / four to six weeks without
+   reading a sentence — which was the point of the band. */
 .rw-record li {
-  font-family: var(--rw-font-display);
-  font-weight: 500;
-  font-size: clamp(20px, 2.2vw, 28px);
-  line-height: 1.26;
-  letter-spacing: var(--rw-track-tight);
-  color: var(--rw-ink);
+  font-family: var(--rw-font-body);
+  font-weight: 400;
+  font-size: clamp(17px, 1.5vw, 21px);
+  line-height: 1.5;
+  letter-spacing: 0;
+  color: var(--rw-prose);
 }
 
 .rw-record b {
-  font-weight: 700;
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: 1.24em;
+  letter-spacing: 0.01em;
+  color: var(--rw-ink);
 }
 
 @media (max-width: 720px) {
@@ -1031,7 +1041,11 @@ main:focus {
 .rw-wordmark {
   font-family: var(--rw-font-display);
   font-weight: 800;
-  font-size: 30px;
+  /* On the ramp. 30px was a genuine eleventh fixed size — not a clamp
+     endpoint, so the Fluid Endpoint Exception does not cover it, and the
+     wordmark is exactly the kind of one-off that earns a stray value if
+     nobody checks. */
+  font-size: var(--rw-text-3xl);
   letter-spacing: 0.005em;
   text-transform: uppercase;
   color: var(--rw-cream);
@@ -1046,4 +1060,76 @@ main:focus {
     background: none;
     -webkit-text-fill-color: currentColor;
   }
+}
+
+/* ---- The world switch ----
+ * Two complete designs ship and one attribute on <html> decides which paints.
+ * The homepage is the only route that carries both compositions; every other
+ * route reads shared token names, so it changes world without knowing one
+ * exists. display:none rather than visibility or opacity: the inactive
+ * composition must leave the accessibility tree, not merely go transparent. */
+.rw-world-classic {
+  display: none;
+}
+
+[data-world="classic"] .rw-world-silkie {
+  display: none;
+}
+
+[data-world="classic"] .rw-world-classic {
+  display: block;
+}
+
+.rw-worldswitch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rw-worldswitch-label {
+  font-size: var(--rw-text-2xs);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.rw-worldswitch-track {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--rw-radius-sm);
+}
+
+.rw-worldswitch-btn {
+  padding: 7px 14px;
+  min-height: 30px;
+  border: none;
+  border-radius: calc(var(--rw-radius-sm) - 2px);
+  background: transparent;
+  font-family: inherit;
+  font-size: var(--rw-text-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.66);
+  cursor: pointer;
+  transition: background 0.16s ease, color 0.16s ease;
+}
+
+.rw-worldswitch-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* The active side is filled rather than merely brighter: with two labels of
+ * equal weight, colour alone leaves people guessing which one is on. */
+.rw-worldswitch-btn[data-active="true"] {
+  background: var(--rw-gold);
+  color: var(--rw-ink);
+}
+
+.rw-worldswitch-btn:focus-visible {
+  outline: 2px solid var(--rw-sea-glass);
+  outline-offset: 2px;
 }

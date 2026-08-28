@@ -48,10 +48,10 @@ export default function Nav() {
         position: "sticky",
         top: 0,
         zIndex: 50,
-        background: "rgba(22,18,28,0.9)",
+        background: "var(--rw-nav-bg)",
         backdropFilter: "blur(14px)",
         WebkitBackdropFilter: "blur(14px)",
-        borderBottom: "1px solid rgba(255,255,255,0.1)",
+        borderBottom: "1px solid var(--rw-nav-border)",
       }}
     >
       <div
@@ -67,7 +67,7 @@ export default function Nav() {
         }}
       >
         <Link href="/" style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0, textDecoration: "none" }}>
-          <RockWorksIcon size={38} color="var(--rw-gold)" />
+          <RockWorksIcon size={38} color="var(--rw-nav-mark)" />
           <span
             style={{
               display: "flex",
@@ -86,7 +86,7 @@ export default function Nav() {
                 fontSize: 10.5,
                 letterSpacing: "0.28em",
                 textTransform: "uppercase",
-                color: "var(--rw-sea-glass)",
+                color: "var(--rw-nav-sub)",
                 marginTop: 4,
               }}
             >
@@ -177,7 +177,7 @@ export default function Nav() {
                keep their size and spacing; the button grows around them, which
                is why this is a fixed box with centred content rather than more
                padding. */
-            style={{ display: "none", width: 44, height: 44, flexDirection: "column", alignItems: "center", justifyContent: "center", background: "transparent", border: "1px solid rgba(255,255,255,0.28)", borderRadius: 3, padding: 0, cursor: "pointer", color: "var(--rw-cream)" }}
+            style={{ display: "none", width: 44, height: 44, flexDirection: "column", alignItems: "center", justifyContent: "center", background: "transparent", border: "1px solid var(--rw-nav-border)", borderRadius: "var(--rw-radius-sm)", padding: 0, cursor: "pointer", color: "var(--rw-nav-fg)" }}
           >
             <span style={{ display: "block", width: 20, height: 2, background: "currentColor", margin: "3px 0" }} />
             <span style={{ display: "block", width: 20, height: 2, background: "currentColor", margin: "3px 0" }} />
@@ -344,7 +344,7 @@ const navLinkStyle = {
   borderRadius: 8,
   fontSize: 14.5,
   fontWeight: 600,
-  color: "rgba(238,240,236,0.82)",
+  color: "var(--rw-nav-fg)",
   textDecoration: "none",
   cursor: "pointer",
 };
@@ -360,8 +360,8 @@ const navLinkStyle = {
 // visible thing up there. Gold on lacquer measures 12.02:1.
 const activeNavLinkStyle = {
   ...navLinkStyle,
-  color: "var(--rw-gold)",
-  boxShadow: "inset 0 -2px 0 var(--rw-gold)",
+  color: "var(--rw-nav-active)",
+  boxShadow: "inset 0 -2px 0 var(--rw-nav-active)",
 };
 
 const mobileMenuLinkStyle = {

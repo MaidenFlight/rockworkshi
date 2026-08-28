@@ -28,13 +28,18 @@
   --rw-ink-deep: #0c0910; /* the darkest stop in gradients */
 
   /* ---- Grounds ----
-   * Label stock, deliberately cool. The old grounds were cream (#fbf5ec) and
-   * warm sand; keeping any warm off-white would have left two thirds of the
-   * AI-cluster look in place while claiming a redesign. These read as printed
-   * cotton tag rather than paper. */
+   * The page and its panels are cool: the old grounds were cream (#fbf5ec) and
+   * warm sand, and keeping a warm off-white would have left two thirds of the
+   * AI-cluster look in place while claiming a redesign. The alternate band
+   * below is the deliberate exception — see its own note. */
   --rw-cream: #eef0ec; /* the page itself */
   --rw-surface: #f8faf6; /* cards and panels sitting on the page */
-  --rw-sand: #e3e7df; /* the alternate band */
+  /* The alternate band is the woven label sewn into the garment, so it is warm
+   * stock rather than cool. The first pass made it a grey-green (#e3e7df) and
+   * the proof band — the section carrying the school's strongest claims — read
+   * as dead space left over from the previous world. Every text role clears
+   * 4.5:1 on it: ink 15.01, teal 4.71, meta 4.97, orange-deep 7.21. */
+  --rw-sand: #f2e7cb; /* the alternate band: label stock */
 
   /* ---- Lines ---- */
   --rw-rule: #cdd3c9; /* section rules, column dividers */
@@ -175,4 +180,101 @@
   --rw-radius-field: 3px; /* inputs and selects */
   --rw-radius-md: 4px; /* cards and panels */
   --rw-radius-pill: 999px;
+
+  /* ---- The nav bar ----
+   * Named because the bar is the one surface that must invert between worlds:
+   * Silkie's is lacquer with a gold active link, Classic's is translucent cream
+   * with a deep-red one. Hardcoding Silkie's values inline (which the first
+   * pass did) left the Classic wordmark rendering dark navy on a dark bar at
+   * 1.15:1 — a whole-site toggle is only as switchable as its least tokenised
+   * component. */
+  --rw-nav-bg: rgba(22, 18, 28, 0.9);
+  --rw-nav-fg: rgba(238, 240, 236, 0.82);
+  --rw-nav-active: var(--rw-gold);
+  --rw-nav-border: rgba(255, 255, 255, 0.1);
+  --rw-nav-hover: rgba(255, 255, 255, 0.08);
+  --rw-nav-mark: var(--rw-gold);
+  --rw-nav-sub: var(--rw-sea-glass);
+}
+
+/* ==========================================================================
+   THE CLASSIC WORLD
+   ==========================================================================
+   The site as it shipped at 5389266, kept switchable rather than deleted.
+   Requested so the two can be compared; the toggle lives in the footer and
+   the choice persists per browser.
+
+   This is values only. Every token NAME is shared with the Silkie above,
+   which is the entire reason a whole-site visual swap costs one attribute:
+   all 48 routes read these names and none of them know a world exists. That
+   is also the constraint on this block — a token the Silkie introduced and
+   Classic never had (--rw-flare, the chrome ramp) must still resolve to
+   something reasonable here, so those are mapped to their nearest classic
+   equivalents rather than left dangling.
+
+   Contrast: these are the audited values from the previous world, not the
+   pre-audit ones. Classic is the SHIPPED old site, so it carries the fixed
+   oranges and teal rather than the failing originals — switching to it must
+   not switch accessibility off. */
+[data-world="classic"] {
+  --rw-ink: #0a2338;
+  --rw-ink-deep: #06192d;
+  --rw-cream: #fbf5ec;
+  --rw-surface: #fffdf9;
+  --rw-sand: #f6ecdd;
+  --rw-rule: #e6d8c6;
+  --rw-border: #ece0d5;
+  --rw-line: #d8cab8;
+  --rw-orange: #c94428;
+  --rw-orange-deep: #b6371c;
+  --rw-orange-tint: #fdece6;
+  --rw-teal: #0c7782;
+  --rw-gold: #ffd89a;
+  --rw-sea-glass: #82d4dd;
+  --rw-meta: #746959;
+  --rw-body: #6a6560;
+  --rw-body-cool: #5f6f79;
+  --rw-prose: #33454f;
+
+  /* Silkie-only tokens, mapped so nothing resolves to nothing. The flare field
+     has no classic equivalent — the old world had no saturated field at all —
+     so it takes the action orange, which is the loudest colour that world
+     owned. */
+  --rw-flare: #c94428;
+  --rw-chrome-hi: #fbf5ec;
+  --rw-chrome-mid: #e6d8c6;
+  --rw-chrome-lo: #d8cab8;
+  --rw-chrome: none;
+
+  --font-zilla-slab: var(--font-zilla-slab-real);
+  --font-source-sans: var(--font-source-sans-real);
+  --rw-font-display: var(--font-zilla-slab-real), Georgia, serif;
+  --rw-font-body: var(--font-source-sans-real), system-ui, sans-serif;
+
+  --rw-track-tight: -0.01em;
+  --rw-track-poster: -0.015em;
+
+  --rw-radius-sm: 8px;
+  --rw-radius-field: 10px;
+  --rw-radius-md: 14px;
+
+  --rw-nav-bg: rgba(251, 245, 236, 0.86);
+  --rw-nav-fg: var(--rw-prose);
+  --rw-nav-active: var(--rw-orange-deep);
+  --rw-nav-border: var(--rw-border);
+  --rw-nav-hover: rgba(42, 26, 51, 0.05);
+  --rw-nav-mark: var(--rw-orange);
+  --rw-nav-sub: var(--rw-teal);
+}
+
+/* The wordmark's chrome is a Silkie device and has no classic reading, so the
+   clip is undone rather than approximated: in Classic it is the slab wordmark
+   the old site had. */
+[data-world="classic"] .rw-wordmark {
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  color: var(--rw-ink);
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0.01em;
 }
