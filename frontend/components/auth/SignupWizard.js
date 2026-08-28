@@ -214,7 +214,7 @@ export default function SignupWizard({ mode, instrument = null }) {
             ) : (
               <label style={fieldLabelStyle}>
                 Email
-                <input value={form.studentEmail} disabled style={{ ...inputStyle, color: "#a3927f", background: "#f5efe4" }} />
+                <input value={form.studentEmail} disabled style={{ ...inputStyle, color: "color-mix(in srgb, var(--rw-meta) 68%, var(--rw-cream))", background: "color-mix(in srgb, var(--rw-cream) 90%, var(--rw-ink))" }} />
               </label>
             )}
 
