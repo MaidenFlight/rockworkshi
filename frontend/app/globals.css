@@ -463,7 +463,7 @@ summary:focus-visible,
   left: 64px;
   right: -30px;
   height: 1px;
-  background: rgba(255, 216, 154, 0.28);
+  background: color-mix(in srgb, var(--rw-gold) 28%, transparent);
 }
 
 .rw-level:last-child::after {
@@ -581,7 +581,7 @@ summary:focus-visible,
 }
 .rw-social:hover {
   color: #fff;
-  border-color: rgba(255, 216, 154, 0.55);
+  border-color: color-mix(in srgb, var(--rw-gold) 55%, transparent);
   background: rgba(255, 255, 255, 0.06);
 }
 .rw-social:focus-visible {
