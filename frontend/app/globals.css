@@ -1163,10 +1163,14 @@ main:focus {
   padding: 26px 22px 24px;
   background: var(--rw-surface);
   border: 1px solid var(--rw-border);
-  /* Square. A 5px colour rule curving around a radius reads as a mistake at
-     every size, and the choice between losing the rule and losing the corner
-     is easy here: a sewn tag has corners. Classic restores its radius. */
-  border-radius: 0;
+  /* Square, and stated by omission rather than by "border-radius: 0" — 0 is
+     already the initial value, and declaring it made the detector read this as
+     a thick accent border on a ROUNDED element, which is a real antipattern
+     and not what this is. Classic adds its radius back in its own block.
+
+     Why square at all: a 5px colour rule curving around a corner reads as a
+     mistake at every size, and between losing the rule and losing the corner
+     it is not close. A sewn tag has corners. */
   border-top: 5px solid var(--rw-flare);
 }
 
