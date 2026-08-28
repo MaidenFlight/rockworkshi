@@ -1936,3 +1936,93 @@ main:focus {
 [data-world="classic"] .rw-promise-unit {
   letter-spacing: 0.16em;
 }
+
+/* ---- The spec sheet ----
+ * The record band. A printed specification: the label column carries the noun,
+ * the value column carries the fact, and both start on a shared left edge so
+ * the facts line up as a column the eye can run down.
+ *
+ * The old version was six sentences of near-identical length whose emphasised
+ * runs sat in a different position on each line — two at the start, four in
+ * the middle. A reader cannot scan a column whose landmarks move, so the
+ * skimmability it was built for never existed. */
+.rw-sheet {
+  /* Held to the reading measure rather than the wide grid. At 1200px the rules
+     ran the full width while the values stopped around 500, which reads as a
+     panel that failed to fill rather than one sized to its content. */
+  max-width: var(--rw-measure-text);
+  margin: 0;
+  border-top: 2px solid var(--rw-ink);
+}
+
+.rw-sheet-row {
+  display: grid;
+  grid-template-columns: minmax(150px, 210px) 1fr;
+  gap: var(--rw-space-5);
+  align-items: baseline;
+  padding: 18px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--rw-ink) 18%, transparent);
+}
+
+.rw-sheet dt {
+  font-family: var(--rw-font-display);
+  font-weight: 700;
+  font-size: var(--rw-text-sm);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--rw-meta);
+}
+
+.rw-sheet dd {
+  margin: 0;
+  font-size: var(--rw-text-md);
+  line-height: 1.5;
+  color: var(--rw-prose);
+}
+
+/* The countable run stays in the display face, as it was — but it now sits in
+ * a column that starts at a fixed edge, which is what makes the emphasis
+ * usable rather than merely present. */
+.rw-sheet dd b {
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: 1.2em;
+  letter-spacing: 0.01em;
+  color: var(--rw-ink);
+}
+
+.rw-sheet-marks {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  margin-bottom: 12px;
+  color: var(--rw-ink);
+}
+
+@media (max-width: 720px) {
+  .rw-sheet-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+    padding: 16px 0;
+  }
+  .rw-sheet-marks {
+    gap: 10px;
+  }
+}
+
+[data-world="classic"] .rw-sheet {
+  border-top-color: var(--rw-rule);
+  border-top-width: 1px;
+}
+
+[data-world="classic"] .rw-sheet dt {
+  font-family: var(--rw-font-body);
+  font-size: var(--rw-text-2xs);
+  letter-spacing: 0.1em;
+  color: var(--rw-teal);
+}
+
+[data-world="classic"] .rw-sheet dd b {
+  font-size: 1em;
+  font-weight: 700;
+}

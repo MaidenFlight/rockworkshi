@@ -235,33 +235,76 @@ export default function HomeSilkie() {
 
       {/* ---- THE RECORD ----
           The proof band. The rule that guarded this slot when it was empty
-          still holds through the redesign: nothing goes in here the school
+          still holds through two redesigns: nothing goes in here the school
           cannot stand behind, and real customer quotes belong here when they
           exist. The street address is still the one line missing, and it is
-          still not invented. */}
+          still not invented.
+
+          It was six sentences stacked in one column, each with a bolded run,
+          and it had two problems. The lines were all the same length and
+          rhythm, so there was nothing for the eye to do; and the emphasised
+          runs sat in a different position on every line — two at the start,
+          four in the middle — so the "skim the numbers" idea it was built on
+          did not survive contact with a reader. You cannot scan a column whose
+          landmarks move.
+
+          It is a spec panel now: the printed specification on the back of a
+          sleeve, or the woven label inside the garment. The label column
+          carries the noun and the value column carries the fact, so the facts
+          start on a shared left edge and the column becomes scannable in the
+          way the old paragraph only claimed to be. Every fact is unchanged. */}
       <Section band="sand">
         <Eyebrow>The record</Eyebrow>
         <h2 className="rw-record-lead">Teaching in Honolulu since 1982.</h2>
-        <ul className="rw-record">
-          <li>
-            <b>Six</b> instruments — guitar, piano, bass, drums, voice and ukulele.
-          </li>
-          <li>
-            <b>Five</b> levels to every song, sing-a-long through improv.
-          </li>
-          <li>
-            Most students finish a song every <b>four to six weeks</b>.
-          </li>
-          <li>
-            Membership opens every lesson video, the song library and <b>five practice tools</b>.
-          </li>
-          <li>
-            Every student joins a band at <b>six months</b>, with a shot at a Hawaii stage.
-          </li>
-          <li>
-            Bands rehearse weekly and finish at a <b>Rock Works recital</b>.
-          </li>
-        </ul>
+        <dl className="rw-sheet">
+          <div className="rw-sheet-row">
+            <dt>Instruments</dt>
+            <dd>
+              {/* The school's own drawn marks, doing the one job a picture can
+                  do here: showing six at a glance before the sentence says it.
+                  Decorative and aria-hidden — the names are right beside them,
+                  so nothing is carried by the image alone. */}
+              <span className="rw-sheet-marks" aria-hidden="true">
+                {instruments.map((inst) => (
+                  <InstrumentIcon key={inst.name} name={inst.name} size={38} />
+                ))}
+              </span>
+              <span>
+                <b>Six</b> — guitar, piano, bass, drums, voice and ukulele.
+              </span>
+            </dd>
+          </div>
+          <div className="rw-sheet-row">
+            <dt>Levels per song</dt>
+            <dd>
+              <b>Five</b>, sing-a-long through improv.
+            </dd>
+          </div>
+          <div className="rw-sheet-row">
+            <dt>Pace</dt>
+            <dd>
+              Most students finish a song every <b>four to six weeks</b>.
+            </dd>
+          </div>
+          <div className="rw-sheet-row">
+            <dt>Membership opens</dt>
+            <dd>
+              Every lesson video, the song library and <b>five practice tools</b>.
+            </dd>
+          </div>
+          <div className="rw-sheet-row">
+            <dt>Band placement</dt>
+            <dd>
+              At <b>six months</b>, with a shot at a Hawaii stage.
+            </dd>
+          </div>
+          <div className="rw-sheet-row">
+            <dt>Bands</dt>
+            <dd>
+              Rehearse weekly and finish at a <b>Rock Works recital</b>.
+            </dd>
+          </div>
+        </dl>
       </Section>
 
       {/* ---- THE ASK ----
