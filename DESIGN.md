@@ -202,7 +202,22 @@ Ten steps and no eleventh: 11 · 12.5 · 13.5 · 15 · 16.5 · 18.5 · 22 · 26 
 
 **The Twenty-First Size Rule.** The scale has ten steps. If a new design needs a *fixed* size that isn't in it, the answer is almost always the nearest existing step, not a new token.
 
-**The Fluid Endpoint Exception.** Text set in `clamp()` may use endpoints that are not on the scale; fixed sizes may not. Confirmed by the owner on 2026-08-27. A clamp's two numbers are the ends of a range rather than sizes anyone chose — at most window widths the text renders at neither — so holding them to a ten-step scale constrains a value nobody reads. What it does not license is reaching for `clamp()` to dodge the scale: type that does not need to grow with the viewport is a fixed size and the ten steps apply. Sanctioned fluid roles are Poster, Display, the level numerals and the price figure.
+**The Fluid Endpoint Exception.** Text set in `clamp()` may use endpoints that are not on the scale; fixed sizes may not. Confirmed by the owner on 2026-08-27. A clamp's two numbers are the ends of a range rather than sizes anyone chose — at most window widths the text renders at neither — so holding them to a ten-step scale constrains a value nobody reads. What it does not license is reaching for `clamp()` to dodge the scale: type that does not need to grow with the viewport is a fixed size and the ten steps apply. The sanctioned fluid roles are listed below and the list is the safeguard: if it is not on it, it is a fixed size.
+
+| Role | Selector | Range |
+|---|---|---|
+| Poster | `.rw-poster` | 58 → 158px |
+| Poster (ask) | `.rw-poster-ask` | 42 → 92px |
+| Display | `PageHero` title | 44 → 104px |
+| Band promise numeral | `.rw-promise-n` | 96 → 200px |
+| Band promise headline | `.rw-promise-head` | 32 → 60px |
+| Level numerals | `.rw-level-n` | 56 → 92px |
+| Tracklist numerals | `.rw-track-n` | 48 → 84px |
+| Price figure | `.rw-price-figure` | 44 → 68px |
+| Record lead | `.rw-record-lead` | 25 → 38px |
+| Empty-state lead | `.rw-empty-lead` | 28 → 44px |
+
+**The list drifted once already, which is the thing to watch.** It was written naming four roles and the stylesheet reached ten without the sentence changing — every addition individually defensible, none of them checked against the rule that was supposed to bound them. That is precisely the quiet widening the exception exists to prevent, so adding a fluid role means adding a row here in the same commit.
 
 **The 0.22em Rule.** Small uppercase labels are tracked at `0.22em`, and it is a signature rather than a coincidence. Poster and display type track *negative* (`-0.03em`): the direction reverses with size.
 

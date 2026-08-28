@@ -50,6 +50,18 @@
         "value": "28px",
         "createdAt": "2026-08-28T13:13:19.539Z",
         "reason": "user confirmed 2026-08-27: clamp() endpoints are exempt from the ten-step scale (The Fluid Endpoint Exception, DESIGN.md). Tracklist numeral and empty-state lead clamp minimums."
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "96px",
+        "createdAt": "2026-08-28T13:36:13.883Z",
+        "reason": "user confirmed 2026-08-27: clamp() endpoints are exempt (The Fluid Endpoint Exception, DESIGN.md). Band promise numeral and headline; both now listed in the sanctioned-roles table."
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "60px",
+        "createdAt": "2026-08-28T13:36:13.997Z",
+        "reason": "user confirmed 2026-08-27: clamp() endpoints are exempt (The Fluid Endpoint Exception, DESIGN.md). Band promise numeral and headline; both now listed in the sanctioned-roles table."
       }
     ]
   }
