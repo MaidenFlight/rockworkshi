@@ -58,7 +58,28 @@
   --rw-orange: #c94428; /* the CTA colour; one job, used sparingly. White on it: 4.84:1 */
   --rw-orange-deep: #b6371c; /* inline links and the darker gradient stop. On cream: 5.45:1 */
   --rw-orange-tint: #fdece6; /* orange at wash strength, for notices */
-  --rw-teal: #0e8a97; /* eyebrows, focus rings, quiet accents */
+  /* Darkened from #0e8a97 on 2026-08-27. The eyebrow is 11px at 0.22em
+   * tracking — small text by every measure — and it was reading 3.80:1 on
+   * cream. Every section on the site opens with one.
+   *
+   * This token is pulled two ways, and the two constraints very nearly meet.
+   * As text it has to clear 4.5:1 on the darkest paper it lands on, which is
+   * Coral Sand, not cream — the record band opens with an eyebrow. As the
+   * focus ring it has to clear 3:1 against the dark bands. Measured:
+   *
+   *   #0c7782   sand 4.52:1   cream 4.87:1   shell 5.20:1
+   *             ring on Ink Deep 3.36:1      ring on Ink 3.03:1
+   *
+   * One notch lighter fails sand; one notch darker fails the ring on Ink.
+   * The value is pinned from both ends, so treat it as fixed: darkening Ink,
+   * or darkening this, breaks the ring. If a future surface needs a deeper
+   * teal for text, it wants a second token, not this one moved. The
+   * blue-to-green ratio holds at 1.092 against 1.094 — same Reef Teal.
+   *
+   * (The ring is drawn at a 2px offset, so its neighbour is the ground behind
+   * the control, not the control's own fill. That is why the numbers above are
+   * against the grounds and not against Lava Orange.) */
+  --rw-teal: #0c7782; /* eyebrows, focus rings, quiet accents. On sand: 4.52:1 */
 
   /* ---- The dark-ground accents ----
    * Teal goes muddy on the hero gradient, so anything sitting on ink needs its
@@ -77,7 +98,13 @@
    * because they differ in temperature and in the size they were tuned for;
    * --rw-body and --rw-body-cool overlap in role and are the honest merge
    * candidate if the palette is ever tightened. */
-  --rw-meta: #8a7d6a; /* captions and 12px labels, warm taupe */
+  /* Darkened from #8a7d6a on 2026-08-27: 3.71:1 on cream, and this token's
+   * whole job is 12.5px captions, which is exactly the size the 4.5:1 floor
+   * exists for. #746959 is 4.96:1 on cream, 5.29:1 on Bleached Shell and
+   * 4.60:1 on Coral Sand — the sand band is the reason it goes this far rather
+   * than stopping at the first value that cleared cream. Still a warm taupe;
+   * the palette acquires no grey. */
+  --rw-meta: #746959; /* captions and 12px labels, warm taupe. On cream: 4.96:1 */
   --rw-body: #6a6560; /* 14-15px body on cream, warm */
   --rw-body-cool: #5f6f79; /* 15-16px body, cool */
   --rw-prose: #33454f; /* 16.5px long-form prose, cool slate */

@@ -40,8 +40,11 @@ export default function Footer() {
                 aria-label={s.label}
                 className="rw-social"
                 style={{
-                  width: 34,
-                  height: 34,
+                  /* 34x34 was a decade out of date as a touch target; the
+                     floor is 44. The mark inside is unchanged — the ring
+                     around it grew. */
+                  width: 44,
+                  height: 44,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",

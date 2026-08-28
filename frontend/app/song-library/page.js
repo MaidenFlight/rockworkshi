@@ -127,7 +127,7 @@ export default function SongLibrary() {
 
             {instruments.length > 0 && (
               <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
-                <span style={{ fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "#a3927f", width: 90 }}>Instrument</span>
+                <span style={{ fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--rw-meta)", width: 90 }}>Instrument</span>
                 {instruments.map((inst) => (
                   <button key={inst} onClick={() => setInstrumentFilter(instrumentFilter === inst ? null : inst)} style={chipStyle(instrumentFilter === inst)}>
                     {inst}
@@ -137,7 +137,7 @@ export default function SongLibrary() {
             )}
             {levels.length > 0 && (
               <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 24 }}>
-                <span style={{ fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "#a3927f", width: 90 }}>Level</span>
+                <span style={{ fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--rw-meta)", width: 90 }}>Level</span>
                 {levels.map((lv) => (
                   <button key={lv} onClick={() => setLevelFilter(levelFilter === lv ? null : lv)} style={chipStyle(levelFilter === lv)}>
                     {lv}

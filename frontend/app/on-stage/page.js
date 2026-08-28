@@ -95,7 +95,7 @@ export default function OnStage() {
           </div>
         )}
 
-        <p style={{ margin: "22px 0 0", fontSize: 12.5, color: "#a3927f", textAlign: "center" }}>
+        <p style={{ margin: "22px 0 0", fontSize: 12.5, color: "var(--rw-meta)", textAlign: "center" }}>
           Student media is published only with family consent.
         </p>
       </div>

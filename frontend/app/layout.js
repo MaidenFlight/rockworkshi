@@ -49,8 +49,21 @@ export default function RootLayout({ children }) {
       <body>
         <AuthProvider>
           <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", overflowX: "hidden" }}>
+            {/* The nav is 26 tab stops deep — seven items, four of them
+                dropdowns, then Sign In, Sign Up and Book a Trial. A keyboard
+                or switch user paid that toll on every page before reaching the
+                thing the page is for. First stop in the document now, invisible
+                until it takes focus. See .rw-skip in globals.css. */}
+            <a href="#main" className="rw-skip">
+              Skip to content
+            </a>
             <Nav />
-            <main style={{ flex: 1 }}>{children}</main>
+            {/* tabIndex -1 so the heading target actually receives focus when
+                the skip link is followed; without it some browsers move the
+                scroll position but leave focus in the nav, which defeats it. */}
+            <main id="main" tabIndex={-1} style={{ flex: 1 }}>
+              {children}
+            </main>
             <Footer />
           </div>
         </AuthProvider>

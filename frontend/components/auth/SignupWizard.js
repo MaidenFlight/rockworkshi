@@ -142,7 +142,7 @@ export default function SignupWizard({ mode, instrument = null }) {
           return (
             <div key={label} style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
               <div style={{ height: 5, borderRadius: 999, background: active ? "var(--rw-orange)" : "var(--rw-border)" }} />
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: active ? "var(--rw-orange-deep)" : "#a3927f" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: active ? "var(--rw-orange-deep)" : "var(--rw-meta)" }}>
                 {label}
               </div>
             </div>
@@ -305,7 +305,7 @@ export default function SignupWizard({ mode, instrument = null }) {
                 <div style={{ fontFamily: "var(--font-zilla-slab), serif", fontWeight: 600, fontSize: 24, color: "var(--rw-orange)" }}>{p.price}</div>
               </div>
             ))}
-            <p style={{ margin: "16px 0 0", fontSize: 13.5, lineHeight: 1.55, color: "#a3927f" }}>
+            <p style={{ margin: "16px 0 0", fontSize: 13.5, lineHeight: 1.55, color: "var(--rw-meta)" }}>
               You&apos;ll see your total on the next step before anything is confirmed.
             </p>
           </div>
