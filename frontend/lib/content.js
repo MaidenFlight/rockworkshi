@@ -77,6 +77,24 @@ export const audiences = [
   },
 ];
 
+// THE SIX-MONTH BAND PROMISE.
+//
+// Confirmed by the school on 2026-08-28 and recorded in PRODUCT.md under
+// Evidence on Hand. It lives here rather than being typed into each page
+// because it is a dated, checkable promise appearing on five surfaces, and five
+// hand-written versions of a promise is how "six months" quietly becomes "about
+// six months" on one page and "your first year" on another.
+//
+// The split between the two lines is the part to preserve: joining a band is
+// what HAPPENS, performing is a CHANCE. Do not upgrade `stage` into a
+// guarantee — the school offers the opportunity, not the booking.
+export const bandPromise = {
+  months: "6",
+  headline: "Six months in, you're in a band.",
+  joins: "Every student is placed in a Rock Band after six months on their instrument — four or five players, each on a different part, learning one song together.",
+  stage: "Bands rehearse weekly and get the chance to perform on a real stage in Hawaii.",
+};
+
 // The five levels every song is taught through. This is the school's actual
 // method and its clearest differentiator, so it is shared rather than restated:
 // /program/curriculum sets it out in full and the homepage runs the same five.
@@ -120,7 +138,12 @@ export const programs = [
       "Each member learns their part through the same five-level curriculum",
       "Culminates in a live performance at a Rock Works recital",
     ],
-    forWho: "Students who've completed at least one solo song and want to play with others.",
+    // Restated 2026-08-28 to match the six-month promise the school confirmed.
+    // The previous wording ("students who've completed at least one solo song")
+    // made band membership sound like a bar to clear rather than something that
+    // happens to you on a schedule, which is the opposite of what the school
+    // actually offers — and it is the single most persuasive thing it offers.
+    forWho: "Every student, at six months. Band placement is part of the path here, not an audition to pass.",
     instruments: "Any combination of guitar, bass, drums, piano, and voice.",
     format: "Weekly group rehearsal + individual lessons.",
     progress: "Most bands are stage-ready within 8–10 weeks.",

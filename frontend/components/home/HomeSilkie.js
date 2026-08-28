@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { instruments, audiences, songLevels } from "@/lib/content";
+import { instruments, audiences, songLevels, bandPromise } from "@/lib/content";
 import RockWorksIcon from "@/components/RockWorksIcon";
 import InstrumentIcon from "@/components/InstrumentIcon";
 import { Section, Container, SectionHead, Eyebrow, Button } from "@/components/ui";
@@ -69,9 +69,16 @@ export default function HomeSilkie() {
             <br />
             <span className="rw-poster-em">From day one.</span>
           </h1>
+          {/* This was a curriculum pitch — "a ten-year, song-based curriculum
+              where every student learns to play, perform, and eventually write
+              their own music" — on a page whose headline promises bands. True,
+              and the least exciting true thing available: it described the
+              method where the reader wanted the destination. The method is two
+              sections down and keeps its place; the standfirst now says what a
+              student actually gets, and when. */}
           <p className="rw-field-lead">
-            A ten-year, song-based curriculum where every student learns to play, perform, and eventually
-            write their own music &mdash; one real song at a time.
+            Learn on a real song from your first lesson. Six months in, you&apos;re in a band &mdash;
+            rehearsing weekly, aiming at a Hawaii stage.
           </p>
         </Container>
 
@@ -142,6 +149,38 @@ export default function HomeSilkie() {
             </li>
           ))}
         </ol>
+      </Section>
+
+      {/* ---- THE PROMISE ----
+          The school's sharpest claim, and it was nowhere on the site until
+          2026-08-28: a student is placed in a Rock Band after six months, with
+          a chance to play a real Hawaii stage. That converts "music lessons"
+          into a dated destination, which is the hardest thing here for a
+          neighbouring school to match.
+
+          It sits immediately after the method on purpose. The method explains
+          how one song is taught; this is the payoff that makes anyone care —
+          learn, then band, then stage. Placed before it, it would be a promise
+          with nothing behind it.
+
+          Label stock, so it lands between two grounds it does not repeat: the
+          method above is lacquer, the motifs below are page. The numeral is
+          the loud element, because the whole claim is the number. */}
+      <Section band="sand">
+        <div className="rw-promise">
+          <div className="rw-promise-figure" aria-hidden="true">
+            <span className="rw-promise-n">{bandPromise.months}</span>
+            <span className="rw-promise-unit">Months</span>
+          </div>
+          <div>
+            <h2 className="rw-promise-head">{bandPromise.headline}</h2>
+            <p className="rw-promise-body">{bandPromise.joins}</p>
+            <p className="rw-promise-body">{bandPromise.stage}</p>
+            <Link href="/community/programs/rock-band-program" className="rw-tag-cta">
+              How the Rock Band program works &rarr;
+            </Link>
+          </div>
+        </div>
       </Section>
 
       {/* ---- THE MOTIFS ----
@@ -215,6 +254,9 @@ export default function HomeSilkie() {
           </li>
           <li>
             Membership opens every lesson video, the song library and <b>five practice tools</b>.
+          </li>
+          <li>
+            Every student joins a band at <b>six months</b>, with a shot at a Hawaii stage.
           </li>
           <li>
             Bands rehearse weekly and finish at a <b>Rock Works recital</b>.

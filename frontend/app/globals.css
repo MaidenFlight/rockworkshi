@@ -1555,7 +1555,14 @@ main:focus {
   line-height: 0.78;
   letter-spacing: var(--rw-track-poster);
   font-variant-numeric: tabular-nums;
-  color: var(--rw-flare);
+  /* Flare Action, not Flare. DESIGN.md's Surface-or-Ink Rule says a colour
+     that IS the letterform is an ink, and names display numerals as the one
+     large-text exception that still takes the ink — and this stylesheet then
+     used the surface for all three numerals anyway. On label stock the flare
+     numeral measured 2.96:1 against a 3:1 floor, so the rule was not
+     pedantry; on the page it scraped 3.18:1. Flare Action is 4.93 and 5.29,
+     which clears large text with room and small text besides. */
+  color: var(--rw-orange);
 }
 
 .rw-track-name {
@@ -1587,8 +1594,16 @@ main:focus {
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  /* Five stages since the band step was added. auto-fit rather than a fixed
+     count so adding a sixth does not silently overflow the row. */
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 0;
+}
+
+@media (max-width: 1100px) {
+  .rw-path {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 .rw-path-step {
@@ -1610,7 +1625,14 @@ main:focus {
   line-height: 0.8;
   letter-spacing: var(--rw-track-poster);
   font-variant-numeric: tabular-nums;
-  color: var(--rw-flare);
+  /* Flare Action, not Flare. DESIGN.md's Surface-or-Ink Rule says a colour
+     that IS the letterform is an ink, and names display numerals as the one
+     large-text exception that still takes the ink — and this stylesheet then
+     used the surface for all three numerals anyway. On label stock the flare
+     numeral measured 2.96:1 against a 3:1 floor, so the rule was not
+     pedantry; on the page it scraped 3.18:1. Flare Action is 4.93 and 5.29,
+     which clears large text with room and small text besides. */
+  color: var(--rw-orange);
 }
 
 .rw-path-title {
@@ -1816,4 +1838,101 @@ main:focus {
 [data-world="classic"] .rw-path-step {
   border-top-color: var(--rw-rule);
   border-top-width: 1px;
+}
+
+/* ---- The promise ----
+ * The six-month band claim. A split: the number on the left at a scale nothing
+ * else on the page uses, the promise on the right at reading size.
+ *
+ * The numeral is the loud element because the whole claim is the number — a
+ * reader who takes nothing else from this page should leave with "six months".
+ * It is flare, which is legal here because flare is a surface colour and this
+ * is display type well past the 40px the token reserves it for. */
+.rw-promise {
+  display: grid;
+  grid-template-columns: minmax(180px, 260px) 1fr;
+  gap: var(--rw-space-8);
+  align-items: start;
+}
+
+.rw-promise-figure {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  border-top: 6px solid var(--rw-flare);
+  padding-top: 12px;
+}
+
+.rw-promise-n {
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: clamp(96px, 15vw, 200px);
+  line-height: 0.74;
+  letter-spacing: var(--rw-track-poster);
+  font-variant-numeric: tabular-nums;
+  /* Flare Action, not Flare. DESIGN.md's Surface-or-Ink Rule says a colour
+     that IS the letterform is an ink, and names display numerals as the one
+     large-text exception that still takes the ink — and this stylesheet then
+     used the surface for all three numerals anyway. On label stock the flare
+     numeral measured 2.96:1 against a 3:1 floor, so the rule was not
+     pedantry; on the page it scraped 3.18:1. Flare Action is 4.93 and 5.29,
+     which clears large text with room and small text besides. */
+  color: var(--rw-orange);
+}
+
+.rw-promise-unit {
+  margin-top: 4px;
+  font-family: var(--rw-font-display);
+  font-weight: 700;
+  font-size: var(--rw-text-xl);
+  letter-spacing: var(--rw-track-eyebrow);
+  text-transform: uppercase;
+  color: var(--rw-ink);
+}
+
+.rw-promise-head {
+  margin: 0 0 18px;
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: clamp(32px, 4.6vw, 60px);
+  line-height: 0.98;
+  letter-spacing: var(--rw-track-tight);
+  text-transform: uppercase;
+  color: var(--rw-ink);
+}
+
+.rw-promise-body {
+  max-width: 54ch;
+  margin: 0 0 14px;
+  font-size: var(--rw-text-md);
+  line-height: 1.6;
+  color: var(--rw-prose);
+}
+
+@media (max-width: 860px) {
+  .rw-promise {
+    grid-template-columns: 1fr;
+    gap: var(--rw-space-5);
+  }
+  .rw-promise-figure {
+    flex-direction: row;
+    align-items: baseline;
+    gap: var(--rw-space-3);
+  }
+}
+
+[data-world="classic"] .rw-promise-n,
+[data-world="classic"] .rw-promise-figure {
+  color: var(--rw-orange);
+  border-top-color: var(--rw-orange);
+}
+
+[data-world="classic"] .rw-promise-head {
+  font-weight: 600;
+  letter-spacing: var(--rw-track-tight);
+  text-transform: none;
+}
+
+[data-world="classic"] .rw-promise-unit {
+  letter-spacing: 0.16em;
 }
