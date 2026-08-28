@@ -42,7 +42,9 @@
 }
 
 .bandInk {
-  background: linear-gradient(135deg, var(--rw-ink-deep), #0b3a4c 70%, #0e5561);
+  /* Lacquer. The old value ran to a teal that belonged to the previous world
+     and read as a different site sitting inside this one. */
+  background: linear-gradient(168deg, var(--rw-ink) 0%, var(--rw-ink-deep) 100%);
   color: #fff;
 }
 
@@ -124,7 +126,7 @@
 .hero {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(155deg, var(--rw-ink-deep) 0%, #0b2f43 52%, #0b5563 100%);
+  background: linear-gradient(168deg, var(--rw-ink) 0%, var(--rw-ink-deep) 100%);
 }
 
 .heroInner {
@@ -252,6 +254,16 @@
   color: #fff;
 }
 
+/* The primary action when it stands ON the flare field. Red on red is not a
+ * button, it is a smudge — the fill and the ground were four steps apart and
+ * the control stopped reading as a control. Lacquer on flare is the same
+ * relationship the type already uses on that ground, so the page keeps one
+ * logic: on colour, the ink is dark. */
+.field {
+  background: var(--rw-ink);
+  color: var(--rw-cream);
+}
+
 .secondary {
   background: #fff;
   color: var(--rw-ink);
@@ -268,9 +280,9 @@
   background: transparent;
   color: var(--rw-ink);
   border: none;
-  border-bottom: 1.5px solid rgba(10, 35, 56, 0.32);
+  border-bottom: 1.5px solid rgba(22, 18, 28, 0.38);
   border-radius: 0;
-  padding: 0 0 3px;
+  padding: 4px 0 6px;
   font-size: 15px;
 }
 .onDarkBtn.quiet {

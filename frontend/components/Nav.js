@@ -48,10 +48,10 @@ export default function Nav() {
         position: "sticky",
         top: 0,
         zIndex: 50,
-        background: "rgba(251,245,236,0.86)",
+        background: "rgba(22,18,28,0.9)",
         backdropFilter: "blur(14px)",
         WebkitBackdropFilter: "blur(14px)",
-        borderBottom: "1px solid var(--rw-border)",
+        borderBottom: "1px solid rgba(255,255,255,0.1)",
       }}
     >
       <div
@@ -67,7 +67,7 @@ export default function Nav() {
         }}
       >
         <Link href="/" style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0, textDecoration: "none" }}>
-          <RockWorksIcon size={38} color="var(--rw-orange)" />
+          <RockWorksIcon size={38} color="var(--rw-gold)" />
           <span
             style={{
               display: "flex",
@@ -75,16 +75,18 @@ export default function Nav() {
               lineHeight: 1,
             }}
           >
-            <span style={{ fontFamily: "var(--font-zilla-slab), serif", fontWeight: 700, fontSize: 25, letterSpacing: "0.01em", color: "var(--rw-ink)" }}>
-              Rock Works
-            </span>
+            {/* The one chrome object on the site. Chrome is a reflection, not
+                a colour, so it only reads as metal when light runs across it —
+                hence a clipped gradient rather than a grey. A second chrome
+                object anywhere would mean the page has none. */}
+            <span className="rw-wordmark">Rock Works</span>
             <span
               style={{
                 fontWeight: 700,
                 fontSize: 10.5,
                 letterSpacing: "0.28em",
                 textTransform: "uppercase",
-                color: "var(--rw-teal)",
+                color: "var(--rw-sea-glass)",
                 marginTop: 4,
               }}
             >
@@ -175,7 +177,7 @@ export default function Nav() {
                keep their size and spacing; the button grows around them, which
                is why this is a fixed box with centred content rather than more
                padding. */
-            style={{ display: "none", width: 44, height: 44, flexDirection: "column", alignItems: "center", justifyContent: "center", background: "transparent", border: "1px solid var(--rw-line)", borderRadius: 8, padding: 0, cursor: "pointer", color: "var(--rw-ink)" }}
+            style={{ display: "none", width: 44, height: 44, flexDirection: "column", alignItems: "center", justifyContent: "center", background: "transparent", border: "1px solid rgba(255,255,255,0.28)", borderRadius: 3, padding: 0, cursor: "pointer", color: "var(--rw-cream)" }}
           >
             <span style={{ display: "block", width: 20, height: 2, background: "currentColor", margin: "3px 0" }} />
             <span style={{ display: "block", width: 20, height: 2, background: "currentColor", margin: "3px 0" }} />
@@ -342,7 +344,7 @@ const navLinkStyle = {
   borderRadius: 8,
   fontSize: 14.5,
   fontWeight: 600,
-  color: "var(--rw-prose)",
+  color: "rgba(238,240,236,0.82)",
   textDecoration: "none",
   cursor: "pointer",
 };
@@ -353,10 +355,13 @@ const navLinkStyle = {
 // reader is meant to find. --rw-orange-deep is 5.45:1 there. The underline goes
 // with it: two oranges a few units apart, stacked, reads as a mistake rather
 // than as a pair.
+// On the lacquer bar the reading flips: the dark-ground accent is gold, and
+// the deep red that carried the active link on cream would now be the least
+// visible thing up there. Gold on lacquer measures 12.02:1.
 const activeNavLinkStyle = {
   ...navLinkStyle,
-  color: "var(--rw-orange-deep)",
-  boxShadow: "inset 0 -2px 0 var(--rw-orange-deep)",
+  color: "var(--rw-gold)",
+  boxShadow: "inset 0 -2px 0 var(--rw-gold)",
 };
 
 const mobileMenuLinkStyle = {
