@@ -42,7 +42,7 @@ export default function Contact() {
       <PageHero title={<>Contact Us</>} />
 
       <div style={{ maxWidth: 520, margin: "0 auto", padding: "36px 24px 100px" }}>
-        <div style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: 16, padding: 32, boxShadow: "0 26px 54px -34px rgba(90,40,70,0.4)" }}>
+        <div style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)", padding: 32, boxShadow: "0 26px 54px -34px rgba(90,40,70,0.4)" }}>
           {submitted ? (
             <p style={{ margin: 0, color: "var(--rw-ink)" }}>Thanks — we&apos;ll get back to you soon.</p>
           ) : (
@@ -86,7 +86,7 @@ export default function Contact() {
 }
 
 const labelStyle = { display: "flex", flexDirection: "column", gap: 6, fontSize: 13, fontWeight: 700, color: "var(--rw-prose)" };
-const inputStyle = { padding: "10px 12px", borderRadius: 8, border: "1px solid var(--rw-line)", fontSize: 14, fontFamily: "inherit" };
+const inputStyle = { padding: "10px 12px", borderRadius: "var(--rw-radius-sm)", border: "1px solid var(--rw-line)", fontSize: 14, fontFamily: "inherit" };
 const ctaBtn = {
   marginTop: 6,
   padding: "13px 20px",
