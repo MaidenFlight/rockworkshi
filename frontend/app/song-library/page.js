@@ -106,7 +106,7 @@ export default function SongLibrary() {
                 </div>
                 <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
                   <Link href="/signup" style={{ padding: "13px 28px", borderRadius: 8, background: "var(--rw-orange)", color: "#fff", fontWeight: 700, fontSize: 15, textDecoration: "none" }}>
-                    Start Lessons &rarr;
+                    Join the member area &rarr;
                   </Link>
                   <Link href="/program/curriculum" style={{ fontSize: 14, fontWeight: 700, color: "var(--rw-teal)", textDecoration: "none" }}>
                     See the full curriculum

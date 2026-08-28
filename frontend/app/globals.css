@@ -225,6 +225,69 @@ summary:focus-visible,
   }
 }
 
+/* ---- The record ----
+ * The proof band, between the last exits and the ask.
+ *
+ * A testimonial row stood here with three quotes attributed to "A Rock Works
+ * parent / student / family". None came from a real person, so it was deleted
+ * rather than restyled, and the slot then sat empty through the layout and
+ * clarify passes behind a comment warning against refilling it with invention.
+ * Every line standing here now traces to PRODUCT.md, to lib/content.js copy the
+ * school already published, or to the billing catalogue in
+ * backend/src/lib/plans.js. Nothing was counted for the occasion.
+ *
+ * The shape is the seventh on this page and shares a topology with none of the
+ * six: no columns, no cards, no rules between items, no numbered markers — one
+ * column of single-line declarations at headline scale. On a page whose whole
+ * identity is slab type on warm paper, turning the type up and taking every
+ * other device away is the system's own strongest move, and it makes this a
+ * peak in the scroll rather than a seventh row.
+ *
+ * Emphasis is weight, not colour. The countable run in each line goes to 700
+ * against a 500 body, so a skimmer reads down the block and gets 1982 / Six /
+ * Five / four to six weeks / five practice tools / recital without reading a
+ * sentence. Teal was tried first and measures 3.52:1 on Coral Sand — legal at
+ * this size, but it spends a colour to do what a weight step already does.
+ */
+.rw-record-lead {
+  font-family: var(--rw-font-display);
+  font-weight: 700;
+  font-size: clamp(25px, 3.1vw, 38px);
+  line-height: 1.14;
+  letter-spacing: var(--rw-track-tight);
+  color: var(--rw-ink);
+  margin: 0 0 26px;
+}
+
+.rw-record {
+  list-style: none;
+  margin: 0;
+  padding: 28px 0 0;
+  border-top: 1px solid var(--rw-rule);
+  display: grid;
+  gap: 15px;
+}
+
+.rw-record li {
+  font-family: var(--rw-font-display);
+  font-weight: 500;
+  font-size: clamp(20px, 2.2vw, 28px);
+  line-height: 1.26;
+  letter-spacing: var(--rw-track-tight);
+  color: var(--rw-ink);
+}
+
+.rw-record b {
+  font-weight: 700;
+}
+
+@media (max-width: 720px) {
+  .rw-record {
+    padding-top: 22px;
+    gap: 13px;
+  }
+}
+
 /* ---- Waves ----
  * The signature edge, as a positioned element so a dark band can carry one at
  * the top, the foot, or both. The top copy is flipped on Y so the paper spills
