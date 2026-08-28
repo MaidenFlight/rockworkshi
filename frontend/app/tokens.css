@@ -27,9 +27,36 @@
   --rw-border: #ece0d5; /* card and band edges */
   --rw-line: #d8cab8; /* input and button borders */
 
-  /* ---- Accents ---- */
-  --rw-orange: #ef5130; /* the CTA colour; one job, used sparingly */
-  --rw-orange-deep: #cf3f20; /* inline links and the darker gradient stop */
+  /* ---- Accents ----
+   * Both oranges were darkened on 2026-08-27, and the reason is the same one
+   * for both: they carry text, and they were failing at it.
+   *
+   * White on the old #ef5130 measured 3.57:1 against a 4.5:1 floor, and the
+   * .rw-cta hover brightens by 4%, which took the state a visitor is actually
+   * pointing at down to 3.31:1. That is every primary button on the site, not
+   * one screen. #c94428 measures 4.84:1 at rest and 4.52:1 hovered, so the
+   * button passes in the state it is read in and in the state it is used in.
+   *
+   * The old #cf3f20 failed its own job in the other direction: as inline link
+   * text on cream it measured 4.42:1. #b6371c measures 5.45:1 there, and white
+   * on it 5.91:1, which keeps the auth gradient legible across its whole
+   * sweep — the light stop used to be the failing #ef5130.
+   *
+   * Darkening was chosen over the alternatives on purpose. Putting ink on the
+   * orange instead measures 4.49:1, which fails by a hair and changes the
+   * design language besides. Leaving the bright orange for decoration and
+   * introducing a separate darker fill for buttons would break "one action
+   * colour" and add a value the system does not need. Both new values are
+   * plain darkenings along the same hue: the green-to-red ratio that makes
+   * this colour read as orange rather than red is 0.339 before and 0.338
+   * after, and the gradient's step is preserved (R 239->207 became 201->182).
+   *
+   * The consequence to respect: white text is now legible on both, so nothing
+   * here needs a lighter variant for "emphasis". If a future surface wants a
+   * brighter orange, it wants decoration, and decoration does not carry copy.
+   */
+  --rw-orange: #c94428; /* the CTA colour; one job, used sparingly. White on it: 4.84:1 */
+  --rw-orange-deep: #b6371c; /* inline links and the darker gradient stop. On cream: 5.45:1 */
   --rw-orange-tint: #fdece6; /* orange at wash strength, for notices */
   --rw-teal: #0e8a97; /* eyebrows, focus rings, quiet accents */
 

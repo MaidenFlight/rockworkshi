@@ -169,7 +169,7 @@ export default function SongLibrary() {
                   {s.level && (
                     <span style={{ flexShrink: 0, fontSize: 12, fontWeight: 700, color: "#0e6b78" }}>{s.level}</span>
                   )}
-                  <span style={{ flexShrink: 0, fontSize: 13, fontWeight: 700, color: "var(--rw-orange)" }}>View &rarr;</span>
+                  <span style={{ flexShrink: 0, fontSize: 13, fontWeight: 700, color: "var(--rw-orange-deep)" }}>View &rarr;</span>
                 </div>
               ))}
             </div>
