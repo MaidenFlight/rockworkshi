@@ -1526,3 +1526,292 @@ main:focus {
   text-transform: uppercase;
   color: var(--rw-sea-glass);
 }
+
+/* ---- The tracklist ----
+ * /program/curriculum. Five parts of one thing, read as a set. The numeral
+ * leads because the sequence IS the argument, and it is set at the scale the
+ * homepage gives it — the dedicated page had been rendering the school's best
+ * argument smaller than the page that only teases it. */
+.rw-track {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 2px solid var(--rw-ink);
+}
+
+.rw-track-row {
+  display: grid;
+  grid-template-columns: minmax(64px, 92px) 1fr;
+  gap: var(--rw-space-5);
+  align-items: baseline;
+  padding: 26px 0;
+  border-bottom: 1px solid var(--rw-rule);
+}
+
+.rw-track-n {
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: clamp(48px, 7vw, 84px);
+  line-height: 0.78;
+  letter-spacing: var(--rw-track-poster);
+  font-variant-numeric: tabular-nums;
+  color: var(--rw-flare);
+}
+
+.rw-track-name {
+  margin: 0 0 6px;
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: var(--rw-text-3xl);
+  line-height: 1;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--rw-ink);
+}
+
+.rw-track-desc {
+  margin: 0;
+  max-width: 56ch;
+  font-size: var(--rw-text-md);
+  line-height: 1.6;
+  color: var(--rw-prose);
+}
+
+/* ---- The path ----
+ * /program/how-it-works. Four stages where the point is that each leads to the
+ * next, so they are wide blocks threaded by a rule rather than rows in a list.
+ * Deliberately NOT the tracklist: these two pages were the same component
+ * built twice, which is the fault the homepage pass was written to fix. */
+.rw-path {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+}
+
+.rw-path-step {
+  position: relative;
+  padding: 30px 26px 34px 0;
+  border-top: 5px solid var(--rw-ink);
+}
+
+.rw-path-step + .rw-path-step {
+  padding-left: 26px;
+}
+
+.rw-path-n {
+  display: block;
+  margin-bottom: 14px;
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: var(--rw-text-4xl);
+  line-height: 0.8;
+  letter-spacing: var(--rw-track-poster);
+  font-variant-numeric: tabular-nums;
+  color: var(--rw-flare);
+}
+
+.rw-path-title {
+  margin: 0 0 10px;
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: var(--rw-text-2xl);
+  line-height: 1.04;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--rw-ink);
+}
+
+.rw-path-desc {
+  margin: 0;
+  font-size: var(--rw-text-base);
+  line-height: 1.6;
+  color: var(--rw-body);
+}
+
+.rw-onward {
+  display: flex;
+  gap: var(--rw-space-6);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+@media (max-width: 860px) {
+  .rw-path {
+    grid-template-columns: 1fr;
+  }
+  .rw-path-step,
+  .rw-path-step + .rw-path-step {
+    padding: 22px 0 26px;
+    border-top-width: 3px;
+  }
+}
+
+/* ---- The bill ----
+ * /community/events. A list of dated performances is a bill, and the date
+ * leads because that is what a reader scans for. */
+.rw-bill {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 2px solid var(--rw-ink);
+}
+
+.rw-bill-row {
+  display: grid;
+  grid-template-columns: minmax(110px, 150px) 1fr;
+  gap: var(--rw-space-5);
+  padding: 22px 0;
+  border-bottom: 1px solid var(--rw-rule);
+}
+
+.rw-bill-date {
+  font-family: var(--rw-font-display);
+  font-weight: 700;
+  font-size: var(--rw-text-lg);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--rw-orange-deep);
+}
+
+.rw-bill-title {
+  margin: 0 0 6px;
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: var(--rw-text-2xl);
+  line-height: 1.05;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--rw-ink);
+}
+
+.rw-bill-desc {
+  margin: 0;
+  font-size: var(--rw-text-base);
+  line-height: 1.6;
+  color: var(--rw-body);
+}
+
+/* The loading state is the bill's own shape rather than the word "Loading" —
+   a skeleton tells a reader what is arriving, which a grey word does not. */
+.rw-bill-skeleton span {
+  display: block;
+  background: var(--rw-rule);
+  border-radius: 2px;
+  animation: rw-pulse 1.4s ease-in-out infinite;
+}
+
+.rw-bill-skeleton .rw-bill-date {
+  height: 18px;
+  width: 84%;
+}
+
+.rw-bill-skeleton .rw-bill-title {
+  height: 24px;
+  width: 62%;
+  margin-bottom: 10px;
+}
+
+.rw-bill-skeleton .rw-bill-desc {
+  height: 15px;
+  width: 90%;
+}
+
+@keyframes rw-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rw-bill-skeleton span {
+    animation: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .rw-bill-row,
+  .rw-track-row {
+    grid-template-columns: 1fr;
+    gap: var(--rw-space-2);
+  }
+}
+
+/* ---- Empty states ----
+ * Used where a page is genuinely waiting on material the school has to supply.
+ * An empty state that does not admit it is one reads as a page that failed to
+ * load; one that does can at least ask for what it needs. */
+.rw-empty {
+  text-align: center;
+  padding: 8px 0 0;
+}
+
+.rw-empty-lead {
+  margin: 0 0 16px;
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: clamp(28px, 4vw, 44px);
+  line-height: 1.02;
+  letter-spacing: var(--rw-track-tight);
+  text-transform: uppercase;
+  color: var(--rw-ink);
+}
+
+.rw-empty-body {
+  max-width: 56ch;
+  margin: 0 auto 18px;
+  font-size: var(--rw-text-md);
+  line-height: 1.65;
+  color: var(--rw-prose);
+}
+
+.rw-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Classic keeps these structures but not the signage voice. */
+[data-world="classic"] .rw-track-n,
+[data-world="classic"] .rw-path-n {
+  color: var(--rw-teal);
+}
+
+[data-world="classic"] .rw-track-name,
+[data-world="classic"] .rw-path-title,
+[data-world="classic"] .rw-bill-title,
+[data-world="classic"] .rw-empty-lead {
+  font-weight: 600;
+  letter-spacing: var(--rw-track-tight);
+  text-transform: none;
+}
+
+[data-world="classic"] .rw-bill-date {
+  font-family: var(--rw-font-body);
+  font-size: var(--rw-text-xs);
+  letter-spacing: 0;
+  color: var(--rw-teal);
+}
+
+[data-world="classic"] .rw-track,
+[data-world="classic"] .rw-bill {
+  border-top-color: var(--rw-rule);
+  border-top-width: 1px;
+}
+
+[data-world="classic"] .rw-path-step {
+  border-top-color: var(--rw-rule);
+  border-top-width: 1px;
+}
