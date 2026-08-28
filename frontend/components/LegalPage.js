@@ -1,30 +1,25 @@
 import RockWorksIcon from "@/components/RockWorksIcon";
+import { PageHero } from "@/components/ui";
 
 // Shared shell for the terms, privacy and refund pages, so the three stay
 // consistent and only their prose differs.
 export default function LegalPage({ title, lastUpdated, intro, children }) {
   return (
     <div>
-      <section style={{ position: "relative", overflow: "hidden", background: "linear-gradient(155deg,var(--rw-ink-deep) 0%,#0b2f43 52%,#0b5563 100%)" }}>
-        <div style={{ position: "relative", maxWidth: 900, margin: "0 auto", padding: "56px 24px 70px", textAlign: "center" }}>
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
-            <RockWorksIcon size={36} color="var(--rw-gold)" />
-          </div>
-          <h1 style={{ fontWeight: 500, fontSize: "clamp(32px,4.4vw,48px)", margin: 0, color: "#fff", letterSpacing: "-0.015em" }}>
-            {title}
-          </h1>
-          {lastUpdated && (
-            <p style={{ margin: "14px 0 0", fontSize: 13.5, color: "#9fc4d2" }}>
-              Last updated {lastUpdated}
-            </p>
-          )}
-        </div>
-        <div style={{ lineHeight: 0 }}>
-          <svg viewBox="0 0 1440 70" preserveAspectRatio="none" style={{ width: "100%", height: 50, display: "block" }}>
-            <path d="M0,40 C360,80 1080,0 1440,40 L1440,70 L0,70 Z" fill="var(--rw-cream)" />
-          </svg>
-        </div>
-      </section>
+      {/* This was a fourth hand-rolled page header — the old world's teal
+          gradient hardcoded into it, its own copy of the wave, its own title
+          setting — which is why the three legal pages stayed on the previous
+          design after the redesign moved every shared header to lacquer. It
+          takes PageHero now, like every other route, so there is one page
+          header on the site and not two-and-a-half. */}
+      <PageHero
+        compact
+        eyebrow="Legal"
+        title={title}
+        mark={<RockWorksIcon size={36} color="var(--rw-gold)" />}
+      >
+        {lastUpdated && <p className="rw-legal-updated">Last updated {lastUpdated}</p>}
+      </PageHero>
 
       <div style={{ maxWidth: 720, margin: "0 auto", padding: "36px 24px 100px" }}>
         <ReviewBanner />
@@ -47,14 +42,14 @@ function ReviewBanner() {
         padding: "16px 18px",
         borderRadius: "var(--rw-radius-md)",
         background: "var(--rw-orange-tint)",
-        border: "1px solid #f3c7ba",
+        border: "1px solid color-mix(in srgb, var(--rw-orange) 34%, transparent)",
         marginBottom: 28,
       }}
     >
       <div style={{ fontWeight: 800, fontSize: 13, color: "var(--rw-orange-deep)", marginBottom: 6 }}>
         Draft — not yet in force
       </div>
-      <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.55, color: "#8a4b3a" }}>
+      <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.55, color: "var(--rw-prose)" }}>
         This document is a working draft awaiting review, and the sections marked below
         are incomplete. It does not yet form an agreement between you and the school.
         Please <a href="/contact" style={{ color: "var(--rw-orange-deep)" }}>get in touch</a> with any
@@ -72,10 +67,10 @@ export function Todo({ children }) {
       style={{
         display: "inline",
         padding: "2px 7px",
-        borderRadius: 5,
-        background: "#ffe9a8",
-        border: "1px solid #e0bf62",
-        color: "#6b4a05",
+        borderRadius: "var(--rw-radius-sm)",
+        background: "color-mix(in srgb, var(--rw-gold) 45%, var(--rw-cream))",
+        border: "1px solid var(--rw-gold)",
+        color: "var(--rw-ink)",
         fontWeight: 700,
         fontSize: "0.92em",
       }}

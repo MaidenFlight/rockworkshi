@@ -195,6 +195,13 @@
   --rw-nav-hover: rgba(255, 255, 255, 0.08);
   --rw-nav-mark: var(--rw-gold);
   --rw-nav-sub: var(--rw-sea-glass);
+  /* The dropdown descends from the bar, so it is made of the same material.
+     It was a light panel hanging off a dark bar — correct for the cream nav it
+     was designed for, and jarring under this one — with an old navy shadow
+     hardcoded into it that could not switch worlds. */
+  --rw-nav-panel: #221d2b;
+  --rw-nav-panel-fg: rgba(238, 240, 236, 0.86);
+  --rw-nav-shadow: 0 18px 40px -20px rgba(0, 0, 0, 0.7);
 }
 
 /* ==========================================================================
@@ -265,6 +272,9 @@
   --rw-nav-hover: rgba(42, 26, 51, 0.05);
   --rw-nav-mark: var(--rw-orange);
   --rw-nav-sub: var(--rw-teal);
+  --rw-nav-panel: var(--rw-surface);
+  --rw-nav-panel-fg: var(--rw-prose);
+  --rw-nav-shadow: 0 18px 40px -20px rgba(6, 25, 45, 0.4);
 }
 
 /* The wordmark's chrome is a Silkie device and has no classic reading, so the
