@@ -19,8 +19,13 @@ const STEPS = [
   },
   {
     n: 4,
-    title: "Perform it live",
-    desc: "Finished songs are a student's ticket to the Rock Works stage — solo, or with a full band behind them.",
+    title: "Join a band at six months",
+    desc: "Six months on your instrument and you are placed in a Rock Band — four or five players, each on a different part, learning one song together and rehearsing weekly.",
+  },
+  {
+    n: 5,
+    title: "Play it in front of people",
+    desc: "Bands get the chance to perform on a real stage in Hawaii, and finished songs are a student's ticket to the Rock Works recital.",
   },
 ];
 
@@ -39,7 +44,7 @@ export default function HowItWorks() {
       <EditorialHero
         eyebrow="Lessons"
         title="How It Works"
-        intro="One weekly lesson, one real song, five levels — practiced, performed, then repeated with the next song."
+        intro="One weekly lesson, one real song, five levels — and a band of your own at six months."
       />
 
       <Container style={{ padding: "56px 24px 44px" }}>

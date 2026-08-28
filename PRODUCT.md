@@ -44,9 +44,15 @@ truthfully copy without rebuilding what it teaches:
   student can play along; it is learned at the end of five passes through it.
 - **A stated ten-year path.** The school will tell a student where they will be
   at six months, and at one, two, three, five and ten years.
+- **The six-month band promise.** A student is placed in a Rock Band after six
+  months on their instrument, with a chance to perform on a Hawaii stage. This
+  is the sharpest thing the school offers and the hardest for a neighbouring
+  school to match: it converts "music lessons" into a dated, concrete
+  destination. Treat it as the headline claim, not a programme detail.
 
-Everything aims at a stage. One-on-one or in a Rock Band with friends, students
-are always building toward performing.
+Everything aims at a stage. This is not a school that teaches music and hosts
+the occasional recital — it is a school that puts students in bands. One-on-one
+tuition is the route to the band, not the product beside it.
 
 ## Operating Context
 
@@ -104,6 +110,11 @@ are always building toward performing.
 **Real, confirmed by the user, and must be preserved:**
 
 - The school was **established in Honolulu in 1982**.
+- **The six-month band promise.** Confirmed by the user on 2026-08-28, in their
+  words: "after 6 months of learning an instrument, you will be put into a rock
+  band and get a chance to perform in Hawaii." Two claims, and the difference
+  between them is load-bearing: joining a band is what *happens*, performing is
+  a *chance*. Copy must not upgrade the second into a guarantee.
 
 **Not real. Placeholder content currently on a live site that takes payment.
 Future work must not repeat any of it as fact, and must not invent more:**
