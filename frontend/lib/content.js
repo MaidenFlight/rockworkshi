@@ -5,7 +5,6 @@ export const primaryNav = [
     menu: [
       { label: "Philosophy", href: "/about/philosophy" },
       { label: "History", href: "/about/history" },
-      { label: "Teachers", href: "/teachers" },
       { label: "Alumni", href: "/community/alumni" },
     ],
   },
@@ -200,7 +199,6 @@ export const programs = [
 export const footerLinks = [
   { label: "About", href: "/about/philosophy" },
   { label: "Lessons", href: "/song-library" },
-  { label: "Teachers", href: "/teachers" },
   { label: "Practice Tools", href: "/tools" },
   { label: "FAQ", href: "/faq" },
   { label: "Contact", href: "/contact" },
