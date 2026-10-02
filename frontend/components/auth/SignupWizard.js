@@ -141,7 +141,7 @@ export default function SignupWizard({ mode, instrument = null }) {
           const active = n <= step;
           return (
             <div key={label} style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
-              <div style={{ height: 5, borderRadius: 999, background: active ? "var(--rw-orange)" : "var(--rw-border)" }} />
+              <div style={{ height: 5, borderRadius: "var(--rw-radius-pill)", background: active ? "var(--rw-orange)" : "var(--rw-border)" }} />
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: active ? "var(--rw-orange-deep)" : "var(--rw-meta)" }}>
                 {label}
               </div>
@@ -150,7 +150,7 @@ export default function SignupWizard({ mode, instrument = null }) {
         })}
       </div>
 
-      <div style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: 24, padding: 32, boxShadow: "0 24px 50px -34px rgba(90,40,70,0.35)" }}>
+      <div style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)", padding: 32, boxShadow: "0 24px 50px -34px color-mix(in srgb, var(--rw-ink-deep) 35%, transparent)" }}>
         {step === 1 && (
           <div>
             <h3 style={stepTitleStyle}>Student &amp; sponsor info</h3>
@@ -218,7 +218,7 @@ export default function SignupWizard({ mode, instrument = null }) {
               </label>
             )}
 
-            <label style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 16, fontSize: 15, color: "#22323d", cursor: "pointer" }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 16, fontSize: 15, color: "var(--rw-ink)", cursor: "pointer" }}>
               <input type="checkbox" checked={form.isMinor} onChange={(e) => set("isMinor", e.target.checked)} style={{ width: 18, height: 18, accentColor: "var(--rw-orange)" }} />
               Student is a minor (needs an adult sponsor)
             </label>
@@ -280,11 +280,11 @@ export default function SignupWizard({ mode, instrument = null }) {
             <h3 style={stepTitleStyle}>Instruction choice</h3>
             <div onClick={() => set("instructionType", "individual")} style={choiceCardStyle(form.instructionType === "individual")}>
               <div style={{ fontWeight: 700, fontSize: 16.5, color: "var(--rw-ink)" }}>One-on-one</div>
-              <div style={{ fontSize: 14, color: "#7a6d78", marginTop: 3 }}>Individual lessons built around you.</div>
+              <div style={{ fontSize: 14, color: "var(--rw-body)", marginTop: 3 }}>Individual lessons built around you.</div>
             </div>
             <div onClick={() => set("instructionType", "band")} style={choiceCardStyle(form.instructionType === "band")}>
               <div style={{ fontWeight: 700, fontSize: 16.5, color: "var(--rw-ink)" }}>Rock Band</div>
-              <div style={{ fontSize: 14, color: "#7a6d78", marginTop: 3 }}>Two or more signing up together.</div>
+              <div style={{ fontSize: 14, color: "var(--rw-body)", marginTop: 3 }}>Two or more signing up together.</div>
             </div>
             <label style={fieldLabelStyle}>
               Signing up with a friend or sibling? Their name
@@ -300,7 +300,7 @@ export default function SignupWizard({ mode, instrument = null }) {
               <div key={p.key} onClick={() => set("plan", p.name)} style={planCardStyle(form.plan === p.name)}>
                 <div>
                   <div style={{ fontWeight: 700, fontSize: 16, color: "var(--rw-ink)" }}>{p.name}</div>
-                  <div style={{ fontSize: 13.5, color: "#7a6d78", marginTop: 2 }}>{p.sub}</div>
+                  <div style={{ fontSize: 13.5, color: "var(--rw-meta)", marginTop: 2 }}>{p.sub}</div>
                 </div>
                 <div style={{ fontFamily: "var(--font-zilla-slab), serif", fontWeight: 600, fontSize: 24, color: "var(--rw-orange)" }}>{p.price}</div>
               </div>
@@ -343,10 +343,10 @@ export default function SignupWizard({ mode, instrument = null }) {
 const cardStyle = {
   background: "var(--rw-surface)",
   border: "1px solid var(--rw-border)",
-  borderRadius: 24,
+  borderRadius: "var(--rw-radius-md)",
   padding: "48px 36px",
   textAlign: "center",
-  boxShadow: "0 24px 50px -30px rgba(90,40,70,0.4)",
+  boxShadow: "0 24px 50px -30px color-mix(in srgb, var(--rw-ink-deep) 40%, transparent)",
 };
 
 const stepTitleStyle = {
@@ -402,9 +402,9 @@ const errStyle = {
 function choiceCardStyle(active) {
   return {
     padding: "16px 18px",
-    borderRadius: 12,
+    borderRadius: "var(--rw-radius-md)",
     border: active ? "2px solid var(--rw-orange)" : "1px solid var(--rw-line)",
-    background: active ? "var(--rw-orange-tint)" : "#fff",
+    background: active ? "var(--rw-orange-tint)" : "var(--rw-surface)",
     cursor: "pointer",
     marginBottom: 12,
   };
@@ -416,9 +416,9 @@ function planCardStyle(active) {
     alignItems: "center",
     justifyContent: "space-between",
     padding: "16px 18px",
-    borderRadius: 12,
+    borderRadius: "var(--rw-radius-md)",
     border: active ? "2px solid var(--rw-orange)" : "1px solid var(--rw-line)",
-    background: active ? "var(--rw-orange-tint)" : "#fff",
+    background: active ? "var(--rw-orange-tint)" : "var(--rw-surface)",
     cursor: "pointer",
     marginBottom: 12,
   };
@@ -426,7 +426,7 @@ function planCardStyle(active) {
 
 const backBtnStyle = {
   padding: "13px 22px",
-  borderRadius: 999,
+  borderRadius: "var(--rw-radius-sm)",
   fontWeight: 700,
   fontSize: 14.5,
   color: "var(--rw-prose)",
@@ -440,12 +440,12 @@ const ctaButtonStyle = {
   alignItems: "center",
   gap: 8,
   padding: "13px 30px",
-  borderRadius: 999,
+  borderRadius: "var(--rw-radius-sm)",
   fontWeight: 800,
   fontSize: 15,
   color: "#fff",
   border: "none",
   cursor: "pointer",
   background: "linear-gradient(135deg,var(--rw-orange),var(--rw-orange-deep))",
-  boxShadow: "0 14px 28px -12px rgba(224,91,74,0.6)",
+  boxShadow: "0 14px 28px -12px color-mix(in srgb, var(--rw-orange) 60%, transparent)",
 };

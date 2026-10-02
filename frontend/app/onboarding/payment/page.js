@@ -204,8 +204,8 @@ function PaymentContent() {
             </div>
 
             {wasCancelled && !payError && (
-              <div style={{ ...noticeStyle, background: "#fff6e6", borderColor: "#f0d9a8" }}>
-                <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.5, color: "#8a6a3a" }}>
+              <div style={{ ...noticeStyle, background: "color-mix(in srgb, var(--rw-gold) 16%, var(--rw-surface))", borderColor: "color-mix(in srgb, var(--rw-gold) 55%, var(--rw-border))" }}>
+                <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.5, color: "var(--rw-body)" }}>
                   Checkout was cancelled and you haven&apos;t been charged. You can try again
                   whenever you&apos;re ready.
                 </p>
@@ -217,7 +217,7 @@ function PaymentContent() {
             {isStripe && isTestMode && (
               <div style={noticeStyle}>
                 <div style={noticeTitleStyle}>Test mode</div>
-                <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.5, color: "#8a4b3a" }}>
+                <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.5, color: "var(--rw-body)" }}>
                   Stripe is in test mode, so no real money moves. Use card 4242 4242 4242 4242
                   with any future expiry and any CVC.
                 </p>
@@ -227,7 +227,7 @@ function PaymentContent() {
             {!isStripe && isDemo && (
               <div style={noticeStyle}>
                 <div style={noticeTitleStyle}>Demo checkout</div>
-                <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.5, color: "#8a4b3a" }}>
+                <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.5, color: "var(--rw-body)" }}>
                   No card details are collected and nothing is charged. This step stands in for
                   real payment while the site is in development.
                 </p>
@@ -237,7 +237,7 @@ function PaymentContent() {
             {!isStripe && !isDemo && (
               <div style={noticeStyle}>
                 <div style={noticeTitleStyle}>Payments aren&apos;t open yet</div>
-                <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.5, color: "#8a4b3a" }}>
+                <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.5, color: "var(--rw-body)" }}>
                   Card payments are still being set up. Your account is saved — get in touch and
                   we&apos;ll finish your enrolment by hand.
                 </p>
@@ -262,7 +262,7 @@ function PaymentContent() {
                 width: "100%",
                 marginTop: 22,
                 padding: "15px 24px",
-                borderRadius: 999,
+                borderRadius: "var(--rw-radius-sm)",
                 fontWeight: 800,
                 fontSize: 15.5,
                 color: "#fff",
@@ -318,9 +318,9 @@ const headingStyle = {
 const noticeStyle = {
   marginTop: 20,
   padding: "14px 16px",
-  borderRadius: 10,
+  borderRadius: "var(--rw-radius-md)",
   background: "var(--rw-orange-tint)",
-  border: "1px solid #f3c7ba",
+  border: "1px solid color-mix(in srgb, var(--rw-orange) 25%, var(--rw-orange-tint))",
 };
 
 const noticeTitleStyle = {
@@ -333,8 +333,8 @@ const noticeTitleStyle = {
 const cardStyle = {
   background: "var(--rw-surface)",
   border: "1px solid var(--rw-border)",
-  borderRadius: 24,
+  borderRadius: "var(--rw-radius-md)",
   padding: "48px 36px",
   textAlign: "center",
-  boxShadow: "0 24px 50px -30px rgba(90,40,70,0.4)",
+  boxShadow: "0 24px 50px -30px color-mix(in srgb, var(--rw-ink-deep) 40%, transparent)",
 };

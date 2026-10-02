@@ -93,7 +93,7 @@ const triggerStyle = {
   alignItems: "center",
   gap: 9,
   padding: "6px 12px 6px 6px",
-  borderRadius: 999,
+  borderRadius: "var(--rw-radius-sm)",
   border: "1px solid var(--rw-border)",
   background: "var(--rw-surface)",
   cursor: "pointer",
@@ -120,8 +120,8 @@ const menuStyle = {
   minWidth: 220,
   background: "var(--rw-surface)",
   border: "1px solid var(--rw-border)",
-  borderRadius: 12,
-  boxShadow: "0 20px 44px -20px rgba(6,25,45,0.4)",
+  borderRadius: "var(--rw-radius-md)",
+  boxShadow: "0 20px 44px -20px color-mix(in srgb, var(--rw-ink-deep) 40%, transparent)",
   padding: 8,
   zIndex: 80,
 };
@@ -129,7 +129,7 @@ const menuStyle = {
 const menuItemStyle = {
   display: "block",
   padding: "10px 12px",
-  borderRadius: 8,
+  borderRadius: "var(--rw-radius-sm)",
   fontSize: 14,
   fontWeight: 700,
   color: "var(--rw-prose)",

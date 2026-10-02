@@ -34,7 +34,7 @@ export default function SignUp() {
         </Suspense>
 
         <div style={{ textAlign: "center", marginTop: 24 }}>
-          <p style={{ margin: 0, fontSize: 13.5, color: "#7a6d78" }}>
+          <p style={{ margin: 0, fontSize: 13.5, color: "var(--rw-meta)" }}>
             Already have an account?{" "}
             <Link href="/signin" style={{ color: "var(--rw-orange-deep)", fontWeight: 700, textDecoration: "none" }}>
               Sign in here.
