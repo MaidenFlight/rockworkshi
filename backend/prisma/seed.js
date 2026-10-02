@@ -87,14 +87,8 @@ async function main() {
   }
   await prisma.lessonVideo.createMany({ data: videos, skipDuplicates: true });
 
-  await prisma.teacher.createMany({
-    data: [
-      { name: "Kalani Akana", bio: "Guitar and ukulele instructor, 15 years teaching keiki and adults alike.", instruments: "Guitar, Ukulele", order: 0 },
-      { name: "Maya Reyes", bio: "Vocal coach and pianist with a background in musical theatre.", instruments: "Voice, Piano", order: 1 },
-      { name: "Ben Torres", bio: "Drummer and bassist, leads our Rock Band program.", instruments: "Drums, Bass", order: 2 },
-    ],
-    skipDuplicates: true,
-  });
+  // No teachers are seeded. Three invented ones used to be, and they reached
+  // production; the page shows real people or an honest empty state.
 
   await prisma.faq.createMany({
     data: [
