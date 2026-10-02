@@ -1,4 +1,5 @@
 import EditorialHero from "@/components/EditorialHero";
+import T from "@/components/T";
 import { Container, Button } from "@/components/ui";
 
 const STEPS = [
@@ -42,9 +43,9 @@ export default function HowItWorks() {
   return (
     <div>
       <EditorialHero
-        eyebrow="Lessons"
-        title="How It Works"
-        intro="One weekly lesson, one real song, five levels — and a band of your own at six months."
+        eyebrow={<T k="how.hero.eyebrow">Lessons</T>}
+        title={<T k="how.hero.title">How It Works</T>}
+        intro={<T k="how.hero.intro">One weekly lesson, one real song, five levels — and a band of your own at six months.</T>}
       />
 
       <Container style={{ padding: "56px 24px 44px" }}>
@@ -52,8 +53,8 @@ export default function HowItWorks() {
           {STEPS.map((s) => (
             <li key={s.n} className="rw-path-step">
               <span className="rw-path-n">{s.n}</span>
-              <h2 className="rw-path-title">{s.title}</h2>
-              <p className="rw-path-desc">{s.desc}</p>
+              <h2 className="rw-path-title"><T k={`how.step${s.n}.title`}>{s.title}</T></h2>
+              <p className="rw-path-desc"><T k={`how.step${s.n}.desc`}>{s.desc}</T></p>
             </li>
           ))}
         </ol>
@@ -61,16 +62,16 @@ export default function HowItWorks() {
 
       <section className="rw-band">
         <Container style={{ padding: "40px 24px 48px" }}>
-          <div className="rw-band-label">Where to next</div>
+          <div className="rw-band-label"><T k="how.next.label">Where to next</T></div>
           <div className="rw-onward">
             <Button href="/program/curriculum" variant="quiet" onDark>
-              See the full curriculum &rarr;
+              <T k="how.next.curriculum">See the full curriculum &rarr;</T>
             </Button>
             <Button href="/program/format" variant="quiet" onDark>
-              See formats &amp; pricing &rarr;
+              <T k="how.next.format">See formats &amp; pricing &rarr;</T>
             </Button>
             <Button href="/tools" variant="quiet" onDark>
-              Try the practice tools &rarr;
+              <T k="how.next.tools">Try the practice tools &rarr;</T>
             </Button>
           </div>
         </Container>

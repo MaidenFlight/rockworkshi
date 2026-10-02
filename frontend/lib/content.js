@@ -57,18 +57,21 @@ export const instruments = [
 // the guardian reading it is deciding, not being charmed.
 export const audiences = [
   {
+    key: "teens",
     title: "Teens & bands",
     desc: "Form a band with friends and siblings and take a song to a stage — or go one-on-one and set your own pace.",
     cta: "Explore band lessons",
     href: "/program/format",
   },
   {
+    key: "keiki",
     title: "Keiki (ages 5+)",
     desc: "From age five up, singing the song comes before playing it — so a first lesson is music, not setup.",
     cta: "See the early years",
     href: "/program/curriculum",
   },
   {
+    key: "adults",
     title: "Adults",
     desc: "Start at any age, on the same five levels everyone else gets. Scheduling works around a working week.",
     cta: "Start as an adult",

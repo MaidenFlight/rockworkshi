@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { API_URL } from "@/lib/api";
 import { PageHero } from "@/components/ui";
+import T from "@/components/T";
 
 export default function OnStage() {
   const [posts, setPosts] = useState(undefined);
@@ -25,11 +26,11 @@ export default function OnStage() {
 
   return (
     <div>
-      <PageHero title={<>On Stage</>} />
+      <PageHero title={<T k="onstage.hero.title">On Stage</T>} />
 
       <div style={{ maxWidth: 1000, margin: "0 auto", padding: "36px 24px 100px" }}>
         {posts === undefined && <p style={{ color: "var(--rw-meta)" }}>Loading…</p>}
-        {posts && posts.length === 0 && <p style={{ color: "var(--rw-meta)" }}>No performances posted yet — check back soon.</p>}
+        {posts && posts.length === 0 && <p style={{ color: "var(--rw-meta)" }}><T k="onstage.empty">No performances posted yet — check back soon.</T></p>}
 
         {featured && (
           <div style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)", overflow: "hidden", marginBottom: 36, boxShadow: "0 24px 50px -34px color-mix(in srgb, var(--rw-ink-deep) 30%, transparent)" }}>
@@ -81,7 +82,7 @@ export default function OnStage() {
           >
             <div style={{ maxWidth: 520 }}>
               <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--rw-gold)", marginBottom: 10 }}>
-                Song of the Month
+                <T k="onstage.som.label">Song of the Month</T>
               </div>
               <h3 style={{ fontWeight: 700, fontSize: 26, margin: "0 0 4px" }}>{songOfMonth.title}</h3>
               <div style={{ fontSize: 14, color: "color-mix(in srgb, var(--rw-chrome-hi) 72%, transparent)", marginBottom: 12 }}>{songOfMonth.artist}</div>
@@ -90,13 +91,13 @@ export default function OnStage() {
               </p>
             </div>
             <Link href="/song-library" style={{ flexShrink: 0, padding: "13px 26px", borderRadius: "var(--rw-radius-sm)", background: "var(--rw-orange)", color: "#fff", fontWeight: 700, fontSize: 14.5, textDecoration: "none", whiteSpace: "nowrap" }}>
-              View in Song Library &rarr;
+              <T k="onstage.som.cta">View in Song Library &rarr;</T>
             </Link>
           </div>
         )}
 
         <p style={{ margin: "22px 0 0", fontSize: 12.5, color: "var(--rw-meta)", textAlign: "center" }}>
-          Student media is published only with family consent.
+          <T k="onstage.consent">Student media is published only with family consent.</T>
         </p>
       </div>
     </div>

@@ -5,6 +5,12 @@ import { API_URL } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { ROLES } from "@/lib/auth/roles";
 
+// Wording is one line of plain text: runs of whitespace (JSX indentation, a
+// typed newline) render as a single space anyway, so they are stored as one.
+export function tidy(text) {
+  return String(text).replace(/\s+/g, " ").trim();
+}
+
 const SiteTextContext = createContext({ text: {}, editing: false, canEdit: false });
 
 // Edit mode lives in sessionStorage so it survives a reload in the same tab.
@@ -73,10 +79,11 @@ export function SiteTextProvider({ initialText, children }) {
   }, [text]);
 
   const save = useCallback(async (key, value, original) => {
-    const next = value.trim();
+    // One line of plain text: a typed newline would render as a space anyway.
+    const next = tidy(value);
     // Typing the original back, or clearing the text, both mean "the page's
     // own wording" — store nothing rather than a copy of it.
-    if (!next || next === original.trim()) {
+    if (!next || next === original) {
       if (key in text) return restore(key);
       return;
     }

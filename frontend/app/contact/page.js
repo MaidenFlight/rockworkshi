@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { API_URL } from "@/lib/api";
 import { PageHero } from "@/components/ui";
+import T from "@/components/T";
 
 export default function Contact() {
   const [form, setForm] = useState({ name: "", email: "", phone: "", reason: "General question", message: "" });
@@ -39,28 +40,28 @@ export default function Contact() {
 
   return (
     <div>
-      <PageHero title={<>Contact Us</>} />
+      <PageHero title={<T k="contact.hero.title">Contact Us</T>} />
 
       <div style={{ maxWidth: 520, margin: "0 auto", padding: "36px 24px 100px" }}>
         <div style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)", padding: 32, boxShadow: "0 26px 54px -34px rgba(90,40,70,0.4)" }}>
           {submitted ? (
-            <p style={{ margin: 0, color: "var(--rw-ink)" }}>Thanks — we&apos;ll get back to you soon.</p>
+            <p style={{ margin: 0, color: "var(--rw-ink)" }}><T k="contact.thanks">Thanks — we&apos;ll get back to you soon.</T></p>
           ) : (
             <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               <label style={labelStyle}>
-                Name
+                <T k="contact.field.name">Name</T>
                 <input value={form.name} onChange={(e) => set("name", e.target.value)} style={inputStyle} required />
               </label>
               <label style={labelStyle}>
-                Email
+                <T k="contact.field.email">Email</T>
                 <input type="email" value={form.email} onChange={(e) => set("email", e.target.value)} style={inputStyle} required />
               </label>
               <label style={labelStyle}>
-                Phone
+                <T k="contact.field.phone">Phone</T>
                 <input value={form.phone} onChange={(e) => set("phone", e.target.value)} style={inputStyle} />
               </label>
               <label style={labelStyle}>
-                Reason
+                <T k="contact.field.reason">Reason</T>
                 <select value={form.reason} onChange={(e) => set("reason", e.target.value)} style={inputStyle}>
                   {["General question", "Billing", "Scheduling", "Other"].map((r) => (
                     <option key={r}>{r}</option>
@@ -68,7 +69,7 @@ export default function Contact() {
                 </select>
               </label>
               <label style={labelStyle}>
-                Message
+                <T k="contact.field.message">Message</T>
                 <textarea value={form.message} onChange={(e) => set("message", e.target.value)} rows={4} style={{ ...inputStyle, resize: "vertical" }} required />
               </label>
 
