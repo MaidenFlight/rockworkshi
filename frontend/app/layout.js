@@ -3,6 +3,9 @@ import "./globals.css";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { SiteTextProvider } from "@/contexts/SiteTextContext";
+import SiteTextBar from "@/components/SiteTextBar";
+import { getSiteText } from "@/lib/siteText";
 
 // Self-hosted from app/fonts rather than next/font/google. Fetching at build
 // time meant the build had to reach fonts.googleapis.com and failed when it
@@ -67,7 +70,11 @@ export const metadata = {
     "A ten-year, song-based music curriculum for individuals and rock bands, in Honolulu since 1982.",
 };
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  // Wording an admin has changed on the page. Cached under the site-text tag,
+  // so pages stay prerendered and a save expires them (lib/siteText.js).
+  const siteText = await getSiteText();
+
   return (
     <html lang="en" className={`${bigShoulders.variable} ${libreFranklin.variable} ${zillaSlab.variable} ${sourceSans.variable}`}
       suppressHydrationWarning>
@@ -97,6 +104,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
           }}
         />
         <AuthProvider>
+          <SiteTextProvider initialText={siteText}>
           <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", overflowX: "hidden" }}>
             {/* The nav is 26 tab stops deep — seven items, four of them
                 dropdowns, then Sign In, Sign Up and Book a Trial. A keyboard
@@ -115,6 +123,8 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
             </main>
             <Footer />
           </div>
+          <SiteTextBar />
+          </SiteTextProvider>
         </AuthProvider>
       </body>
     </html>

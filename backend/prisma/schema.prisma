@@ -258,3 +258,13 @@ model LessonVideo {
   @@unique([lessonId, instrument, level, kind])
   @@index([lessonId])
 }
+
+// Wording an administrator has changed on a public page. The page's own code
+// holds the original; a row here only exists while the text differs from it,
+// so deleting the row is how "restore original" works. `key` names the spot,
+// e.g. "format.hero.title".
+model SiteText {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
