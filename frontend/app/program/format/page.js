@@ -1,4 +1,5 @@
 import EditorialHero from "@/components/EditorialHero";
+import { Button } from "@/components/ui";
 
 const OPTIONS = [
   { title: "One-on-one", desc: "Weekly private lessons, paced entirely around one student." },
@@ -18,6 +19,7 @@ export default function Format() {
     <div>
       <EditorialHero eyebrow="Program" title="Format & Pricing" intro="Choose how you want to learn — solo, with friends, or in a band — and what it costs." />
       <div style={{ maxWidth: 1000, margin: "0 auto", padding: "48px 24px 100px" }}>
+        <h2 className="rw-subhead rw-subhead-flush">Ways to learn</h2>
         {/* Was three equal rounded cards — the arrangement six inner pages
             shared and the one the homepage threw out. They are tags now: the
             flare rule across the top is what makes the row read as one set. */}
@@ -40,20 +42,34 @@ export default function Format() {
             headings — so nothing on the page said "this is what it costs". */}
         <div className="rw-tags rw-tags-2">
           {PRICING.map((p) => (
-            <div key={p.name} className="rw-tag">
+            <div key={p.name} className="rw-tag" style={{ display: "flex", flexDirection: "column" }}>
               <h3 className="rw-tag-title">{p.name}</h3>
               <div className="rw-price">
                 <span className="rw-price-figure">{p.price}</span>
                 <span className="rw-price-per">{p.per}</span>
               </div>
               <p className="rw-tag-body">{p.desc}</p>
+              {/* This page had no control in <main> at all: a visitor who had
+                  just read the price had nothing to press. The plan itself is
+                  picked at payment, so both cards start the same signup. */}
+              <div style={{ marginTop: "auto", paddingTop: 22 }}>
+                <Button href="/signup">Join the member area</Button>
+              </div>
             </div>
           ))}
         </div>
-        <p style={{ marginTop: 24, fontSize: 13.5, color: "var(--rw-meta)" }}>
-          Membership covers everything on this site. Lesson times and fees are arranged with the
-          school — ask your teacher or mention it at your trial lesson.
+        {/* Said plainly because the formats above carry no price and the only
+            prices on the page belong to a different thing. */}
+        <p style={{ marginTop: 24, fontSize: 15.5, lineHeight: 1.7, color: "var(--rw-prose)", maxWidth: 640 }}>
+          Membership is the online member area: lesson videos, the song library and the practice tools.
+          Lessons at the school are a separate arrangement &mdash; times and fees are agreed with us
+          directly, usually at your free trial.
         </p>
+        <div style={{ marginTop: 20 }}>
+          <Button href="/trial" variant="quiet">
+            Book a free trial &rarr;
+          </Button>
+        </div>
       </div>
     </div>
   );
