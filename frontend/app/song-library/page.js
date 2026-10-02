@@ -55,22 +55,22 @@ export default function SongLibrary() {
               &larr; All songs
             </button>
             <div style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)", overflow: "hidden" }}>
-              <div style={{ padding: "28px 30px", borderBottom: "1px solid #f0e7dc" }}>
+              <div style={{ padding: "28px 30px", borderBottom: "1px solid var(--rw-border)" }}>
                 <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 20, flexWrap: "wrap" }}>
                   <div>
                     <h2 style={{ fontWeight: 700, fontSize: "clamp(26px,3.2vw,38px)", margin: "0 0 4px", color: "var(--rw-ink)", letterSpacing: "-0.015em" }}>
                       {openSong.title}
                     </h2>
-                    <div style={{ fontSize: 16, color: "#7a6d78" }}>{openSong.artist}</div>
+                    <div style={{ fontSize: 16, color: "var(--rw-body)" }}>{openSong.artist}</div>
                   </div>
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                     {openSong.level && (
-                      <span style={{ fontSize: 12.5, fontWeight: 700, color: "#0e6b78", background: "rgba(14,138,151,0.12)", padding: "6px 12px", borderRadius: 7 }}>
+                      <span style={{ fontSize: 12.5, fontWeight: 700, color: "var(--rw-teal)", background: "color-mix(in srgb, var(--rw-teal) 12%, transparent)", padding: "6px 12px", borderRadius: "var(--rw-radius-sm)" }}>
                         {openSong.level}
                       </span>
                     )}
                     {openSong.instrument && (
-                      <span style={{ fontSize: 12.5, fontWeight: 700, color: "#0e6b78", background: "rgba(14,138,151,0.12)", padding: "6px 12px", borderRadius: 7 }}>
+                      <span style={{ fontSize: 12.5, fontWeight: 700, color: "var(--rw-teal)", background: "color-mix(in srgb, var(--rw-teal) 12%, transparent)", padding: "6px 12px", borderRadius: "var(--rw-radius-sm)" }}>
                         {openSong.instrument}
                       </span>
                     )}
@@ -122,7 +122,7 @@ export default function SongLibrary() {
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search by song or artist…"
               aria-label="Search songs"
-              style={{ width: "100%", boxSizing: "border-box", padding: "14px 18px", borderRadius: "var(--rw-radius-md)", border: "1px solid var(--rw-line)", fontSize: 15.5, fontFamily: "inherit", background: "#fff", color: "var(--rw-ink)", marginBottom: 16 }}
+              style={{ width: "100%", boxSizing: "border-box", padding: "14px 18px", borderRadius: "var(--rw-radius-md)", border: "1px solid var(--rw-line)", fontSize: 15.5, fontFamily: "inherit", background: "var(--rw-surface)", color: "var(--rw-ink)", marginBottom: 16 }}
             />
 
             {instruments.length > 0 && (
@@ -147,7 +147,7 @@ export default function SongLibrary() {
             )}
 
             {songs && filtered.length === 0 && (
-              <div style={{ textAlign: "center", padding: "44px 20px", background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)", fontSize: 15, color: "#7a6d78" }}>
+              <div style={{ textAlign: "center", padding: "44px 20px", background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)", fontSize: 15, color: "var(--rw-body)" }}>
                 No songs match those filters yet.
               </div>
             )}
@@ -158,16 +158,16 @@ export default function SongLibrary() {
                   key={s.id}
                   onClick={() => setOpenId(s.id)}
                   className="dash-song"
-                  style={{ display: "flex", alignItems: "center", gap: 16, padding: "16px 20px", borderBottom: "1px solid #f0e6d8", cursor: "pointer" }}
+                  style={{ display: "flex", alignItems: "center", gap: 16, padding: "16px 20px", borderBottom: "1px solid var(--rw-border)", cursor: "pointer" }}
                 >
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 600, fontSize: 17, color: "var(--rw-ink)" }}>{s.title}</div>
-                    <div style={{ fontSize: 13.5, color: "#8a7d86" }}>
+                    <div style={{ fontSize: 13.5, color: "var(--rw-meta)" }}>
                       {s.artist} {s.instrument ? `· ${s.instrument}` : ""}
                     </div>
                   </div>
                   {s.level && (
-                    <span style={{ flexShrink: 0, fontSize: 12, fontWeight: 700, color: "#0e6b78" }}>{s.level}</span>
+                    <span style={{ flexShrink: 0, fontSize: 12, fontWeight: 700, color: "var(--rw-teal)" }}>{s.level}</span>
                   )}
                   <span style={{ flexShrink: 0, fontSize: 13, fontWeight: 700, color: "var(--rw-orange-deep)" }}>View &rarr;</span>
                 </div>
@@ -183,9 +183,9 @@ export default function SongLibrary() {
 function chipStyle(active) {
   return {
     padding: "6px 14px",
-    borderRadius: 999,
+    borderRadius: "var(--rw-radius-sm)",
     border: active ? "1px solid var(--rw-orange)" : "1px solid var(--rw-line)",
-    background: active ? "var(--rw-orange-tint)" : "#fff",
+    background: active ? "var(--rw-orange-tint)" : "var(--rw-surface)",
     fontWeight: 700,
     fontSize: 12.5,
     color: "var(--rw-ink)",

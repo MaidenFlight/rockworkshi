@@ -32,9 +32,9 @@ export default function OnStage() {
         {posts && posts.length === 0 && <p style={{ color: "var(--rw-meta)" }}>No performances posted yet — check back soon.</p>}
 
         {featured && (
-          <div style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)", overflow: "hidden", marginBottom: 36, boxShadow: "0 24px 50px -34px rgba(6,25,45,0.3)" }}>
-            <div style={{ position: "relative", aspectRatio: "16/9", background: "linear-gradient(135deg,var(--rw-ink-deep),#0b3a4c)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <span style={{ position: "absolute", left: 16, bottom: 16, background: "rgba(6,25,45,0.72)", color: "#fff", fontSize: 12, fontWeight: 700, letterSpacing: "0.05em", padding: "7px 14px", borderRadius: 6, display: "flex", alignItems: "center", gap: 7 }}>
+          <div style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)", overflow: "hidden", marginBottom: 36, boxShadow: "0 24px 50px -34px color-mix(in srgb, var(--rw-ink-deep) 30%, transparent)" }}>
+            <div style={{ position: "relative", aspectRatio: "16/9", background: "linear-gradient(135deg,var(--rw-ink-deep),color-mix(in srgb, var(--rw-teal) 35%, var(--rw-ink-deep)))", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <span style={{ position: "absolute", left: 16, bottom: 16, background: "color-mix(in srgb, var(--rw-ink-deep) 72%, transparent)", color: "#fff", fontSize: 12, fontWeight: 700, letterSpacing: "0.05em", padding: "7px 14px", borderRadius: "var(--rw-radius-sm)", display: "flex", alignItems: "center", gap: 7 }}>
                 <span style={{ color: "var(--rw-orange-deep)" }}>&#9654;</span> Featured
               </span>
             </div>
@@ -54,10 +54,10 @@ export default function OnStage() {
           <div className="rw-cols-3" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 20, marginBottom: 40 }}>
             {rest.map((p) => (
               <div key={p.id} style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)", overflow: "hidden", display: "flex", flexDirection: "column" }}>
-                <div style={{ position: "relative", aspectRatio: "16/10", background: "linear-gradient(135deg,#0b3a4c,#0e5561)" }} />
+                <div style={{ position: "relative", aspectRatio: "16/10", background: "linear-gradient(135deg,color-mix(in srgb, var(--rw-teal) 35%, var(--rw-ink-deep)),color-mix(in srgb, var(--rw-teal) 55%, var(--rw-ink-deep)))" }} />
                 <div style={{ padding: "16px 18px", display: "flex", flexDirection: "column", flex: 1 }}>
                   <h3 style={{ fontWeight: 600, fontSize: 17, margin: "0 0 9px", color: "var(--rw-ink)" }}>{p.title}</h3>
-                  <p style={{ margin: "0 0 12px", fontSize: 13.5, lineHeight: 1.5, color: "#7a6d78", flex: 1 }}>{p.description}</p>
+                  <p style={{ margin: "0 0 12px", fontSize: 13.5, lineHeight: 1.5, color: "var(--rw-meta)", flex: 1 }}>{p.description}</p>
                   <div style={{ fontSize: 12, fontWeight: 700, color: "var(--rw-teal)" }}>{p.date}</div>
                 </div>
               </div>
@@ -68,7 +68,7 @@ export default function OnStage() {
         {songOfMonth && (
           <div
             style={{
-              background: "linear-gradient(135deg,var(--rw-ink-deep),#0b3a4c)",
+              background: "linear-gradient(135deg,var(--rw-ink-deep),color-mix(in srgb, var(--rw-teal) 35%, var(--rw-ink-deep)))",
               borderRadius: "var(--rw-radius-md)",
               padding: 32,
               color: "#fff",
@@ -84,8 +84,8 @@ export default function OnStage() {
                 Song of the Month
               </div>
               <h3 style={{ fontWeight: 700, fontSize: 26, margin: "0 0 4px" }}>{songOfMonth.title}</h3>
-              <div style={{ fontSize: 14, color: "rgba(255,245,236,0.7)", marginBottom: 12 }}>{songOfMonth.artist}</div>
-              <p style={{ margin: 0, fontSize: 15.5, lineHeight: 1.6, color: "rgba(255,245,236,0.86)" }}>
+              <div style={{ fontSize: 14, color: "color-mix(in srgb, var(--rw-chrome-hi) 72%, transparent)", marginBottom: 12 }}>{songOfMonth.artist}</div>
+              <p style={{ margin: 0, fontSize: 15.5, lineHeight: 1.6, color: "color-mix(in srgb, var(--rw-chrome-hi) 86%, transparent)" }}>
                 {songOfMonth.notes || "A student favorite this month — a great next song to learn."}
               </p>
             </div>
