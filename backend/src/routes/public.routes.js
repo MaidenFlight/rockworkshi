@@ -3,6 +3,14 @@ const prisma = require("../lib/prisma");
 
 const router = express.Router();
 
+// Every wording override, as one { key: value } map. The frontend fetches this
+// once per page build and falls back to the text in its own code for any key
+// that is absent.
+router.get("/site-text", async (req, res) => {
+  const rows = await prisma.siteText.findMany();
+  res.json({ text: Object.fromEntries(rows.map((r) => [r.key, r.value])) });
+});
+
 router.get("/teachers", async (req, res) => {
   const teachers = await prisma.teacher.findMany({ where: { published: true }, orderBy: { order: "asc" } });
   res.json({ teachers });

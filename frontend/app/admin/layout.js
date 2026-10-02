@@ -1,9 +1,10 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { ROLES } from "@/lib/auth/roles";
+import { useSiteText } from "@/contexts/SiteTextContext";
 
 const NAV = [
   { label: "Overview", href: "/admin" },
@@ -22,6 +23,8 @@ const NAV = [
 
 export default function AdminLayout({ children }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { setEditing } = useSiteText();
 
   return (
     <ProtectedRoute allow={[ROLES.ADMINISTRATOR]}>
@@ -51,6 +54,32 @@ export default function AdminLayout({ children }) {
           ))}
 
           <div style={{ borderTop: "1px solid var(--rw-border)", margin: "16px 0 10px" }} />
+          {/* Wording on the public pages is edited on the pages themselves:
+              this switches the text editor on and opens the homepage. */}
+          <button
+            type="button"
+            onClick={() => {
+              setEditing(true);
+              router.push("/");
+            }}
+            style={{
+              display: "block",
+              width: "100%",
+              textAlign: "left",
+              padding: "9px 12px",
+              border: 0,
+              background: "transparent",
+              borderRadius: "var(--rw-radius-sm)",
+              fontFamily: "inherit",
+              fontSize: 14,
+              fontWeight: 700,
+              color: "var(--rw-orange-deep)",
+              cursor: "pointer",
+              marginBottom: 2,
+            }}
+          >
+            Edit site text &rarr;
+          </button>
           <Link
             href="/member"
             target="_blank"

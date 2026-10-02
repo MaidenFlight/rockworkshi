@@ -2026,3 +2026,102 @@ main:focus {
   font-size: 1em;
   font-weight: 700;
 }
+
+/* ---------- In-place text editing (admins only) ----------
+ * The outline is drawn in a fraction of the text's own colour so it reads on
+ * the lacquer heroes and on the page alike without a per-ground rule. */
+.rw-editable {
+  outline: 2px dashed color-mix(in srgb, currentColor 45%, transparent);
+  outline-offset: 3px;
+  cursor: text;
+  border-radius: var(--rw-radius-sm);
+}
+.rw-editable:hover {
+  background: color-mix(in srgb, currentColor 8%, transparent);
+}
+.rw-editable[data-changed] {
+  outline-color: color-mix(in srgb, var(--rw-gold) 85%, transparent);
+}
+.rw-editable:focus {
+  outline: 2px solid var(--rw-flare);
+  background: color-mix(in srgb, currentColor 6%, transparent);
+}
+
+.rw-textbar-open,
+.rw-textbar {
+  position: fixed;
+  z-index: 200;
+  left: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  font-family: var(--rw-font-body);
+  box-shadow: 0 18px 40px -16px color-mix(in srgb, var(--rw-ink-deep) 60%, transparent);
+}
+.rw-textbar-open {
+  padding: 12px 18px;
+  min-height: 44px;
+  border: 0;
+  border-radius: var(--rw-radius-sm);
+  background: var(--rw-ink);
+  color: var(--rw-chrome-hi);
+  font-weight: 700;
+  font-size: var(--rw-text-sm);
+  cursor: pointer;
+}
+.rw-textbar {
+  right: 16px;
+  max-width: 760px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  padding: 12px 14px 12px 18px;
+  border-radius: var(--rw-radius-md);
+  background: var(--rw-ink);
+  color: var(--rw-chrome-hi);
+}
+.rw-textbar-help,
+.rw-textbar-status {
+  margin: 0;
+  font-size: var(--rw-text-sm);
+  line-height: 1.45;
+}
+.rw-textbar-help {
+  flex: 1 1 260px;
+}
+.rw-textbar-status {
+  flex: 1 1 200px;
+  color: var(--rw-gold);
+}
+.rw-textbar-status[data-state="error"] {
+  color: var(--rw-flare);
+  font-weight: 700;
+}
+.rw-textbar-actions {
+  display: flex;
+  gap: 8px;
+}
+.rw-textbar-btn {
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: var(--rw-radius-sm);
+  border: 1px solid color-mix(in srgb, var(--rw-chrome-hi) 35%, transparent);
+  background: transparent;
+  color: var(--rw-chrome-hi);
+  font: inherit;
+  font-weight: 700;
+  font-size: var(--rw-text-sm);
+  cursor: pointer;
+}
+.rw-textbar-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.rw-textbar-done {
+  background: var(--rw-orange);
+  border-color: var(--rw-orange);
+}
+.rw-textbar-open:focus-visible,
+.rw-textbar-btn:focus-visible {
+  outline: 2px solid var(--rw-gold);
+  outline-offset: 2px;
+}

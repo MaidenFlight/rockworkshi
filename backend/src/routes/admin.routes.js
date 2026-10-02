@@ -103,6 +103,28 @@ router.get("/messages", async (req, res) => {
   res.json({ messages });
 });
 
+// ---------- Site text (wording edited in place on the public pages) ----------
+
+// Keys come from the frontend's <T k="..."> markers. The pattern keeps them to
+// the dotted names the code uses, so the table can't fill with arbitrary ids.
+const SITE_TEXT_KEY = /^[a-z0-9][a-z0-9._-]{0,119}$/i;
+const SITE_TEXT_MAX = 5000;
+
+router.put("/site-text/:key", async (req, res) => {
+  const { key } = req.params;
+  const value = typeof req.body?.value === "string" ? req.body.value : null;
+  if (!SITE_TEXT_KEY.test(key)) return res.status(400).json({ error: "That text has no valid name." });
+  if (value === null || !value.trim()) return res.status(400).json({ error: "Text can't be empty." });
+  if (value.length > SITE_TEXT_MAX) return res.status(400).json({ error: "That text is too long." });
+  const row = await prisma.siteText.upsert({ where: { key }, create: { key, value }, update: { value } });
+  res.json({ key: row.key, value: row.value });
+});
+
+router.delete("/site-text/:key", async (req, res) => {
+  await prisma.siteText.deleteMany({ where: { key: req.params.key } });
+  res.status(204).end();
+});
+
 // ---------- Generic content CRUD (teachers, faqs, songs, onstage, lessons) ----------
 
 function contentCrud(path, model, fields, { orderBy = { order: "asc" } } = {}) {
