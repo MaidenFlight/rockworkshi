@@ -1,7 +1,7 @@
 "use client";
 
 import { Children, useRef, useState } from "react";
-import { useSiteText } from "@/contexts/SiteTextContext";
+import { useSiteText, tidy } from "@/contexts/SiteTextContext";
 
 // Marks a run of wording an admin can change from the page itself:
 //
@@ -16,7 +16,10 @@ import { useSiteText } from "@/contexts/SiteTextContext";
 // either split into several <T>s around the markup or left uneditable.
 export default function T({ k, children }) {
   const { text, editing } = useSiteText();
-  const original = Children.toArray(children).join("");
+  // Collapsed because JSX keeps the indentation around an entity at a line
+  // end. A page never shows it (HTML collapses runs of spaces), but an
+  // editable span is pre-wrap and would.
+  const original = tidy(Children.toArray(children).join(""));
   const value = text[k] ?? original;
   if (!editing) return value;
   return <EditableText k={k} value={value} original={original} />;

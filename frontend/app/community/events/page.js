@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import EditorialHero from "@/components/EditorialHero";
+import T from "@/components/T";
 import { Container, Button } from "@/components/ui";
 import { API_URL } from "@/lib/api";
 
@@ -54,9 +55,9 @@ export default function Events() {
   return (
     <div>
       <EditorialHero
-        eyebrow="Community"
-        title="Events"
-        intro="Recitals, showcases, and performances throughout the year."
+        eyebrow={<T k="events.hero.eyebrow">Community</T>}
+        title={<T k="events.hero.title">Events</T>}
+        intro={<T k="events.hero.intro">Recitals, showcases, and performances throughout the year.</T>}
       />
 
       <Container width="text" style={{ padding: "56px 24px 80px" }}>
@@ -98,19 +99,26 @@ export default function Events() {
         {posts && posts.length === 0 && (
           <div className="rw-empty">
             <p className="rw-empty-lead">
-              {failed
-                ? "The events list would not load just now."
-                : "Nothing on the calendar yet this season."}
+              {failed ? (
+                <T k="events.failed.lead">The events list would not load just now.</T>
+              ) : (
+                <T k="events.empty.lead">Nothing on the calendar yet this season.</T>
+              )}
             </p>
             <p className="rw-empty-body">
-              {failed
-                ? "That is our end, not yours. Try again in a moment, or ask us what is coming up."
-                : "Bands rehearse weekly and finish at a Rock Works recital, so dates go up as they are set. Ask us what is coming up, or come and see a lesson first."}
+              {failed ? (
+                <T k="events.failed.body">That is our end, not yours. Try again in a moment, or ask us what is coming up.</T>
+              ) : (
+                <T k="events.empty.body">
+                  Bands rehearse weekly and finish at a Rock Works recital, so dates go up as they are set. Ask us
+                  what is coming up, or come and see a lesson first.
+                </T>
+              )}
             </p>
             <div style={{ display: "flex", gap: 16, flexWrap: "wrap", justifyContent: "center" }}>
-              <Button href="/contact">Ask what&apos;s coming up</Button>
+              <Button href="/contact"><T k="events.cta.ask">Ask what&apos;s coming up</T></Button>
               <Button href="/trial" variant="quiet">
-                Book a free trial &rarr;
+                <T k="cta.trial">Book a free trial &rarr;</T>
               </Button>
             </div>
           </div>

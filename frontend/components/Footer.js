@@ -3,6 +3,7 @@ import { footerLinks, footerSocial } from "@/lib/content";
 import RockWorksIcon from "@/components/RockWorksIcon";
 import SocialIcon from "@/components/SocialIcon";
 import WorldToggle from "@/components/WorldToggle";
+import T from "@/components/T";
 
 export default function Footer() {
   return (
@@ -31,7 +32,7 @@ export default function Footer() {
             </div>
           </div>
           <p style={{ margin: "14px 0 16px", fontSize: 13.5, lineHeight: 1.55 }}>
-            A ten-year, song-based music curriculum for individuals and rock bands. Music is life.
+            <T k="footer.tagline">A ten-year, song-based music curriculum for individuals and rock bands. Music is life.</T>
           </p>
           <div style={{ display: "flex", gap: 8 }}>
             {footerSocial.map((s) => (
@@ -64,7 +65,7 @@ export default function Footer() {
         <div style={{ display: "flex", gap: 56, flexWrap: "wrap" }}>
           <div>
             <div style={{ fontWeight: 800, color: "#fff", fontSize: 12, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 10 }}>
-              Explore
+              <T k="footer.explore">Explore</T>
             </div>
             {footerLinks.map((f) => (
               <Link
@@ -78,10 +79,10 @@ export default function Footer() {
           </div>
           <div>
             <div style={{ fontWeight: 800, color: "#fff", fontSize: 12, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 10 }}>
-              Visit
+              <T k="footer.visit">Visit</T>
             </div>
-            <p style={{ margin: "0 0 5px", fontSize: 14 }}>Honolulu, Hawaii</p>
-            <p style={{ margin: "0 0 5px", fontSize: 14 }}>Est. 1982</p>
+            <p style={{ margin: "0 0 5px", fontSize: 14 }}><T k="footer.place">Honolulu, Hawaii</T></p>
+            <p style={{ margin: "0 0 5px", fontSize: 14 }}><T k="footer.est">Est. 1982</T></p>
             {/* The one mailbox that exists on the domain. A generic alias like
                 aloha@ would read better here and would survive a change of
                 inbox, but it has to be created as a forward at Northwest first

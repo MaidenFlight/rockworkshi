@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { API_URL } from "@/lib/api";
 import { PageHero } from "@/components/ui";
+import T from "@/components/T";
 
 export default function BookATrial() {
   const [form, setForm] = useState({
@@ -48,7 +49,7 @@ export default function BookATrial() {
 
   return (
     <div>
-      <PageHero eyebrow="First lesson's on us" title={<>Book a Trial</>} />
+      <PageHero eyebrow={<T k="trial.hero.eyebrow">First lesson&apos;s on us</T>} title={<T k="trial.hero.title">Book a Trial</T>} />
 
       <div style={{ maxWidth: 520, margin: "0 auto", padding: "36px 24px 100px" }}>
         <div style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)", padding: 32, boxShadow: "0 26px 54px -34px rgba(90,40,70,0.4)" }}>

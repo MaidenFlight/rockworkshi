@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { API_URL } from "@/lib/api";
 import { PageHero } from "@/components/ui";
+import T from "@/components/T";
 
 const GENERIC_LEVELS = [
   { n: 1, name: "Sing-a-long" },
@@ -41,7 +42,7 @@ export default function SongLibrary() {
 
   return (
     <div>
-      <PageHero title={<>Song Library</>} />
+      <PageHero title={<T k="library.hero.title">Song Library</T>} />
 
       <div style={{ maxWidth: 800, margin: "0 auto", padding: "36px 24px 100px" }}>
         {songs === undefined && <p style={{ color: "var(--rw-meta)" }}>Loading…</p>}
@@ -79,7 +80,7 @@ export default function SongLibrary() {
                 {openSong.notes && <p style={{ margin: "16px 0 0", fontSize: 16, lineHeight: 1.65, color: "var(--rw-body-cool)" }}>{openSong.notes}</p>}
               </div>
               <div style={{ padding: "24px 30px" }}>
-                <h3 style={{ fontWeight: 600, fontSize: 19, margin: "0 0 14px", color: "var(--rw-ink)" }}>How you&apos;ll learn it &mdash; five levels</h3>
+                <h3 style={{ fontWeight: 600, fontSize: 19, margin: "0 0 14px", color: "var(--rw-ink)" }}><T k="library.levels.heading">How you&apos;ll learn it &mdash; five levels</T></h3>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 22 }}>
                   {GENERIC_LEVELS.map((lv) => (
                     <div key={lv.n} style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 16px", background: "var(--rw-cream)", borderRadius: "var(--rw-radius-md)" }}>
@@ -106,10 +107,10 @@ export default function SongLibrary() {
                 </div>
                 <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
                   <Link href="/signup" style={{ padding: "13px 28px", borderRadius: "var(--rw-radius-sm)", background: "var(--rw-orange)", color: "#fff", fontWeight: 700, fontSize: 15, textDecoration: "none" }}>
-                    Join the member area &rarr;
+                    <T k="cta.join.arrow">Join the member area &rarr;</T>
                   </Link>
                   <Link href="/program/curriculum" style={{ fontSize: 14, fontWeight: 700, color: "var(--rw-teal)", textDecoration: "none" }}>
-                    See the full curriculum
+                    <T k="library.curriculum">See the full curriculum</T>
                   </Link>
                 </div>
               </div>
@@ -148,7 +149,7 @@ export default function SongLibrary() {
 
             {songs && filtered.length === 0 && (
               <div style={{ textAlign: "center", padding: "44px 20px", background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)", fontSize: 15, color: "var(--rw-body)" }}>
-                No songs match those filters yet.
+                <T k="library.empty">No songs match those filters yet.</T>
               </div>
             )}
 

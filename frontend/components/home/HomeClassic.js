@@ -16,6 +16,7 @@ import { instruments, audiences, songLevels } from "@/lib/content";
 import RockWorksIcon from "@/components/RockWorksIcon";
 import InstrumentIcon from "@/components/InstrumentIcon";
 import { Section, Container, SectionHead, Eyebrow, Button } from "@/components/ui";
+import T from "@/components/T";
 
 // The hero and the levels band keep their own styles rather than going through
 // the primitives. Both are one-offs built on custom gradients, and a primitive
@@ -79,7 +80,7 @@ export default function HomeClassic() {
               }}
             >
               <span style={{ width: 28, height: 1.5, background: "var(--rw-sea-glass)", display: "inline-block" }} />
-              Honolulu &middot; Est. 1982
+              <T k="home.hero.tag">Honolulu &middot; Est. 1982</T>
             </div>
             <h1
               style={{
@@ -96,15 +97,17 @@ export default function HomeClassic() {
                 color: "#fff",
               }}
             >
-              Real songs.
+              <T k="home.hero.line1">Real songs.</T>
               <br />
-              Real bands.
+              <T k="home.hero.line2">Real bands.</T>
               <br />
-              <em style={{ fontStyle: "italic", fontWeight: 600, color: "var(--rw-gold)" }}>From day one.</em>
+              <em style={{ fontStyle: "italic", fontWeight: 600, color: "var(--rw-gold)" }}><T k="home.hero.line3">From day one.</T></em>
             </h1>
             <p style={{ fontSize: 18.5, lineHeight: 1.62, maxWidth: 466, margin: "26px 0 34px", color: "rgba(255,245,236,0.86)" }}>
-              A ten-year, song-based curriculum where every student learns to play, perform, and eventually
-              write their own music — one real song at a time.
+              <T k="home.classic.hero.lead">
+                A ten-year, song-based curriculum where every student learns to play, perform, and eventually
+                write their own music — one real song at a time.
+              </T>
             </p>
             {/* This button said "Start Lessons" and led to a paid signup for
                 member-area access — a different product from the lessons, which
@@ -115,19 +118,21 @@ export default function HomeClassic() {
                 note below is the only place on the page that had to explain
                 the difference — the CTA repeats it with the price attached. */}
             <div style={{ display: "flex", gap: 20, flexWrap: "wrap", alignItems: "center" }}>
-              <Button href="/signup">Join the member area</Button>
+              <Button href="/signup"><T k="cta.join">Join the member area</T></Button>
               <Button href="/program/curriculum" variant="quiet" onDark>
-                See the curriculum &rarr;
+                <T k="home.classic.hero.curriculum">See the curriculum &rarr;</T>
               </Button>
             </div>
             <p style={{ margin: "20px 0 0", maxWidth: 466, fontSize: 14.5, lineHeight: 1.6, color: "rgba(255,245,236,0.78)" }}>
-              Membership opens the lesson videos, song library and practice tools. Lessons at the school
-              are arranged with us &mdash;{" "}
+              <T k="home.classic.hero.note">
+                Membership opens the lesson videos, song library and practice tools. Lessons at the school
+                are arranged with us &mdash;
+              </T>{" "}
               <Link
                 href="/trial"
                 style={{ color: "var(--rw-gold)", fontWeight: 600, textDecoration: "underline", textUnderlineOffset: 3 }}
               >
-                start with a free trial
+                <T k="home.classic.hero.trial">start with a free trial</T>
               </Link>
               .
             </p>
@@ -154,21 +159,24 @@ export default function HomeClassic() {
         <ul className="rw-strapline">
           {[
             {
+              key: "song",
               title: "One song a month",
               body: "Every song is taught in five levels — sing-a-long, chords, scales & fills, melody, and improv.",
             },
             {
+              key: "format",
               title: "Solo or in a band",
               body: "Learn one-on-one, or sign up with friends and siblings to form your own Rock Band.",
             },
             {
+              key: "path",
               title: "A ten-year path",
               body: "We can tell you exactly where you'll be in 6 months, 1, 2, 3, 5, and 10 years.",
             },
           ].map((v) => (
-            <li key={v.title}>
-              <h2 className="rw-strapline-title">{v.title}</h2>
-              <p className="rw-strapline-body">{v.body}</p>
+            <li key={v.key}>
+              <h2 className="rw-strapline-title"><T k={`home.classic.strap.${v.key}.title`}>{v.title}</T></h2>
+              <p className="rw-strapline-body"><T k={`home.classic.strap.${v.key}.body`}>{v.body}</T></p>
             </li>
           ))}
         </ul>
@@ -199,7 +207,7 @@ export default function HomeClassic() {
           </svg>
         </div>
         <Container style={{ padding: "18px 24px 84px", position: "relative" }}>
-          <SectionHead title="How one song gets taught" eyebrow="The method" onDark flush />
+          <SectionHead title={<T k="home.method.title">How one song gets taught</T>} eyebrow={<T k="home.method.eyebrow">The method</T>} onDark flush />
           <p
             style={{
               maxWidth: 620,
@@ -209,15 +217,17 @@ export default function HomeClassic() {
               color: "rgba(255,245,236,0.82)",
             }}
           >
-            Five passes over the same song — so by the end you understand it inside and out, not just how to
-            play along.
+            <T k="home.method.lead">
+              Five passes over the same song — so by the end you understand it inside and out, not just how to
+              play along.
+            </T>
           </p>
           <ol className="rw-levels">
             {songLevels.map((lv) => (
               <li key={lv.n} className="rw-level">
                 <span className="rw-level-n">{lv.n}</span>
-                <h3 className="rw-level-name">{lv.name}</h3>
-                <p className="rw-level-desc">{lv.desc}</p>
+                <h3 className="rw-level-name"><T k={`levels.${lv.n}.name`}>{lv.name}</T></h3>
+                <p className="rw-level-desc"><T k={`levels.${lv.n}.desc`}>{lv.desc}</T></p>
               </li>
             ))}
           </ol>
@@ -244,7 +254,7 @@ export default function HomeClassic() {
           not a third printing of the lessons-versus-membership note the page
           carries twice already; it names a feature. */}
       <Section>
-        <SectionHead title="Choose your instrument" eyebrow="Pick your sound" />
+        <SectionHead title={<T k="home.instruments.title">Choose your instrument</T>} eyebrow={<T k="home.instruments.eyebrow">Pick your sound</T>} />
         <p
           style={{
             maxWidth: 620,
@@ -254,8 +264,10 @@ export default function HomeClassic() {
             color: "var(--rw-prose)",
           }}
         >
-          Lesson videos in the member area are organised by instrument. Pick yours and we&apos;ll carry it
-          into signup.
+          <T k="home.instruments.lead">
+            Lesson videos in the member area are organised by instrument. Pick yours and we&apos;ll carry it
+            into signup.
+          </T>
         </p>
         <div
           className="rw-cols-6"
@@ -301,15 +313,15 @@ export default function HomeClassic() {
       <Section>
         <div className="rw-split">
           <div className="rw-split-head">
-            <SectionHead title="One school, three ways in" eyebrow="Who it's for" as="h2" flush />
+            <SectionHead title={<T k="home.ways.title">One school, three ways in</T>} eyebrow={<T k="home.ways.eyebrow">Who it&apos;s for</T>} as="h2" flush />
           </div>
           <ul className="rw-ways">
             {audiences.map((a) => (
-              <li key={a.title} className="rw-way">
-                <h3 className="rw-way-title">{a.title}</h3>
-                <p className="rw-way-desc">{a.desc}</p>
+              <li key={a.key} className="rw-way">
+                <h3 className="rw-way-title"><T k={`audiences.${a.key}.title`}>{a.title}</T></h3>
+                <p className="rw-way-desc"><T k={`audiences.${a.key}.desc`}>{a.desc}</T></p>
                 <Link href={a.href} className="rw-way-cta">
-                  {a.cta} &rarr;
+                  <T k={`audiences.${a.key}.cta`}>{a.cta}</T> &rarr;
                 </Link>
               </li>
             ))}
@@ -326,23 +338,23 @@ export default function HomeClassic() {
           lines make room for them — they do not belong anywhere else on the
           page, and neither does anything counted for the occasion. */}
       <Section band="sand">
-        <Eyebrow>The record</Eyebrow>
-        <h2 className="rw-record-lead">Teaching in Honolulu since 1982.</h2>
+        <Eyebrow><T k="home.record.eyebrow">The record</T></Eyebrow>
+        <h2 className="rw-record-lead"><T k="home.record.lead">Teaching in Honolulu since 1982.</T></h2>
         <ul className="rw-record">
           <li>
-            <b>Six</b> instruments — guitar, piano, bass, drums, voice and ukulele.
+            <b><T k="home.record.instruments.n">Six</T></b> <T k="home.classic.record.instruments">instruments — guitar, piano, bass, drums, voice and ukulele.</T>
           </li>
           <li>
-            <b>Five</b> levels to every song, sing-a-long through improv.
+            <b><T k="home.record.levels.n">Five</T></b> <T k="home.classic.record.levels">levels to every song, sing-a-long through improv.</T>
           </li>
           <li>
-            Most students finish a song every <b>four to six weeks</b>.
+            <T k="home.record.pace.text">Most students finish a song every</T> <b><T k="home.record.pace.n">four to six weeks</T></b>.
           </li>
           <li>
-            Membership opens every lesson video, the song library and <b>five practice tools</b>.
+            <T k="home.classic.record.membership">Membership opens every lesson video, the song library and</T> <b><T k="home.record.membership.n">five practice tools</T></b>.
           </li>
           <li>
-            Bands rehearse weekly and finish at a <b>Rock Works recital</b>.
+            <T k="home.classic.record.bands">Bands rehearse weekly and finish at a</T> <b><T k="home.record.bands.n">Rock Works recital</T></b>.
           </li>
         </ul>
       </Section>
@@ -373,11 +385,13 @@ export default function HomeClassic() {
         </div>
         <Container width="text" style={{ position: "relative", padding: "34px 24px 80px", textAlign: "center" }}>
           <h2 style={{ fontWeight: 700, fontSize: "clamp(32px,4.2vw,52px)", margin: "0 0 16px", color: "#fff", letterSpacing: "-0.015em", lineHeight: 1.02 }}>
-            Ready to play your first song?
+            <T k="home.ask.title">Ready to play your first song?</T>
           </h2>
           <p style={{ margin: "0 auto 30px", maxWidth: 520, fontSize: 17.5, lineHeight: 1.55, color: "rgba(255,245,236,0.82)" }}>
-            Membership opens every lesson video, the song library and the practice tools &mdash; the part
-            of learning that happens between lessons.
+            <T k="home.classic.ask.lead">
+              Membership opens every lesson video, the song library and the practice tools &mdash; the part
+              of learning that happens between lessons.
+            </T>
           </p>
           {/* The same pairing the hero uses — solid primary beside a quiet
               underlined link — so the two read as one decision with a cheaper
@@ -386,9 +400,9 @@ export default function HomeClassic() {
               the ask it has to be a control, because it is exactly what a
               visitor who is not ready to pay is looking for. */}
           <div style={{ display: "flex", gap: 22, flexWrap: "wrap", alignItems: "center", justifyContent: "center" }}>
-            <Button href="/signup">Join the member area</Button>
+            <Button href="/signup"><T k="cta.join">Join the member area</T></Button>
             <Button href="/trial" variant="quiet" onDark>
-              Book a free trial &rarr;
+              <T k="cta.trial">Book a free trial &rarr;</T>
             </Button>
           </div>
           {/* The price appeared nowhere on this page, and the button above bills
@@ -402,8 +416,10 @@ export default function HomeClassic() {
             $55 a month, cancel any time &mdash; or $135 for a three-month term.
           </p>
           <p style={{ margin: "10px auto 0", maxWidth: 520, fontSize: 14.5, lineHeight: 1.6, color: "rgba(255,245,236,0.74)" }}>
-            Lessons at the school are arranged with us, not booked here &mdash; the trial is where that
-            starts.
+            <T k="home.classic.ask.note">
+              Lessons at the school are arranged with us, not booked here &mdash; the trial is where that
+              starts.
+            </T>
           </p>
         </Container>
       </section>

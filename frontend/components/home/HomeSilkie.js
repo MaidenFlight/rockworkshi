@@ -3,6 +3,7 @@ import { instruments, audiences, songLevels, bandPromise } from "@/lib/content";
 import RockWorksIcon from "@/components/RockWorksIcon";
 import InstrumentIcon from "@/components/InstrumentIcon";
 import { Section, Container, SectionHead, Eyebrow, Button } from "@/components/ui";
+import T from "@/components/T";
 
 // THE SILKIE — the homepage as a printed garment.
 //
@@ -61,13 +62,13 @@ export default function HomeSilkie() {
       <section className="rw-field">
         <PrintRepeat color="var(--rw-ink)" opacity={0.09} />
         <Container style={{ position: "relative", padding: "76px 24px 92px" }}>
-          <div className="rw-field-tag">Honolulu &middot; Est. 1982</div>
+          <div className="rw-field-tag"><T k="home.hero.tag">Honolulu &middot; Est. 1982</T></div>
           <h1 className="rw-poster">
-            Real songs.
+            <T k="home.hero.line1">Real songs.</T>
             <br />
-            Real bands.
+            <T k="home.hero.line2">Real bands.</T>
             <br />
-            <span className="rw-poster-em">From day one.</span>
+            <span className="rw-poster-em"><T k="home.hero.line3">From day one.</T></span>
           </h1>
           {/* This was a curriculum pitch — "a ten-year, song-based curriculum
               where every student learns to play, perform, and eventually write
@@ -77,8 +78,10 @@ export default function HomeSilkie() {
               sections down and keeps its place; the standfirst now says what a
               student actually gets, and when. */}
           <p className="rw-field-lead">
-            Learn on a real song from your first lesson. Six months in, you&apos;re in a band &mdash;
-            rehearsing weekly, aiming at a Hawaii stage.
+            <T k="home.hero.lead">
+              Learn on a real song from your first lesson. Six months in, you&apos;re in a band &mdash;
+              rehearsing weekly, aiming at a Hawaii stage.
+            </T>
           </p>
         </Container>
 
@@ -100,28 +103,32 @@ export default function HomeSilkie() {
         <Container style={{ padding: "0 24px 54px" }}>
           <div className="rw-band-grid">
             <div>
-              <div className="rw-band-label">The member area</div>
+              <div className="rw-band-label"><T k="home.band.member.label">The member area</T></div>
               <p className="rw-band-copy">
-                Membership opens the lesson videos, song library and practice tools &mdash; the part of
-                learning that happens between lessons.
+                <T k="home.band.member.copy">
+                  Membership opens the lesson videos, song library and practice tools &mdash; the part of
+                  learning that happens between lessons.
+                </T>
               </p>
               <div style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center" }}>
-                <Button href="/signup">Join the member area</Button>
+                <Button href="/signup"><T k="cta.join">Join the member area</T></Button>
                 <span className="rw-band-price">$55 a month, cancel any time &mdash; or $135 a term</span>
               </div>
             </div>
             <div>
-              <div className="rw-band-label">Lessons at the school</div>
+              <div className="rw-band-label"><T k="home.band.lessons.label">Lessons at the school</T></div>
               <p className="rw-band-copy">
-                Arranged with us, not booked here. A free trial is where that starts &mdash; bring
-                nothing, we have the instruments.
+                <T k="home.band.lessons.copy">
+                  Arranged with us, not booked here. A free trial is where that starts &mdash; bring
+                  nothing, we have the instruments.
+                </T>
               </p>
               <div style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center" }}>
                 <Button href="/trial" variant="quiet" onDark>
-                  Book a free trial &rarr;
+                  <T k="cta.trial">Book a free trial &rarr;</T>
                 </Button>
                 <Link href="/program/curriculum" className="rw-band-link">
-                  See the curriculum
+                  <T k="home.band.curriculum">See the curriculum</T>
                 </Link>
               </div>
             </div>
@@ -135,17 +142,19 @@ export default function HomeSilkie() {
           they were 34px circles in a hairline row and they are now the largest
           objects in the section, because 1 to 5 IS the argument. */}
       <Section band="ink">
-        <SectionHead title="How one song gets taught" eyebrow="The method" onDark flush />
+        <SectionHead title={<T k="home.method.title">How one song gets taught</T>} eyebrow={<T k="home.method.eyebrow">The method</T>} onDark flush />
         <p className="rw-ink-lead">
-          Five passes over the same song &mdash; so by the end you understand it inside and out, not just
-          how to play along.
+          <T k="home.method.lead">
+            Five passes over the same song &mdash; so by the end you understand it inside and out, not just
+            how to play along.
+          </T>
         </p>
         <ol className="rw-levels">
           {songLevels.map((lv) => (
             <li key={lv.n} className="rw-level">
               <span className="rw-level-n">{lv.n}</span>
-              <h3 className="rw-level-name">{lv.name}</h3>
-              <p className="rw-level-desc">{lv.desc}</p>
+              <h3 className="rw-level-name"><T k={`levels.${lv.n}.name`}>{lv.name}</T></h3>
+              <p className="rw-level-desc"><T k={`levels.${lv.n}.desc`}>{lv.desc}</T></p>
             </li>
           ))}
         </ol>
@@ -173,11 +182,11 @@ export default function HomeSilkie() {
             <span className="rw-promise-unit">Months</span>
           </div>
           <div>
-            <h2 className="rw-promise-head">{bandPromise.headline}</h2>
-            <p className="rw-promise-body">{bandPromise.joins}</p>
-            <p className="rw-promise-body">{bandPromise.stage}</p>
+            <h2 className="rw-promise-head"><T k="band.headline">{bandPromise.headline}</T></h2>
+            <p className="rw-promise-body"><T k="band.joins">{bandPromise.joins}</T></p>
+            <p className="rw-promise-body"><T k="band.stage">{bandPromise.stage}</T></p>
             <Link href="/community/programs/rock-band-program" className="rw-tag-cta">
-              How the Rock Band program works &rarr;
+              <T k="home.promise.cta">How the Rock Band program works &rarr;</T>
             </Link>
           </div>
         </div>
@@ -189,10 +198,12 @@ export default function HomeSilkie() {
           at the visual weight of a settings menu. They are the print motif
           now: big, on their own ground, each one a door. */}
       <Section>
-        <SectionHead title="Choose your instrument" eyebrow="Pick your sound" />
+        <SectionHead title={<T k="home.instruments.title">Choose your instrument</T>} eyebrow={<T k="home.instruments.eyebrow">Pick your sound</T>} />
         <p className="rw-lede">
-          Lesson videos in the member area are organised by instrument. Pick yours and we&apos;ll carry it
-          into signup.
+          <T k="home.instruments.lead">
+            Lesson videos in the member area are organised by instrument. Pick yours and we&apos;ll carry it
+            into signup.
+          </T>
         </p>
         <div className="rw-motifs">
           {instruments.map((inst) => (
@@ -217,15 +228,15 @@ export default function HomeSilkie() {
       <Section>
         <div className="rw-split">
           <div className="rw-split-head">
-            <SectionHead title="One school, three ways in" eyebrow="Who it's for" as="h2" flush />
+            <SectionHead title={<T k="home.ways.title">One school, three ways in</T>} eyebrow={<T k="home.ways.eyebrow">Who it&apos;s for</T>} as="h2" flush />
           </div>
           <ul className="rw-ways">
             {audiences.map((a) => (
-              <li key={a.title} className="rw-way">
-                <h3 className="rw-way-title">{a.title}</h3>
-                <p className="rw-way-desc">{a.desc}</p>
+              <li key={a.key} className="rw-way">
+                <h3 className="rw-way-title"><T k={`audiences.${a.key}.title`}>{a.title}</T></h3>
+                <p className="rw-way-desc"><T k={`audiences.${a.key}.desc`}>{a.desc}</T></p>
                 <Link href={a.href} className="rw-way-cta">
-                  {a.cta} &rarr;
+                  <T k={`audiences.${a.key}.cta`}>{a.cta}</T> &rarr;
                 </Link>
               </li>
             ))}
@@ -254,11 +265,11 @@ export default function HomeSilkie() {
           start on a shared left edge and the column becomes scannable in the
           way the old paragraph only claimed to be. Every fact is unchanged. */}
       <Section band="sand">
-        <Eyebrow>The record</Eyebrow>
-        <h2 className="rw-record-lead">Teaching in Honolulu since 1982.</h2>
+        <Eyebrow><T k="home.record.eyebrow">The record</T></Eyebrow>
+        <h2 className="rw-record-lead"><T k="home.record.lead">Teaching in Honolulu since 1982.</T></h2>
         <dl className="rw-sheet">
           <div className="rw-sheet-row">
-            <dt>Instruments</dt>
+            <dt><T k="home.record.instruments.label">Instruments</T></dt>
             <dd>
               {/* The school's own drawn marks, doing the one job a picture can
                   do here: showing six at a glance before the sentence says it.
@@ -270,38 +281,38 @@ export default function HomeSilkie() {
                 ))}
               </span>
               <span>
-                <b>Six</b> — guitar, piano, bass, drums, voice and ukulele.
+                <b><T k="home.record.instruments.n">Six</T></b> <T k="home.record.instruments.text">— guitar, piano, bass, drums, voice and ukulele.</T>
               </span>
             </dd>
           </div>
           <div className="rw-sheet-row">
-            <dt>Levels per song</dt>
+            <dt><T k="home.record.levels.label">Levels per song</T></dt>
             <dd>
-              <b>Five</b>, sing-a-long through improv.
+              <b><T k="home.record.levels.n">Five</T></b><T k="home.record.levels.text">, sing-a-long through improv.</T>
             </dd>
           </div>
           <div className="rw-sheet-row">
-            <dt>Pace</dt>
+            <dt><T k="home.record.pace.label">Pace</T></dt>
             <dd>
-              Most students finish a song every <b>four to six weeks</b>.
+              <T k="home.record.pace.text">Most students finish a song every</T> <b><T k="home.record.pace.n">four to six weeks</T></b>.
             </dd>
           </div>
           <div className="rw-sheet-row">
-            <dt>Membership opens</dt>
+            <dt><T k="home.record.membership.label">Membership opens</T></dt>
             <dd>
-              Every lesson video, the song library and <b>five practice tools</b>.
+              <T k="home.record.membership.text">Every lesson video, the song library and</T> <b><T k="home.record.membership.n">five practice tools</T></b>.
             </dd>
           </div>
           <div className="rw-sheet-row">
-            <dt>Band placement</dt>
+            <dt><T k="home.record.placement.label">Band placement</T></dt>
             <dd>
-              At <b>six months</b>, with a shot at a Hawaii stage.
+              <T k="home.record.placement.pre">At</T> <b><T k="home.record.placement.n">six months</T></b><T k="home.record.placement.text">, with a shot at a Hawaii stage.</T>
             </dd>
           </div>
           <div className="rw-sheet-row">
-            <dt>Bands</dt>
+            <dt><T k="home.record.bands.label">Bands</T></dt>
             <dd>
-              Rehearse weekly and finish at a <b>Rock Works recital</b>.
+              <T k="home.record.bands.text">Rehearse weekly and finish at a</T> <b><T k="home.record.bands.n">Rock Works recital</T></b>.
             </dd>
           </div>
         </dl>
@@ -322,17 +333,19 @@ export default function HomeSilkie() {
           <div className="rw-mark-chrome" aria-hidden="true">
             <RockWorksIcon size={64} color="currentColor" />
           </div>
-          <h2 className="rw-poster rw-poster-ask">Ready to play your first song?</h2>
+          <h2 className="rw-poster rw-poster-ask"><T k="home.ask.title">Ready to play your first song?</T></h2>
           <p className="rw-field-lead" style={{ margin: "0 auto 26px", textAlign: "center" }}>
-            Membership opens every lesson video, the song library and the practice tools. Lessons at the
-            school are arranged with us.
+            <T k="home.ask.lead">
+              Membership opens every lesson video, the song library and the practice tools. Lessons at the
+              school are arranged with us.
+            </T>
           </p>
           <div style={{ display: "flex", gap: 18, flexWrap: "wrap", alignItems: "center", justifyContent: "center" }}>
             <Button href="/signup" variant="field">
-              Join the member area
+              <T k="cta.join">Join the member area</T>
             </Button>
             <Button href="/trial" variant="quiet">
-              Book a free trial &rarr;
+              <T k="cta.trial">Book a free trial &rarr;</T>
             </Button>
           </div>
           <p className="rw-ask-price">$55 a month, cancel any time &mdash; or $135 for a three-month term.</p>

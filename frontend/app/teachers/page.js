@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { API_URL } from "@/lib/api";
 import { PageHero } from "@/components/ui";
+import T from "@/components/T";
 
 export default function Teachers() {
   const [teachers, setTeachers] = useState(undefined);
@@ -16,11 +17,11 @@ export default function Teachers() {
 
   return (
     <div>
-      <PageHero eyebrow="Meet the school" title={<>Teachers</>} />
+      <PageHero eyebrow={<T k="teachers.hero.eyebrow">Meet the school</T>} title={<T k="teachers.hero.title">Teachers</T>} />
 
       <div style={{ maxWidth: 1000, margin: "0 auto", padding: "36px 24px 100px" }}>
         {teachers === undefined && <p style={{ color: "var(--rw-meta)" }}>Loading…</p>}
-        {teachers && teachers.length === 0 && <p style={{ color: "var(--rw-meta)" }}>Teacher profiles coming soon.</p>}
+        {teachers && teachers.length === 0 && <p style={{ color: "var(--rw-meta)" }}><T k="teachers.empty">Teacher profiles coming soon.</T></p>}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 24 }} className="rw-cols-3">
           {teachers?.map((t) => (
             <div key={t.id} className="rw-card" style={{ border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)", padding: 22, background: "var(--rw-surface)" }}>

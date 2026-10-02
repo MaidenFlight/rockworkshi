@@ -1,5 +1,6 @@
 import Link from "next/link";
 import EditorialHero from "@/components/EditorialHero";
+import T from "@/components/T";
 
 const TOOLS = [
   { title: "Metronome", desc: "A steady click at any tempo, with tap tempo.", emoji: "⏱️", bg: "var(--rw-orange-tint)", href: "/tools/metronome" },
@@ -13,9 +14,9 @@ export default function ToolsHub() {
   return (
     <div>
       <EditorialHero
-        eyebrow="Practice"
-        title="Music Tools"
-        intro="Free practice tools for students and anyone dropping by — no sign-in required."
+        eyebrow={<T k="tools.hero.eyebrow">Practice</T>}
+        title={<T k="tools.hero.title">Music Tools</T>}
+        intro={<T k="tools.hero.intro">Free practice tools for students and anyone dropping by — no sign-in required.</T>}
       />
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "48px 24px 100px" }}>
         <div className="rw-cols-2" style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 18, marginBottom: 20 }}>
@@ -51,8 +52,8 @@ export default function ToolsHub() {
                 {t.emoji}
               </div>
               <div>
-                <div style={{ fontWeight: 700, fontSize: 17, color: "var(--rw-ink)" }}>{t.title}</div>
-                <div style={{ fontSize: 14, color: "#7a6d78", marginTop: 2 }}>{t.desc}</div>
+                <div style={{ fontWeight: 700, fontSize: 17, color: "var(--rw-ink)" }}><T k={`tools.${t.href.split("/").pop()}.title`}>{t.title}</T></div>
+                <div style={{ fontSize: 14, color: "var(--rw-body)", marginTop: 2 }}><T k={`tools.${t.href.split("/").pop()}.desc`}>{t.desc}</T></div>
               </div>
             </Link>
           ))}
@@ -60,15 +61,15 @@ export default function ToolsHub() {
 
         <div style={{ display: "flex", gap: 16, flexWrap: "wrap", justifyContent: "center", padding: 22, background: "var(--rw-sand)", borderRadius: 14 }}>
           <Link href="/trial" style={{ fontSize: 14, fontWeight: 700, color: "var(--rw-orange-deep)", textDecoration: "none" }}>
-            Book a Trial
+            <T k="tools.links.trial">Book a Trial</T>
           </Link>
           <span style={{ color: "var(--rw-line)" }}>&middot;</span>
           <Link href="/program/curriculum" style={{ fontSize: 14, fontWeight: 700, color: "var(--rw-teal)", textDecoration: "none" }}>
-            See the Curriculum
+            <T k="tools.links.curriculum">See the Curriculum</T>
           </Link>
           <span style={{ color: "var(--rw-line)" }}>&middot;</span>
           <Link href="/signin" style={{ fontSize: 14, fontWeight: 700, color: "var(--rw-teal)", textDecoration: "none" }}>
-            Student Sign In
+            <T k="tools.links.signin">Student Sign In</T>
           </Link>
         </div>
       </div>

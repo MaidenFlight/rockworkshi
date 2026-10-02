@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { API_URL } from "@/lib/api";
 import { PageHero } from "@/components/ui";
+import T from "@/components/T";
 
 export default function FAQ() {
   const [faqs, setFaqs] = useState(undefined);
@@ -17,11 +18,11 @@ export default function FAQ() {
 
   return (
     <div>
-      <PageHero title={<>Frequently Asked Questions</>} />
+      <PageHero title={<T k="faq.hero.title">Frequently Asked Questions</T>} />
 
       <div style={{ maxWidth: 720, margin: "0 auto", padding: "36px 24px 100px" }}>
         {faqs === undefined && <p style={{ color: "var(--rw-meta)" }}>Loading…</p>}
-        {faqs && faqs.length === 0 && <p style={{ color: "var(--rw-meta)" }}>FAQs coming soon.</p>}
+        {faqs && faqs.length === 0 && <p style={{ color: "var(--rw-meta)" }}><T k="faq.empty">FAQs coming soon.</T></p>}
         {faqs?.map((f) => (
           <div key={f.id} style={{ borderBottom: "1px solid var(--rw-border)" }}>
             <button
