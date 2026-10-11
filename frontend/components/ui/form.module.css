@@ -1,0 +1,412 @@
+/* The public forms: /trial and /contact.
+ *
+ * These were the two pages a visitor reaches at the moment of deciding, and
+ * they were the two that had never been designed — a rounded card with a
+ * resting shadow, native selects, the browser's own validation bubble, and a
+ * pill button from the retired world. Now the panel is a tag (square, the 5px
+ * flare rule across the top), the fields are grouped under display-face
+ * legends, and errors sit under the field they belong to.
+ *
+ * Inputs are set at 16.5px, not the 15px body: iOS Safari zooms the page into
+ * any focused field set under 16px, and a phone is where this form gets filled. */
+
+.panel {
+  position: relative;
+  padding: var(--rw-space-6) var(--rw-space-6) var(--rw-space-6);
+  background: var(--rw-surface);
+  border: 1px solid var(--rw-border);
+  border-top: 5px solid var(--rw-flare);
+}
+
+:global([data-world="classic"]) .panel {
+  border: 1px solid var(--rw-border);
+  border-radius: var(--rw-radius-md);
+}
+
+.intro {
+  margin: 0 0 var(--rw-space-2);
+  font-size: var(--rw-text-base);
+  line-height: 1.6;
+  color: var(--rw-body);
+}
+
+/* ---- Groups ---- */
+
+.group {
+  margin: 0;
+  padding: 0;
+  border: none;
+  min-width: 0; /* fieldsets refuse to shrink below their content otherwise */
+}
+
+.intro + .group {
+  margin-top: var(--rw-space-5);
+}
+
+/* The rule goes on a pseudo-element, not the fieldset's own border: a
+ * fieldset draws its top border straight through its legend. */
+.group + .group {
+  margin-top: var(--rw-space-6);
+  padding-top: var(--rw-space-6);
+  position: relative;
+}
+
+.group + .group::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  border-top: 1px solid var(--rw-rule);
+}
+
+/* Floated so it lays out as an ordinary block heading instead of sitting in
+ * the fieldset's border; whatever follows clears it. */
+.legend {
+  float: left;
+  width: 100%;
+  padding: 0;
+  margin: 0 0 var(--rw-space-4);
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: var(--rw-text-xl);
+  line-height: 1.05;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--rw-ink);
+}
+
+.legend + * {
+  clear: both;
+}
+
+:global([data-world="classic"]) .legend {
+  font-weight: 600;
+  font-size: var(--rw-text-lg);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: end; /* a hint above one input must not push it out of line */
+  gap: var(--rw-space-4);
+}
+
+@media (max-width: 560px) {
+  .row {
+    grid-template-columns: 1fr;
+  }
+  .panel {
+    padding: var(--rw-space-5) var(--rw-space-4);
+  }
+}
+
+/* ---- One field ---- */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.field + .field,
+.row + .field,
+.field + .row {
+  margin-top: var(--rw-space-4);
+}
+
+.label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px var(--rw-space-2);
+  font-size: var(--rw-text-sm);
+  font-weight: 700;
+  color: var(--rw-prose);
+}
+
+/* "Optional" in the label rather than an asterisk on the required ones: only
+ * two of eight fields are required, so marking the majority would put a mark
+ * on nearly everything. The intro states which two. */
+.optional {
+  font-weight: 400;
+  color: var(--rw-meta);
+}
+
+.hint {
+  margin: 0;
+  font-size: var(--rw-text-xs);
+  line-height: 1.5;
+  color: var(--rw-meta);
+}
+
+.input {
+  width: 100%;
+  min-height: 46px;
+  padding: 11px 14px;
+  border: 1px solid var(--rw-line);
+  border-radius: var(--rw-radius-field);
+  background: #fff;
+  font-family: inherit;
+  font-size: var(--rw-text-md);
+  line-height: 1.4;
+  color: var(--rw-ink);
+  transition: border-color 0.16s ease;
+}
+
+.input::placeholder {
+  color: var(--rw-meta);
+  opacity: 1;
+}
+
+.input:hover {
+  border-color: var(--rw-meta);
+}
+
+.input:focus-visible {
+  outline: 2px solid var(--rw-teal);
+  outline-offset: 2px;
+  border-color: var(--rw-ink);
+}
+
+.input[aria-invalid="true"] {
+  border-color: var(--rw-orange-deep);
+  box-shadow: inset 0 0 0 1px var(--rw-orange-deep);
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 96px;
+}
+
+.short {
+  max-width: 120px;
+}
+
+/* An icon as well as the colour, so the error does not rely on red alone. */
+.error {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  margin: 0;
+  font-size: var(--rw-text-sm);
+  line-height: 1.45;
+  font-weight: 500;
+  color: var(--rw-orange-deep);
+}
+
+.error svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* ---- Choice tiles ----
+ * The instrument and experience pickers. Six options is a choice to see all at
+ * once, not one to hide in a dropdown — and the six marks already exist. The
+ * radio stays a real radio (arrow keys move between options), visually hidden
+ * behind the tile it labels. */
+
+.choices {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--rw-space-2);
+}
+
+
+@media (max-width: 380px) {
+  .choices {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.choice {
+  position: relative;
+  display: block;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.choiceInput {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.choiceFace {
+  --rw-icon-accent: var(--rw-teal);
+  display: flex;
+  align-items: center;
+  gap: var(--rw-space-2);
+  min-height: 48px;
+  height: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--rw-line);
+  border-radius: var(--rw-radius-field);
+  background: #fff;
+  font-size: var(--rw-text-sm);
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--rw-ink);
+  transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
+}
+
+.choiceFace svg {
+  flex-shrink: 0;
+}
+
+.choiceText {
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+/* A third of a phone is too narrow for a mark and a word side by side, and
+ * "Guitar" was breaking into "Guita / r". Stacked, the tile reads like the
+ * instrument cards on the homepage. */
+@media (max-width: 560px) {
+  .choiceFace {
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    padding: 10px 6px;
+    text-align: center;
+  }
+}
+
+.choice:hover .choiceFace {
+  border-color: var(--rw-ink);
+}
+
+.choiceInput:checked + .choiceFace {
+  --rw-icon-accent: var(--rw-gold);
+  background: var(--rw-ink);
+  border-color: var(--rw-ink);
+  color: var(--rw-cream);
+}
+
+.choiceInput:focus-visible + .choiceFace {
+  outline: 2px solid var(--rw-teal);
+  outline-offset: 2px;
+}
+
+/* ---- The send row ---- */
+
+.actions {
+  margin-top: var(--rw-space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--rw-space-3);
+}
+
+.submit {
+  width: 100%;
+  min-height: 52px;
+}
+
+.small {
+  margin: 0;
+  font-size: var(--rw-text-xs);
+  line-height: 1.5;
+  color: var(--rw-meta);
+  text-align: center;
+}
+
+/* A failure that is not one field's fault: the network, or the server. Wash
+ * tint, not a coloured stripe down the side. */
+.alert {
+  margin: var(--rw-space-5) 0 0;
+  padding: 14px 16px;
+  background: var(--rw-orange-tint);
+  border: 1px solid color-mix(in srgb, var(--rw-orange-deep) 30%, transparent);
+  border-radius: var(--rw-radius-field);
+  font-size: var(--rw-text-sm);
+  line-height: 1.55;
+  color: var(--rw-ink);
+}
+
+.alert strong {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--rw-orange-deep);
+}
+
+.alert a {
+  color: var(--rw-orange-deep);
+  overflow-wrap: anywhere;
+}
+
+/* ---- Done ----
+ * The end of the site's main conversion, so it gets the display face and a
+ * clear statement of what happens next instead of one grey sentence. */
+
+.doneTitle {
+  margin: 0 0 var(--rw-space-4);
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: var(--rw-text-4xl);
+  line-height: 0.95;
+  letter-spacing: var(--rw-track-tight);
+  text-transform: uppercase;
+  color: var(--rw-ink);
+  overflow-wrap: anywhere;
+}
+
+.doneTitle:focus {
+  outline: none;
+}
+
+:global([data-world="classic"]) .doneTitle {
+  font-weight: 600;
+  font-size: var(--rw-text-3xl);
+  line-height: 1.15;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.doneBody {
+  margin: 0 0 var(--rw-space-3);
+  font-size: var(--rw-text-md);
+  line-height: 1.6;
+  color: var(--rw-prose);
+  overflow-wrap: anywhere;
+}
+
+.doneBody b {
+  font-weight: 700;
+  color: var(--rw-ink);
+}
+
+.doneNext {
+  margin-top: var(--rw-space-5);
+  padding-top: var(--rw-space-5);
+  border-top: 1px solid var(--rw-rule);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rw-space-4) var(--rw-space-5);
+}
+
+.doneNextLabel {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: var(--rw-text-sm);
+  font-weight: 700;
+  color: var(--rw-prose);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .done {
+    animation: rw-form-done 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+
+@keyframes rw-form-done {
+  from {
+    opacity: 0.4;
+    transform: translateY(6px);
+  }
+}
