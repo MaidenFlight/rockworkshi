@@ -1,17 +1,9 @@
 import RockWorksIcon from "@/components/RockWorksIcon";
 import { PageHero } from "@/components/ui";
 
-// Shared shell for the terms, privacy and refund pages, so the three stay
-// consistent and only their prose differs.
 export default function LegalPage({ title, lastUpdated, intro, children }) {
   return (
     <div>
-      {/* This was a fourth hand-rolled page header — the old world's teal
-          gradient hardcoded into it, its own copy of the wave, its own title
-          setting — which is why the three legal pages stayed on the previous
-          design after the redesign moved every shared header to lacquer. It
-          takes PageHero now, like every other route, so there is one page
-          header on the site and not two-and-a-half. */}
       <PageHero
         compact
         eyebrow="Legal"
@@ -30,10 +22,7 @@ export default function LegalPage({ title, lastUpdated, intro, children }) {
   );
 }
 
-// These pages are a draft written from what the software actually does. They
-// have not been reviewed by a lawyer and still contain blanks only the school
-// can fill. The banner stays until both are true — see the note in
-// frontend/lib/content.js about linking them from the footer.
+// These pages are a draft written from what the software actually does.
 function ReviewBanner() {
   return (
     <div
@@ -59,8 +48,7 @@ function ReviewBanner() {
   );
 }
 
-// A blank only the school can fill in. Rendered loud on purpose: a legal page
-// that quietly ships with an invented address is worse than one that has none.
+// A blank only the school can fill in.
 export function Todo({ children }) {
   return (
     <mark

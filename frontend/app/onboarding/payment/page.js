@@ -18,8 +18,7 @@ function PaymentContent() {
   const { user, refresh } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-  // Set by Stripe's success_url. Its presence means we've just come back from
-  // checkout; the id itself proves nothing until the server re-reads it.
+  // Set by Stripe's success_url.
   const sessionId = searchParams.get("session_id");
   const wasCancelled = searchParams.get("checkout") === "cancelled";
 
@@ -33,8 +32,6 @@ function PaymentContent() {
   const [confirming, setConfirming] = useState(Boolean(sessionId));
   const [done, setDone] = useState(false);
 
-  // Questions first — if they somehow land here without them, the guard on the
-  // way out will send them back.
   useEffect(() => {
     let cancelled = false;
     fetchBillingSummary()
@@ -54,23 +51,17 @@ function PaymentContent() {
   }, []);
 
   const finish = useCallback(async () => {
-    // Re-read the session so the route guard sees the account as paid before we
-    // navigate, otherwise it would bounce us straight back here.
     const nextUser = await refresh();
     setDone(true);
     setTimeout(() => router.push(dashboardFor(nextUser)), 700);
   }, [refresh, router]);
 
-  // Back from Stripe. The webhook is what really decides who has paid, and it
-  // may not have landed yet, so ask the server to check this session now rather
-  // than leaving a student who has been charged looking at a Pay button.
+  // Back from Stripe.
   useEffect(() => {
     if (!sessionId) return;
     let cancelled = false;
 
     (async () => {
-      // Card payments settle immediately, so one retry is plenty — it covers
-      // the server hearing about it a moment after the browser redirects.
       for (let attempt = 0; attempt < 3 && !cancelled; attempt += 1) {
         try {
           const result = await confirmStripeCheckout(sessionId);
@@ -102,7 +93,7 @@ function PaymentContent() {
     };
   }, [sessionId, finish]);
 
-  // Already paid (e.g. back button) — nothing to do here.
+  // Already paid (e.g. back button), nothing to do here.
   useEffect(() => {
     if (user?.paymentComplete && !done) router.replace(dashboardFor(user));
   }, [user, done, router]);
@@ -117,9 +108,7 @@ function PaymentContent() {
           await finish();
           return;
         }
-        // Leaves the site for Stripe's hosted page — card details are typed
-        // there, never here. assign() rather than replace() so the browser's
-        // Back button still works if they change their mind.
+        // Leaves the site for Stripe's hosted page, card details are typed there, never here.
         window.location.assign(url);
         return;
       }
@@ -132,9 +121,6 @@ function PaymentContent() {
     }
   }
 
-  // With neither a processor nor the demo there is nothing the button can do,
-  // which is exactly the state a production deploy is in before Stripe keys
-  // are set.
   const canPay = isStripe || isDemo;
 
   if (confirming) {
@@ -197,8 +183,6 @@ function PaymentContent() {
                 {summary.total}
               </div>
             </div>
-            {/* The fine print comes from the plan, not from here — a term is a
-                commitment and must not claim you can cancel any time. */}
             <div style={{ fontSize: 12.5, color: "var(--rw-meta)", marginTop: 4 }}>
               Billed every {summary.cadence}. {summary.note}
             </div>
@@ -212,8 +196,6 @@ function PaymentContent() {
               </div>
             )}
 
-            {/* Stripe is reached first when it's configured, so the demo notice
-                only belongs here when it's genuinely what the button will do. */}
             {isStripe && isTestMode && (
               <div style={noticeStyle}>
                 <div style={noticeTitleStyle}>Test mode</div>

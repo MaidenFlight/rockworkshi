@@ -103,10 +103,9 @@ router.get("/messages", async (req, res) => {
   res.json({ messages });
 });
 
-// ---------- Site text (wording edited in place on the public pages) ----------
+// ---------- Site text ----------
 
-// Keys come from the frontend's <T k="..."> markers. The pattern keeps them to
-// the dotted names the code uses, so the table can't fill with arbitrary ids.
+// Keys match the <T k="..."> markers in the frontend, e.g. "format.hero.title".
 const SITE_TEXT_KEY = /^[a-z0-9][a-z0-9._-]{0,119}$/i;
 const SITE_TEXT_MAX = 5000;
 
@@ -125,7 +124,7 @@ router.delete("/site-text/:key", async (req, res) => {
   res.status(204).end();
 });
 
-// ---------- Generic content CRUD (teachers, faqs, songs, onstage, lessons) ----------
+// ---------- Content CRUD ----------
 
 function contentCrud(path, model, fields, { orderBy = { order: "asc" } } = {}) {
   router.get(`/${path}`, async (req, res) => {
@@ -158,20 +157,14 @@ contentCrud("onstage", prisma.onStagePost, ["title", "description", "mediaUrl", 
 contentCrud(
   "lessons",
   prisma.lesson,
-  // Videos are no longer columns here — they hang off Lesson as LessonVideo
-  // rows, one per instrument, and are managed by their own endpoints below.
+  // videos are managed separately, see below
   ["order", "title", "artist", "key", "difficulty", "estTime", "levels", "published"],
   { orderBy: { order: "asc" } }
 );
 
 // ---------- Lesson videos ----------
-//
-// A video is addressed by its slot — (lesson, instrument, level, kind) — not by
-// a row id, because that is how the person filling the library thinks: "the
-// guitar level 1 lesson video for Riptide". So there is one write endpoint that
-// upserts, rather than a create and an update the caller has to choose between,
-// and clearing the id deletes the row instead of leaving an empty one that
-// reads as recorded.
+// Videos are addressed by slot (lesson, instrument, level, kind). PUT upserts;
+// an empty videoId deletes the slot.
 
 router.get("/lessons/:lessonId/videos", async (req, res) => {
   const lesson = await prisma.lesson.findUnique({ where: { id: req.params.lessonId } });
@@ -190,15 +183,13 @@ router.put("/lessons/:lessonId/videos", async (req, res) => {
   const { error, slot } = validateSlot(req.body);
   if (error) return res.status(400).json({ error });
 
-  // provider is an ordinary column; the slot that identifies the row is the
-  // other three plus the lesson.
+
   const { provider, ...key } = slot;
   const identity = { lessonId: lesson.id, ...key };
 
   const videoId = (req.body.videoId || "").trim();
   if (!videoId) {
-    // deleteMany, not delete, so clearing an already-empty slot is a no-op
-    // rather than a 500 — the editor sends every slot it has on screen.
+    // deleteMany so clearing an empty slot doesn't throw
     await prisma.lessonVideo.deleteMany({ where: identity });
     return res.json({ video: null });
   }
@@ -212,7 +203,7 @@ router.put("/lessons/:lessonId/videos", async (req, res) => {
   res.json({ video });
 });
 
-// ---------- Pages / Resources / Media (draft-editor pattern) ----------
+// ---------- Pages / Resources / Media ----------
 
 contentCrud("pages", prisma.page, ["title", "slug", "nav", "status", "body"], { orderBy: { updatedAt: "desc" } });
 contentCrud("resources", prisma.resource, ["name", "type", "url"], { orderBy: { updatedAt: "desc" } });

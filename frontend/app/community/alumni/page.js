@@ -2,15 +2,6 @@ import EditorialHero from "@/components/EditorialHero";
 import T from "@/components/T";
 import { Container, Button } from "@/components/ui";
 
-// This page had one centred paragraph saying alumni features are coming. That
-// is an empty state that has not admitted it is one: it looks like a page that
-// failed to load rather than a page waiting on material.
-//
-// It is designed as an empty state now, which means it does the one useful
-// thing it can — ask the people who would fill it. The school has no confirmed
-// alumni stories (PRODUCT.md, Evidence on Hand) and none are invented here; the
-// only claim on the page is the one the school can stand behind, that it has
-// been teaching in Honolulu since 1982.
 export default function Alumni() {
   return (
     <div>

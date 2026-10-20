@@ -5,9 +5,7 @@ import f from "./form.module.css";
 
 export { f as formStyles };
 
-// One labelled control with its hint and its error. The control is passed in
-// as a render function so it receives the ids it must point at — an error the
-// input does not reference by aria-describedby is never read out.
+// One labelled control with its hint and its error.
 export function Field({ id, label, optional, hint, error, children, className }) {
   const hintId = hint ? `${id}-hint` : undefined;
   const errorId = error ? `${id}-error` : undefined;
@@ -42,8 +40,7 @@ export function FieldError({ id, children }) {
   );
 }
 
-// A set of radio tiles. Real radios, so arrow keys move between them and a
-// screen reader announces "3 of 6".
+// A set of radio tiles.
 export function Choices({ name, legendId, value, options, onChange, icon, columns }) {
   return (
     <div
@@ -76,19 +73,13 @@ export function Choices({ name, legendId, value, options, onChange, icon, column
   );
 }
 
-// Loose on purpose: something@something.something. Anything stricter turns away
-// real addresses; this only catches the half-typed ones.
+// Loose on purpose: something@something.something.
 export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // The one address on the domain that has a mailbox behind it. See Footer.js.
 export const SCHOOL_EMAIL = "denny.landika@rockworksschoolofmusichawaii.com";
 
-// Posts a public form and turns every way it can fail into something a reader
-// can act on. Returns { ok: true } or { ok: false, kind, message }:
-//   kind "invalid" — the server rejected an answer; message is its own words
-//   kind "busy"    — too many requests
-//   kind "server"  — the server failed; nothing was saved
-//   kind "offline" — the request never arrived (no connection, or timed out)
+// Posts a public form and turns every way it can fail into something a reader can act on.
 export async function postForm(path, body, { timeoutMs = 15000 } = {}) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -116,8 +107,7 @@ export async function postForm(path, body, { timeoutMs = 15000 } = {}) {
   }
 }
 
-// What a failed send says. Every version states whether anything was saved and
-// what to do next, and none of them blames the reader for the server.
+// What a failed send says.
 export function SendAlert({ result }) {
   if (!result || result.ok) return null;
   const mail = (

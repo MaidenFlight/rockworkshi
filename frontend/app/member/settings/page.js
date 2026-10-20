@@ -87,8 +87,7 @@ function formatDate(iso) {
   });
 }
 
-// Lets a member stop their own membership. The checkout page promises "cancel
-// any time", so this is what makes that true without an email to the school.
+// Lets a member stop their own membership.
 function MembershipSection() {
   const [subscription, setSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -127,8 +126,6 @@ function MembershipSection() {
     }
   }
 
-  // Nothing to manage — a member paying by another arrangement, or the demo
-  // checkout in development. Saying nothing beats showing an empty panel.
   if (loading || (!subscription && !error)) return null;
 
   const endDate = formatDate(subscription?.currentPeriodEnd);
@@ -330,8 +327,6 @@ const inputStyle = {
   color: "var(--rw-ink)",
 };
 
-// Quieter than the orange CTA on purpose — cancelling shouldn't be the most
-// inviting thing on the page, but it must not be hidden either.
 const secondaryButtonStyle = {
   padding: "11px 20px",
   borderRadius: 999,

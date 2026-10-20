@@ -30,15 +30,6 @@ const STEPS = [
   },
 ];
 
-// This page and /program/curriculum were the same component built twice: a
-// numbered circle beside a title and a paragraph, in a hairline list. Two
-// pages, one shape, which is the fault the homepage layout pass was written to
-// fix and which had simply moved inland.
-//
-// They are different arguments and now have different forms. Curriculum is a
-// tracklist: five parts of one thing, read as a set. This is a path: four
-// stages in sequence, where the point is that each one leads to the next, so
-// the steps are wide blocks threaded by a rule rather than rows in a list.
 export default function HowItWorks() {
   return (
     <div>

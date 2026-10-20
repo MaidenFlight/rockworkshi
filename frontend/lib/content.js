@@ -33,9 +33,6 @@ export const primaryNav = [
   { label: "Contact", href: "/contact" },
 ];
 
-// These six names are load-bearing: signup stores the string, and the backend
-// matches lesson videos against it (backend/src/lib/lessonVideos.js). The
-// artwork lives in components/InstrumentIcon.js, keyed by these same names.
 export const instruments = [
   { name: "Guitar" },
   { name: "Piano" },
@@ -46,15 +43,6 @@ export const instruments = [
 ];
 
 // The three ways in, in the order the homepage reads them.
-//
-// Teens leads because the recorded primary reader is the student who enrols
-// themselves (PRODUCT.md, Users). This list previously opened with "Keiki
-// (ages 5+) — built for little hands" in the most-read column, which is copy
-// addressed to a parent about a child; a sixteen-year-old reading the section
-// whose whole job is to say where you belong was told, first, that the school
-// is for small children. Keiki still comes second, and its own line is written
-// about what happens in the room rather than cooed over the student's head —
-// the guardian reading it is deciding, not being charmed.
 export const audiences = [
   {
     key: "teens",
@@ -80,16 +68,6 @@ export const audiences = [
 ];
 
 // THE SIX-MONTH BAND PROMISE.
-//
-// Confirmed by the school on 2026-08-28 and recorded in PRODUCT.md under
-// Evidence on Hand. It lives here rather than being typed into each page
-// because it is a dated, checkable promise appearing on five surfaces, and five
-// hand-written versions of a promise is how "six months" quietly becomes "about
-// six months" on one page and "your first year" on another.
-//
-// The split between the two lines is the part to preserve: joining a band is
-// what HAPPENS, performing is a CHANCE. Do not upgrade `stage` into a
-// guarantee — the school offers the opportunity, not the booking.
 export const bandPromise = {
   months: "6",
   headline: "Six months in, you're in a band.",
@@ -97,10 +75,7 @@ export const bandPromise = {
   stage: "Bands rehearse weekly and get the chance to perform on a real stage in Hawaii.",
 };
 
-// The five levels every song is taught through. This is the school's actual
-// method and its clearest differentiator, so it is shared rather than restated:
-// /program/curriculum sets it out in full and the homepage runs the same five.
-// One list means the two can never disagree about what level 3 is called.
+// The five levels every song is taught through.
 export const songLevels = [
   { n: 1, name: "Sing-a-long", desc: "Learn the melody and lyrics by ear — no instrument required yet." },
   { n: 2, name: "Chords", desc: "Play the song's core chord progression in a simple strum or comp pattern." },
@@ -140,11 +115,6 @@ export const programs = [
       "Each member learns their part through the same five-level curriculum",
       "Culminates in a live performance at a Rock Works recital",
     ],
-    // Restated 2026-08-28 to match the six-month promise the school confirmed.
-    // The previous wording ("students who've completed at least one solo song")
-    // made band membership sound like a bar to clear rather than something that
-    // happens to you on a schedule, which is the opposite of what the school
-    // actually offers — and it is the single most persuasive thing it offers.
     forWho: "Every student, at six months. Band placement is part of the path here, not an audition to pass.",
     instruments: "Any combination of guitar, bass, drums, piano, and voice.",
     format: "Weekly group rehearsal + individual lessons.",
@@ -189,16 +159,7 @@ export const programs = [
   },
 ];
 
-// The legal pages at /terms, /privacy and /refunds are deliberately NOT listed
-// here yet. They exist and can be read at those URLs, but they are drafts: they
-// carry visible "to be completed" blanks and have not been through a lawyer.
-// Linking them from every page would present them as the school's actual terms.
-//
-// Once the blanks are filled and the wording is approved, delete the banner in
-// components/LegalPage.js and add these three entries:
-//   { label: "Terms", href: "/terms" },
-//   { label: "Privacy", href: "/privacy" },
-//   { label: "Refunds", href: "/refunds" },
+// The legal pages at /terms, /privacy and /refunds are deliberately NOT listed here yet.
 export const footerLinks = [
   { label: "About", href: "/about/philosophy" },
   { label: "Lessons", href: "/song-library" },
@@ -207,9 +168,6 @@ export const footerLinks = [
   { label: "Contact", href: "/contact" },
 ];
 
-// `label` is load-bearing twice over: it names the link for a screen reader and
-// it selects the artwork in components/SocialIcon.js. The hrefs are still
-// placeholders — the school's real profile URLs go here.
 export const footerSocial = [
   { label: "Instagram", href: "#" },
   { label: "Facebook", href: "#" },

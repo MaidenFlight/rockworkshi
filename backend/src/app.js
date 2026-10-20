@@ -12,18 +12,13 @@ const { router: billingRoutes, stripeWebhook } = require("./routes/billing.route
 
 const app = express();
 
-// Render terminates HTTPS at its proxy and forwards plain HTTP to us, so
-// req.secure is false unless we trust the X-Forwarded-Proto header it sets.
-// Without this, express-session declines to send the `secure` session cookie in
-// production and every sign-in fails with no error to show for it.
+// Render terminates TLS at its proxy. Without this req.secure is false and
+// the secure session cookie never gets set.
 if (process.env.NODE_ENV === "production") {
   app.set("trust proxy", 1);
 }
 
-// In development the frontend is reached from whatever host the browser used —
-// localhost on this machine, or the machine's LAN IP when testing on a phone.
-// That IP is a DHCP lease and changes, so match the private ranges rather than
-// pinning one address. Production still allows only the configured origin.
+// Dev: allow localhost and private LAN ranges so the site can be tested from a phone.
 const LAN_ORIGIN =
   /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\]|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)(:\d+)?$/;
 
@@ -39,11 +34,8 @@ app.use(
     credentials: true,
   })
 );
-// Ahead of express.json() on purpose. Stripe signs the exact bytes it sent, so
-// verifying the signature needs the raw body — once JSON.parse has run, the
-// original bytes are gone and every event fails the check. Express matches
-// middleware in the order it was added, so this route has to be registered
-// before the parser, not merely mounted at a different path.
+
+// Must be registered before express.json(): signature verification needs the raw body.
 app.post("/billing/webhook", express.raw({ type: "application/json" }), stripeWebhook);
 
 app.use(express.json());
@@ -59,12 +51,8 @@ app.use(
     }),
     cookie: {
       httpOnly: true,
-      // "lax" holds only because the API is deployed as a subdomain of the site
-      // it serves (api.rockworksschoolofmusichawaii.com next to the apex), which
-      // makes the cookie same-site. Move the API to a different domain — an
-      // onrender.com URL, say — and the browser stops sending this on fetch()
-      // and every request looks signed out. That would need sameSite "none",
-      // which Safari blocks by default; keeping the subdomain avoids it.
+      // lax works because the API is on a subdomain of the site (same-site).
+      // On a separate domain this would need sameSite "none".
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
       maxAge: 7 * 24 * 60 * 60 * 1000,

@@ -45,8 +45,6 @@ function VerifyEmailContent() {
 
   const outcome = status ? OUTCOMES[status] || OUTCOMES.invalid : null;
 
-  // Arrived from the emailed link: redeem the token, then re-read the session so
-  // the route guard sees the address as confirmed rather than bouncing us back.
   useEffect(() => {
     if (!token) return;
     let cancelled = false;
@@ -84,8 +82,6 @@ function VerifyEmailContent() {
     }
   }
 
-  // Redeeming the token from the link — don't flash "check your inbox" at
-  // someone who just clicked it.
   if (token && !status) {
     return (
       <div style={cardStyle}>

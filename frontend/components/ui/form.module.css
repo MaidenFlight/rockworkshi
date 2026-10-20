@@ -1,14 +1,4 @@
-/* The public forms: /trial and /contact.
- *
- * These were the two pages a visitor reaches at the moment of deciding, and
- * they were the two that had never been designed — a rounded card with a
- * resting shadow, native selects, the browser's own validation bubble, and a
- * pill button from the retired world. Now the panel is a tag (square, the 5px
- * flare rule across the top), the fields are grouped under display-face
- * legends, and errors sit under the field they belong to.
- *
- * Inputs are set at 16.5px, not the 15px body: iOS Safari zooms the page into
- * any focused field set under 16px, and a phone is where this form gets filled. */
+
 
 .panel {
   position: relative;
@@ -43,8 +33,6 @@
   margin-top: var(--rw-space-5);
 }
 
-/* The rule goes on a pseudo-element, not the fieldset's own border: a
- * fieldset draws its top border straight through its legend. */
 .group + .group {
   margin-top: var(--rw-space-6);
   padding-top: var(--rw-space-6);
@@ -60,8 +48,6 @@
   border-top: 1px solid var(--rw-rule);
 }
 
-/* Floated so it lays out as an ordinary block heading instead of sitting in
- * the fieldset's border; whatever follows clears it. */
 .legend {
   float: left;
   width: 100%;
@@ -128,9 +114,6 @@
   color: var(--rw-prose);
 }
 
-/* "Optional" in the label rather than an asterisk on the required ones: only
- * two of eight fields are required, so marking the majority would put a mark
- * on nearly everything. The intro states which two. */
 .optional {
   font-weight: 400;
   color: var(--rw-meta);
@@ -203,18 +186,13 @@
   margin-top: 2px;
 }
 
-/* ---- Choice tiles ----
- * The instrument and experience pickers. Six options is a choice to see all at
- * once, not one to hide in a dropdown — and the six marks already exist. The
- * radio stays a real radio (arrow keys move between options), visually hidden
- * behind the tile it labels. */
+/* ---- Choice tiles ---- */
 
 .choices {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: var(--rw-space-2);
 }
-
 
 @media (max-width: 380px) {
   .choices {
@@ -264,9 +242,6 @@
   overflow-wrap: break-word;
 }
 
-/* A third of a phone is too narrow for a mark and a word side by side, and
- * "Guitar" was breaking into "Guita / r". Stacked, the tile reads like the
- * instrument cards on the homepage. */
 @media (max-width: 560px) {
   .choiceFace {
     flex-direction: column;
@@ -315,8 +290,6 @@
   text-align: center;
 }
 
-/* A failure that is not one field's fault: the network, or the server. Wash
- * tint, not a coloured stripe down the side. */
 .alert {
   margin: var(--rw-space-5) 0 0;
   padding: 14px 16px;
@@ -339,9 +312,7 @@
   overflow-wrap: anywhere;
 }
 
-/* ---- Done ----
- * The end of the site's main conversion, so it gets the display face and a
- * clear statement of what happens next instead of one grey sentence. */
+/* ---- Done ---- */
 
 .doneTitle {
   margin: 0 0 var(--rw-space-4);

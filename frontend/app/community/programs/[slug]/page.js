@@ -8,17 +8,6 @@ export function generateStaticParams() {
   return programs.map((p) => ({ slug: p.slug }));
 }
 
-// This page was still the previous world after the redesign because it never
-// used the shared page header — it hand-rolled its own banner, so fixing
-// PageHero fixed eighteen routes and missed this one.
-//
-// What it had instead was a 16:6 gradient box with the program's title set at
-// 14px, centred, floating in the middle of it. That is a photograph's slot with
-// no photograph in it, and the school has none (PRODUCT.md, Evidence on Hand).
-// An empty frame captioned with the thing it is failing to show reads worse
-// than no frame at all, so it is gone rather than restyled — the same call the
-// homepage hero made about /band.svg. The header carries the title now, at the
-// scale the rest of the site gives a page title.
 export default async function ProgramDetail({ params }) {
   const { slug } = await params;
   const program = programs.find((p) => p.slug === slug);
@@ -42,10 +31,6 @@ export default async function ProgramDetail({ params }) {
             <h2 className="rw-subhead rw-subhead-flush"><T k="program.how">How it works</T></h2>
             <p className="rw-detail-method"><T k={`programs.${slug}.method`}>{program.method}</T></p>
 
-            {/* Was a teal circle with a check glyph per row — a Unicode mark
-                standing in for an icon, which the system's own drawn marks
-                make unnecessary. A flare rule down the left of each row does
-                the same job in the world's own vocabulary. */}
             <ul className="rw-spec">
               {program.structureItems.map((it, i) => (
                 <li key={it}>

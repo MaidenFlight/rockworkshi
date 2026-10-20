@@ -1,22 +1,8 @@
-# Netlify builds only the frontend. The backend lives on Render, where it needs
-# its own env vars and a long-lived process for Express sessions — the same
-# reason Vercel's monorepo detection had to be turned off when it offered to
-# deploy backend/ too.
+# Frontend only. The API is deployed separately on Render.
 [build]
   base = "frontend"
   command = "npm run build"
-  # Relative to `base`, so this is frontend/.next. Set here rather than left to
-  # the dashboard because the dashboard had it saved as `frontend` — the source
-  # directory — from the first deploy, and a value set in the UI wins over an
-  # absent one here. The adapter rejects publish == base outright.
   publish = ".next"
 
-# Declaring the adapter is what makes this a Next.js deploy rather than a folder
-# of files. Without it the first build here compiled all 50 routes, published
-# frontend/ verbatim, and uploaded "0 new file(s), 0 new function(s)" — no
-# functions means no server-rendered routes, and /member/lesson/[id] is one.
-#
-# No version is pinned, so Netlify keeps the adapter current with new Next
-# releases.
 [[plugins]]
   package = "@netlify/plugin-nextjs"

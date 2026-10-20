@@ -3,15 +3,6 @@ import T from "@/components/T";
 import { Container, Button } from "@/components/ui";
 import { songLevels as LEVELS } from "@/lib/content";
 
-// The five levels are the school's one genuinely uncopyable thing, and this is
-// the page devoted to them — yet it rendered them smaller than the homepage
-// does: 32px grey circles in a hairline list, against the homepage's 92px gold
-// numerals. The dedicated page was the weakest statement of the school's best
-// argument.
-//
-// It is a tracklist now, which is what a five-part sequence is in this world:
-// numbered, tight, one line each, read top to bottom. The homepage teases the
-// five; this is the record's own back cover.
 export default function Curriculum() {
   return (
     <div>
@@ -35,10 +26,6 @@ export default function Curriculum() {
         </ol>
       </Container>
 
-      {/* The page stated the method and then stopped, on a site whose whole
-          job is to get someone into a room. Both products are named here for
-          the same reason they are named on the homepage: a reader who has just
-          understood the method is exactly the reader ready to act on it. */}
       <section className="rw-band">
         <Container width="text" style={{ padding: "40px 24px 48px" }}>
           <div className="rw-band-label"><T k="curriculum.band.label">Start the first song</T></div>

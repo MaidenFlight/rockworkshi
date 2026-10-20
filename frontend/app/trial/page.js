@@ -7,8 +7,6 @@ import InstrumentIcon from "@/components/InstrumentIcon";
 import { INSTRUMENT_NAMES } from "@/lib/auth/signupOptions";
 import T from "@/components/T";
 
-// Stored as-is on the TrialRequest and read by staff in /admin/trials, so the
-// values stay plain; only the tiles' wording is friendlier.
 const EXPERIENCE = [
   { value: "None", label: "Brand new" },
   { value: "Some", label: "A little" },
@@ -49,8 +47,6 @@ export default function BookATrial() {
     if (errors[k]) setErrors((e) => ({ ...e, [k]: undefined }));
   }
 
-  // A field that was wrong is re-checked as soon as the reader leaves it, so
-  // the error clears when they have fixed it rather than when they press send.
   function recheck(k) {
     if (!errors[k]) return;
     setErrors((e) => ({ ...e, [k]: validate(form)[k] }));
@@ -75,8 +71,6 @@ export default function BookATrial() {
     else setResult(res);
   }
 
-  // The form is replaced by the confirmation; without moving focus, a screen
-  // reader would be left on a button that no longer exists.
   useEffect(() => {
     if (!sent) return;
     doneRef.current?.focus();

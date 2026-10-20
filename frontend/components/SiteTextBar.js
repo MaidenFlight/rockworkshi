@@ -8,8 +8,7 @@ const MESSAGES = {
   restored: "Original wording restored.",
 };
 
-// Admins only. Collapsed it is one button; open, it explains itself, reports
-// every save, and offers to undo the last piece of text touched.
+// Admins only.
 export default function SiteTextBar() {
   const { canEdit, editing, setEditing, selected, text, restore, status } = useSiteText();
   if (!canEdit) return null;

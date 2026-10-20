@@ -54,8 +54,6 @@ export default function AdminLayout({ children }) {
           ))}
 
           <div style={{ borderTop: "1px solid var(--rw-border)", margin: "16px 0 10px" }} />
-          {/* Wording on the public pages is edited on the pages themselves:
-              this switches the text editor on and opens the homepage. */}
           <button
             type="button"
             onClick={() => {

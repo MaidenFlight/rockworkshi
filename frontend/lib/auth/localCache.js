@@ -19,7 +19,6 @@ export function writeCachedUser(user) {
     if (user) window.localStorage.setItem(KEY, JSON.stringify(user));
     else window.localStorage.removeItem(KEY);
   } catch {
-    // localStorage unavailable (private mode, quota, disabled) — the session
-    // cookie remains the source of truth, so this cache is purely optional.
+    // localStorage unavailable (private mode etc.), cache is optional
   }
 }

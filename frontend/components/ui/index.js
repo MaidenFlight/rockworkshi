@@ -1,22 +1,11 @@
 // The Rock Works primitives.
-//
-// Every page used to re-declare its own container width, section padding,
-// heading pattern and button. These hold the values that were already in use,
-// so adopting one is a refactor and not a redesign — the point is that the
-// next change to a button is one edit rather than seventy.
-//
-// Deliberately small. A primitive earns its place by appearing on several
-// pages; anything used once stays inline where it can be read next to the
-// markup it belongs to.
 
 import Link from "next/link";
 import s from "./ui.module.css";
 
 const cx = (...parts) => parts.filter(Boolean).join(" ");
 
-// The measure. "wide" is the grid, "text" a reading column, "form" a narrow
-// column for inputs — the three widths the site actually needed behind the ten
-// it had.
+// The measure.
 export function Container({ width = "wide", className, children, ...rest }) {
   return (
     <div className={cx(s.container, s[width], className)} {...rest}>
@@ -25,9 +14,7 @@ export function Container({ width = "wide", className, children, ...rest }) {
   );
 }
 
-// Vertical rhythm plus an optional full-bleed ground. The band colours the
-// whole width while the container inside keeps the measure, which is why the
-// two are separate elements.
+// Vertical rhythm plus an optional full-bleed ground.
 export function Section({ band, tight, width = "wide", className, children, ...rest }) {
   const bandClass = band === "sand" ? s.bandSand : band === "ink" ? s.bandInk : null;
   return (
@@ -39,8 +26,7 @@ export function Section({ band, tight, width = "wide", className, children, ...r
   );
 }
 
-// Slab title, uppercase teal eyebrow, hairline rule. The eyebrow is optional;
-// without one the title keeps the rule and sits alone.
+// Slab title, uppercase teal eyebrow, hairline rule.
 export function SectionHead({ title, eyebrow, onDark, flush, as: Tag = "h2", className }) {
   return (
     <div className={cx(s.head, flush && s.headFlush, onDark && s.onDark, className)}>
@@ -56,8 +42,6 @@ export function Eyebrow({ children, className }) {
 }
 
 // The dark banner at the top of a page, with the wave cut into its foot.
-// "compact" is the auth and onboarding size — the same banner, shorter, so the
-// form it introduces sits closer to the fold.
 export function PageHero({ title, eyebrow, lead, compact, mark, children }) {
   return (
     <section className={cx(s.hero, compact && s.heroCompact)}>
@@ -77,8 +61,6 @@ export function PageHero({ title, eyebrow, lead, compact, mark, children }) {
   );
 }
 
-// Renders as a Link when given href, a button otherwise, so a call to action
-// keeps one appearance whether it navigates or submits.
 export function Button({
   href,
   variant = "primary",
@@ -111,8 +93,6 @@ export function Card({ lift, className, children, ...rest }) {
   );
 }
 
-// Long-form body copy — the 16.5px/1.7 slate setting used by the legal pages
-// and the editorial sections.
 export function Prose({ className, children, ...rest }) {
   return (
     <div className={cx(s.prose, className)} {...rest}>
