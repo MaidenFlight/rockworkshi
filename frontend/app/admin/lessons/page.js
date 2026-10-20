@@ -17,9 +17,6 @@ const DEFAULT_LEVELS = JSON.stringify(
 );
 
 export default function AdminLessons() {
-  // Videos live in their own grid rather than as fields on the lesson form:
-  // there are twelve of them per lesson (six instruments, two kinds) before
-  // levels 2-5 exist at all, which is a table, not a row of text boxes.
   const [videosFor, setVideosFor] = useState(null);
 
   return (

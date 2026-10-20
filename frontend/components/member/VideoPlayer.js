@@ -352,8 +352,6 @@ export default function VideoPlayer({ lesson }) {
                 {fmtT(currentTime)} / {fmtT(duration)}
               </span>
               <span style={{ flex: 1 }} />
-              {/* One row of speed pills is too wide for a phone, so it gives way
-                  to a native picker — which also gets the OS wheel on mobile. */}
               <div className="rw-vp-speeds" style={{ display: "flex", gap: 12 }}>
                 {SPEEDS.map((s) => (
                   <button
@@ -378,7 +376,6 @@ export default function VideoPlayer({ lesson }) {
                   </option>
                 ))}
               </select>
-              {/* Phones have hardware volume, and Mute is still here. */}
               <input
                 className="rw-vp-volume"
                 type="range"

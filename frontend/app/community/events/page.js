@@ -6,27 +6,6 @@ import T from "@/components/T";
 import { Container, Button } from "@/components/ui";
 import { API_URL } from "@/lib/api";
 
-// A list of dated performances is a bill, and this world already knows what a
-// bill looks like. The date leads in condensed type, the act is set at title
-// scale, and a rule runs between them.
-//
-// The states matter more than the styling here, because this page is the one
-// public route whose content comes from the API and the school may genuinely
-// have nothing scheduled. It previously showed the word "Loading…" in grey and,
-// on failure, exactly the same sentence as an empty calendar — so a broken
-// backend and a quiet month were indistinguishable to a visitor, and both read
-// as "this school does nothing". They are three different states now and each
-// says something true.
-
-// The API returns dates as ISO strings ("2026-04-18"). The previous design hid
-// that in 12.5px grey; making the date the row's lead element turned machine
-// output into the most prominent thing on the page, which is a defect this
-// redesign introduced rather than inherited.
-//
-// Parsed by hand rather than with new Date(iso): the Date constructor reads a
-// bare ISO date as UTC midnight, and formatting that in a timezone behind UTC
-// renders the previous day. Honolulu is UTC-10, so every date on this page
-// would have been wrong by one.
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 function formatDate(value) {
@@ -92,10 +71,6 @@ export default function Events() {
           </ul>
         )}
 
-        {/* An empty calendar is not an error and should not apologise like one:
-            the school runs recitals, and "nothing listed yet" is a scheduling
-            fact. A broken fetch IS an error, and saying so lets a visitor know
-            to try again rather than concluding the school is dormant. */}
         {posts && posts.length === 0 && (
           <div className="rw-empty">
             <p className="rw-empty-lead">

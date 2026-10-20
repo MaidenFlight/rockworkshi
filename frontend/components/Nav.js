@@ -75,10 +75,6 @@ export default function Nav() {
               lineHeight: 1,
             }}
           >
-            {/* The one chrome object on the site. Chrome is a reflection, not
-                a colour, so it only reads as metal when light runs across it —
-                hence a clipped gradient rather than a grey. A second chrome
-                object anywhere would mean the page has none. */}
             <span className="rw-wordmark">Rock Works</span>
             <span
               style={{
@@ -171,12 +167,6 @@ export default function Nav() {
             className="rw-burger"
             onClick={() => setMobileOpen(true)}
             aria-label="Menu"
-            /* Was 42x36, which is under the 44x44 floor in both directions —
-               and this is the only way into navigation on a phone, so it is
-               the worst control on the site to make people aim at. The bars
-               keep their size and spacing; the button grows around them, which
-               is why this is a fixed box with centred content rather than more
-               padding. */
             style={{ display: "none", width: 44, height: 44, flexDirection: "column", alignItems: "center", justifyContent: "center", background: "transparent", border: "1px solid var(--rw-nav-border)", borderRadius: "var(--rw-radius-sm)", padding: 0, cursor: "pointer", color: "var(--rw-nav-fg)" }}
           >
             <span style={{ display: "block", width: 20, height: 2, background: "currentColor", margin: "3px 0" }} />
@@ -186,9 +176,6 @@ export default function Nav() {
         </nav>
       </div>
 
-      {/* Portalled to <body>: the header's backdrop-filter creates a containing
-          block for fixed-position descendants, which would otherwise clip this
-          drawer and its overlay to the height of the header itself. */}
       {mobileOpen && createPortal(
         <>
           <div
@@ -349,15 +336,7 @@ const navLinkStyle = {
   cursor: "pointer",
 };
 
-// The active link is orange TEXT, not an orange surface, so it takes the text
-// orange. On the nav's translucent cream, --rw-orange measures 4.46:1 at
-// 14.5px — under the 4.5 floor by a hair, and this is the one nav item a
-// reader is meant to find. --rw-orange-deep is 5.45:1 there. The underline goes
-// with it: two oranges a few units apart, stacked, reads as a mistake rather
-// than as a pair.
-// On the lacquer bar the reading flips: the dark-ground accent is gold, and
-// the deep red that carried the active link on cream would now be the least
-// visible thing up there. Gold on lacquer measures 12.02:1.
+// active link uses the text orange
 const activeNavLinkStyle = {
   ...navLinkStyle,
   color: "var(--rw-nav-active)",

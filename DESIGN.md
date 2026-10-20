@@ -127,7 +127,7 @@ Rock Works is a music school in Honolulu, teaching since 1982. The site does two
 
 The world is a printed garment. A silkie is built from a saturated ground, a repeating motif field, and an engineered border band at the hem where the print concentrates and the object states what it is. The site is that object: a **field**, a **border band**, and **label stock** wherever something has to be read. *Blue Hawaii*, 1961, is the hinge that makes this rock and roll rather than tourism — the one place old-school rock and Hawaii genuinely meet, which is what PRODUCT.md's binding constraint asks for in the owner's own words: "make it look cool to rockers, but give it a hawaiian vibe."
 
-This system replaced its predecessor wholesale on 2026-08-28. That world was cream ground, high-contrast slab serif, one warm orange — the look AI-generated interfaces converge on regardless of subject — and it produced a page with no loud element anywhere on it: the largest, brightest thing on a homepage selling rock and roll was a small button. The replacement's first obligation is energy.
+This system replaced its predecessor wholesale on 2026-08-28. That world was cream ground, high-contrast slab serif, one warm orange, a generic look that had nothing to do with the subject, and it produced a page with no loud element anywhere on it: the largest, brightest thing on a homepage selling rock and roll was a small button. The replacement's first obligation is energy.
 
 **Key Characteristics:**
 

@@ -8,9 +8,7 @@ async function parseJson(res) {
   }
 }
 
-// Confirms an address from the token in the emailed link. Needs no session —
-// the token is the proof — so it works even if the email is opened elsewhere.
-// Resolves to "success" | "already" | "expired" | "invalid".
+// Confirms an address from the token in the emailed link.
 export async function verifyEmailToken(token) {
   const res = await fetch(`${API_URL}/auth/verify-email`, {
     method: "POST",
@@ -35,8 +33,7 @@ export async function changePassword(currentPassword, newPassword) {
   return data;
 }
 
-// Starts a reset. Answers the same way whether or not the address is
-// registered, so the caller can't use it to discover who has an account.
+// Starts a reset.
 export async function requestPasswordReset(email) {
   const res = await fetch(`${API_URL}/auth/forgot-password`, {
     method: "POST",

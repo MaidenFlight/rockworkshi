@@ -3,22 +3,9 @@
 import { Children, useRef, useState } from "react";
 import { useSiteText, tidy } from "@/contexts/SiteTextContext";
 
-// Marks a run of wording an admin can change from the page itself:
-//
-//   <h1><T k="format.hero.title">Format & Pricing</T></h1>
-//
-// The children are the original and stay the source of truth: an edit is
-// stored against `k`, and restoring it deletes that row. For a visitor this
-// renders the bare string — no wrapper element, nothing in the DOM to pay for.
-// Only an admin in edit mode gets the editable span.
-//
-// Children must be plain text. Wording with a link or <strong> inside it is
-// either split into several <T>s around the markup or left uneditable.
 export default function T({ k, children }) {
   const { text, editing } = useSiteText();
-  // Collapsed because JSX keeps the indentation around an entity at a line
-  // end. A page never shows it (HTML collapses runs of spaces), but an
-  // editable span is pre-wrap and would.
+  // Collapsed because JSX keeps the indentation around an entity at a line end.
   const original = tidy(Children.toArray(children).join(""));
   const value = text[k] ?? original;
   if (!editing) return value;
@@ -27,9 +14,7 @@ export default function T({ k, children }) {
 
 function EditableText({ k, value, original }) {
   const { save, setSelected, selected } = useSiteText();
-  // Bumped to remount the span whenever the DOM text has to be thrown away
-  // (a save, or Esc). React owns the text node inside it, and a contentEditable
-  // edit replaces that node behind React's back.
+  // Bumped to remount the span whenever the DOM text has to be thrown away (a save, or Esc).
   const [version, setVersion] = useState(0);
   const cancelled = useRef(false);
 

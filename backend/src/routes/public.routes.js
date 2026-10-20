@@ -3,9 +3,7 @@ const prisma = require("../lib/prisma");
 
 const router = express.Router();
 
-// Every wording override, as one { key: value } map. The frontend fetches this
-// once per page build and falls back to the text in its own code for any key
-// that is absent.
+// Admin wording overrides as { key: value }.
 router.get("/site-text", async (req, res) => {
   const rows = await prisma.siteText.findMany();
   res.json({ text: Object.fromEntries(rows.map((r) => [r.key, r.value])) });
@@ -31,17 +29,14 @@ router.get("/onstage", async (req, res) => {
   res.json({ posts });
 });
 
-// The two public forms take whatever anyone posts, so every field is coerced to
-// a trimmed string and capped before it reaches the database. A non-string
-// (an object, an array) becomes absent rather than being stored as "[object
-// Object]". Caps match the maxLength the forms already set.
+// Trim and cap public form input. Non-strings are dropped.
 function clean(value, max) {
   if (typeof value !== "string") return undefined;
   const v = value.trim();
   return v ? v.slice(0, max) : undefined;
 }
 
-// Loose: something@something.something. The frontend checks the same thing.
+
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 router.post("/trial", async (req, res) => {

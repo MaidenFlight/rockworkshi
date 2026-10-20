@@ -8,8 +8,6 @@ async function parseJson(res) {
   }
 }
 
-// The order summary is priced by the server from the plan on the account, so
-// the checkout screen only ever renders numbers it was given.
 export async function fetchBillingSummary() {
   const res = await fetch(`${API_URL}/billing/summary`, { credentials: "include" });
   const data = await parseJson(res);
@@ -17,9 +15,7 @@ export async function fetchBillingSummary() {
   return data;
 }
 
-// Asks the API to open a Stripe checkout and hands back the URL to send the
-// browser to. Card details are only ever typed on Stripe's own page, so they
-// never touch this site.
+// Asks the API to open a Stripe checkout and hands back the URL to send the browser to.
 export async function startStripeCheckout() {
   const res = await fetch(`${API_URL}/billing/checkout-session`, {
     method: "POST",
@@ -30,9 +26,7 @@ export async function startStripeCheckout() {
   return data;
 }
 
-// Called on the way back from Stripe. The webhook is what actually decides who
-// has paid; this just asks the server to check now rather than leaving the
-// student watching an unpaid screen until the webhook lands.
+// Called on the way back from Stripe.
 export async function confirmStripeCheckout(sessionId) {
   const res = await fetch(`${API_URL}/billing/confirm`, {
     method: "POST",
@@ -45,8 +39,6 @@ export async function confirmStripeCheckout(sessionId) {
   return data;
 }
 
-// The live membership, read from Stripe on each call — status, what it costs,
-// and whether it's already set to stop. Null when there's nothing to manage.
 export async function fetchSubscription() {
   const res = await fetch(`${API_URL}/billing/subscription`, { credentials: "include" });
   const data = await parseJson(res);
@@ -55,7 +47,6 @@ export async function fetchSubscription() {
 }
 
 // Stops the membership renewing at the end of the period already paid for.
-// Access continues until then, so this is not an immediate cut-off.
 export async function cancelSubscription() {
   const res = await fetch(`${API_URL}/billing/cancel`, {
     method: "POST",

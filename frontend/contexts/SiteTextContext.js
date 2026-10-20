@@ -5,8 +5,6 @@ import { API_URL } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { ROLES } from "@/lib/auth/roles";
 
-// Wording is one line of plain text: runs of whitespace (JSX indentation, a
-// typed newline) render as a single space anyway, so they are stored as one.
 export function tidy(text) {
   return String(text).replace(/\s+/g, " ").trim();
 }
@@ -14,8 +12,6 @@ export function tidy(text) {
 const SiteTextContext = createContext({ text: {}, editing: false, canEdit: false });
 
 // Edit mode lives in sessionStorage so it survives a reload in the same tab.
-// Read through useSyncExternalStore: the server (and hydration) always sees
-// "off", and the client switches over right after, with no mismatch.
 const EDIT_FLAG = "rw-edit-text";
 const listeners = new Set();
 function readEditing() {
@@ -43,8 +39,6 @@ export function SiteTextProvider({ initialText, children }) {
 
   const [text, setText] = useState(initialText || {});
   const editing = useSyncExternalStore(subscribe, readEditing, () => false);
-  // The last piece of text clicked, so "Restore original" knows what it means
-  // after focus has moved to the button.
   const [selected, setSelected] = useState(null);
   const [status, setStatus] = useState(null);
 
@@ -81,8 +75,6 @@ export function SiteTextProvider({ initialText, children }) {
   const save = useCallback(async (key, value, original) => {
     // One line of plain text: a typed newline would render as a space anyway.
     const next = tidy(value);
-    // Typing the original back, or clearing the text, both mean "the page's
-    // own wording" — store nothing rather than a copy of it.
     if (!next || next === original) {
       if (key in text) return restore(key);
       return;
@@ -111,7 +103,6 @@ export function SiteTextProvider({ initialText, children }) {
       setStatus({ state: "error", message: err.message === "Failed to fetch" ? "Couldn't reach the server. Your change wasn't saved." : err.message });
     }
   }, [text, restore]);
-
 
   const value = useMemo(
     () => ({ text, editing: editing && canEdit, canEdit, setEditing, selected, setSelected, status, save, restore }),

@@ -1,15 +1,5 @@
 "use client";
 
-// Filling the video library is the bulk of the work ahead: twelve songs times
-// six instruments times two kinds, and eventually five levels. So this is a
-// grid of slots rather than a list of records — the useful question is "which
-// squares are still empty for this song", which a list of the rows that happen
-// to exist cannot answer.
-//
-// There is no upload control yet. Videos are uploaded to Bunny by hand and the
-// id pasted in here; when an upload button arrives it drops into the same cell
-// and writes to the same endpoint.
-
 import { useEffect, useState } from "react";
 import { API_URL } from "@/lib/api";
 import { instruments } from "@/lib/content";
@@ -22,10 +12,6 @@ const KINDS = [
 
 const LEVELS = [1, 2, 3, 4, 5];
 
-// A pasted http(s) address is a plain URL and nothing can sign it; anything
-// else is taken to be a Bunny guid. Inferring beats asking, because the two
-// cases look nothing alike and a wrong provider fails quietly — "direct" on a
-// guid yields a broken <video> src, "bunny" on a URL yields no player at all.
 function providerFor(videoId) {
   return /^https?:\/\//i.test(videoId.trim()) ? "direct" : "bunny";
 }
@@ -60,8 +46,6 @@ export default function LessonVideoEditor({ lesson, onClose }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lesson.id]);
 
-  // The saved state for the level on screen, which is also what unsaved edits
-  // are compared against so only changed slots get written.
   const saved = {};
   for (const v of videos) {
     if (v.level === level) saved[slotKey(v.instrument, v.kind)] = v;
@@ -114,15 +98,8 @@ export default function LessonVideoEditor({ lesson, onClose }) {
     }
   }
 
-  // Switching levels with edits pending would silently write them against the
-  // wrong level, so the level buttons are disabled until they are saved.
   const pending = changed.length;
 
-  // Even with nothing pending, draft can still hold keys whose value was typed
-  // and then put back — they match saved, so they don't count as changes, but
-  // they would shadow the next level's saved id and show an empty box for a
-  // video that exists. Dropping the draft on the way out is safe precisely
-  // because there is nothing unsaved left in it.
   function goToLevel(n) {
     setDraft({});
     setLevel(n);

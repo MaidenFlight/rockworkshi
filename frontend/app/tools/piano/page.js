@@ -8,12 +8,7 @@ const OCTAVE_SPAN = 2;
 const WHITE_H = 160;
 const BLACK_H = 100;
 // Keys are sized as a share of the container so they shrink to fit a phone.
-// The two-octave layout is capped at its original width so the desktop keyboard
-// is unchanged; the one-octave layout fills the screen instead, which keeps the
-// keys comfortably wide on a phone.
 const WHITE_W_MAX = 42;
-// Black keys straddle the seam between two whites, at this fraction of a
-// white key's width.
 const BLACK_W_RATIO = 0.62;
 
 function noteFreqFromMidi(midi) {
@@ -28,9 +23,6 @@ export default function Piano() {
   const [down, setDown] = useState({});
   const [span, setSpan] = useState(OCTAVE_SPAN);
 
-  // Two octaves squeezed into a phone leaves each key too narrow to hit, so
-  // show one there — the octave buttons already move the range. Applied after
-  // mount so the server and client agree on the first render.
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 720px)");
     const apply = () => setSpan(mq.matches ? 1 : OCTAVE_SPAN);

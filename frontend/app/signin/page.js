@@ -40,8 +40,6 @@ function SignInForm() {
       const user = await signIn(email.trim(), password);
       setSuccess(true);
       const next = searchParams.get("next");
-      // An unfinished enrolment outranks ?next — the guard would bounce them
-      // there anyway, and going straight there avoids a visible double redirect.
       const dest =
         nextEnrolmentStep(user) ||
         (next && next.startsWith("/") ? next : dashboardFor(user));

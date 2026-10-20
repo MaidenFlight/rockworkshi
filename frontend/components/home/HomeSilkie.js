@@ -5,27 +5,7 @@ import InstrumentIcon from "@/components/InstrumentIcon";
 import { Section, Container, SectionHead, Eyebrow, Button } from "@/components/ui";
 import T from "@/components/T";
 
-// THE SILKIE — the homepage as a printed garment.
-//
-// A silkie has three parts and so does this page: a saturated FIELD carrying a
-// motif repeat, an engineered BORDER BAND at the hem where the print
-// concentrates and the garment says what it is, and LABEL STOCK where anything
-// has to be read. Every section below is one of those three, and none of them
-// is a row of equal cards.
-//
-// The wave survives from the previous world and changes job: it was the seam
-// between dark bands and paper, and it is now the seam between field and band —
-// the same curve, cut where the print stops.
-//
-// Every word on this page is carried over unchanged. The redesign replaces the
-// look, not the facts, and the facts were fought for: the two products are
-// still named separately, the price is still stated before anyone reaches a
-// card form, and nothing here is invented.
-
-// The print repeat. The six instrument marks are the motif — the school's own
-// drawn set, tiled the way a shirt tiles a figure, at a scale where they read
-// as pattern rather than as icons. It is decoration and nothing else, so it is
-// aria-hidden and never carries meaning the copy does not also carry.
+// Homepage for the Silkie (default) theme.
 function PrintRepeat({ color, opacity }) {
   const rows = 5;
   const cols = 7;
@@ -50,15 +30,7 @@ function PrintRepeat({ color, opacity }) {
 export default function HomeSilkie() {
   return (
     <div>
-      {/* ---- THE FIELD ----
-          Full-bleed flare. This is the loud element the previous homepage did
-          not have anywhere on it: the brightest thing on that page was a small
-          button, on a site selling rock and roll to teenagers.
-
-          Type is lacquer on flare rather than white on flare — 5.06:1 against
-          3.65:1, and the darker mark reads as printed ink on cloth, which is
-          what the world is. Nothing small is ever set on this ground; the
-          constraint is written into the token. */}
+      {/* ---- THE FIELD ---- */}
       <section className="rw-field">
         <PrintRepeat color="var(--rw-ink)" opacity={0.09} />
         <Container style={{ position: "relative", padding: "76px 24px 92px" }}>
@@ -70,13 +42,6 @@ export default function HomeSilkie() {
             <br />
             <span className="rw-poster-em"><T k="home.hero.line3">From day one.</T></span>
           </h1>
-          {/* This was a curriculum pitch — "a ten-year, song-based curriculum
-              where every student learns to play, perform, and eventually write
-              their own music" — on a page whose headline promises bands. True,
-              and the least exciting true thing available: it described the
-              method where the reader wanted the destination. The method is two
-              sections down and keeps its place; the standfirst now says what a
-              student actually gets, and when. */}
           <p className="rw-field-lead">
             <T k="home.hero.lead">
               Learn on a real song from your first lesson. Six months in, you&apos;re in a band &mdash;
@@ -85,8 +50,6 @@ export default function HomeSilkie() {
           </p>
         </Container>
 
-        {/* The seam. Same cubic the site has always used, cut where the print
-            stops and the band begins. */}
         <div className="rw-wave rw-wave-bottom" aria-hidden="true">
           <svg viewBox="0 0 1440 70" preserveAspectRatio="none">
             <path d="M0,40 C360,80 1080,0 1440,40 L1440,70 L0,70 Z" fill="var(--rw-ink)" />
@@ -94,11 +57,6 @@ export default function HomeSilkie() {
         </div>
       </section>
 
-      {/* ---- THE BORDER BAND ----
-          On a silkie the hem band is where the print concentrates and the
-          garment states itself. Here it carries the whole offer: both products
-          named, both actions, and the price — which sits above the fold on a
-          site that takes real cards, instead of four steps into a wizard. */}
       <section className="rw-band">
         <Container style={{ padding: "0 24px 54px" }}>
           <div className="rw-band-grid">
@@ -136,11 +94,6 @@ export default function HomeSilkie() {
         </Container>
       </section>
 
-      {/* ---- THE METHOD ----
-          Still the one thing a neighbouring school could not truthfully copy,
-          and still the second thing on the page. What changed is the numerals:
-          they were 34px circles in a hairline row and they are now the largest
-          objects in the section, because 1 to 5 IS the argument. */}
       <Section band="ink">
         <SectionHead title={<T k="home.method.title">How one song gets taught</T>} eyebrow={<T k="home.method.eyebrow">The method</T>} onDark flush />
         <p className="rw-ink-lead">
@@ -160,21 +113,6 @@ export default function HomeSilkie() {
         </ol>
       </Section>
 
-      {/* ---- THE PROMISE ----
-          The school's sharpest claim, and it was nowhere on the site until
-          2026-08-28: a student is placed in a Rock Band after six months, with
-          a chance to play a real Hawaii stage. That converts "music lessons"
-          into a dated destination, which is the hardest thing here for a
-          neighbouring school to match.
-
-          It sits immediately after the method on purpose. The method explains
-          how one song is taught; this is the payoff that makes anyone care —
-          learn, then band, then stage. Placed before it, it would be a promise
-          with nothing behind it.
-
-          Label stock, so it lands between two grounds it does not repeat: the
-          method above is lacquer, the motifs below are page. The numeral is
-          the loud element, because the whole claim is the number. */}
       <Section band="sand">
         <div className="rw-promise">
           <div className="rw-promise-figure" aria-hidden="true">
@@ -192,11 +130,6 @@ export default function HomeSilkie() {
         </div>
       </Section>
 
-      {/* ---- THE MOTIFS ----
-          The six marks were the most evocative things the school owns and the
-          old page rendered them as small grey line icons in a spreadsheet row,
-          at the visual weight of a settings menu. They are the print motif
-          now: big, on their own ground, each one a door. */}
       <Section>
         <SectionHead title={<T k="home.instruments.title">Choose your instrument</T>} eyebrow={<T k="home.instruments.eyebrow">Pick your sound</T>} />
         <p className="rw-lede">
@@ -221,10 +154,6 @@ export default function HomeSilkie() {
         </div>
       </Section>
 
-      {/* ---- WHO IT'S FOR ----
-          The page's one asymmetric section, kept from the previous world
-          because the argument for it still holds: it is the only place the
-          page changes measure mid-section. */}
       <Section>
         <div className="rw-split">
           <div className="rw-split-head">
@@ -244,26 +173,7 @@ export default function HomeSilkie() {
         </div>
       </Section>
 
-      {/* ---- THE RECORD ----
-          The proof band. The rule that guarded this slot when it was empty
-          still holds through two redesigns: nothing goes in here the school
-          cannot stand behind, and real customer quotes belong here when they
-          exist. The street address is still the one line missing, and it is
-          still not invented.
-
-          It was six sentences stacked in one column, each with a bolded run,
-          and it had two problems. The lines were all the same length and
-          rhythm, so there was nothing for the eye to do; and the emphasised
-          runs sat in a different position on every line — two at the start,
-          four in the middle — so the "skim the numbers" idea it was built on
-          did not survive contact with a reader. You cannot scan a column whose
-          landmarks move.
-
-          It is a spec panel now: the printed specification on the back of a
-          sleeve, or the woven label inside the garment. The label column
-          carries the noun and the value column carries the fact, so the facts
-          start on a shared left edge and the column becomes scannable in the
-          way the old paragraph only claimed to be. Every fact is unchanged. */}
+      {/* ---- THE RECORD ---- */}
       <Section band="sand">
         <Eyebrow><T k="home.record.eyebrow">The record</T></Eyebrow>
         <h2 className="rw-record-lead"><T k="home.record.lead">Teaching in Honolulu since 1982.</T></h2>
@@ -271,10 +181,6 @@ export default function HomeSilkie() {
           <div className="rw-sheet-row">
             <dt><T k="home.record.instruments.label">Instruments</T></dt>
             <dd>
-              {/* The school's own drawn marks, doing the one job a picture can
-                  do here: showing six at a glance before the sentence says it.
-                  Decorative and aria-hidden — the names are right beside them,
-                  so nothing is carried by the image alone. */}
               <span className="rw-sheet-marks" aria-hidden="true">
                 {instruments.map((inst) => (
                   <InstrumentIcon key={inst.name} name={inst.name} size={38} />
@@ -318,10 +224,7 @@ export default function HomeSilkie() {
         </dl>
       </Section>
 
-      {/* ---- THE ASK ----
-          The field returns, so the page opens and closes on the same ground.
-          The price repeats here because someone who scrolled past the band
-          should not have to scroll back up to find a number. */}
+      {/* ---- THE ASK ---- */}
       <section className="rw-field rw-field-ask">
         <div className="rw-wave rw-wave-top" aria-hidden="true">
           <svg viewBox="0 0 1440 70" preserveAspectRatio="none">

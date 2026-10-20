@@ -29,10 +29,7 @@ function validateStep(step, form, mode) {
   return errs;
 }
 
-// `instrument` is the canonical name a homepage tile deep-linked in with, or
-// null. It only ever seeds the form — step 2's select stays the source of truth
-// on submit — and it is passed in rather than read here because onboarding
-// renders this same component (app/onboarding/page.js).
+// `instrument` is the canonical name a homepage tile deep-linked in with, or null.
 export default function SignupWizard({ mode, instrument = null }) {
   const { user, signUp, updateProfile } = useAuth();
   const router = useRouter();
@@ -104,7 +101,7 @@ export default function SignupWizard({ mode, instrument = null }) {
       } else {
         nextUser = await updateProfile(profile);
       }
-      // Answers are in — checkout is normally what's left.
+      // Answers are in, checkout is normally what's left.
       const dest = destinationFor(nextUser);
       setNextHref(dest);
       setSuccess(true);
@@ -154,18 +151,6 @@ export default function SignupWizard({ mode, instrument = null }) {
         {step === 1 && (
           <div>
             <h3 style={stepTitleStyle}>Student &amp; sponsor info</h3>
-            {/* Someone who clicked "Bass" on the homepage lands here, on a step
-                that asks for a name and a password and says nothing about an
-                instrument — the field their click actually set is a step away
-                and out of sight. Without this line the click has no
-                acknowledgement at all, and a prefilled select they never see
-                is indistinguishable from one that did not work.
-
-                Sand rather than the orange notice tint: this confirms
-                something, it does not warn about it, and the page's one orange
-                belongs to the submit button. The step is named the way the
-                progress bar above names it, so "change it" points at something
-                the reader can already see. */}
             {instrument && (
               <p style={carriedInstrumentStyle}>
                 Your instrument is set to <b style={{ fontWeight: 700 }}>{instrument}</b>{" "}
@@ -357,10 +342,6 @@ const stepTitleStyle = {
   color: "var(--rw-ink)",
 };
 
-// Sand on the card's near-white surface — the alternate band colour doing the
-// same job it does on the homepage: a different register, not an alarm. Prose
-// on sand measures 8.5:1. No left border: a coloured rule down the side of a
-// notice is the stock treatment, and the tint already separates it.
 const carriedInstrumentStyle = {
   margin: "0 0 4px",
   padding: "11px 14px",

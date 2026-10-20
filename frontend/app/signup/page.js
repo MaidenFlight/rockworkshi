@@ -8,16 +8,6 @@ import SignupWizard from "@/components/auth/SignupWizard";
 import { matchInstrument } from "@/lib/auth/signupOptions";
 import { PageHero } from "@/components/ui";
 
-// The param is read here rather than inside the wizard because
-// app/onboarding/page.js renders that same component, and onboarding has no
-// business reading a signup link's query string.
-//
-// useSearchParams opts this subtree out of prerendering, which Next only
-// allows behind a Suspense boundary — hence the split. The fallback is the
-// wizard itself with no instrument, so the static HTML is the finished form at
-// its finished size: no spinner, no reflow, and the only thing that changes at
-// hydration is a line of text that was never in the server's HTML to begin
-// with.
 function SignupFromLink() {
   const params = useSearchParams();
   return <SignupWizard mode="signup" instrument={matchInstrument(params.get("instrument"))} />;

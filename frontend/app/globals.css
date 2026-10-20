@@ -35,26 +35,13 @@ h3 {
   font-family: var(--rw-font-display);
 }
 
-/* ---- Browser surfaces ----
- * The parts of the page nobody draws still ship with somebody's design, and by
- * default it is the browser's. Every one of these was a stock UA value sitting
- * inside an otherwise warm palette: a blue caret, a blue checkbox, a grey
- * scrollbar, a hairline-tight underline, and proportional digits that made
- * stacked prices fail to line up. */
+/* ---- Browser surfaces ---- */
 
-/* DESIGN.md calls this "Lava Orange at 22%", and it was a hardcoded
-   rgba(224,91,74) that matched no token in the system — close enough to the
-   old orange to look intentional, far enough to drift. Now derived from the
-   token, so the selection highlight follows the palette instead of being
-   re-tuned by hand every time the palette moves. */
 ::selection {
   background: color-mix(in srgb, var(--rw-orange) 22%, transparent);
 }
 
 html {
-  /* The caret and every native control tick take the site's accent instead of
-   * the platform blue. accent-color covers checkbox, radio, range and progress
-   * in one declaration. */
   caret-color: var(--rw-orange);
   accent-color: var(--rw-teal);
   /* Anchors land clear of the sticky header rather than underneath it. */
@@ -71,8 +58,6 @@ html {
   }
 }
 
-/* Firefox takes the two-value form; WebKit and Blink need the parts. Both are
- * given the same warm pair so the scrollbar belongs to the page. */
 html {
   scrollbar-color: var(--rw-line) var(--rw-cream);
   scrollbar-width: thin;
@@ -94,25 +79,16 @@ html {
   background: var(--rw-meta);
 }
 
-/* An underline sitting on the baseline clips descenders. Pushing it clear and
- * thinning it is the difference between a link that was set and one that was
- * left. */
 a:not([class]) {
   text-underline-offset: 0.18em;
   text-decoration-thickness: 1px;
 }
 
-/* Prices, durations and table figures must align down the column; the body
- * face defaults to proportional digits and they do not. */
 .rw-tnum {
   font-variant-numeric: tabular-nums;
 }
 
-/* ---- Focus ----
- * Buttons and nav links already carried the teal ring; form controls were
- * still answering with the browser default, which on a warm cream ground is
- * the one blue on the site. Fields are the surface where focus matters most —
- * they are the only place a keyboard user has to know exactly where they are. */
+/* ---- Focus ---- */
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
@@ -153,15 +129,6 @@ summary:focus-visible,
   filter: brightness(1.04);
 }
 
-/* The instrument cards. The accent is the sound-making part of each mark: teal
-   at rest, orange on hover, because orange is this site's action colour and
-   each card is a link — the mark warms up exactly when the card becomes
-   clickable.
-   Carried on a custom property rather than by setting stroke directly on a
-   hover selector: the accent is a stroke on five of the marks and a fill on the
-   piano's key, and one variable serves both. It also keeps the class off the
-   stroke/fill of anything it shouldn't touch — a CSS `stroke` declaration would
-   override an inline stroke="none" and outline the piano key. */
 .rw-instr {
   --rw-icon-accent: var(--rw-teal);
   transition: transform 0.2s ease, border-color 0.2s ease;
@@ -191,12 +158,7 @@ summary:focus-visible,
   }
 }
 
-/* ---- The strapline ----
- * Three parallel facts under the hero wave. Deliberately the densest type on
- * the page: 18.5px headings against the 22-23px the sections below use, and a
- * single hairline above the row instead of rules between the items. The row
- * below it (the instrument grid) and the one below that (the ways in) both get
- * generous treatment, so this one earns its keep by being tight. */
+/* ---- The strapline ---- */
 .rw-strapline {
   list-style: none;
   margin: 0;
@@ -230,30 +192,7 @@ summary:focus-visible,
   }
 }
 
-/* ---- The record ----
- * The proof band, between the last exits and the ask.
- *
- * A testimonial row stood here with three quotes attributed to "A Rock Works
- * parent / student / family". None came from a real person, so it was deleted
- * rather than restyled, and the slot then sat empty through the layout and
- * clarify passes behind a comment warning against refilling it with invention.
- * Every line standing here now traces to PRODUCT.md, to lib/content.js copy the
- * school already published, or to the billing catalogue in
- * backend/src/lib/plans.js. Nothing was counted for the occasion.
- *
- * The shape is the seventh on this page and shares a topology with none of the
- * six: no columns, no cards, no rules between items, no numbered markers — one
- * column of single-line declarations at headline scale. On a page whose whole
- * identity is slab type on warm paper, turning the type up and taking every
- * other device away is the system's own strongest move, and it makes this a
- * peak in the scroll rather than a seventh row.
- *
- * Emphasis is weight, not colour. The countable run in each line goes to 700
- * against a 500 body, so a skimmer reads down the block and gets 1982 / Six /
- * Five / four to six weeks / five practice tools / recital without reading a
- * sentence. Teal was tried first and measures 3.52:1 on Coral Sand — legal at
- * this size, but it spends a colour to do what a weight step already does.
- */
+/* ---- The record ---- */
 .rw-record-lead {
   font-family: var(--rw-font-display);
   font-weight: 700;
@@ -273,12 +212,6 @@ summary:focus-visible,
   gap: 15px;
 }
 
-/* Set in the READING face, not the display face. Big Shoulders is condensed
-   signage built to be read at distance; asking it to carry five full sentences
-   is asking a poster to be a paragraph, and it fatigues immediately. The
-   emphasis keeps the display face, so the countable runs still pop off the
-   line and a skimmer still gets 1982 / Six / Five / four to six weeks without
-   reading a sentence — which was the point of the band. */
 .rw-record li {
   font-family: var(--rw-font-body);
   font-weight: 400;
@@ -303,10 +236,7 @@ summary:focus-visible,
   }
 }
 
-/* ---- Waves ----
- * The signature edge, as a positioned element so a dark band can carry one at
- * the top, the foot, or both. The top copy is flipped on Y so the paper spills
- * down into the dark rather than the dark rising into the paper. */
+/* ---- Waves ---- */
 .rw-wave {
   position: relative;
   line-height: 0;
@@ -322,11 +252,7 @@ summary:focus-visible,
   transform: scaleY(-1);
 }
 
-/* ---- The ways in ----
- * The page's one asymmetric section: heading held left at a narrow measure,
- * the three ways stacked as a list on the right. The list is the only place
- * the page runs horizontal rules *between* stacked items rather than vertical
- * rules between columns, which is what stops it reading as another row. */
+/* ---- The ways in ---- */
 .rw-split {
   display: grid;
   grid-template-columns: minmax(220px, 0.72fr) 1.6fr;
@@ -339,11 +265,6 @@ summary:focus-visible,
   top: 96px;
 }
 
-/* SectionHead lays its title and eyebrow side by side and only stacks them at
- * a 640px *viewport*. Here it sits in a ~300px column at full desktop width,
- * so the viewport query never fires and the eyebrow wedges itself against a
- * three-line title. The column knows it is narrow even when the window does
- * not, so it stacks its own head. */
 .rw-split-head > div {
   flex-direction: column;
   align-items: flex-start;
@@ -390,8 +311,6 @@ summary:focus-visible,
   color: var(--rw-body);
 }
 
-/* The link sits on its own line with real vertical padding: as an inline run
- * it measured 20px tall, which is under any sane target floor. */
 .rw-way-cta {
   display: inline-block;
   padding: 6px 0;
@@ -436,13 +355,7 @@ summary:focus-visible,
   }
 }
 
-/* ---- The five levels ----
- * The rule threading the markers carries the argument: these are five passes
- * over one song, not five things you can buy. It is drawn per item, from the
- * right edge of each marker across the grid gap to the next, rather than as
- * one line behind the row — a single line would need each marker to paint an
- * opaque disc matching the gradient underneath it, and the gradient is a
- * different colour at every marker. */
+/* ---- The five levels ---- */
 .rw-levels {
   list-style: none;
   margin: 0;
@@ -470,10 +383,6 @@ summary:focus-visible,
   display: none;
 }
 
-/* The numerals were 34px inside a hairline circle — the smallest thing in the
-   section that is entirely about a sequence of five. They are the largest
-   objects here now, because 1 to 5 IS the argument, and the circle is gone: a
-   condensed signage face does not need a ring to be a marker. */
 .rw-level-n {
   display: block;
   font-family: var(--rw-font-display);
@@ -501,8 +410,6 @@ summary:focus-visible,
   color: rgba(255, 245, 236, 0.74);
 }
 
-/* Below the grid breakpoint the path turns vertical: marker in a 34px gutter,
- * text beside it, and the connector runs down the gutter instead of across. */
 @media (max-width: 860px) {
   .rw-levels {
     grid-template-columns: 1fr;
@@ -530,11 +437,7 @@ summary:focus-visible,
   }
 }
 
-/* ---- The auth gate ----
- * The waiting screen behind every protected page. The pulse is on opacity
- * alone so it costs no layout and no paint beyond the mark itself, and it
- * breathes rather than spins: a spinner promises a measurable wait, and this
- * one usually resolves before the first cycle finishes. */
+/* ---- The auth gate ---- */
 .rw-gate {
   min-height: 46vh;
   display: flex;
@@ -574,8 +477,6 @@ summary:focus-visible,
   }
 }
 
-/* The footer social marks. Warming the ring and the glyph together on hover is
- * what makes a 34px target feel like a control rather than a decal. */
 .rw-social {
   transition: color 0.16s ease, border-color 0.16s ease, background 0.16s ease;
 }
@@ -632,15 +533,7 @@ summary:focus-visible,
   outline-offset: 2px;
 }
 
-/* ---- Skip link ----
- * Off-canvas rather than display:none or visibility:hidden, because both of
- * those take it out of the tab order and a skip link that cannot be focused is
- * not a skip link. It rides down into view on focus.
- *
- * It is a solid Lava Orange button, not the usual grey slab: it is the first
- * thing a keyboard user sees on the site, and the site's own primary control
- * is the right thing for it to look like. White on Lava Orange is 4.84:1.
- */
+/* ---- Skip link ---- */
 .rw-skip {
   position: fixed;
   top: 0;
@@ -657,19 +550,12 @@ summary:focus-visible,
   transition: transform 0.18s ease;
 }
 
-/* :focus, not :focus-visible. Everywhere else on the site focus-visible is the
-   right selector, because it suppresses the ring for mouse users. Here it is
-   wrong: focus-visible is a browser heuristic, and a skip link that stays
-   off-screen when the heuristic declines is a control that silently does not
-   exist. It can only be reached by keyboard anyway. */
 .rw-skip:focus {
   transform: translateY(0);
   outline: 2px solid var(--rw-teal);
   outline-offset: 2px;
 }
 
-/* The main landmark takes focus programmatically via the skip link, so it must
-   not draw a ring when it is merely clicked through. */
 main:focus {
   outline: none;
 }
@@ -678,8 +564,6 @@ main:focus {
   display: none;
 }
 
-/* The video player swaps its row of speed pills for a native picker on narrow
-   screens, where the full row doesn't fit. See the 720px block below. */
 .rw-vp-speed-select {
   display: none;
 }
@@ -706,9 +590,7 @@ main:focus {
   .rw-desktop-nav {
     display: none !important;
   }
-  /* flex, not block: the button is a fixed 44x44 box now and the three bars
-     have to centre inside it. Still !important, because it is overriding the
-     inline display:none the button ships with. */
+
   .rw-burger {
     display: flex !important;
   }
@@ -772,16 +654,7 @@ main:focus {
   }
 }
 
-/* ==========================================================================
-   THE SILKIE — the redesigned marketing surface (2026-08-28).
-   Field, border band, label stock. See app/tokens.css for why the world
-   changed and the direction contract in app/layout.js for what it promises.
-   ========================================================================== */
-
-/* ---- The field ----
- * The saturated ground, and the loud element the previous homepage did not
- * have. Type on it is lacquer rather than white: 5.06:1 against 3.65:1, and
- * ink on colour is what printing on cloth actually looks like. */
+/* ---- The field ---- */
 .rw-field {
   position: relative;
   overflow: hidden;
@@ -793,9 +666,6 @@ main:focus {
   padding-top: 46px;
 }
 
-/* The motif repeat. Pure decoration, aria-hidden, and kept under 10% so it
- * never competes with the type it sits behind — a shirt's pattern is a ground,
- * not a subject. */
 .rw-repeat {
   position: absolute;
   inset: -6% -10%;
@@ -818,11 +688,7 @@ main:focus {
   flex-shrink: 0;
 }
 
-/* ---- Poster type ----
- * Big Shoulders is a condensed signage face, so it wants to be set enormous
- * and tight — it is built to be read at distance, and set timidly it just
- * looks narrow. Line height goes under 1 because condensed caps have short
- * extenders and the stack should read as one block of lettering. */
+/* ---- Poster type ---- */
 .rw-poster {
   margin: 18px 0 0;
   font-family: var(--rw-font-display);
@@ -834,8 +700,6 @@ main:focus {
   color: var(--rw-ink);
 }
 
-/* The third line in label stock rather than lacquer: a silkie's border print
- * changes colour where the motif changes, and the sentence turns there too. */
 .rw-poster-em {
   color: var(--rw-cream);
 }
@@ -862,10 +726,7 @@ main:focus {
   color: var(--rw-ink);
 }
 
-/* ---- The border band ----
- * The hem of the garment, where the print concentrates and the object states
- * what it is. It carries the whole offer, which is why the price sits here and
- * not four steps inside a wizard. */
+/* ---- The border band ---- */
 .rw-band {
   background: var(--rw-ink);
   color: var(--rw-cream);
@@ -938,10 +799,7 @@ main:focus {
   color: var(--rw-prose);
 }
 
-/* ---- The motifs ----
- * The six marks were rendered at the visual weight of a settings menu on the
- * previous homepage, in a hairline row of six equal cells. They are the print
- * motif now, which means they get scale and their own ground. */
+/* ---- The motifs ---- */
 .rw-motifs {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
@@ -975,9 +833,6 @@ main:focus {
   text-transform: uppercase;
 }
 
-/* The mark warms up exactly when the cell becomes clickable — the same idea
- * the previous world had, moved from a stroke accent to the whole panel,
- * because the panel is now big enough to carry it. */
 .rw-motif:hover {
   background: var(--rw-ink);
   border-color: var(--rw-ink);
@@ -1028,23 +883,11 @@ main:focus {
   color: var(--rw-ink);
 }
 
-/* ---- The wordmark ----
- * The single chrome object on the site. Chrome is a reflection rather than a
- * colour, so a flat grey reads as dead metal — it only becomes chrome when a
- * light band runs across the letterforms, which is what the ramp in
- * --rw-chrome is doing. background-clip carries it into the type.
- *
- * The fallback matters: where background-clip:text is unsupported the colour
- * declaration below still paints label stock, so the wordmark is never
- * invisible. A second chrome object anywhere on the site would mean the page
- * has none, so this selector is the whole budget. */
+/* ---- The wordmark ---- */
 .rw-wordmark {
   font-family: var(--rw-font-display);
   font-weight: 800;
-  /* On the ramp. 30px was a genuine eleventh fixed size — not a clamp
-     endpoint, so the Fluid Endpoint Exception does not cover it, and the
-     wordmark is exactly the kind of one-off that earns a stray value if
-     nobody checks. */
+
   font-size: var(--rw-text-3xl);
   letter-spacing: 0.005em;
   text-transform: uppercase;
@@ -1062,12 +905,7 @@ main:focus {
   }
 }
 
-/* ---- The world switch ----
- * Two complete designs ship and one attribute on <html> decides which paints.
- * The homepage is the only route that carries both compositions; every other
- * route reads shared token names, so it changes world without knowing one
- * exists. display:none rather than visibility or opacity: the inactive
- * composition must leave the accessibility tree, not merely go transparent. */
+/* ---- The world switch ---- */
 .rw-world-classic {
   display: none;
 }
@@ -1122,8 +960,6 @@ main:focus {
   background: rgba(255, 255, 255, 0.08);
 }
 
-/* The active side is filled rather than merely brighter: with two labels of
- * equal weight, colour alone leaves people guessing which one is on. */
 .rw-worldswitch-btn[data-active="true"] {
   background: var(--rw-gold);
   color: var(--rw-ink);
@@ -1134,17 +970,7 @@ main:focus {
   outline-offset: 2px;
 }
 
-/* ---- Tags ----
- * The Silkie replacement for "a row of three equal rounded cards", which is
- * the arrangement every inner page was built from and the one the homepage
- * layout pass had already thrown out. A tag is the garment's own object: label
- * stock, a hard edge, and a coloured rule across the top where a sewn tag
- * carries its band of colour. The rule is what makes a row of them read as a
- * set rather than as three boxes.
- *
- * Deliberately NOT a card component: these are laid out by the page that owns
- * them, because the old row-of-three was a layout decision hiding inside a
- * component and it produced the same shape on six different pages. */
+/* ---- Tags ---- */
 .rw-tags {
   display: grid;
   gap: 14px;
@@ -1163,14 +989,7 @@ main:focus {
   padding: 26px 22px 24px;
   background: var(--rw-surface);
   border: 1px solid var(--rw-border);
-  /* Square, and stated by omission rather than by "border-radius: 0" — 0 is
-     already the initial value, and declaring it made the detector read this as
-     a thick accent border on a ROUNDED element, which is a real antipattern
-     and not what this is. Classic adds its radius back in its own block.
 
-     Why square at all: a 5px colour rule curving around a corner reads as a
-     mistake at every size, and between losing the rule and losing the corner
-     it is not close. A sewn tag has corners. */
   border-top: 5px solid var(--rw-flare);
 }
 
@@ -1192,9 +1011,6 @@ main:focus {
   color: var(--rw-body);
 }
 
-/* The price tag. A number is the loudest thing on a pricing page and it was
- * set at 30px in the display face beside a 13.5px label — the same weight the
- * page gave its section headings. */
 .rw-price {
   display: flex;
   align-items: baseline;
@@ -1228,9 +1044,6 @@ main:focus {
   }
 }
 
-/* A tag that is itself the link. The whole panel is the target rather than the
- * "Learn more" run inside it, which was a 13px text link doing the work of a
- * 300px panel. */
 .rw-tag-link {
   display: block;
   text-decoration: none;
@@ -1267,21 +1080,6 @@ main:focus {
   }
 }
 
-/* ==========================================================================
-   CLASSIC OVERRIDES
-   ==========================================================================
-   The world toggle promised the old site, and the inner-page pass changed
-   shared STRUCTURE, not only colour: the page hero went left-aligned and
-   poster-scale, and six rows of rounded cards became tags. A token swap alone
-   would leave Classic showing Silkie layouts in old paint — a hybrid that
-   never shipped and nobody chose.
-
-   Overriding the handful of shared components here costs about sixty lines and
-   keeps Classic faithful. The alternative was forking every page the way the
-   homepage is forked, which doubles the DOM on nineteen routes and every
-   future edit with it. That trade is only worth paying where the composition
-   genuinely differs beyond recovery, which is the homepage alone. */
-
 [data-world="classic"] .rw-worldswitch-label,
 [data-world="classic"] .rw-worldswitch-btn {
   color: rgba(255, 255, 255, 0.66);
@@ -1292,8 +1090,6 @@ main:focus {
   color: var(--rw-ink);
 }
 
-/* The tags return to the rounded cards they were. The flare rule is a Silkie
-   device with no classic reading, so it is removed rather than recoloured. */
 [data-world="classic"] .rw-tag {
   padding: 22px;
   border: 1px solid var(--rw-border);
@@ -1339,11 +1135,7 @@ main:focus {
   text-transform: none;
 }
 
-/* ---- Sub-section heading ----
- * The hand-rolled `<h2 style={{fontSize: 22}}>` that four public pages use to
- * label a block inside a page. At 22px in a condensed face it read smaller
- * than the tags beneath it, so on the pricing page the word "Membership" was
- * quieter than the thing it introduced. */
+/* ---- Sub-section heading ---- */
 .rw-subhead {
   margin: 56px 0 20px;
   font-family: var(--rw-font-display);
@@ -1362,9 +1154,7 @@ main:focus {
   text-transform: none;
 }
 
-/* ---- Program detail ----
- * The one public route the shared-header pass could not reach, because it
- * hand-rolled its own banner instead of using PageHero. */
+/* ---- Program detail ---- */
 .rw-backlink {
   display: inline-block;
   padding: 6px 0;
@@ -1401,9 +1191,6 @@ main:focus {
   color: var(--rw-prose);
 }
 
-/* A spec list. Each row is marked by a flare rule on its leading edge rather
- * than a tick glyph in a tinted circle — the previous world used a Unicode
- * check, which is an icon standing in for an icon. */
 .rw-spec {
   list-style: none;
   margin: 0;
@@ -1446,8 +1233,6 @@ main:focus {
   color: var(--rw-ink);
 }
 
-/* The facts panel is a tag: it is the same object as the ones on the programs
- * index, so it takes the same treatment rather than inventing a second card. */
 .rw-detail-aside {
   position: sticky;
   top: 96px;
@@ -1527,11 +1312,7 @@ main:focus {
   color: var(--rw-sea-glass);
 }
 
-/* ---- The tracklist ----
- * /program/curriculum. Five parts of one thing, read as a set. The numeral
- * leads because the sequence IS the argument, and it is set at the scale the
- * homepage gives it — the dedicated page had been rendering the school's best
- * argument smaller than the page that only teases it. */
+/* ---- The tracklist ---- */
 .rw-track {
   list-style: none;
   margin: 0;
@@ -1555,13 +1336,7 @@ main:focus {
   line-height: 0.78;
   letter-spacing: var(--rw-track-poster);
   font-variant-numeric: tabular-nums;
-  /* Flare Action, not Flare. DESIGN.md's Surface-or-Ink Rule says a colour
-     that IS the letterform is an ink, and names display numerals as the one
-     large-text exception that still takes the ink — and this stylesheet then
-     used the surface for all three numerals anyway. On label stock the flare
-     numeral measured 2.96:1 against a 3:1 floor, so the rule was not
-     pedantry; on the page it scraped 3.18:1. Flare Action is 4.93 and 5.29,
-     which clears large text with room and small text besides. */
+
   color: var(--rw-orange);
 }
 
@@ -1584,18 +1359,13 @@ main:focus {
   color: var(--rw-prose);
 }
 
-/* ---- The path ----
- * /program/how-it-works. Four stages where the point is that each leads to the
- * next, so they are wide blocks threaded by a rule rather than rows in a list.
- * Deliberately NOT the tracklist: these two pages were the same component
- * built twice, which is the fault the homepage pass was written to fix. */
+/* ---- The path ---- */
 .rw-path {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  /* Five stages since the band step was added. auto-fit rather than a fixed
-     count so adding a sixth does not silently overflow the row. */
+
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 0;
 }
@@ -1625,13 +1395,7 @@ main:focus {
   line-height: 0.8;
   letter-spacing: var(--rw-track-poster);
   font-variant-numeric: tabular-nums;
-  /* Flare Action, not Flare. DESIGN.md's Surface-or-Ink Rule says a colour
-     that IS the letterform is an ink, and names display numerals as the one
-     large-text exception that still takes the ink — and this stylesheet then
-     used the surface for all three numerals anyway. On label stock the flare
-     numeral measured 2.96:1 against a 3:1 floor, so the rule was not
-     pedantry; on the page it scraped 3.18:1. Flare Action is 4.93 and 5.29,
-     which clears large text with room and small text besides. */
+
   color: var(--rw-orange);
 }
 
@@ -1671,9 +1435,7 @@ main:focus {
   }
 }
 
-/* ---- The bill ----
- * /community/events. A list of dated performances is a bill, and the date
- * leads because that is what a reader scans for. */
+/* ---- The bill ---- */
 .rw-bill {
   list-style: none;
   margin: 0;
@@ -1716,13 +1478,10 @@ main:focus {
   color: var(--rw-body);
 }
 
-/* The loading state is the bill's own shape rather than the word "Loading" —
-   a skeleton tells a reader what is arriving, which a grey word does not. */
 .rw-bill-skeleton span {
   display: block;
   background: var(--rw-rule);
-  /* On the scale. 2px was a value I picked by eye for a skeleton bar, which is
-     exactly how a radius scale acquires a fifth step nobody decided on. */
+
   border-radius: var(--rw-radius-sm);
   animation: rw-pulse 1.4s ease-in-out infinite;
 }
@@ -1767,10 +1526,7 @@ main:focus {
   }
 }
 
-/* ---- Empty states ----
- * Used where a page is genuinely waiting on material the school has to supply.
- * An empty state that does not admit it is one reads as a page that failed to
- * load; one that does can at least ask for what it needs. */
+/* ---- Empty states ---- */
 .rw-empty {
   text-align: center;
   padding: 8px 0 0;
@@ -1840,14 +1596,7 @@ main:focus {
   border-top-width: 1px;
 }
 
-/* ---- The promise ----
- * The six-month band claim. A split: the number on the left at a scale nothing
- * else on the page uses, the promise on the right at reading size.
- *
- * The numeral is the loud element because the whole claim is the number — a
- * reader who takes nothing else from this page should leave with "six months".
- * It is flare, which is legal here because flare is a surface colour and this
- * is display type well past the 40px the token reserves it for. */
+/* ---- The promise ---- */
 .rw-promise {
   display: grid;
   grid-template-columns: minmax(180px, 260px) 1fr;
@@ -1870,13 +1619,7 @@ main:focus {
   line-height: 0.74;
   letter-spacing: var(--rw-track-poster);
   font-variant-numeric: tabular-nums;
-  /* Flare Action, not Flare. DESIGN.md's Surface-or-Ink Rule says a colour
-     that IS the letterform is an ink, and names display numerals as the one
-     large-text exception that still takes the ink — and this stylesheet then
-     used the surface for all three numerals anyway. On label stock the flare
-     numeral measured 2.96:1 against a 3:1 floor, so the rule was not
-     pedantry; on the page it scraped 3.18:1. Flare Action is 4.93 and 5.29,
-     which clears large text with room and small text besides. */
+
   color: var(--rw-orange);
 }
 
@@ -1937,19 +1680,8 @@ main:focus {
   letter-spacing: 0.16em;
 }
 
-/* ---- The spec sheet ----
- * The record band. A printed specification: the label column carries the noun,
- * the value column carries the fact, and both start on a shared left edge so
- * the facts line up as a column the eye can run down.
- *
- * The old version was six sentences of near-identical length whose emphasised
- * runs sat in a different position on each line — two at the start, four in
- * the middle. A reader cannot scan a column whose landmarks move, so the
- * skimmability it was built for never existed. */
+/* ---- The spec sheet ---- */
 .rw-sheet {
-  /* Held to the reading measure rather than the wide grid. At 1200px the rules
-     ran the full width while the values stopped around 500, which reads as a
-     panel that failed to fill rather than one sized to its content. */
   max-width: var(--rw-measure-text);
   margin: 0;
   border-top: 2px solid var(--rw-ink);
@@ -1980,9 +1712,6 @@ main:focus {
   color: var(--rw-prose);
 }
 
-/* The countable run stays in the display face, as it was — but it now sits in
- * a column that starts at a fixed edge, which is what makes the emphasis
- * usable rather than merely present. */
 .rw-sheet dd b {
   font-family: var(--rw-font-display);
   font-weight: 800;
@@ -2027,9 +1756,7 @@ main:focus {
   font-weight: 700;
 }
 
-/* ---------- In-place text editing (admins only) ----------
- * The outline is drawn in a fraction of the text's own colour so it reads on
- * the lacquer heroes and on the page alike without a per-ground rule. */
+/* ---------- In-place text editing (admins only) ---------- */
 .rw-editable {
   outline: 2px dashed color-mix(in srgb, currentColor 45%, transparent);
   outline-offset: 3px;

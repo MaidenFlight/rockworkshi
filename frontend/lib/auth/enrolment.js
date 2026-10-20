@@ -1,8 +1,4 @@
-// Mirrors nextStepFor() in backend/src/routes/auth.routes.js. Both the route
-// guard and the wizard's post-submit redirect read this, so there's one
-// definition of what still has to happen before the member area opens up.
-//
-// Returns the path the user still owes us, or null when they're done.
+// Mirrors nextStepFor() in backend/src/routes/auth.routes.js.
 export function nextEnrolmentStep(user) {
   if (!user) return null;
   // Admins run the school rather than enrol in it.
