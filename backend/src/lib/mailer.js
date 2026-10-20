@@ -1,27 +1,12 @@
 const nodemailer = require("nodemailer");
 
-// Outbound email over SMTP, which every provider speaks — Gmail, Resend,
-// SendGrid, Mailgun, Postmark — so switching is a config change, not a rewrite.
-// See .env.example for the settings.
-//
-// With nothing configured, development falls back to an Ethereal mailbox: a
-// disposable inbox nodemailer provisions on demand. The message is genuinely
-// sent and rendered, and the log prints a URL to view it — much closer to the
-// real thing than printing the body to a terminal. Nothing reaches a real
-// address that way, so production refuses to start a fallback and reports the
-// misconfiguration instead.
-// Resend will send from any address on the verified domain, whether or not a
-// mailbox exists there — so this is deliberately the one that does exist, to
-// keep every address a reader sees pointing at a real inbox.
+// SMTP mailer (Resend in production, see .env.example).
+// In dev with no SMTP config, mail goes to an Ethereal test inbox and the
+// preview URL is logged. Production throws instead of falling back.
 const FROM =
   process.env.MAIL_FROM ||
   "Rock Works School of Music <denny.landika@rockworksschoolofmusichawaii.com>";
-// Verifying a sending domain does not create a mailbox on it, so an address in
-// FROM can send while nothing receives there — someone hitting Reply would get a
-// bounce. Setting this explicitly keeps replies working even if FROM later moves
-// to an address that only sends. Set MAIL_REPLY_TO to an empty string to send no
-// Reply-To at all, and the copy below drops its "contact us" clause rather than
-// printing a dead address.
+// Set to "" to send without a Reply-To header.
 const REPLY_TO =
   process.env.MAIL_REPLY_TO ?? "denny.landika@rockworksschoolofmusichawaii.com";
 const SMTP_HOST = process.env.SMTP_HOST;
@@ -39,16 +24,9 @@ async function buildTransport() {
     const transport = nodemailer.createTransport({
       host: SMTP_HOST,
       port,
-      // 465 is implicit TLS; 587 and 25 upgrade with STARTTLS.
       secure: port === 465,
       auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-      // Fail fast when the port is unreachable. Nodemailer's defaults are two
-      // minutes to connect and ten of socket inactivity, and a host that drops
-      // SMTP packets rather than refusing them burns the whole budget: signup
-      // awaits this send, so the person watches a spinner for minutes before
-      // the error is logged and the request finally completes. Some hosts block
-      // outbound 587 outright — Render does — so this is a configuration
-      // mistake worth surfacing in seconds.
+      // Short timeouts: Render blocks port 587 and the default timeouts are minutes long.
       connectionTimeout: 10_000,
       greetingTimeout: 10_000,
       socketTimeout: 20_000,
@@ -73,8 +51,7 @@ async function buildTransport() {
 }
 
 function getTransport() {
-  // Built once and reused; a failure isn't cached, so fixing the config and
-  // retrying works without a restart.
+  // Cache the transport, but not a failed one.
   if (!transportPromise) {
     transportPromise = buildTransport().catch((err) => {
       transportPromise = null;
@@ -117,8 +94,7 @@ async function sendMail({ to, subject, text, html }) {
 }
 
 function layout({ heading, lines, button, footer }) {
-  // Inline styles and a table shell: email clients strip <style> blocks and
-  // have patchy flexbox support.
+  // Tables + inline styles for email client support.
   const body = lines
     .map(
       (line) =>
@@ -175,7 +151,6 @@ function verificationEmail({ to, link }) {
   return sendMail({
     to,
     subject: "Confirm your email — Rock Works School of Music",
-    // Plain-text alternative, for clients that don't render HTML.
     text: [
       "Welcome to Rock Works!",
       "",
@@ -223,9 +198,6 @@ function passwordResetEmail({ to, link }) {
   });
 }
 
-// Sent after the fact, so someone who didn't make the change hears about it.
-// This is the one message whose reader may need to reach a human urgently, so
-// it names the contact address — but only when one is actually configured.
 function passwordChangedEmail({ to }) {
   return sendMail({
     to,

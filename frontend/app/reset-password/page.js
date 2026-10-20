@@ -35,8 +35,6 @@ function ResetPasswordForm() {
     try {
       await resetPassword(token, password);
       setDone(true);
-      // Resetting signs out every existing session, so send them to sign in
-      // with the new password rather than assuming they're already through.
       setTimeout(() => router.push("/signin"), 1600);
     } catch (err) {
       setError(err.message || "Could not reset your password.");

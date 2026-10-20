@@ -14,8 +14,6 @@ function OnboardingContent() {
   const router = useRouter();
 
   useEffect(() => {
-    // Questions already answered — move on to whatever is still outstanding
-    // (checkout, normally) rather than assuming the dashboard.
     if (user?.profileComplete) {
       router.replace(destinationFor(user));
     }

@@ -18,8 +18,6 @@ export default function ForgotPassword() {
     setSubmitting(true);
     try {
       await requestPasswordReset(email.trim());
-      // Deliberately the same message whether or not that address is
-      // registered — the server answers the same way for the same reason.
       setSent(true);
     } catch (err) {
       setError(err.message || "Something went wrong.");

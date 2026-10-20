@@ -1,21 +1,4 @@
 // The three social marks.
-//
-// These replace two-letter text stand-ins — "IG", "FB", "YT" set in circles.
-// Letters in a circle are what you draw when you have not drawn the icon yet:
-// they carry no brand recognition at 16px, they inherit the body face rather
-// than an icon system, and they sit optically higher than a real glyph because
-// caps have no descender to balance them.
-//
-// Drawn on the same 24x24 grid as components/InstrumentIcon.js so the two sets
-// are one family, but these are solid rather than stroked. That is deliberate:
-// the instrument marks are the school's own drawings and carry its stroke
-// language, while these are other companies' identities and are recognised by
-// silhouette. A stroked Instagram camera or YouTube badge stops reading as
-// itself long before it gets down to footer size.
-//
-// Sized from the parent's font-size via `1em` and filled with currentColor, so
-// a single colour change on the anchor moves the mark, its hover state and its
-// focus ring together.
 
 const MARKS = {
   Instagram: (
@@ -39,8 +22,7 @@ const MARKS = {
 
 export default function SocialIcon({ name }) {
   const art = MARKS[name];
-  // An unrecognised name draws nothing rather than an empty box. The three keys
-  // are the `label` values in footerSocial (lib/content.js).
+  // An unrecognised name draws nothing rather than an empty box.
   if (!art) return null;
 
   return (

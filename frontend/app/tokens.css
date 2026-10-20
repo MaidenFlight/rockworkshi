@@ -1,44 +1,14 @@
-/* The Rock Works design tokens — THE SILKIE.
- *
- * Replaced wholesale on 2026-08-28. The world before this was cream ground,
- * high-contrast slab serif, one warm orange: verbatim the first entry on the
- * list of looks AI-generated interfaces converge on regardless of what they
- * are for. On a school selling rock and roll to teenagers it also produced a
- * page with no loud element on it — the largest, brightest thing on the
- * homepage was a small button.
- *
- * The world is the 1950s Hawaiian rayon "silkie": the tailored, saturated,
- * collector-grade shirt, not the souvenir rack. A silkie is built from a
- * saturated ground, a repeating motif field, and an engineered border band
- * where the print concentrates and the garment says what it is. That is the
- * page: field on top, band at the bottom, label stock wherever prose runs.
- * Blue Hawaii, 1961, is the hinge that makes this rock and roll rather than
- * tourism — it is the one place old-school rock and Hawaii genuinely meet.
- *
- * Naming stays by role, not by hue, and every token name from the previous
- * world survives: 48 routes reference these, and renaming would have been a
- * second, invisible refactor riding along with a redesign.
- */
+
 
 :root {
-  /* ---- Ink: text and the dark grounds ----
-   * Lacquer, not navy. A black with plum in it reads as finished surface —
-   * sprayed and buffed — where a neutral black reads as absence. */
+  /* ---- Ink: text and the dark grounds ---- */
   --rw-ink: #16121c; /* headings, primary text, dark sections */
   --rw-ink-deep: #0c0910; /* the darkest stop in gradients */
 
-  /* ---- Grounds ----
-   * The page and its panels are cool: the old grounds were cream (#fbf5ec) and
-   * warm sand, and keeping a warm off-white would have left two thirds of the
-   * AI-cluster look in place while claiming a redesign. The alternate band
-   * below is the deliberate exception — see its own note. */
+  /* ---- Grounds ---- */
   --rw-cream: #eef0ec; /* the page itself */
   --rw-surface: #f8faf6; /* cards and panels sitting on the page */
-  /* The alternate band is the woven label sewn into the garment, so it is warm
-   * stock rather than cool. The first pass made it a grey-green (#e3e7df) and
-   * the proof band — the section carrying the school's strongest claims — read
-   * as dead space left over from the previous world. Every text role clears
-   * 4.5:1 on it: ink 15.01, teal 4.71, meta 4.97, orange-deep 7.21. */
+
   --rw-sand: #f2e7cb; /* the alternate band: label stock */
 
   /* ---- Lines ---- */
@@ -46,51 +16,19 @@
   --rw-border: #d8ddd4; /* card and band edges */
   --rw-line: #b9c1b5; /* input and button borders */
 
-  /* ---- Accents ----
-   * Two reds and they are not interchangeable, for the same reason the old
-   * palette needed two oranges: one is a SURFACE, one is an INK.
-   *
-   * --rw-flare is the field. It is allowed to be as loud as it likes because
-   * nothing small is ever set in it: display type at 40px and up, and large
-   * areas of colour. White on it is 3.65:1, which clears the large-text floor
-   * and nothing else, and that constraint is the point.
-   *
-   * --rw-orange keeps its name (48 routes call it) but is now the deep flare
-   * that carries white text: 6.07:1 at rest and 5.73:1 under the .rw-cta
-   * hover's 4% brightening, so the button passes in the state it is read in
-   * and the state it is used in. --rw-orange-deep is the reading-weight
-   * sibling for links in running text at 7.73:1 on the page.
-   *
-   * Surface or ink: if red sits behind white it is a surface; if red IS the
-   * letterform at reading size it is the ink. Carried over from the previous
-   * world, where it was learned the expensive way. */
+  /* ---- Accents ---- */
   --rw-flare: #ff2d55; /* the field. Large type and big areas ONLY */
   --rw-orange: #c2143c; /* the action colour. White on it: 6.07:1 */
   --rw-orange-deep: #96082c; /* links in running text. On the page: 7.73:1 */
   --rw-orange-tint: #ffe8ec; /* red at wash strength, for notices */
 
-  /* Lagoon is the Hawaii note and the cool counterweight, and it inherits the
-   * old teal's problem exactly: it is both eyebrow text and the focus ring, so
-   * it is squeezed from both ends. Text needs 4.5:1 on the darkest paper it
-   * lands on (the alternate band, not the page); the ring needs 3:1 on the
-   * dark grounds. #0c735d is 5.05:1 on the page, 4.62:1 on the band, and the
-   * ring measures 3.19:1 on Ink and 3.41:1 on Ink Deep. Unlike its
-   * predecessor this has real margin at both ends rather than 0.03. */
   --rw-teal: #0c735d; /* eyebrows, focus rings, quiet accents. On band: 4.62:1 */
 
-  /* ---- The dark-ground accents ----
-   * Vibrant on purpose: these are what a teenager sees against the lacquer,
-   * and the previous palette's dark-ground accents were a pale gold and a pale
-   * sea-glass that whispered. Gold is 12.02:1 on Ink, sea glass 12.28:1. */
+  /* ---- The dark-ground accents ---- */
   --rw-gold: #ffc93c; /* marks and emphasis on a dark ground */
   --rw-sea-glass: #5ce1c6; /* a section eyebrow on a dark band, where gold competes */
 
-  /* ---- Chrome ----
-   * The heavy-metal signature, and the reason it is a ramp rather than a
-   * colour: chrome is not grey, it is a reflection, so it only reads as metal
-   * when light runs across it. Used on the wordmark and nothing else — a page
-   * with two chrome objects has none. Blackletter was considered for the metal
-   * note and rejected: it skews cheap where this brief asked for classy. */
+  /* ---- Chrome ---- */
   --rw-chrome-hi: #ffffff;
   --rw-chrome-mid: #b6bcc4;
   --rw-chrome-lo: #5c626b;
@@ -103,41 +41,18 @@
     var(--rw-chrome-hi) 100%
   );
 
-  /* ---- Secondary text ----
-   * Cooled to sit on label stock rather than cream, and every one measured on
-   * the ground it actually lands on. --rw-meta is 12.5px captions, which is
-   * the size the 4.5:1 floor exists for: 5.33:1 on the page and 4.88:1 on the
-   * band, because captions appear on both. */
+  /* ---- Secondary text ---- */
   --rw-meta: #5d6459; /* captions and 12px labels. On the page: 5.33:1 */
   --rw-body: #4a5147; /* 14-15px body. On the page: 7.16:1 */
   --rw-body-cool: #46514c; /* 15-16px body, cooler */
   --rw-prose: #2b312a; /* 16.5px long-form prose. On the page: 11.62:1 */
 
-  /* ---- Type ----
-   * Big Shoulders Display is a condensed American signage face: built to be
-   * read tall and loud at distance, which is what a poster does and what the
-   * previous slab serif could not do at any size. It is the poster voice and
-   * takes nothing under 20px.
-   *
-   * Libre Franklin carries every word anyone actually reads. Franklin Gothic
-   * is the American newspaper and poster workhorse, so it is the correct
-   * company for a signage display face, and it has no opinion at 15px.
-   *
-   * The two aliases below are a migration bridge, not a design decision. The
-   * 29 app, auth and admin routes hardcode `var(--font-zilla-slab)` and
-   * `var(--font-source-sans)` in inline styles; pointing the old names at the
-   * new faces means those routes inherit the new type instead of falling back
-   * to Georgia. Move a call site to --rw-font-display or --rw-font-body when
-   * you touch it, and delete these two lines when the last one is gone. */
+  /* ---- Type ---- */
   --font-zilla-slab: var(--font-big-shoulders);
   --font-source-sans: var(--font-libre-franklin);
   --rw-font-display: var(--font-big-shoulders), "Haettenschweiler", "Arial Narrow", sans-serif;
   --rw-font-body: var(--font-libre-franklin), system-ui, sans-serif;
 
-  /* The scale. Unchanged from the previous world: it was measured off real
-   * pages, the ten steps still fit, and a redesign is not a reason to
-   * renumber something that was not broken. The Fluid Endpoint Exception
-   * (DESIGN.md) still governs clamp() endpoints. */
   --rw-text-2xs: 11px; /* uppercase micro-labels */
   --rw-text-xs: 12.5px; /* captions, meta, eyebrows */
   --rw-text-sm: 13.5px; /* buttons and dense UI */
@@ -149,9 +64,6 @@
   --rw-text-3xl: 32px;
   --rw-text-4xl: 44px;
 
-  /* Condensed signage type wants tighter tracking at scale and looser tracking
-   * when it is set small in caps, which is the opposite of the slab it
-   * replaces. The eyebrow keeps its 0.22em signature. */
   --rw-track-eyebrow: 0.22em;
   --rw-track-tight: -0.02em;
   --rw-track-poster: -0.03em; /* display type at 40px and up */
@@ -171,23 +83,13 @@
   --rw-measure-text: 900px;
   --rw-measure-form: 520px;
 
-  /* ---- Radii ----
-   * Tightened. The old world rounded everything to 8-14px, which is the
-   * friendly-SaaS reflex; a printed garment label and a signage panel have
-   * corners. The pill survives for the auth submit, which is a genuine second
-   * button treatment and not drift. */
+  /* ---- Radii ---- */
   --rw-radius-sm: 3px; /* buttons */
   --rw-radius-field: 3px; /* inputs and selects */
   --rw-radius-md: 4px; /* cards and panels */
   --rw-radius-pill: 999px;
 
-  /* ---- The nav bar ----
-   * Named because the bar is the one surface that must invert between worlds:
-   * Silkie's is lacquer with a gold active link, Classic's is translucent cream
-   * with a deep-red one. Hardcoding Silkie's values inline (which the first
-   * pass did) left the Classic wordmark rendering dark navy on a dark bar at
-   * 1.15:1 — a whole-site toggle is only as switchable as its least tokenised
-   * component. */
+  /* ---- The nav bar ---- */
   --rw-nav-bg: rgba(22, 18, 28, 0.9);
   --rw-nav-fg: rgba(238, 240, 236, 0.82);
   --rw-nav-active: var(--rw-gold);
@@ -195,34 +97,12 @@
   --rw-nav-hover: rgba(255, 255, 255, 0.08);
   --rw-nav-mark: var(--rw-gold);
   --rw-nav-sub: var(--rw-sea-glass);
-  /* The dropdown descends from the bar, so it is made of the same material.
-     It was a light panel hanging off a dark bar — correct for the cream nav it
-     was designed for, and jarring under this one — with an old navy shadow
-     hardcoded into it that could not switch worlds. */
+
   --rw-nav-panel: #221d2b;
   --rw-nav-panel-fg: rgba(238, 240, 236, 0.86);
   --rw-nav-shadow: 0 18px 40px -20px rgba(0, 0, 0, 0.7);
 }
 
-/* ==========================================================================
-   THE CLASSIC WORLD
-   ==========================================================================
-   The site as it shipped at 5389266, kept switchable rather than deleted.
-   Requested so the two can be compared; the toggle lives in the footer and
-   the choice persists per browser.
-
-   This is values only. Every token NAME is shared with the Silkie above,
-   which is the entire reason a whole-site visual swap costs one attribute:
-   all 48 routes read these names and none of them know a world exists. That
-   is also the constraint on this block — a token the Silkie introduced and
-   Classic never had (--rw-flare, the chrome ramp) must still resolve to
-   something reasonable here, so those are mapped to their nearest classic
-   equivalents rather than left dangling.
-
-   Contrast: these are the audited values from the previous world, not the
-   pre-audit ones. Classic is the SHIPPED old site, so it carries the fixed
-   oranges and teal rather than the failing originals — switching to it must
-   not switch accessibility off. */
 [data-world="classic"] {
   --rw-ink: #0a2338;
   --rw-ink-deep: #06192d;
@@ -243,10 +123,6 @@
   --rw-body-cool: #5f6f79;
   --rw-prose: #33454f;
 
-  /* Silkie-only tokens, mapped so nothing resolves to nothing. The flare field
-     has no classic equivalent — the old world had no saturated field at all —
-     so it takes the action orange, which is the loudest colour that world
-     owned. */
   --rw-flare: #c94428;
   --rw-chrome-hi: #fbf5ec;
   --rw-chrome-mid: #e6d8c6;
@@ -277,9 +153,6 @@
   --rw-nav-shadow: 0 18px 40px -20px rgba(6, 25, 45, 0.4);
 }
 
-/* The wordmark's chrome is a Silkie device and has no classic reading, so the
-   clip is undone rather than approximated: in Classic it is the slab wordmark
-   the old site had. */
 [data-world="classic"] .rw-wordmark {
   background: none;
   -webkit-text-fill-color: currentColor;

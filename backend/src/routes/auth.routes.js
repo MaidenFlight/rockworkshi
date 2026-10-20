@@ -22,10 +22,7 @@ const router = express.Router();
 
 const SALT_ROUNDS = 12;
 
-// The link points at the app, which posts the token back here. Built from the
-// origin the request came from so a link emailed to someone browsing over the
-// LAN doesn't send them to localhost — which on a phone is the phone itself.
-// Falls back to the configured URL when there's no Origin header.
+// Use the request's origin for email links so they work when testing over the LAN.
 function appOriginFor(req) {
   const origin = req.headers.origin;
   if (origin && /^https?:\/\//.test(origin)) return origin.replace(/\/$/, "");
@@ -40,8 +37,7 @@ async function sendVerificationLink(req, user, token) {
   try {
     await verificationEmail({ to: user.email, link: verificationLinkFor(req, token) });
   } catch (err) {
-    // A send failure shouldn't abort signup — the account exists and the link
-    // can be resent. Log it so it isn't silent.
+    // Don't fail signup over this, the link can be resent.
     console.error("Could not send verification email:", err.message);
   }
 }
@@ -50,7 +46,6 @@ const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || "").trim().toLowerCase();
 
 function toSafeUser(user) {
   if (!user) return null;
-  // Never leave the password hash or either token on a response.
   const { passwordHash, verificationTokenHash, resetTokenHash, ...safe } = user;
   const isAdmin = Boolean(ADMIN_EMAIL) && user.email === ADMIN_EMAIL;
   return {
@@ -58,15 +53,12 @@ function toSafeUser(user) {
     isAdmin,
     emailVerified: Boolean(user.emailVerifiedAt),
     profileComplete: Boolean(user.instrument),
-    // Admins run the school rather than enrol in it, so they're never held at
-    // the payment step.
     paymentComplete: isAdmin || Boolean(user.paidAt),
   };
 }
 
-// Where a signed-in user still needs to go before the member area will work.
-// The client-side route guard mirrors this, so the two can't disagree about
-// what "finished signing up" means.
+// Next enrolment step for a signed-in user.
+// Keep in sync with frontend/lib/auth/enrolment.js.
 function nextStepFor(user) {
   const safe = toSafeUser(user);
   if (safe.isAdmin) return "/admin";
@@ -137,8 +129,7 @@ router.post("/signup", async (req, res, next) => {
 
     await sendVerificationLink(req, user, token);
 
-    // Signed in straight away, but nextStepFor() holds them at the "check your
-    // inbox" step until the address is confirmed.
+    // Signed in right away; nextStepFor() keeps them on /verify-email until confirmed.
     req.login(user, (err) => {
       if (err) return next(err);
       return res.status(201).json({ user: toSafeUser(user) });
@@ -190,10 +181,7 @@ router.patch("/me", requireAuth, async (req, res, next) => {
   }
 });
 
-// Called by the app with the token from the emailed link. No auth requirement:
-// the token is the proof, so it works from whichever browser opened the email,
-// signed in or not. Always 200s with an outcome — the token's validity isn't an
-// HTTP-level error, and it keeps the client from guessing from status codes.
+// No auth needed, the token is the proof. Always returns 200 with a status string.
 router.post("/verify-email", async (req, res, next) => {
   const token = String(req.body?.token || "");
   const done = (status) => res.json({ status });
@@ -201,8 +189,6 @@ router.post("/verify-email", async (req, res, next) => {
   if (!token) return done("invalid");
 
   try {
-    // Can't look the token up directly — only its hash is stored — so find the
-    // candidates with a live token and compare.
     const candidates = await prisma.user.findMany({
       where: { verificationTokenHash: { not: null } },
       select: { id: true, verificationTokenHash: true, verificationExpiresAt: true, emailVerifiedAt: true },
@@ -222,8 +208,6 @@ router.post("/verify-email", async (req, res, next) => {
   }
 });
 
-// Re-issues a token for the signed-in account. Rate limited so it can't be used
-// to flood an inbox.
 router.post("/resend-verification", requireAuth, async (req, res, next) => {
   try {
     if (req.user.emailVerifiedAt) {
@@ -243,16 +227,14 @@ router.post("/resend-verification", requireAuth, async (req, res, next) => {
   }
 });
 
-// Signing in elsewhere shouldn't survive a password change — especially a
-// reset, where the point may be that someone else has the account. Sessions are
-// rows holding serialized passport data, so the user's id appears in the blob.
+// Log out the user's other sessions after a password change.
+// The user id appears in the serialized session data.
 async function endOtherSessions(userId, keepSid) {
   try {
     await prisma.session.deleteMany({
       where: { data: { contains: userId }, sid: keepSid ? { not: keepSid } : undefined },
     });
   } catch (err) {
-    // Not worth failing the password change over.
     console.error("Could not clear other sessions:", err.message);
   }
 }
@@ -262,8 +244,6 @@ function passwordProblem(password) {
   return null;
 }
 
-// Changing a known password. Requires the current one, so a borrowed session
-// can't be used to lock the owner out.
 router.post("/change-password", requireAuth, async (req, res, next) => {
   const { currentPassword, newPassword } = req.body || {};
 
@@ -277,7 +257,6 @@ router.post("/change-password", requireAuth, async (req, res, next) => {
     const passwordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
     await prisma.user.update({
       where: { id: req.user.id },
-      // Any outstanding reset link is void now the password has been set.
       data: { passwordHash, ...clearedResetFields },
     });
 
@@ -292,9 +271,9 @@ router.post("/change-password", requireAuth, async (req, res, next) => {
   }
 });
 
-// Starts a reset. Always answers the same way, whether or not the address is
-// registered — otherwise this endpoint becomes a way to find out who has an
-// account here.
+// Same response whether or not the account exists, so this can't be used to
+// look up emails. We respond before doing any extra work so timing doesn't
+// give it away either.
 router.post("/forgot-password", async (req, res, next) => {
   const email = String(req.body?.email || "").trim().toLowerCase();
   const sameAnswer = () => res.json({ sent: true });
@@ -308,21 +287,12 @@ router.post("/forgot-password", async (req, res, next) => {
     return next(err);
   }
 
-  // Answer here, before anything that only happens for a real account. The
-  // identical response body is wasted if a registered address takes 2s to
-  // answer and an unregistered one takes 5ms — the clock leaks what the body
-  // hides. Both paths now cost one lookup and nothing more.
   sameAnswer();
 
   if (!user) return;
-  // Silently ignore a rapid repeat rather than reporting the rate limit,
-  // which would itself confirm the address exists.
   if (!cooledDown(user.resetSentAt)) return;
 
   const { token, data } = issueReset();
-  // The token has to be stored before the mail goes out, or the link in it
-  // would be checked against nothing. Nothing left to tell the client by this
-  // point, and an unhandled rejection here would take the process down.
   prisma.user
     .update({ where: { id: user.id }, data })
     .then(() =>
@@ -336,8 +306,6 @@ router.post("/forgot-password", async (req, res, next) => {
     });
 });
 
-// Finishes a reset. The token is the only proof needed, so this works signed
-// out, from whichever browser opened the email.
 router.post("/reset-password", async (req, res, next) => {
   const token = String(req.body?.token || "");
   const { newPassword } = req.body || {};
@@ -361,12 +329,10 @@ router.post("/reset-password", async (req, res, next) => {
     const passwordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
     await prisma.user.update({
       where: { id: match.id },
-      // Single use: clear the token so the link can't be replayed.
       data: { passwordHash, ...clearedResetFields },
     });
 
-    // Whoever prompted the reset may not be the account owner, so drop every
-    // existing session for it.
+    // Drop every session for this account.
     await endOtherSessions(match.id, null);
     passwordChangedEmail({ to: match.email }).catch((err) =>
       console.error("Could not send password-changed email:", err.message)

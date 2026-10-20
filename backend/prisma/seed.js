@@ -5,8 +5,7 @@ const { PrismaClient } = require("@prisma/client");
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
 
-// Mozilla's sample clip, used as a stand-in so the player has something to play
-// in development. It goes in as provider "direct", so nothing tries to sign it.
+// Placeholder video for local dev (provider "direct").
 const PLACEHOLDER_VIDEO = "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4";
 
 const { INSTRUMENTS } = require("../src/lib/lessonVideos");
@@ -20,9 +19,7 @@ const LEVELS = [
 ];
 
 async function main() {
-  // Lesson has no natural unique key, so skipDuplicates can't protect it — a
-  // second run would just add three more copies. The videos below are keyed off
-  // whatever lessons exist, so that has to not happen.
+  // Lesson has no unique key, so skip if already seeded.
   const existingLessons = await prisma.lesson.count();
   if (existingLessons > 0) {
     console.log(`Lessons already present (${existingLessons}) — leaving them alone.`);
@@ -63,11 +60,7 @@ async function main() {
     });
   }
 
-  // A lesson video per instrument, so the instrument filter has something to
-  // filter. Wonderwall deliberately has no Drums or Voice video: in real life
-  // most (song × instrument) slots stay empty for months while the library is
-  // recorded, and the "not recorded yet" path needs to be the normal case in
-  // development rather than something only production ever hits.
+  // Wonderwall has no Drums/Voice video on purpose, to test the empty state.
   const lessons = await prisma.lesson.findMany({ select: { id: true, title: true } });
   const videos = [];
   for (const lesson of lessons) {
@@ -87,8 +80,7 @@ async function main() {
   }
   await prisma.lessonVideo.createMany({ data: videos, skipDuplicates: true });
 
-  // No teachers are seeded. Three invented ones used to be, and they reached
-  // production; the page shows real people or an honest empty state.
+  // Teachers are not seeded; add real ones through the admin.
 
   await prisma.faq.createMany({
     data: [

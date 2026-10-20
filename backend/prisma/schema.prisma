@@ -14,28 +14,25 @@ datasource db {
 model User {
   id String @id @default(uuid())
 
-  // Email and password are the only way in, so every account must have both.
+
   email        String @unique
   passwordHash String
 
-  // Null until the address is confirmed. Unverified accounts can sign in but
-  // are held at the "check your inbox" step by nextStepFor().
+  // null until the email is confirmed
   emailVerifiedAt DateTime?
-  // Sha-256 of the emailed token, never the token itself — a leaked table
-  // shouldn't let someone else confirm an address.
+  // token fields store a sha-256 hash, not the token
   verificationTokenHash String?
   verificationSentAt    DateTime?
   verificationExpiresAt DateTime?
 
-  // Same treatment for password resets, on a much shorter fuse: this token is
-  // enough to take over the account.
+
   resetTokenHash  String?
   resetSentAt     DateTime?
   resetExpiresAt  DateTime?
 
   createdAt DateTime @default(now())
 
-  // Student profile (filled in at signup / editable by admin)
+  // Student profile
   name            String?
   age             String?
   phone           String?
@@ -50,26 +47,19 @@ model User {
   plan            String?
   status          String  @default("active")
 
-  // Set once enrolment is paid for. Written from a verified Stripe event, never
-  // from anything the browser reports — returning to the success page is not
-  // proof that money moved.
+  // set from a verified Stripe event only
   paidAt   DateTime?
   payments Payment[]
 
-  // Stripe's own identifiers for this account. The customer id is what links a
-  // renewal invoice arriving months later back to a row in this table: the
-  // checkout session is long finished by then, so it can't do that job.
+  // customer id is used to match renewal invoices to the user
   stripeCustomerId     String? @unique
   stripeSubscriptionId String?
 
-  // Simple derived dashboard stats: { weeklyMinutes, weeklyGoal, streak, achievements: [] }
+  // { weeklyMinutes, weeklyGoal, streak, achievements: [] }
   practiceStats Json?
 }
 
-// One row per payment attempt. "provider" records what settled it — "stripe"
-// for real money, "demo" for the development stand-in, so the two are always
-// tellable apart in the history. Amounts are integer cents to keep float
-// rounding out of billing.
+// provider is "stripe" or "demo". Amounts in cents.
 model Payment {
   id          String   @id @default(uuid())
   userId      String
@@ -82,17 +72,14 @@ model Payment {
   status      String   @default("paid")
   createdAt   DateTime @default(now())
 
-  // The processor's id for this charge — the Checkout Session for a first
-  // payment, the Invoice for a renewal. Unique because webhook delivery is
-  // at-least-once: Stripe retries until it gets a 2xx, and the same event
-  // arriving twice must not write two rows. The insert races the return from
-  // the success page, so the constraint is what settles it, not a prior read.
+  // Stripe checkout session id or invoice id. Unique so a retried webhook
+  // can't record the same payment twice.
   providerRef String? @unique
 
   @@index([userId])
 }
 
-// Shape required by @quixo3/prisma-session-store
+// used by @quixo3/prisma-session-store
 model Session {
   id        String   @id
   sid       String   @unique
@@ -200,8 +187,7 @@ model Media {
   updatedAt DateTime @updatedAt
 }
 
-// A song as it's taught: the title, key and level descriptions are the same
-// whoever is playing it. The videos are not — see LessonVideo.
+
 model Lesson {
   id         String   @id @default(uuid())
   order      Int      @default(0)
@@ -217,52 +203,38 @@ model Lesson {
   videos LessonVideo[]
 }
 
-// One playable video. The same song is taught differently on every instrument,
-// and eventually at every level, so a video can't be a column on Lesson — there
-// is one per (lesson, instrument, level, kind), and most of those slots stay
-// empty for a long time while the library is being recorded.
+// One video per (lesson, instrument, level, kind). Most slots start empty.
 model LessonVideo {
   id       String @id @default(uuid())
   lessonId String
   lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
 
-  // One of the six names in frontend/lib/content.js. Signup stores that same
-  // string on User.instrument and the two are matched by string, so they have
-  // to stay identical — a rename on either side silently hides every video.
+  // must match User.instrument (see INSTRUMENTS in lib/lessonVideos.js)
   instrument String
 
-  // Only level 1 is being recorded for now. The column exists from the start so
-  // that adding levels later is content entry, not a migration against rows
-  // that by then have real videos and paying students behind them.
+  // 1-5, only level 1 recorded so far
   level Int @default(1)
 
-  // "lesson" for the teaching video, "playthrough" for the song played straight.
+  // "lesson" or "playthrough"
   kind String @default("lesson")
 
-  // How to turn videoId into something playable: "bunny" means it's a Bunny
-  // Stream guid and the URL gets signed per request; "direct" means videoId is
-  // already a plain URL, which is what local development and any leftover
-  // placeholder use.
+  // "bunny" (Bunny Stream guid) or "direct" (plain URL, used in dev)
   provider String @default("bunny")
 
-  // The host's id for the video, deliberately not a full URL — a signed URL
-  // expires, so storing one would mean storing something already stale.
+
   videoId String
 
   published Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // One video per slot, so re-uploading replaces a row rather than leaving two
-  // that disagree about which is current.
+
   @@unique([lessonId, instrument, level, kind])
   @@index([lessonId])
 }
 
-// Wording an administrator has changed on a public page. The page's own code
-// holds the original; a row here only exists while the text differs from it,
-// so deleting the row is how "restore original" works. `key` names the spot,
-// e.g. "format.hero.title".
+// Admin text overrides for public pages, e.g. key "format.hero.title".
+// Deleting a row restores the original text.
 model SiteText {
   key       String   @id
   value     String

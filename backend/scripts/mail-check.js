@@ -1,9 +1,5 @@
-// Checks the SMTP settings in .env and sends a test message.
-//
-//   npm run mail:check -- you@example.com
-//
-// Reports whether the credentials are accepted before you go through a whole
-// signup or reset to find out. Never prints the password.
+// Tests the SMTP settings in .env by sending a message.
+// Usage: npm run mail:check -- you@example.com
 require("dotenv").config();
 const nodemailer = require("nodemailer");
 const { verificationEmail } = require("../src/lib/mailer");

@@ -1,14 +1,9 @@
 const crypto = require("crypto");
 
-// One-time tokens sent by email, for confirming an address and for resetting a
-// password. Only the sha-256 of a token is ever stored, so a leaked table can't
-// be used to confirm someone's address or take over their account.
-//
-// Resets get a much shorter life than verifications: the token is enough to
-// sign in as that person.
+// One-time tokens for email verification and password resets.
+// Only the sha-256 hash is stored in the database.
 const VERIFICATION_TTL_MS = 24 * 60 * 60 * 1000;
 const RESET_TTL_MS = 60 * 60 * 1000;
-// Minimum gap between emails, so neither endpoint can be used to flood an inbox.
 const RESEND_COOLDOWN_MS = 60 * 1000;
 
 function hashToken(token) {
@@ -20,8 +15,6 @@ function createToken() {
   return { token, hash: hashToken(token) };
 }
 
-// Compared with timingSafeEqual so a wrong token can't be narrowed down by
-// measuring how long the comparison took.
 function tokenMatches(token, storedHash) {
   if (!token || !storedHash) return false;
   const candidate = Buffer.from(hashToken(token), "hex");

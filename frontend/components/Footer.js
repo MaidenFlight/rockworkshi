@@ -42,9 +42,7 @@ export default function Footer() {
                 aria-label={s.label}
                 className="rw-social"
                 style={{
-                  /* 34x34 was a decade out of date as a touch target; the
-                     floor is 44. The mark inside is unchanged — the ring
-                     around it grew. */
+                  /* 44px minimum touch target */
                   width: 44,
                   height: 44,
                   display: "flex",
@@ -83,10 +81,7 @@ export default function Footer() {
             </div>
             <p style={{ margin: "0 0 5px", fontSize: 14 }}><T k="footer.place">Honolulu, Hawaii</T></p>
             <p style={{ margin: "0 0 5px", fontSize: 14 }}><T k="footer.est">Est. 1982</T></p>
-            {/* The one mailbox that exists on the domain. A generic alias like
-                aloha@ would read better here and would survive a change of
-                inbox, but it has to be created as a forward at Northwest first
-                — until then it would bounce. */}
+            {/* The one mailbox that exists on the domain. */}
             <a
               href="mailto:denny.landika@rockworksschoolofmusichawaii.com"
               style={{
