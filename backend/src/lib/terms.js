@@ -86,13 +86,15 @@ function presentStaffGroup(group) {
 
 // ---------- Student view ----------
 
-// What a student may know about one month. A song's title only appears once it's open:
-// before that the student sees a date, or that the song is being prepared.
-function presentStudentSlot(slot, now) {
+// What a student may know about one month. A song's title only appears once it's open
+// (or the student already reached it and keeps it, see TermGrant): before that the
+// student sees a date, or that the song is being prepared.
+function presentStudentSlot(slot, now, kept = new Set()) {
   const base = { month: slot.month, unlockAt: slot.unlockAt, unlockAtDisplay: display(slot.unlockAt) };
-  if (slot.unlockAt.getTime() > now.getTime()) return { ...base, state: "upcoming" };
+  const reached = slot.song && kept.has(slot.song.id);
+  if (slot.unlockAt.getTime() > now.getTime() && !reached) return { ...base, state: "upcoming" };
   // Published but the song was later hidden from the library: honest "preparing", not a dead link.
-  if (!isOpen(slot, now) || !slot.song || !slot.song.published) return { ...base, state: "preparing" };
+  if ((!isOpen(slot, now) && !reached) || !slot.song || !slot.song.published) return { ...base, state: "preparing" };
   return {
     ...base,
     state: "available",
@@ -118,10 +120,11 @@ function pickGroup(groups, now) {
   );
 }
 
-function presentStudentTerm(groups, now) {
+// keptSongIds: songs this student already reached (TermGrant), which stay theirs.
+function presentStudentTerm(groups, now, keptSongIds = new Set()) {
   const group = pickGroup(groups, now);
   if (!group) return { state: "none" };
-  const slots = [...group.slots].sort((a, b) => a.month - b.month).map((s) => presentStudentSlot(s, now));
+  const slots = [...group.slots].sort((a, b) => a.month - b.month).map((s) => presentStudentSlot(s, now, keptSongIds));
   const opened = slots.filter((s) => s.unlockAt.getTime() <= now.getTime());
   // Other terms the student was in, with whatever opened there. Nothing is taken away at term end.
   const earlier = groups
@@ -131,7 +134,7 @@ function presentStudentTerm(groups, now) {
       name: g.name,
       songs: [...g.slots]
         .sort((a, b) => a.month - b.month)
-        .map((s) => presentStudentSlot(s, now))
+        .map((s) => presentStudentSlot(s, now, keptSongIds))
         .filter((s) => s.state === "available"),
     }))
     .filter((g) => g.songs.length);

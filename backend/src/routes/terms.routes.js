@@ -2,7 +2,7 @@ const express = require("express");
 const prisma = require("../lib/prisma");
 const clock = require("../lib/clock");
 const { requireAuth, requireAdmin } = require("../middleware/auth");
-const { isStaff, grantOpenSlots } = require("../lib/termAccess");
+const { isStaff, grantOpenSlots, loadAccess } = require("../lib/termAccess");
 const { fromLocal } = require("../lib/honolulu");
 const {
   MONTHS,
@@ -34,7 +34,10 @@ student.get("/", requireAuth, async (req, res) => {
       term: term.group ? { state: term.state, group: term.group } : { state: "none" },
     });
   }
-  res.json({ membership: "active", term: presentStudentTerm(groups, now), now });
+  // loadAccess also records grants for months open right now, so read grants after it.
+  await loadAccess(req.user, now);
+  const grants = await prisma.termGrant.findMany({ where: { userId: req.user.id, songId: { not: null } }, select: { songId: true } });
+  res.json({ membership: "active", term: presentStudentTerm(groups, now, new Set(grants.map((g) => g.songId))), now });
 });
 
 // ---------- Staff: /admin/terms ----------

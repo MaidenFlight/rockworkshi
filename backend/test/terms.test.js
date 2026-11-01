@@ -57,6 +57,10 @@ before(async () => {
   users.a2 = await make("a2"); // group A, never opens anything before the checks that use it
   users.a3 = await make("a3"); // group A, removed from it later
   users.a4 = await make("a4"); // joins group A late
+  // The clock is pinned and moved around between tests, and grants record what was open at
+  // the pinned time. Checks that jump back before an unlock use students who never saw it.
+  users.a5 = await make("a5"); // group A, only used at a late date
+  users.a6 = await make("a6"); // group A, only used before anything opens
   users.b1 = await make("b1"); // group B
   users.loner = await make("loner"); // no group
   users.lapsed = await make("lapsed", { paidAt: null }); // group A, membership ended
@@ -83,7 +87,7 @@ before(async () => {
           { month: 3, unlockAt: new Date("2031-05-01T10:00:00.000Z") },
         ],
       },
-      members: { create: [{ userId: users.a1.id }, { userId: users.a2.id }, { userId: users.a3.id }, { userId: users.lapsed.id }] },
+      members: { create: [{ userId: users.a1.id }, { userId: users.a2.id }, { userId: users.a3.id }, { userId: users.a5.id }, { userId: users.a6.id }, { userId: users.lapsed.id }] },
     },
   });
   // Group B has song x in month 3, much later.
@@ -140,7 +144,7 @@ test("unpublished and unassigned months stay closed after their date", { skip: !
   await prisma.termSlot.update({ where: { groupId_month: { groupId: groupA.id, month: 1 } }, data: { published: true } });
 
   at(new Date("2031-05-02T00:00:00.000Z"));
-  const late = (await call("a1", "GET", "/term")).data.term;
+  const late = (await call("a5", "GET", "/term")).data.term;
   assert.equal(late.slots[2].state, "preparing", "month 3 has no song yet");
   assert.equal(late.currentMonth, 3);
 });
@@ -228,7 +232,7 @@ test("the student term view covers no group, lapsed membership and future terms"
   const none = (await call("loner", "GET", "/term")).data;
   assert.equal(none.membership, "active");
   assert.deepEqual(none.term, { state: "none" });
-  const upcoming = (await call("a1", "GET", "/term")).data.term;
+  const upcoming = (await call("a6", "GET", "/term")).data.term;
   assert.equal(upcoming.state, "upcoming");
   assert.equal(upcoming.currentMonth, null);
   assert.ok(upcoming.slots.every((s) => s.state === "upcoming" && !s.song));
@@ -304,6 +308,9 @@ test("a song a student has reached stays theirs", { skip: !isR2Configured() }, a
   assert.equal((await tracks("a1", "x")).status, 200);
   assert.equal((await call("admin", "PUT", `/admin/terms/${groupA.id}/slots/1`, { published: false })).status, 200);
   assert.equal((await tracks("a1", "x")).status, 200, "unpublishing doesn't take it back");
+  const keptView = (await call("a1", "GET", "/term")).data.term.slots[0];
+  assert.equal(keptView.state, "available", "Your term still lists a song the student kept");
+  assert.equal(keptView.song.id, songs.x.id);
   await prisma.termEnrollment.create({ data: { userId: users.a4.id, groupId: groupA.id } });
   const late = await tracks("a4", "x");
   assert.equal(late.status, 403, "a newcomer doesn't get an unpublished month");
