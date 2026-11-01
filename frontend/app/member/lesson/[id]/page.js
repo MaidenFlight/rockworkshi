@@ -9,13 +9,21 @@ import VideoPlayer from "@/components/member/VideoPlayer";
 export default function LessonDetail() {
   const { id } = useParams();
   const [lesson, setLesson] = useState(undefined);
+  const [lockedMessage, setLockedMessage] = useState("");
   const [activeLevel, setActiveLevel] = useState(1);
 
   useEffect(() => {
     fetch(`${API_URL}/lessons/${id}`, { credentials: "include" })
-      .then((res) => (res.ok ? res.json() : Promise.reject()))
-      .then((data) => setLesson(data.lesson))
-      .catch(() => setLesson(null));
+      .then(async (res) => {
+        const data = await res.json().catch(() => ({}));
+        // 403 = a term lesson that hasn't opened for this student; say so rather than "not found".
+        if (!res.ok) throw new Error(res.status === 403 ? data.error : "");
+        setLesson(data.lesson);
+      })
+      .catch((err) => {
+        setLockedMessage(err.message || "");
+        setLesson(null);
+      });
   }, [id]);
 
   if (lesson === undefined) {
@@ -24,7 +32,7 @@ export default function LessonDetail() {
   if (!lesson) {
     return (
       <div style={{ maxWidth: 900, margin: "80px auto", textAlign: "center", color: "var(--rw-body)" }}>
-        Lesson not found. <Link href="/member" style={{ color: "var(--rw-orange-deep)" }}>Back to dashboard</Link>
+        {lockedMessage || "Lesson not found."} <Link href="/member" style={{ color: "var(--rw-orange-deep)" }}>Back to dashboard</Link>
       </div>
     );
   }

@@ -10,7 +10,8 @@ export function nextEnrolmentStep(user) {
 }
 
 export function dashboardFor(user) {
-  return user?.isAdmin ? "/admin" : "/member";
+  if (user?.isAdmin) return "/admin";
+  return user?.role === "teacher" ? "/teacher" : "/member";
 }
 
 // Where to send someone right after they sign in or finish a step.

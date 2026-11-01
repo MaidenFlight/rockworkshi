@@ -2,6 +2,7 @@ const express = require("express");
 const prisma = require("../lib/prisma");
 const { requireAdmin } = require("../middleware/auth");
 const { validateSlot } = require("../lib/lessonVideos");
+const { ROLES, deleteRecordings } = require("../lib/assignments");
 
 const router = express.Router();
 router.use(requireAdmin);
@@ -57,6 +58,15 @@ router.patch("/students/:id/status", async (req, res) => {
 });
 
 router.delete("/students/:id", async (req, res) => {
+  // Their assignments go with them (cascade), so remove the recordings those pointed at first.
+  const submissions = await prisma.submission.findMany({
+    where: {
+      recordingKey: { not: null },
+      assignment: { OR: [{ studentId: req.params.id }, { teacherId: req.params.id }] },
+    },
+    select: { recordingKey: true },
+  });
+  await deleteRecordings(submissions.map((s) => s.recordingKey));
   await prisma.user.delete({ where: { id: req.params.id } });
   res.status(204).end();
 });
@@ -76,6 +86,68 @@ router.get("/students/export.csv", async (req, res) => {
   res.setHeader("Content-Type", "text/csv");
   res.setHeader("Content-Disposition", "attachment; filename=students.csv");
   res.send(rows.join("\n"));
+});
+
+// ---------- Teaching: teacher accounts and their students ----------
+
+const PERSON = { id: true, name: true, email: true, instrument: true, role: true };
+
+router.get("/teaching", async (req, res) => {
+  const [teachers, people] = await Promise.all([
+    prisma.user.findMany({
+      where: { role: "teacher" },
+      orderBy: { name: "asc" },
+      select: { ...PERSON, myStudents: { select: { student: { select: PERSON } } } },
+    }),
+    prisma.user.findMany({ orderBy: { name: "asc" }, select: PERSON }),
+  ]);
+  res.json({
+    teachers: teachers.map(({ myStudents, ...t }) => ({ ...t, students: myStudents.map((l) => l.student) })),
+    people,
+  });
+});
+
+router.patch("/students/:id/role", async (req, res) => {
+  const { role } = req.body || {};
+  if (!ROLES.includes(role)) return res.status(400).json({ error: `role must be one of: ${ROLES.join(", ")}.` });
+
+  const user = await prisma.user.findUnique({ where: { id: req.params.id } });
+  if (!user) return res.status(404).json({ error: "Not found." });
+
+  // Someone who stops teaching loses their students. Their assignments stay as history.
+  const [updated] = await prisma.$transaction([
+    prisma.user.update({ where: { id: user.id }, data: { role } }),
+    ...(role === "teacher" ? [] : [prisma.teacherStudent.deleteMany({ where: { teacherId: user.id } })]),
+  ]);
+  res.json({ student: toSafeUser(updated) });
+});
+
+router.post("/teaching/links", async (req, res) => {
+  const { teacherId, studentId } = req.body || {};
+  if (typeof teacherId !== "string" || typeof studentId !== "string") {
+    return res.status(400).json({ error: "teacherId and studentId are required." });
+  }
+  if (teacherId === studentId) return res.status(400).json({ error: "A teacher can't be their own student." });
+
+  const [teacher, student] = await Promise.all([
+    prisma.user.findUnique({ where: { id: teacherId } }),
+    prisma.user.findUnique({ where: { id: studentId } }),
+  ]);
+  if (!teacher || teacher.role !== "teacher") return res.status(400).json({ error: "That account isn't a teacher." });
+  if (!student) return res.status(404).json({ error: "Student not found." });
+
+  await prisma.teacherStudent.upsert({
+    where: { teacherId_studentId: { teacherId, studentId } },
+    create: { teacherId, studentId },
+    update: {},
+  });
+  res.status(201).json({ ok: true });
+});
+
+router.delete("/teaching/links/:teacherId/:studentId", async (req, res) => {
+  const { teacherId, studentId } = req.params;
+  await prisma.teacherStudent.deleteMany({ where: { teacherId, studentId } });
+  res.status(204).end();
 });
 
 // ---------- Trial requests ----------

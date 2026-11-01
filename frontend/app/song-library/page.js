@@ -106,6 +106,11 @@ export default function SongLibrary() {
                   ))}
                 </div>
                 <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+                  {openSong.hasTracks && (
+                    <Link href={`/member/song/${openSong.id}`} style={{ padding: "13px 28px", borderRadius: "var(--rw-radius-sm)", background: "var(--rw-ink)", color: "#fff", fontWeight: 700, fontSize: 15, textDecoration: "none" }}>
+                      Play along &rarr;
+                    </Link>
+                  )}
                   <Link href="/signup" style={{ padding: "13px 28px", borderRadius: "var(--rw-radius-sm)", background: "var(--rw-orange)", color: "#fff", fontWeight: 700, fontSize: 15, textDecoration: "none" }}>
                     <T k="cta.join.arrow">Join the member area &rarr;</T>
                   </Link>
@@ -167,6 +172,11 @@ export default function SongLibrary() {
                       {s.artist} {s.instrument ? `· ${s.instrument}` : ""}
                     </div>
                   </div>
+                  {s.hasTracks && (
+                    <span style={{ flexShrink: 0, fontSize: 12, fontWeight: 700, color: "var(--rw-orange-deep)", background: "var(--rw-orange-tint)", padding: "3px 8px", borderRadius: "var(--rw-radius-sm)" }}>
+                      Play along
+                    </span>
+                  )}
                   {s.level && (
                     <span style={{ flexShrink: 0, fontSize: 12, fontWeight: 700, color: "var(--rw-teal)" }}>{s.level}</span>
                   )}

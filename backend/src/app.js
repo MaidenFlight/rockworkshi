@@ -8,6 +8,11 @@ const authRoutes = require("./routes/auth.routes");
 const adminRoutes = require("./routes/admin.routes");
 const publicRoutes = require("./routes/public.routes");
 const lessonsRoutes = require("./routes/lessons.routes");
+const songsRoutes = require("./routes/songs.routes");
+const teacherRoutes = require("./routes/teacher.routes");
+const assignmentsRoutes = require("./routes/assignments.routes");
+const libraryRoutes = require("./routes/library.routes");
+const termRoutes = require("./routes/terms.routes");
 const { router: billingRoutes, stripeWebhook } = require("./routes/billing.routes");
 
 const app = express();
@@ -62,12 +67,21 @@ app.use(
 
 app.use(passport.initialize());
 app.use(passport.session());
+const { bearerAuth } = require("./middleware/auth");
+app.use(bearerAuth);
 
 app.get("/health", (req, res) => res.json({ ok: true }));
 app.use("/auth", authRoutes);
+// Before /admin so the terms router handles its own paths.
+app.use("/admin/terms", termRoutes.admin);
 app.use("/admin", adminRoutes);
 app.use("/lessons", lessonsRoutes);
 app.use("/billing", billingRoutes);
+app.use("/songs", songsRoutes);
+app.use("/teacher", teacherRoutes);
+app.use("/assignments", assignmentsRoutes);
+app.use("/library", libraryRoutes);
+app.use("/term", termRoutes.student);
 app.use("/", publicRoutes);
 
 app.use((err, req, res, next) => {

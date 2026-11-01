@@ -20,8 +20,13 @@ router.get("/faqs", async (req, res) => {
 });
 
 router.get("/songs", async (req, res) => {
-  const songs = await prisma.song.findMany({ where: { published: true }, orderBy: { order: "asc" } });
-  res.json({ songs });
+  const songs = await prisma.song.findMany({
+    where: { published: true },
+    orderBy: { order: "asc" },
+    include: { _count: { select: { tracks: true } } },
+  });
+  // hasTracks only says a play-along exists; the tracks themselves are members-only.
+  res.json({ songs: songs.map(({ _count, ...song }) => ({ ...song, hasTracks: _count.tracks > 0 })) });
 });
 
 router.get("/onstage", async (req, res) => {

@@ -9,6 +9,8 @@ import { useSiteText } from "@/contexts/SiteTextContext";
 const NAV = [
   { label: "Overview", href: "/admin" },
   { label: "Students", href: "/admin/students" },
+  { label: "Teaching", href: "/admin/teaching" },
+  { label: "Terms", href: "/admin/terms" },
   { label: "Trial Requests", href: "/admin/trials" },
   { label: "Messages", href: "/admin/messages" },
   { label: "Teachers", href: "/admin/teachers" },

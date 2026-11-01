@@ -11,6 +11,7 @@ const MENU_ITEMS = [
   { label: "My Profile", href: "/member/profile" },
   { label: "Account Settings", href: "/member/settings" },
 ];
+const TEACHER_ITEM = { label: "Teaching", href: "/teacher" };
 
 export default function ProfileMenu() {
   const { user, signOut } = useAuth();
@@ -67,7 +68,7 @@ export default function ProfileMenu() {
 
       {open && (
         <div role="menu" aria-label="Account menu" style={menuStyle}>
-          {MENU_ITEMS.map((item) => (
+          {(user?.role === "teacher" ? [TEACHER_ITEM, ...MENU_ITEMS] : MENU_ITEMS).map((item) => (
             <Link key={item.href} href={item.href} role="menuitem" className="rw-menu-item" onClick={() => setOpen(false)} style={menuItemStyle}>
               {item.label}
             </Link>

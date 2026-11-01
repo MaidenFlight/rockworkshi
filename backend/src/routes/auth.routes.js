@@ -1,5 +1,6 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 const passport = require("../config/passport");
 const prisma = require("../lib/prisma");
 const { requireAuth } = require("../middleware/auth");
@@ -48,12 +49,15 @@ function toSafeUser(user) {
   if (!user) return null;
   const { passwordHash, verificationTokenHash, resetTokenHash, ...safe } = user;
   const isAdmin = Boolean(ADMIN_EMAIL) && user.email === ADMIN_EMAIL;
+  const isTeacher = user.role === "teacher";
   return {
     ...safe,
     isAdmin,
+    isTeacher,
     emailVerified: Boolean(user.emailVerifiedAt),
     profileComplete: Boolean(user.instrument),
-    paymentComplete: isAdmin || Boolean(user.paidAt),
+    // Teachers are staff and don't buy a membership (see requirePaid).
+    paymentComplete: isAdmin || isTeacher || Boolean(user.paidAt),
   };
 }
 
@@ -65,7 +69,7 @@ function nextStepFor(user) {
   if (!safe.emailVerified) return "/verify-email";
   if (!safe.profileComplete) return "/onboarding";
   if (!safe.paymentComplete) return "/onboarding/payment";
-  return "/member";
+  return safe.isTeacher ? "/teacher" : "/member";
 }
 
 function isEmailValid(email) {
@@ -149,6 +153,18 @@ router.post("/login", (req, res, next) => {
       if (loginErr) return next(loginErr);
       return res.json({ user: toSafeUser(user) });
     });
+  })(req, res, next);
+});
+
+// Same check as /login, but returns a token instead of starting a session.
+router.post("/mobile/login", (req, res, next) => {
+  passport.authenticate("local", { session: false }, (err, user, info) => {
+    if (err) return next(err);
+    if (!user) {
+      return res.status(401).json({ error: info?.message || "Invalid credentials." });
+    }
+    const token = jwt.sign({ sub: user.id }, process.env.JWT_SECRET, { expiresIn: "30d" });
+    return res.json({ token, user: toSafeUser(user) });
   })(req, res, next);
 });
 

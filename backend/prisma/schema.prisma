@@ -57,6 +57,137 @@ model User {
 
   // { weeklyMinutes, weeklyGoal, streak, achievements: [] }
   practiceStats Json?
+
+  // "student" or "teacher" (see ROLES in lib/assignments.js). The admin isn't a role:
+  // it's whoever signs in with ADMIN_EMAIL.
+  role String @default("student")
+
+  // Set by the admin. A teacher can only assign to and review students linked here.
+  myStudents TeacherStudent[] @relation("TeacherSide")
+  myTeachers TeacherStudent[] @relation("StudentSide")
+
+  assignmentsGiven    Assignment[] @relation("AssignmentTeacher")
+  assignmentsReceived Assignment[] @relation("AssignmentStudent")
+
+  mixPresets MixPreset[]
+  practice   SongPractice[]
+
+  // Teaching groups. Set by staff only; paying for a plan never adds one.
+  termEnrollments TermEnrollment[]
+  termGrants      TermGrant[]
+}
+
+// One student's own state for one song: favourite, private notes, and where they left off.
+// Kept apart from MixPreset on purpose: automatic resume never touches a named preset.
+model SongPractice {
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  songId String
+  song   Song   @relation(fields: [songId], references: [id], onDelete: Cascade)
+
+  favorite     Boolean   @default(false)
+  notes        String? // private to the student
+  lastOpenedAt DateTime? // drives the "Continue practising" card
+
+  // Resume state: position plus the practice settings the player supports (mode, mix,
+  // effects, and on the phone speed and loop). Validated by lib/practice.js. Saved every
+  // so often while playing and on pause or leave, never on every playhead tick.
+  session        Json?
+  sessionSavedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([userId, songId])
+  @@index([userId, lastOpenedAt])
+}
+
+// A student's named mixer settings for one song (stem volumes, mute/solo, take effects).
+// settings is validated by lib/mixPresets.js before it's stored.
+model MixPreset {
+  id       String @id @default(uuid())
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  songId   String
+  song     Song   @relation(fields: [songId], references: [id], onDelete: Cascade)
+  name     String
+  settings Json
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Saving under an existing name replaces that preset.
+  @@unique([userId, songId, name])
+}
+
+// Links a teacher account to a student account. Not related to the Teacher model,
+// which holds the public bios on the Teachers page.
+model TeacherStudent {
+  teacherId String
+  teacher   User     @relation("TeacherSide", fields: [teacherId], references: [id], onDelete: Cascade)
+  studentId String
+  student   User     @relation("StudentSide", fields: [studentId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([teacherId, studentId])
+  @@index([studentId])
+}
+
+// Practice work a teacher sets for one student.
+model Assignment {
+  id        String @id @default(uuid())
+  teacherId String
+  teacher   User   @relation("AssignmentTeacher", fields: [teacherId], references: [id], onDelete: Cascade)
+  studentId String
+  student   User   @relation("AssignmentStudent", fields: [studentId], references: [id], onDelete: Cascade)
+
+  // Exactly one is set when the assignment is created. Deleting the song or lesson
+  // later keeps the assignment and its feedback, so it's SetNull rather than Cascade.
+  songId   String?
+  song     Song?   @relation(fields: [songId], references: [id], onDelete: SetNull)
+  lessonId String?
+  lesson   Lesson? @relation(fields: [lessonId], references: [id], onDelete: SetNull)
+
+  instrument  String // one of INSTRUMENTS in lib/lessonVideos.js
+  level       Int // 1-5, the song levels (Sing-a-long ... Improv)
+  section     String? // e.g. "Chorus"
+  // Optional part of a song in seconds. The phone player loops it.
+  sectionStart Float?
+  sectionEnd   Float?
+  instruction  String
+
+  // "assigned" -> "ready" (student asked for review) -> "reviewed".
+  // Submitting again after feedback goes back to "ready".
+  status String @default("assigned")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  submissions Submission[]
+
+  @@index([studentId, status])
+  @@index([teacherId, status])
+}
+
+// One "ready for review" from the student, with an optional recording and the teacher's feedback.
+model Submission {
+  id           String     @id @default(uuid())
+  assignmentId String
+  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+
+  // R2 object key, not a URL. Only the student and their teacher get a short-lived link.
+  recordingKey      String? @unique
+  // Song position the recording's first sample lines up with, so it plays in time with the band.
+  recordingOffset   Float?
+  recordingDuration Float?
+
+  // Private: only the student and the teacher who set the assignment can read it.
+  feedback   String?
+  reviewedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([assignmentId])
 }
 
 // provider is "stripe" or "demo". Amounts in cents.
@@ -148,6 +279,37 @@ model Song {
   published  Boolean  @default(true)
   order      Int      @default(0)
   updatedAt  DateTime @updatedAt
+
+  tracks      SongTrack[]
+  assignments Assignment[]
+  mixPresets  MixPreset[]
+  practice    SongPractice[]
+  termSlots   TermSlot[]
+  termGrants  TermGrant[]
+
+  // How loud the stems are played together: the 99.999th percentile of the summed
+  // sample level (1.0 = full scale). Stems often sum well past full scale, so the
+  // players turn the mix down by this much. Set by songs:upload / songs:measure.
+  mixLevel Float?
+}
+
+// One audio stem of a song, stored in R2. Playing every stem together is the full song.
+model SongTrack {
+  id     String @id @default(uuid())
+  songId String
+  song   Song   @relation(fields: [songId], references: [id], onDelete: Cascade)
+
+  // "Vocals", "Guitar", "Keys", "Bass" or "Drums" (see PARTS in lib/songTracks.js)
+  part String
+
+  // Object key in the R2 bucket, not a URL: download URLs are signed and expire.
+  storageKey String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([songId, part])
+  @@index([songId])
 }
 
 model OnStagePost {
@@ -200,7 +362,10 @@ model Lesson {
   published  Boolean  @default(true)
   createdAt  DateTime @default(now())
 
-  videos LessonVideo[]
+  videos      LessonVideo[]
+  assignments Assignment[]
+  termSlots   TermSlot[]
+  termGrants  TermGrant[]
 }
 
 // One video per (lesson, instrument, level, kind). Most slots start empty.
@@ -239,4 +404,77 @@ model SiteText {
   key       String   @id
   value     String
   updatedAt DateTime @updatedAt
+}
+
+// A shared three-month teaching term. Students in the group unlock one song a month on the
+// group's schedule (not their own signup date). Separate from billing: the Term plan pays
+// for access and never enrols anyone. See lib/termAccess.js for the access rules.
+// All DateTimes are UTC instants; staff enter and read them in Pacific/Honolulu.
+model TermGroup {
+  id       String   @id @default(uuid())
+  name     String
+  startsAt DateTime // 00:00 Honolulu on the first day
+  endsAt   DateTime // 23:59:59.999 Honolulu on the last day
+
+  slots   TermSlot[]
+  members TermEnrollment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// One month of a term. A slot's song is available to the group's students only once
+// unlockAt has passed (server time) AND staff have published it.
+model TermSlot {
+  id       String    @id @default(uuid())
+  groupId  String
+  group    TermGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  month    Int // 1, 2 or 3
+  unlockAt DateTime
+
+  // Optional until staff are ready. Deleting the song or lesson empties the slot.
+  songId   String?
+  song     Song?   @relation(fields: [songId], references: [id], onDelete: SetNull)
+  lessonId String?
+  lesson   Lesson? @relation(fields: [lessonId], references: [id], onDelete: SetNull)
+
+  published   Boolean   @default(false)
+  publishedAt DateTime?
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([groupId, month])
+  @@index([songId])
+  @@index([lessonId])
+}
+
+model TermEnrollment {
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  groupId   String
+  group     TermGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+
+  @@id([userId, groupId])
+  @@index([groupId])
+}
+
+// A term song or lesson a student has already reached. Once a month has opened for a
+// student they keep it (owner's decision: "once they pass the song, they should have
+// access"), even after the term ends, they leave the group, or staff change that month.
+// The paid-membership check still applies on top.
+model TermGrant {
+  id       String  @id @default(uuid())
+  userId   String
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  songId   String?
+  song     Song?   @relation(fields: [songId], references: [id], onDelete: Cascade)
+  lessonId String?
+  lesson   Lesson? @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  // The term it came from, for the record. Not a relation, so it outlives a deleted term.
+  groupId   String?
+  grantedAt DateTime @default(now())
+
+  @@unique([userId, songId])
+  @@unique([userId, lessonId])
 }

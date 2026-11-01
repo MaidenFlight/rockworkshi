@@ -1,7 +1,9 @@
+// user.role comes from the API ("student" or "teacher"). Administrator isn't stored:
+// it's the ADMIN_EMAIL account, flagged as user.isAdmin.
 export const ROLES = {
   STUDENT: "student",
   PARENT: "parent",
-  INSTRUCTOR: "instructor",
+  TEACHER: "teacher",
   ADMINISTRATOR: "administrator",
 };
 

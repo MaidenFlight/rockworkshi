@@ -7,7 +7,7 @@ import { ROLES } from "@/lib/auth/roles";
 const ROLE_LABELS = {
   [ROLES.STUDENT]: "Student",
   [ROLES.PARENT]: "Parent",
-  [ROLES.INSTRUCTOR]: "Instructor",
+  [ROLES.TEACHER]: "Teacher",
   [ROLES.ADMINISTRATOR]: "Administrator",
 };
 

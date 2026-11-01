@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { API_URL } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
+import ContinueCard from "@/components/member/library/ContinueCard";
+import YourTerm from "@/components/member/YourTerm";
+import { practiceRequest } from "@/lib/practice";
 
 const TOOLS = [
   { name: "Guitar Tuner", emoji: "\u{1F3B8}", href: "/tools/tuner" },
@@ -22,12 +25,17 @@ const ACHIEVEMENTS = [
 export default function MemberDashboard() {
   const { user } = useAuth();
   const [lessons, setLessons] = useState([]);
+  const [library, setLibrary] = useState(null);
 
   useEffect(() => {
     fetch(`${API_URL}/lessons`, { credentials: "include" })
       .then((res) => res.json())
       .then((data) => setLessons(data.lessons || []))
       .catch(() => setLessons([]));
+    // The library page handles offline and retry; here the card just shows less.
+    practiceRequest("/library")
+      .then(setLibrary)
+      .catch(() => setLibrary(null));
   }, []);
 
   const stats = user?.practiceStats || { weeklyMinutes: 0, weeklyGoal: 90, streak: 0 };
@@ -41,7 +49,9 @@ export default function MemberDashboard() {
       <h1 style={{ fontWeight: 600, fontSize: 30, color: "var(--rw-ink)", marginBottom: 4 }}>
         Welcome back{user?.name ? `, ${user.name}` : ""}
       </h1>
-      <p style={{ color: "var(--rw-body)", marginBottom: 36 }}>Pick up where you left off, or grab a practice tool.</p>
+      <p style={{ color: "var(--rw-body)", marginBottom: 24 }}>Pick up where you left off, or grab a practice tool.</p>
+
+      <YourTerm />
 
       <div className="rw-cols-5" style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 14, marginBottom: 44 }}>
         {TOOLS.map((tool) => (
@@ -90,10 +100,38 @@ export default function MemberDashboard() {
                 </div>
                 <div style={{ fontWeight: 700, fontSize: 17, color: "var(--rw-ink)" }}>{lesson.title}</div>
                 <div style={{ fontSize: 13.5, color: "var(--rw-meta)" }}>{lesson.artist}</div>
-                <div style={{ fontSize: 12.5, color: "var(--rw-body)", marginTop: 8 }}>{lesson.estTime}</div>
+                <div style={{ fontSize: 12.5, color: "var(--rw-body)", marginTop: 8 }}>
+                  {lesson.locked ? "Unlocks with your term" : lesson.estTime}
+                </div>
               </Link>
             ))}
             {lessons.length === 0 && <p style={{ color: "var(--rw-meta)" }}>No lessons assigned yet.</p>}
+          </div>
+
+          <div style={{ marginTop: 36, display: "grid", gap: 14 }}>
+            <ContinueCard item={library?.continue} />
+            <Link
+              href="/member/library"
+              className="rw-card"
+              style={{
+                display: "block",
+                padding: 18,
+                background: "var(--rw-surface)",
+                border: "1px solid var(--rw-border)",
+                borderRadius: 14,
+                textDecoration: "none",
+              }}
+            >
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--rw-teal)", marginBottom: 6 }}>
+                Practice library
+              </div>
+              <div style={{ fontWeight: 700, fontSize: 17, color: "var(--rw-ink)" }}>Songs, favourites and your notes</div>
+              <div style={{ fontSize: 13.5, color: "var(--rw-meta)" }}>
+                {library
+                  ? `${library.songs.length} songs · ${library.songs.filter((s) => s.hasTracks).length} with play-along stems · ${library.songs.filter((s) => s.favorite).length} favourites`
+                  : "Search, filter and pick up where you left off."}
+              </div>
+            </Link>
           </div>
         </div>
 
