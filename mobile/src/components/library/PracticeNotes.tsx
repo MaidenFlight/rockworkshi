@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, StyleSheet, TextInput, View } from "react-native";
+import { Text } from "@/components/Text";
 import { File, Paths } from "expo-file-system";
 import { api, NetworkError } from "@/lib/api";
-import { colors } from "@/lib/theme";
+import { colors, fonts } from "@/lib/theme";
 
 const MAX_NOTES = 5000;
 const SAVE_AFTER_MS = 1500;
@@ -98,7 +99,7 @@ export function PracticeNotes({ songId, userId, initialNotes }: { songId: string
 
   return (
     <View>
-      <Text style={styles.heading}>MY PRACTICE NOTES</Text>
+      <Text style={styles.heading} accessibilityRole="header">MY PRACTICE NOTES</Text>
       <TextInput
         value={text}
         onChangeText={(value) => {
@@ -162,25 +163,26 @@ function SmallButton({ label, onPress }: { label: string; onPress: () => void })
 }
 
 const styles = StyleSheet.create({
-  heading: { color: colors.lagoon, fontSize: 11.5, fontWeight: "700", letterSpacing: 1, marginBottom: 8 },
+  heading: { fontFamily: fonts.display, fontSize: 26, color: colors.ink, marginBottom: 8 },
   input: {
     minHeight: 110,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 8,
+    borderRadius: 4,
     padding: 12,
     backgroundColor: colors.white,
     color: colors.ink,
+    fontFamily: fonts.body,
     lineHeight: 20,
   },
   row: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 6, flexWrap: "wrap" },
   status: { flex: 1, color: colors.meta, fontSize: 12.5, lineHeight: 18 },
-  statusBad: { color: colors.flareAction },
+  statusBad: { color: colors.flareInk },
   count: { color: colors.meta, fontSize: 12 },
   button: {
     paddingVertical: 6,
     paddingHorizontal: 10,
-    borderRadius: 4,
+    borderRadius: 3,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.white,

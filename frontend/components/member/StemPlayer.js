@@ -12,6 +12,7 @@ import {
   takeLevel,
 } from "@/lib/audio/mix";
 import { DEFAULT_EFFECTS, createTakeEffects } from "@/lib/audio/takeEffects";
+import Icon from "./Icon";
 import MixerPanel from "./mixer/MixerPanel";
 import EffectsRack from "./mixer/EffectsRack";
 import MixPresets from "./mixer/MixPresets";
@@ -606,7 +607,7 @@ export default function StemPlayer({
         />
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10, flexWrap: "wrap" }}>
           <button onClick={() => skip(-5)} disabled={!ready || recording} style={btn}>
-            &#8630; 5s
+            −5s
           </button>
           <button
             onClick={playing ? pause : play}
@@ -616,7 +617,7 @@ export default function StemPlayer({
             {!ready ? `Loading ${loadedCount}/${parts.length}` : playing ? "Pause" : "Play"}
           </button>
           <button onClick={() => skip(5)} disabled={!ready || recording} style={btn}>
-            5s &#8631;
+            +5s
           </button>
           <span style={{ marginLeft: "auto", fontSize: 13, color: "var(--rw-body)", fontVariantNumeric: "tabular-nums" }}>
             {fmtT(position)} / {fmtT(duration)}
@@ -664,7 +665,10 @@ export default function StemPlayer({
                 border: `1px solid ${recording ? "var(--rw-ink)" : "var(--rw-orange)"}`,
               }}
             >
-              {recording ? "■ Stop" : take ? "● Record again" : "● Record"}
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                <Icon name={recording ? "stop" : "record"} size={14} />
+                {recording ? "Stop" : take ? "Record again" : "Record"}
+              </span>
             </button>
             <span style={{ fontSize: 13, color: "var(--rw-meta)", lineHeight: 1.5, flex: "1 1 240px" }}>
               {recording

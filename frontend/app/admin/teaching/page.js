@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Icon from "@/components/member/Icon";
 import { API_URL } from "@/lib/api";
 
 // Teacher accounts and the students each one may set work for.
@@ -47,7 +48,7 @@ export default function AdminTeaching() {
 
   return (
     <div>
-      <h1 style={{ fontWeight: 600, fontSize: 24, color: "var(--rw-ink)", margin: "0 0 6px" }}>Teaching</h1>
+      <h1 style={{ fontWeight: 800, textTransform: "uppercase", fontSize: 24, color: "var(--rw-ink)", margin: "0 0 6px" }}>Teaching</h1>
       <p style={{ color: "var(--rw-meta)", fontSize: 13.5, margin: "0 0 20px", lineHeight: 1.5 }}>
         Teachers can set practice work for, and review, only the students linked to them here.
       </p>
@@ -117,7 +118,7 @@ export default function AdminTeaching() {
                         aria-label={`Unlink ${s.name || s.email}`}
                         style={{ border: 0, background: "transparent", cursor: "pointer", color: "var(--rw-meta)", padding: "0 0 0 6px" }}
                       >
-                        ×
+                        <Icon name="x" size={12} />
                       </button>
                     </span>
                   ))}
@@ -166,7 +167,7 @@ async function request(path, options = {}) {
 
 const card = {
   border: "1px solid var(--rw-border)",
-  borderRadius: 10,
+  borderRadius: "var(--rw-radius-md)",
   background: "var(--rw-surface)",
   padding: "14px 16px",
 };
@@ -175,7 +176,7 @@ const chip = {
   display: "inline-flex",
   alignItems: "center",
   padding: "4px 6px 4px 10px",
-  borderRadius: 999,
+  borderRadius: "var(--rw-radius-sm)",
   border: "1px solid var(--rw-border)",
   background: "#fff",
   fontSize: 12.5,
@@ -186,7 +187,7 @@ const chip = {
 const select = {
   flex: "1 1 260px",
   padding: "8px 10px",
-  borderRadius: 8,
+  borderRadius: "var(--rw-radius-sm)",
   border: "1px solid var(--rw-line)",
   fontSize: 13.5,
   background: "#fff",
@@ -194,7 +195,7 @@ const select = {
 
 const smallBtn = {
   padding: "7px 12px",
-  borderRadius: 8,
+  borderRadius: "var(--rw-radius-sm)",
   border: "1px solid var(--rw-line)",
   background: "#fff",
   color: "var(--rw-ink)",

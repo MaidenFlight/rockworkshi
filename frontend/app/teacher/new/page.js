@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
+import Icon from "@/components/member/Icon";
 import { useRouter, useSearchParams } from "next/navigation";
 import { instruments, songLevels } from "@/lib/content";
 import { parseClock, studentName, teacherRequest } from "@/lib/teaching";
@@ -99,9 +100,9 @@ function NewAssignment() {
   return (
     <div style={{ maxWidth: 640 }}>
       <Link href="/teacher" style={{ fontSize: 13.5, color: "var(--rw-meta)", textDecoration: "none" }}>
-        &larr; Your students
+        <Icon name="arrow-left" size={14} /> Your students
       </Link>
-      <h1 style={{ fontWeight: 600, fontSize: 28, color: "var(--rw-ink)", margin: "10px 0 20px" }}>Set practice work</h1>
+      <h1 style={{ fontWeight: 800, textTransform: "uppercase", fontSize: 28, color: "var(--rw-ink)", margin: "10px 0 20px" }}>Set practice work</h1>
 
       {students.length === 0 ? (
         <p style={{ color: "var(--rw-meta)" }}>No students are linked to you yet. The school links students to teachers.</p>
@@ -237,9 +238,9 @@ function Field({ label, children }) {
 function chip(active) {
   return {
     padding: "8px 14px",
-    borderRadius: 999,
+    borderRadius: "var(--rw-radius-sm)",
     border: `1px solid ${active ? "var(--rw-orange)" : "var(--rw-line)"}`,
-    background: active ? "#fff1ea" : "#fff",
+    background: active ? "var(--rw-orange-tint)" : "#fff",
     color: "var(--rw-ink)",
     fontWeight: 700,
     fontSize: 13,
@@ -252,7 +253,7 @@ const hint = { fontSize: 12.5, color: "var(--rw-meta)", lineHeight: 1.5 };
 const input = {
   width: "100%",
   padding: "9px 12px",
-  borderRadius: 8,
+  borderRadius: "var(--rw-radius-sm)",
   border: "1px solid var(--rw-line)",
   fontSize: 14,
   fontFamily: "inherit",
@@ -261,7 +262,7 @@ const input = {
 };
 const primaryBtn = {
   padding: "11px 20px",
-  borderRadius: 8,
+  borderRadius: "var(--rw-radius-sm)",
   border: "none",
   background: "var(--rw-orange)",
   color: "#fff",

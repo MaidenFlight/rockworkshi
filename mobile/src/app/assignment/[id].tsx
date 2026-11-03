@@ -1,5 +1,8 @@
 import { useCallback, useState } from "react";
-import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Text } from "@/components/Text";
+import { BackLink } from "@/components/BackLink";
+import { Icon } from "@/components/Icon";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { api } from "@/lib/api";
@@ -102,13 +105,10 @@ export default function AssignmentScreen() {
   return (
     <SafeAreaView style={styles.screen} edges={["top"]}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Pressable onPress={() => router.back()} hitSlop={12}>
-          <Text style={styles.back}>← Back</Text>
-        </Pressable>
+        <BackLink />
 
-        <Text style={styles.eyebrow}>FROM {(a.teacher?.name || "your teacher").toUpperCase()}</Text>
         <Text style={styles.title}>{assignmentTitle(a)}</Text>
-        {item?.artist ? <Text style={styles.meta}>{item.artist}</Text> : null}
+        <Text style={styles.meta}>{[item?.artist, `From ${a.teacher?.name || "your teacher"}`].filter(Boolean).join(" · ")}</Text>
 
         <View style={[styles.pill, a.status === "reviewed" && styles.pillDone, a.status === "ready" && styles.pillWaiting]}>
           <Text style={[styles.pillText, a.status === "reviewed" && styles.pillTextDone]}>{statusLabel(a)}</Text>
@@ -124,12 +124,12 @@ export default function AssignmentScreen() {
               {times && a.song ? " (the player loops it for you)" : ""}
             </Text>
           ) : null}
-          <Text style={[styles.sectionTitle, styles.gapTop]}>WHAT TO PRACTISE</Text>
+          <Text style={[styles.sectionTitle, styles.gapTop]}>What to practise</Text>
           <Text style={styles.body}>{a.instruction}</Text>
 
           {item ? (
             <Pressable onPress={practise} style={[styles.primary, styles.gapTop]}>
-              <Text style={styles.primaryText}>{a.song ? "PRACTISE WITH THE BAND" : "OPEN THE LESSON"}</Text>
+              <Text style={styles.primaryText}>{a.song ? "Practise with the band" : "Open the lesson"}</Text>
             </Pressable>
           ) : (
             <Text style={[styles.meta, styles.gapTop]}>This song or lesson has been removed from the library.</Text>
@@ -156,7 +156,7 @@ export default function AssignmentScreen() {
                     accessibilityState={{ checked: includeTake }}
                     accessibilityLabel="Send my saved take"
                   >
-                    <Text style={styles.checkMark}>{includeTake ? "✓" : ""}</Text>
+                    {includeTake ? <Icon name="check" size={18} color={colors.white} /> : null}
                   </Pressable>
                   <View style={styles.takeInfo}>
                     <Text style={styles.label}>Send my saved take</Text>
@@ -179,9 +179,9 @@ export default function AssignmentScreen() {
               <Text style={styles.primaryText}>
                 {sending
                   ? take && includeTake
-                    ? `UPLOADING ${Math.round((progress ?? 0) * 100)}%`
-                    : "SENDING…"
-                  : "MARK READY FOR REVIEW"}
+                    ? `Uploading ${Math.round((progress ?? 0) * 100)}%`
+                    : "Sending…"
+                  : "Mark ready for review"}
               </Text>
             </Pressable>
             {sendError ? <Text style={styles.error}>{sendError}</Text> : null}
@@ -221,24 +221,22 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.page },
   center: { alignItems: "center", justifyContent: "center", gap: 12 },
   content: { padding: 16, paddingBottom: 48 },
-  back: { color: colors.meta, marginBottom: 12 },
-  link: { color: colors.flareAction, fontWeight: "600" },
-  eyebrow: { color: colors.meta, fontSize: 12, fontWeight: "700", letterSpacing: 1 },
+  link: { color: colors.flareInk, fontWeight: "600" },
   title: { fontFamily: fonts.display, fontSize: 44, color: colors.ink, lineHeight: 46 },
   meta: { color: colors.meta, fontSize: 13, lineHeight: 19 },
   body: { color: colors.body, lineHeight: 21 },
   label: { fontWeight: "700", color: colors.ink, marginBottom: 4 },
   gapTop: { marginTop: 12 },
   heading: { fontFamily: fonts.display, fontSize: 26, color: colors.ink, marginTop: 24, marginBottom: 8 },
-  sectionTitle: { color: colors.lagoon, fontSize: 11.5, fontWeight: "700", letterSpacing: 1, marginBottom: 6 },
-  panel: { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: 8, padding: 16 },
+  sectionTitle: { color: colors.ink, fontSize: 15, fontWeight: "700", marginBottom: 4 },
+  panel: { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: 4, padding: 16 },
   feedback: { marginBottom: 10 },
   pill: {
     alignSelf: "flex-start",
     backgroundColor: colors.surface,
     borderColor: colors.border,
     borderWidth: 1,
-    borderRadius: 999,
+    borderRadius: 3,
     paddingVertical: 4,
     paddingHorizontal: 10,
     marginVertical: 12,
@@ -247,16 +245,16 @@ const styles = StyleSheet.create({
   pillDone: { backgroundColor: colors.lagoon, borderColor: colors.lagoon },
   pillText: { fontSize: 12, fontWeight: "700", color: colors.flareInk },
   pillTextDone: { color: colors.white },
-  primary: { backgroundColor: colors.flareAction, borderRadius: 4, paddingVertical: 13, alignItems: "center" },
-  primaryText: { fontFamily: fonts.display, fontSize: 19, color: colors.white },
+  primary: { backgroundColor: colors.flareAction, borderRadius: 3, paddingVertical: 13, alignItems: "center" },
+  primaryText: { fontWeight: "700", fontSize: 15, color: colors.white },
   disabled: { opacity: 0.6 },
-  error: { color: colors.flareAction, marginTop: 8 },
+  error: { color: colors.flareInk, marginTop: 8 },
   takeRow: { flexDirection: "row", alignItems: "center", gap: 12 },
   takeInfo: { flex: 1 },
   check: {
     width: 26,
     height: 26,
-    borderRadius: 4,
+    borderRadius: 3,
     borderWidth: 1.5,
     borderColor: colors.border,
     alignItems: "center",
@@ -264,5 +262,4 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   checkOn: { backgroundColor: colors.lagoon, borderColor: colors.lagoon },
-  checkMark: { color: colors.white, fontWeight: "800" },
 });

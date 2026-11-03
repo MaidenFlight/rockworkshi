@@ -1,5 +1,7 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { Link } from "expo-router";
+import { Icon } from "@/components/Icon";
+import { Text } from "@/components/Text";
 import { ContinueItem, formatClock, formatWhen } from "@/lib/library";
 import { colors, fonts } from "@/lib/theme";
 
@@ -9,22 +11,24 @@ export function ContinueCard({ item }: { item: ContinueItem | null }) {
   const { song, position, lastOpenedAt } = item;
   return (
     <Link href={{ pathname: "/song/[id]", params: { id: song.id } }} asChild>
+      {/* A plain style object: Link's asChild drops a Pressable style written as a function. */}
       <Pressable
-        style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+        style={styles.card}
+        android_ripple={{ color: colors.border }}
         accessibilityRole="button"
         accessibilityLabel={`Continue practising ${song.title}`}
       >
         <View style={styles.text}>
-          <Text style={styles.eyebrow}>CONTINUE PRACTISING</Text>
           <Text style={styles.title} numberOfLines={1}>
             {song.title}
           </Text>
           <Text style={styles.meta} numberOfLines={1}>
-            {[song.artist, `opened ${formatWhen(lastOpenedAt)}`].filter(Boolean).join(" · ")}
-            {song.hasTracks && position ? ` · at ${formatClock(position)}` : ""}
+            {["Continue practising", song.hasTracks && position ? `at ${formatClock(position)}` : null, `opened ${formatWhen(lastOpenedAt)}`]
+              .filter(Boolean)
+              .join(" · ")}
           </Text>
         </View>
-        <Text style={styles.go}>›</Text>
+        <Icon name="chevron-right" size={24} color={colors.flareInk} />
       </Pressable>
     </Link>
   );
@@ -34,19 +38,15 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: "row",
     alignItems: "center",
+    gap: 8,
     backgroundColor: colors.surface,
     borderColor: colors.border,
     borderWidth: 1,
-    borderLeftWidth: 4,
-    borderLeftColor: colors.flareAction,
-    borderRadius: 8,
+    borderRadius: 4,
     padding: 14,
     marginBottom: 10,
   },
-  pressed: { opacity: 0.7 },
   text: { flex: 1 },
-  eyebrow: { color: colors.lagoon, fontSize: 11.5, fontWeight: "700", letterSpacing: 1 },
-  title: { fontFamily: fonts.display, fontSize: 26, color: colors.ink },
+  title: { fontFamily: fonts.display, fontSize: 26, color: colors.ink, textTransform: "uppercase" },
   meta: { color: colors.meta, fontSize: 13 },
-  go: { fontSize: 30, color: colors.flareAction, marginLeft: 8 },
 });

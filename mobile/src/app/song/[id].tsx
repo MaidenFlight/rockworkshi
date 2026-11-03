@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Text } from "@/components/Text";
+import { BackLink } from "@/components/BackLink";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import { StemPlayer, TakeToSave, Track } from "@/components/StemPlayer";
@@ -104,16 +106,13 @@ export default function SongPlayAlong() {
     <SafeAreaView style={styles.screen} edges={["top"]}>
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-          <Pressable onPress={() => router.back()} hitSlop={12}>
-            <Text style={styles.back}>← Back</Text>
-          </Pressable>
+          <BackLink />
           <View style={styles.titleRow}>
             <View style={styles.flex}>
-              <Text style={styles.eyebrow}>
-                {assignment ? "PRACTICE FROM YOUR TEACHER" : `PLAY ALONG${song.level ? ` · ${song.level.toUpperCase()}` : ""}`}
-              </Text>
               <Text style={styles.title}>{song.title}</Text>
-              {song.artist ? <Text style={[styles.meta, styles.artist]}>{song.artist}</Text> : null}
+              <Text style={[styles.meta, styles.artist]}>
+                {[song.artist, song.level, assignment ? "Practice from your teacher" : null].filter(Boolean).join(" · ")}
+              </Text>
             </View>
             <FavoriteButton
               songId={song.id}
@@ -150,6 +149,9 @@ export default function SongPlayAlong() {
             </View>
           ) : tracks ? (
             <>
+              {practice.session?.position && !loop ? (
+                <Text style={[styles.meta, styles.hint]}>Opened where you left off. Tap Play when you&apos;re ready.</Text>
+              ) : null}
               <StemPlayer
                 tracks={tracks.tracks}
                 myPart={tracks.myPart}
@@ -164,9 +166,6 @@ export default function SongPlayAlong() {
                     : undefined
                 }
               />
-              {practice.session?.position && !loop ? (
-                <Text style={[styles.meta, styles.hint]}>Opened where you left off. Tap Play when you&apos;re ready.</Text>
-              ) : null}
             </>
           ) : (
             <View style={styles.panel}>
@@ -199,16 +198,14 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   center: { alignItems: "center", justifyContent: "center", gap: 12, padding: 24 },
   content: { padding: 16, paddingBottom: 48 },
-  back: { color: colors.meta, marginBottom: 12 },
-  link: { color: colors.flareAction, fontWeight: "600" },
+  link: { color: colors.flareInk, fontWeight: "600" },
   titleRow: { flexDirection: "row", alignItems: "flex-start", gap: 8 },
-  eyebrow: { color: colors.meta, fontSize: 12, fontWeight: "700", letterSpacing: 1 },
-  title: { fontFamily: fonts.display, fontSize: 44, color: colors.ink, lineHeight: 46 },
+  title: { fontFamily: fonts.display, fontSize: 44, color: colors.ink, lineHeight: 46, textTransform: "uppercase" },
   artist: { marginBottom: 16 },
   meta: { color: colors.meta, lineHeight: 20 },
-  hint: { marginTop: 10, fontSize: 13 },
-  notice: { color: colors.flareAction, marginBottom: 12 },
-  panel: { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: 8, padding: 16 },
+  hint: { marginBottom: 10, fontSize: 13 },
+  notice: { color: colors.flareInk, marginBottom: 12 },
+  panel: { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: 4, padding: 16 },
   gapTop: { marginTop: 12 },
   notes: { marginTop: 24 },
   lockTitle: { fontWeight: "700", color: colors.ink, marginBottom: 6 },
@@ -216,7 +213,7 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
     paddingVertical: 7,
     paddingHorizontal: 12,
-    borderRadius: 4,
+    borderRadius: 3,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.white,
@@ -224,7 +221,7 @@ const styles = StyleSheet.create({
   buttonText: { fontWeight: "700", color: colors.ink },
   brief: {
     backgroundColor: colors.flareWash,
-    borderRadius: 8,
+    borderRadius: 4,
     padding: 12,
     marginBottom: 16,
     gap: 4,

@@ -75,7 +75,7 @@ export default function MixPresets({ songId, getSettings, onApply }) {
           id="mix-preset"
           value={selected}
           onChange={(e) => apply(e.target.value)}
-          style={{ flex: "1 1 160px", padding: "6px 8px", borderRadius: 6, border: "1px solid var(--rw-line)", fontSize: 13 }}
+          style={{ flex: "1 1 160px", padding: "6px 8px", borderRadius: "var(--rw-radius-sm)", border: "1px solid var(--rw-line)", fontSize: 13 }}
         >
           <option value="">{presets.length ? "Choose a saved mix…" : "No saved mixes yet"}</option>
           {presets.map((p) => (
@@ -95,7 +95,7 @@ export default function MixPresets({ songId, getSettings, onApply }) {
           maxLength={40}
           placeholder="Name this mix, e.g. Drums up"
           aria-label="Name for this mix"
-          style={{ flex: "1 1 160px", padding: "6px 10px", borderRadius: 6, border: "1px solid var(--rw-line)", fontSize: 13 }}
+          style={{ flex: "1 1 160px", padding: "6px 10px", borderRadius: "var(--rw-radius-sm)", border: "1px solid var(--rw-line)", fontSize: 13 }}
         />
         <button type="submit" disabled={!name.trim()} style={smallBtn}>
           Save mix

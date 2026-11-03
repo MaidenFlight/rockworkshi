@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
+import { Text } from "@/components/Text";
 import { Mix, stemOf } from "@/lib/audio/mix";
 import { colors } from "@/lib/theme";
 import { Slider } from "./Slider";
@@ -137,7 +138,7 @@ const styles = StyleSheet.create({
   toggle: {
     width: 30,
     height: 26,
-    borderRadius: 4,
+    borderRadius: 3,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.white,
@@ -151,7 +152,7 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
     paddingVertical: 6,
     paddingHorizontal: 10,
-    borderRadius: 4,
+    borderRadius: 3,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.white,

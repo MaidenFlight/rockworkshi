@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
-import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { FlatList, Pressable, StyleSheet, View } from "react-native";
+import { Text } from "@/components/Text";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Link, useFocusEffect } from "expo-router";
 import { useAuth } from "@/context/auth";
 import { api } from "@/lib/api";
 import { Assignment, assignmentTitle, statusLabel } from "@/lib/assignments";
 import { Library } from "@/lib/library";
-import { ContinueCard } from "@/components/library/ContinueCard";
 import { YourTerm } from "@/components/YourTerm";
 import { colors, fonts } from "@/lib/theme";
 
@@ -41,7 +41,7 @@ export default function Home() {
   return (
     <SafeAreaView style={styles.screen}>
       <View style={styles.header}>
-        <Text style={styles.title}>LESSONS</Text>
+        <Text style={styles.title}>PRACTICE</Text>
         <Pressable onPress={signOut}>
           <Text style={styles.link}>Sign out</Text>
         </Pressable>
@@ -55,10 +55,9 @@ export default function Home() {
         keyExtractor={(l) => l.id}
         ListHeaderComponent={
           <View style={styles.headerBlock}>
-            <YourTerm />
-            <ContinueCard item={library?.continue ?? null} />
+            <YourTerm continueItem={library?.continue ?? null} />
             <Link href="/library" asChild>
-              <Pressable style={({ pressed }) => [styles.card, pressed && styles.cardPressed]} accessibilityRole="link">
+              <Pressable style={styles.card} android_ripple={{ color: colors.border }} accessibilityRole="link">
                 <Text style={styles.cardTitle}>SONG LIBRARY</Text>
                 <Text style={styles.metaTight}>
                   {library
@@ -72,9 +71,9 @@ export default function Home() {
                 <Text style={styles.sectionTitle}>FROM YOUR TEACHER</Text>
                 {assignments.map((a) => (
                   <Link key={a.id} href={{ pathname: "/assignment/[id]", params: { id: a.id } }} asChild>
-                    <Pressable style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}>
+                    <Pressable style={styles.card} android_ripple={{ color: colors.border }}>
                       <View style={styles.cardRow}>
-                        <Text style={[styles.cardTitle, styles.flex]} numberOfLines={1}>
+                        <Text style={styles.cardTitleFlex} numberOfLines={1}>
                           {assignmentTitle(a)}
                         </Text>
                         <Text style={[styles.badge, a.status === "reviewed" && styles.badgeDone]}>{statusLabel(a)}</Text>
@@ -92,9 +91,9 @@ export default function Home() {
         }
         renderItem={({ item }) => (
           <Link href={{ pathname: "/lesson/[id]", params: { id: item.id } }} asChild>
-            <Pressable style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}>
+            <Pressable style={styles.card} android_ripple={{ color: colors.border }}>
               <Text style={styles.cardTitle}>{item.title}</Text>
-              <Text style={styles.meta}>
+              <Text style={styles.metaTight}>
                 {[item.artist, item.locked ? "Unlocks with your term" : item.difficulty].filter(Boolean).join(" · ")}
               </Text>
             </Pressable>
@@ -109,26 +108,16 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.page, padding: 16 },
   header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   title: { fontFamily: fonts.display, fontSize: 48, color: colors.ink },
-  link: { color: colors.flareAction, fontWeight: "600" },
+  link: { color: colors.flareInk, fontWeight: "600" },
   meta: { color: colors.meta, marginBottom: 12 },
   metaTight: { color: colors.meta, marginTop: 2 },
-  error: { color: colors.flareAction, marginBottom: 12 },
-  card: { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: 8, padding: 16, marginBottom: 10 },
-  cardPressed: { opacity: 0.7 },
+  error: { color: colors.flareInk, marginBottom: 12 },
+  card: { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: 4, padding: 16, marginBottom: 10 },
   cardRow: { flexDirection: "row", alignItems: "center", gap: 10 },
-  flex: { flex: 1 },
-  cardTitle: { fontFamily: fonts.display, fontSize: 26, color: colors.ink },
-  badge: {
-    fontSize: 11.5,
-    fontWeight: "700",
-    color: colors.flareInk,
-    backgroundColor: colors.flareWash,
-    borderRadius: 999,
-    paddingVertical: 3,
-    paddingHorizontal: 8,
-    overflow: "hidden",
-  },
-  badgeDone: { color: colors.white, backgroundColor: colors.lagoon },
+  cardTitle: { fontFamily: fonts.display, fontSize: 26, color: colors.ink, textTransform: "uppercase" },
+  cardTitleFlex: { flex: 1, fontFamily: fonts.display, fontSize: 26, color: colors.ink, textTransform: "uppercase" },
+  badge: { fontSize: 11.5, fontWeight: "700", color: colors.flareInk, backgroundColor: colors.flareWash, paddingVertical: 3, paddingHorizontal: 8 },
+  badgeDone: { color: colors.lagoon, backgroundColor: colors.labelStock },
   headerBlock: { marginTop: 4 },
   sectionTitle: { fontFamily: fonts.display, fontSize: 32, color: colors.ink, marginTop: 20, marginBottom: 8 },
 });

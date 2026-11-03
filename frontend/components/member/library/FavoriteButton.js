@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Icon from "@/components/member/Icon";
 import { practiceRequest } from "@/lib/practice";
 
 // Star toggle. Flips at once and puts it back if the save fails (offline, say).
@@ -36,10 +37,10 @@ export default function FavoriteButton({ songId, title, favorite, onChange, onEr
         lineHeight: 1,
         fontSize: size,
         cursor: busy ? "default" : "pointer",
-        color: favorite ? "var(--rw-orange)" : "var(--rw-meta)",
+        color: favorite ? "var(--rw-orange-deep)" : "var(--rw-meta)",
       }}
     >
-      {favorite ? "★" : "☆"}
+      <Icon name={favorite ? "star" : "star-outline"} size={size} />
     </button>
   );
 }

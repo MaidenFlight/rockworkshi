@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { API_URL } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
-import ContinueCard from "@/components/member/library/ContinueCard";
 import YourTerm from "@/components/member/YourTerm";
 import { practiceRequest } from "@/lib/practice";
 
@@ -46,12 +45,12 @@ export default function MemberDashboard() {
 
   return (
     <div style={{ maxWidth: 1100, margin: "0 auto", padding: "48px 24px 100px" }}>
-      <h1 style={{ fontWeight: 600, fontSize: 30, color: "var(--rw-ink)", marginBottom: 4 }}>
+      <h1 style={{ fontWeight: 800, textTransform: "uppercase", fontSize: 34, lineHeight: 1.05, color: "var(--rw-ink)", marginBottom: 4 }}>
         Welcome back{user?.name ? `, ${user.name}` : ""}
       </h1>
       <p style={{ color: "var(--rw-body)", marginBottom: 24 }}>Pick up where you left off, or grab a practice tool.</p>
 
-      <YourTerm />
+      <YourTerm continueItem={library?.continue ?? null} />
 
       <div className="rw-cols-5" style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 14, marginBottom: 44 }}>
         {TOOLS.map((tool) => (
@@ -67,7 +66,7 @@ export default function MemberDashboard() {
               padding: "24px 12px",
               background: "var(--rw-surface)",
               border: "1px solid var(--rw-border)",
-              borderRadius: 14,
+              borderRadius: "var(--rw-radius-md)",
               textDecoration: "none",
             }}
           >
@@ -79,7 +78,7 @@ export default function MemberDashboard() {
 
       <div className="rw-featured-grid" style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 32 }}>
         <div>
-          <h2 style={{ fontWeight: 600, fontSize: 20, color: "var(--rw-ink)", marginBottom: 16 }}>Your lessons</h2>
+          <h2 style={{ fontWeight: 800, textTransform: "uppercase", fontSize: 24, color: "var(--rw-ink)", marginBottom: 16 }}>Your lessons</h2>
           <div className="rw-cols-2" style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 16 }}>
             {lessons.map((lesson) => (
               <Link
@@ -91,15 +90,12 @@ export default function MemberDashboard() {
                   padding: 18,
                   background: "var(--rw-surface)",
                   border: "1px solid var(--rw-border)",
-                  borderRadius: 14,
+                  borderRadius: "var(--rw-radius-md)",
                   textDecoration: "none",
                 }}
               >
-                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--rw-teal)", marginBottom: 6 }}>
-                  {lesson.difficulty} &middot; {lesson.key}
-                </div>
                 <div style={{ fontWeight: 700, fontSize: 17, color: "var(--rw-ink)" }}>{lesson.title}</div>
-                <div style={{ fontSize: 13.5, color: "var(--rw-meta)" }}>{lesson.artist}</div>
+                <div style={{ fontSize: 13.5, color: "var(--rw-meta)" }}>{[lesson.artist, lesson.difficulty, lesson.key].filter(Boolean).join(" · ")}</div>
                 <div style={{ fontSize: 12.5, color: "var(--rw-body)", marginTop: 8 }}>
                   {lesson.locked ? "Unlocks with your term" : lesson.estTime}
                 </div>
@@ -109,7 +105,6 @@ export default function MemberDashboard() {
           </div>
 
           <div style={{ marginTop: 36, display: "grid", gap: 14 }}>
-            <ContinueCard item={library?.continue} />
             <Link
               href="/member/library"
               className="rw-card"
@@ -118,14 +113,11 @@ export default function MemberDashboard() {
                 padding: 18,
                 background: "var(--rw-surface)",
                 border: "1px solid var(--rw-border)",
-                borderRadius: 14,
+                borderRadius: "var(--rw-radius-md)",
                 textDecoration: "none",
               }}
             >
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--rw-teal)", marginBottom: 6 }}>
-                Practice library
-              </div>
-              <div style={{ fontWeight: 700, fontSize: 17, color: "var(--rw-ink)" }}>Songs, favourites and your notes</div>
+              <div style={{ fontWeight: 700, fontSize: 17, color: "var(--rw-ink)" }}>Practice library</div>
               <div style={{ fontSize: 13.5, color: "var(--rw-meta)" }}>
                 {library
                   ? `${library.songs.length} songs · ${library.songs.filter((s) => s.hasTracks).length} with play-along stems · ${library.songs.filter((s) => s.favorite).length} favourites`
@@ -136,7 +128,7 @@ export default function MemberDashboard() {
         </div>
 
         <div>
-          <div style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: 14, padding: 24, textAlign: "center", marginBottom: 20 }}>
+          <div style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)", padding: 24, textAlign: "center", marginBottom: 20 }}>
             <svg viewBox="0 0 110 110" width={110} height={110}>
               <circle cx={55} cy={55} r={ringR} fill="none" stroke="var(--rw-rule)" strokeWidth={9} />
               <circle
@@ -161,8 +153,8 @@ export default function MemberDashboard() {
             <p style={{ margin: 0, fontSize: 12.5, color: "var(--rw-meta)" }}>{stats.streak || 0}-day streak</p>
           </div>
 
-          <div style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: 14, padding: 20 }}>
-            <div style={{ fontWeight: 700, fontSize: 13, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--rw-teal)", marginBottom: 12 }}>
+          <div style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)", padding: 20 }}>
+            <div style={{ fontWeight: 700, fontSize: 15, color: "var(--rw-ink)", marginBottom: 12 }}>
               Achievements
             </div>
             <div style={{ display: "flex", gap: 14 }}>

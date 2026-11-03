@@ -1,11 +1,10 @@
 // Inline styles shared by the stem player and its mixer panels.
 
+// A small section heading. Sentence case: tracked uppercase kickers read as template filler.
 export const eyebrow = {
-  fontSize: 11.5,
+  fontSize: 15,
   fontWeight: 700,
-  letterSpacing: "0.08em",
-  textTransform: "uppercase",
-  color: "var(--rw-teal)",
+  color: "var(--rw-ink)",
   marginBottom: 10,
 };
 

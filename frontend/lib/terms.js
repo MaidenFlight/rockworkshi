@@ -13,6 +13,6 @@ export function slotStatus(slot) {
 export const MONTH_NAMES = { 1: "Month 1", 2: "Month 2", 3: "Month 3" };
 
 export function pill(tone) {
-  const colors = { draft: ["#eef0ec", "var(--rw-body)"], ready: ["#fff7e6", "#8a5a00"], open: ["#e3f3ea", "#1f7a4d"] }[tone];
-  return { fontSize: 12, fontWeight: 700, padding: "4px 10px", borderRadius: 999, background: colors[0], color: colors[1] };
+  const colors = { draft: ["var(--rw-cream)", "var(--rw-body)"], ready: ["var(--rw-orange-tint)", "var(--rw-orange-deep)"], open: ["var(--rw-sand)", "var(--rw-teal)"] }[tone];
+  return { fontSize: 12, fontWeight: 700, padding: "3px 8px", background: colors[0], color: colors[1], whiteSpace: "nowrap" };
 }

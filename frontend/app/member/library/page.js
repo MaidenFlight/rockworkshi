@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import Icon from "@/components/member/Icon";
 import { useAuth } from "@/contexts/AuthContext";
 import ContinueCard from "@/components/member/library/ContinueCard";
 import FavoriteButton from "@/components/member/library/FavoriteButton";
@@ -65,9 +66,9 @@ export default function PracticeLibrary() {
   return (
     <div style={{ maxWidth: 1000, margin: "0 auto", padding: "40px 24px 100px" }}>
       <Link href="/member" style={{ fontSize: 13.5, color: "var(--rw-meta)", textDecoration: "none" }}>
-        &larr; Dashboard
+        <Icon name="arrow-left" size={14} /> Dashboard
       </Link>
-      <h1 style={{ fontWeight: 600, fontSize: 30, color: "var(--rw-ink)", margin: "10px 0 4px" }}>Practice library</h1>
+      <h1 style={{ fontWeight: 800, textTransform: "uppercase", fontSize: 30, color: "var(--rw-ink)", margin: "10px 0 4px" }}>Practice library</h1>
       <p style={{ color: "var(--rw-body)", margin: "0 0 24px" }}>
         Your favourites, notes and where you left off, on the website and the app.
       </p>
@@ -93,7 +94,7 @@ export default function PracticeLibrary() {
       {state === "loading" && !data ? (
         <div aria-busy="true" aria-label="Loading your library" style={{ display: "grid", gap: 12 }}>
           {[0, 1, 2].map((i) => (
-            <div key={i} style={{ height: 76, borderRadius: 14, background: "var(--rw-surface)", border: "1px solid var(--rw-border)" }} />
+            <div key={i} style={{ height: 76, borderRadius: "var(--rw-radius-md)", background: "var(--rw-surface)", border: "1px solid var(--rw-border)" }} />
           ))}
         </div>
       ) : data ? (
@@ -140,7 +141,10 @@ export default function PracticeLibrary() {
                 background: filters.favorites ? "var(--rw-orange-tint)" : "#fff",
               }}
             >
-              ★ Favourites
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                <Icon name="star" size={14} />
+                Favourites
+              </span>
             </button>
           </div>
 
@@ -160,7 +164,7 @@ export default function PracticeLibrary() {
           ) : shown.length === 0 ? (
             <Empty>
               {filters.favorites && songs.every((s) => !s.favorite)
-                ? "You haven't starred any songs yet. Tap ☆ on a song to keep it here."
+                ? "You haven't starred any songs yet. Tap the star on a song to keep it here."
                 : "No songs match."}{" "}
               <button type="button" onClick={() => setFilters(EMPTY_FILTERS)} style={linkButton}>
                 Clear filters
@@ -173,7 +177,7 @@ export default function PracticeLibrary() {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <Link
                       href={`/member/song/${song.id}`}
-                      style={{ fontWeight: 700, fontSize: 16.5, color: "var(--rw-ink)", textDecoration: "none" }}
+                      style={{ fontFamily: "var(--rw-font-display)", fontWeight: 800, fontSize: "var(--rw-text-2xl)", lineHeight: 1.05, textTransform: "uppercase", color: "var(--rw-ink)", textDecoration: "none" }}
                     >
                       {song.title}
                     </Link>
@@ -220,10 +224,10 @@ function Banner({ tone, children, onRetry, retrying, onDismiss }) {
         flexWrap: "wrap",
         padding: "12px 14px",
         marginBottom: 16,
-        borderRadius: 10,
+        borderRadius: "var(--rw-radius-md)",
         fontSize: 14,
-        background: tone === "error" ? "#fdecea" : "#fff7e6",
-        border: `1px solid ${tone === "error" ? "#f2b8b5" : "#f1d8a8"}`,
+        background: tone === "error" ? "var(--rw-orange-tint)" : "var(--rw-sand)",
+        border: "1px solid var(--rw-border)",
         color: "var(--rw-ink)",
       }}
     >
@@ -244,7 +248,7 @@ function Banner({ tone, children, onRetry, retrying, onDismiss }) {
 
 function Empty({ children }) {
   return (
-    <p style={{ padding: "28px 16px", textAlign: "center", color: "var(--rw-meta)", border: "1px dashed var(--rw-border)", borderRadius: 14 }}>
+    <p style={{ padding: "28px 16px", textAlign: "center", color: "var(--rw-meta)", border: "1px dashed var(--rw-border)", borderRadius: "var(--rw-radius-md)" }}>
       {children}
     </p>
   );
@@ -257,9 +261,8 @@ function Tag({ children, tone }) {
         fontSize: 11.5,
         fontWeight: 700,
         padding: "3px 8px",
-        borderRadius: 999,
-        background: tone === "teal" ? "#e3f3ef" : tone === "lock" ? "#fff7e6" : "#eef0ec",
-        color: tone === "teal" ? "var(--rw-teal)" : tone === "lock" ? "#8a5a00" : "var(--rw-body)",
+        background: tone === "teal" ? "var(--rw-sand)" : tone === "lock" ? "var(--rw-orange-tint)" : "var(--rw-cream)",
+        color: tone === "teal" ? "var(--rw-teal)" : tone === "lock" ? "var(--rw-orange-deep)" : "var(--rw-body)",
       }}
     >
       {children}
@@ -269,7 +272,7 @@ function Tag({ children, tone }) {
 
 const control = {
   padding: "9px 12px",
-  borderRadius: 8,
+  borderRadius: "var(--rw-radius-sm)",
   border: "1px solid var(--rw-line)",
   fontSize: 14,
   fontFamily: "inherit",
@@ -283,11 +286,11 @@ const songRow = {
   padding: "14px 16px",
   background: "var(--rw-surface)",
   border: "1px solid var(--rw-border)",
-  borderRadius: 14,
+  borderRadius: "var(--rw-radius-md)",
 };
 const smallButton = {
   padding: "6px 12px",
-  borderRadius: 6,
+  borderRadius: "var(--rw-radius-sm)",
   border: "1px solid var(--rw-line)",
   background: "#fff",
   fontWeight: 700,

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Icon from "@/components/member/Icon";
 import { useParams, useRouter } from "next/navigation";
 import StemPlayer from "@/components/member/StemPlayer";
 import {
@@ -92,15 +93,14 @@ export default function ReviewAssignment() {
   return (
     <div style={{ maxWidth: 800 }}>
       <Link href="/teacher" style={{ fontSize: 13.5, color: "var(--rw-meta)", textDecoration: "none" }}>
-        &larr; Your students
+        <Icon name="arrow-left" size={14} /> Your students
       </Link>
 
       <div style={{ display: "flex", justifyContent: "space-between", gap: 16, alignItems: "flex-start", margin: "10px 0 18px" }}>
         <div>
-          <div style={eyebrow}>{studentName(a.student)}</div>
-          <h1 style={{ fontWeight: 600, fontSize: 28, color: "var(--rw-ink)", margin: "6px 0 4px" }}>{contentTitle(a)}</h1>
+          <h1 style={{ fontWeight: 800, textTransform: "uppercase", fontSize: 28, color: "var(--rw-ink)", margin: "0 0 4px" }}>{contentTitle(a)}</h1>
           <div style={{ color: "var(--rw-meta)", fontSize: 14 }}>
-            {a.instrument} · Level {a.level} {a.levelName}
+            {studentName(a.student)} · {a.instrument} · Level {a.level} {a.levelName}
             {a.section || times ? ` · ${a.section || "Section"}${times}` : ""}
           </div>
         </div>
@@ -218,7 +218,7 @@ function FeedbackForm({ submission, onSaved }) {
           width: "100%",
           boxSizing: "border-box",
           padding: "9px 12px",
-          borderRadius: 8,
+          borderRadius: "var(--rw-radius-sm)",
           border: "1px solid var(--rw-line)",
           fontFamily: "inherit",
           fontSize: 14,
@@ -241,18 +241,17 @@ function FeedbackForm({ submission, onSaved }) {
   );
 }
 
-const eyebrow = { fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--rw-teal)" };
-const h2 = { fontWeight: 600, fontSize: 19, color: "var(--rw-ink)", margin: "0 0 12px" };
+const h2 = { fontWeight: 800, textTransform: "uppercase", fontSize: 19, color: "var(--rw-ink)", margin: "0 0 12px" };
 const label = { fontSize: 13, fontWeight: 700, color: "var(--rw-ink)", marginBottom: 6, display: "block" };
 const card = {
   border: "1px solid var(--rw-border)",
-  borderRadius: 10,
+  borderRadius: "var(--rw-radius-md)",
   background: "var(--rw-surface)",
   padding: "16px 18px",
 };
 const smallBtn = {
   padding: "7px 12px",
-  borderRadius: 8,
+  borderRadius: "var(--rw-radius-sm)",
   border: "1px solid var(--rw-line)",
   background: "#fff",
   color: "var(--rw-ink)",
@@ -262,7 +261,7 @@ const smallBtn = {
 };
 const primaryBtn = {
   padding: "9px 16px",
-  borderRadius: 8,
+  borderRadius: "var(--rw-radius-sm)",
   border: "none",
   background: "var(--rw-orange)",
   color: "#fff",

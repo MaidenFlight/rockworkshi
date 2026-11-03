@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, TextInput } from "react-native";
+import { Text } from "@/components/Text";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/context/auth";
 import { colors, fonts } from "@/lib/theme";
@@ -52,7 +53,7 @@ export default function Login() {
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
       <Pressable style={styles.button} onPress={onSubmit} disabled={busy}>
-        {busy ? <ActivityIndicator color={colors.white} /> : <Text style={styles.buttonText}>SIGN IN</Text>}
+        {busy ? <ActivityIndicator color={colors.white} /> : <Text style={styles.buttonText}>Sign in</Text>}
       </Pressable>
     </SafeAreaView>
   );
@@ -62,8 +63,8 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.ink, padding: 24, justifyContent: "center" },
   title: { fontFamily: fonts.display, fontSize: 64, color: colors.flare, lineHeight: 60 },
   sub: { color: colors.page, fontSize: 16, marginBottom: 32 },
-  input: { backgroundColor: colors.surface, borderRadius: 6, padding: 14, fontSize: 16, marginBottom: 12 },
+  input: { backgroundColor: colors.surface, borderRadius: 3, padding: 14, fontSize: 16, fontFamily: fonts.body, marginBottom: 12 },
   error: { color: colors.flare, marginBottom: 12 },
-  button: { backgroundColor: colors.flareAction, padding: 16, borderRadius: 6, alignItems: "center" },
-  buttonText: { fontFamily: fonts.display, fontSize: 22, color: colors.white },
+  button: { backgroundColor: colors.flareAction, padding: 16, borderRadius: 3, alignItems: "center" },
+  buttonText: { fontWeight: "700", fontSize: 15, color: colors.white },
 });

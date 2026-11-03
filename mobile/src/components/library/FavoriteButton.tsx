@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Pressable, StyleSheet, Text } from "react-native";
+import { Pressable, StyleSheet } from "react-native";
+import { Icon } from "@/components/Icon";
 import { api } from "@/lib/api";
 import { colors } from "@/lib/theme";
 
@@ -45,13 +46,11 @@ export function FavoriteButton({
       accessibilityState={{ checked: favorite, busy }}
       style={styles.button}
     >
-      <Text style={[styles.star, { fontSize: size }, favorite && styles.on]}>{favorite ? "★" : "☆"}</Text>
+      <Icon name={favorite ? "star" : "star-outline"} size={size} color={favorite ? colors.flareInk : colors.meta} />
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   button: { padding: 4 },
-  star: { color: colors.meta },
-  on: { color: colors.flareAction },
 });

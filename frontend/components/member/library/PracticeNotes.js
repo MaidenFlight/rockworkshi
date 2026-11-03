@@ -94,7 +94,7 @@ export default function PracticeNotes({ songId, userId, initialNotes }) {
 
   return (
     <section aria-labelledby="notes-heading">
-      <h2 id="notes-heading" style={{ fontWeight: 600, fontSize: 19, color: "var(--rw-ink)", margin: "0 0 10px" }}>
+      <h2 id="notes-heading" style={{ fontWeight: 800, textTransform: "uppercase", fontSize: 19, color: "var(--rw-ink)", margin: "0 0 10px" }}>
         My practice notes
       </h2>
       <textarea
@@ -114,7 +114,7 @@ export default function PracticeNotes({ songId, userId, initialNotes }) {
           width: "100%",
           boxSizing: "border-box",
           padding: "10px 12px",
-          borderRadius: 8,
+          borderRadius: "var(--rw-radius-sm)",
           border: "1px solid var(--rw-line)",
           fontFamily: "inherit",
           fontSize: 14,
@@ -164,7 +164,7 @@ export default function PracticeNotes({ songId, userId, initialNotes }) {
 
 const smallButton = {
   padding: "5px 10px",
-  borderRadius: 6,
+  borderRadius: "var(--rw-radius-sm)",
   border: "1px solid var(--rw-line)",
   background: "#fff",
   fontWeight: 700,

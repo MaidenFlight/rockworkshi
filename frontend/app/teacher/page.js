@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { pill } from "@/lib/terms";
 import { STATUS_LABELS, contentTitle, formatDate, studentName, teacherRequest } from "@/lib/teaching";
 
 export default function TeacherDashboard() {
@@ -27,8 +28,7 @@ export default function TeacherDashboard() {
 
   return (
     <div>
-      <div style={eyebrow}>Teaching</div>
-      <h1 style={{ fontWeight: 600, fontSize: 30, color: "var(--rw-ink)", margin: "6px 0 24px" }}>Your students</h1>
+      <h1 style={{ fontWeight: 800, textTransform: "uppercase", fontSize: 30, color: "var(--rw-ink)", margin: "0 0 24px" }}>Your students</h1>
 
       {error && <p style={{ color: "var(--rw-orange-deep)" }}>{error}</p>}
 
@@ -126,40 +126,22 @@ function AssignmentRow({ assignment: a }) {
           {latest?.recording ? " · with recording" : ""}
         </div>
       </div>
-      <span style={pill(a.status)}>{STATUS_LABELS[a.status]}</span>
+      <span style={pill({ assigned: "draft", ready: "ready", reviewed: "open" }[a.status])}>{STATUS_LABELS[a.status]}</span>
     </Link>
   );
 }
 
-function pill(status) {
-  const colors = {
-    assigned: ["#eef0ec", "var(--rw-body)"],
-    ready: ["#ffe8ec", "#96082c"],
-    reviewed: ["#e3f3ea", "#1f7a4d"],
-  }[status] || ["#eef0ec", "var(--rw-body)"];
-  return {
-    fontSize: 11.5,
-    fontWeight: 700,
-    padding: "3px 10px",
-    borderRadius: 999,
-    background: colors[0],
-    color: colors[1],
-    whiteSpace: "nowrap",
-  };
-}
-
-const eyebrow = { fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--rw-teal)" };
-const h2 = { fontWeight: 600, fontSize: 19, color: "var(--rw-ink)", margin: "0 0 12px" };
+const h2 = { fontWeight: 800, textTransform: "uppercase", fontSize: 19, color: "var(--rw-ink)", margin: "0 0 12px" };
 const muted = { color: "var(--rw-meta)", fontSize: 14, margin: 0 };
 const card = {
   border: "1px solid var(--rw-border)",
-  borderRadius: 10,
+  borderRadius: "var(--rw-radius-md)",
   background: "var(--rw-surface)",
   padding: "14px 16px",
 };
 const select = {
   padding: "8px 10px",
-  borderRadius: 8,
+  borderRadius: "var(--rw-radius-sm)",
   border: "1px solid var(--rw-line)",
   fontSize: 13.5,
   background: "#fff",
@@ -168,7 +150,7 @@ const select = {
 const smallBtn = {
   display: "inline-block",
   padding: "7px 12px",
-  borderRadius: 8,
+  borderRadius: "var(--rw-radius-sm)",
   border: "1px solid var(--rw-line)",
   background: "#fff",
   color: "var(--rw-ink)",

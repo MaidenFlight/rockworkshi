@@ -1,7 +1,7 @@
 // Term groups: what students see of their term, and what staff see while preparing it.
 const clock = require("./clock");
 const { isOpen } = require("./termAccess");
-const { fromLocal, toLocal, toLocalDate, endOfLocalDay, addMonthsAndDays, display } = require("./honolulu");
+const { fromLocal, toLocal, toLocalDate, endOfLocalDay, addMonthsAndDays, display, shortDisplay } = require("./honolulu");
 
 const MONTHS = [1, 2, 3];
 const MAX_NAME = 80;
@@ -90,7 +90,7 @@ function presentStaffGroup(group) {
 // (or the student already reached it and keeps it, see TermGrant): before that the
 // student sees a date, or that the song is being prepared.
 function presentStudentSlot(slot, now, kept = new Set()) {
-  const base = { month: slot.month, unlockAt: slot.unlockAt, unlockAtDisplay: display(slot.unlockAt) };
+  const base = { month: slot.month, unlockAt: slot.unlockAt, unlockAtDisplay: display(slot.unlockAt), unlockShort: shortDisplay(slot.unlockAt) };
   const reached = slot.song && kept.has(slot.song.id);
   if (slot.unlockAt.getTime() > now.getTime() && !reached) return { ...base, state: "upcoming" };
   // Published but the song was later hidden from the library: honest "preparing", not a dead link.
@@ -146,6 +146,7 @@ function presentStudentTerm(groups, now, keptSongIds = new Set()) {
       startsAt: group.startsAt,
       endsAt: group.endsAt,
       startDisplay: display(group.startsAt),
+      startShort: shortDisplay(group.startsAt),
       endDisplay: display(group.endsAt),
     },
     currentMonth: opened.length ? opened[opened.length - 1].month : null,

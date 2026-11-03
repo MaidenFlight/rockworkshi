@@ -1,7 +1,9 @@
 import { useCallback, useMemo, useState } from "react";
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, TextInput, View } from "react-native";
+import { Text } from "@/components/Text";
+import { BackLink } from "@/components/BackLink";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Link, router, useFocusEffect } from "expo-router";
+import { Link, useFocusEffect } from "expo-router";
 import { useAuth } from "@/context/auth";
 import { api, NetworkError } from "@/lib/api";
 import {
@@ -15,6 +17,7 @@ import {
   readLibraryCache,
   writeLibraryCache,
 } from "@/lib/library";
+import { Icon, IconName } from "@/components/Icon";
 import { ContinueCard } from "@/components/library/ContinueCard";
 import { FavoriteButton } from "@/components/library/FavoriteButton";
 import { colors, fonts } from "@/lib/theme";
@@ -119,7 +122,7 @@ export default function LibraryScreen() {
       </View>
 
       <View style={[styles.chips, styles.countRow]}>
-        <Chip label="★ Favourites" active={filters.favorites} onPress={() => set({ favorites: !filters.favorites })} />
+        <Chip icon="star" label="Favourites" active={filters.favorites} onPress={() => set({ favorites: !filters.favorites })} />
         <Text style={styles.count} accessibilityLiveRegion="polite">
           {shown.length} {shown.length === 1 ? "song" : "songs"}
         </Text>
@@ -134,9 +137,7 @@ export default function LibraryScreen() {
 
   return (
     <SafeAreaView style={styles.screen} edges={["top"]}>
-      <Pressable onPress={() => router.back()} hitSlop={12}>
-        <Text style={styles.back}>← Back</Text>
-      </Pressable>
+      <BackLink />
       <Text style={styles.title}>SONG LIBRARY</Text>
 
       {state === "loading" && !data ? (
@@ -158,7 +159,7 @@ export default function LibraryScreen() {
                 {songs.length === 0
                   ? "There are no songs in the library yet."
                   : filters.favorites && songs.every((s) => !s.favorite)
-                    ? "You haven't starred any songs yet. Tap ☆ on a song to keep it here."
+                    ? "You haven't starred any songs yet. Tap the star on a song to keep it here."
                     : "No songs match."}
               </Text>
               {filtering && (
@@ -238,7 +239,7 @@ function Banner({
   );
 }
 
-function Chip({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
+function Chip({ label, active, onPress, icon }: { label: string; active: boolean; onPress: () => void; icon?: IconName }) {
   return (
     <Pressable
       onPress={onPress}
@@ -246,6 +247,7 @@ function Chip({ label, active, onPress }: { label: string; active: boolean; onPr
       accessibilityState={{ selected: active }}
       style={[styles.chip, active && styles.chipActive]}
     >
+      {icon ? <Icon name={icon} size={14} color={active ? colors.flareInk : colors.ink} /> : null}
       <Text style={[styles.chipText, active && styles.chipTextActive]}>{label}</Text>
     </Pressable>
   );
@@ -254,27 +256,30 @@ function Chip({ label, active, onPress }: { label: string; active: boolean; onPr
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.page, paddingHorizontal: 16, paddingTop: 16 },
   center: { flex: 1, justifyContent: "center" },
-  back: { color: colors.meta, marginBottom: 8 },
   title: { fontFamily: fonts.display, fontSize: 44, color: colors.ink, marginBottom: 8 },
   list: { paddingBottom: 48 },
   search: {
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 8,
+    borderRadius: 4,
     paddingHorizontal: 12,
     paddingVertical: 10,
     backgroundColor: colors.white,
     color: colors.ink,
+    fontFamily: fonts.body,
     marginBottom: 12,
   },
-  filterLabel: { color: colors.lagoon, fontSize: 11.5, fontWeight: "700", letterSpacing: 1, marginBottom: 6 },
+  filterLabel: { color: colors.ink, fontSize: 13.5, fontWeight: "700", marginBottom: 6 },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginBottom: 10 },
   countRow: { alignItems: "center", marginBottom: 12 },
   count: { flex: 1, color: colors.meta, textAlign: "right" },
   chip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
     paddingVertical: 6,
     paddingHorizontal: 10,
-    borderRadius: 4,
+    borderRadius: 3,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.white,
@@ -282,19 +287,19 @@ const styles = StyleSheet.create({
   chipActive: { borderColor: colors.flareAction, backgroundColor: colors.flareWash },
   chipText: { fontWeight: "700", fontSize: 12.5, color: colors.ink },
   chipTextActive: { color: colors.flareInk },
-  link: { color: colors.flareAction, fontWeight: "700" },
+  link: { color: colors.flareInk, fontWeight: "700" },
   card: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: colors.surface,
     borderColor: colors.border,
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: 4,
     padding: 14,
     marginBottom: 10,
   },
   cardText: { flex: 1 },
-  cardTitle: { fontFamily: fonts.display, fontSize: 24, color: colors.ink },
+  cardTitle: { fontFamily: fonts.display, fontSize: 24, color: colors.ink, textTransform: "uppercase" },
   meta: { color: colors.meta },
   metaSmall: { color: colors.meta, fontSize: 12, marginTop: 2 },
   empty: { alignItems: "center", gap: 8, paddingVertical: 32 },
@@ -303,10 +308,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 10,
     padding: 12,
-    borderRadius: 8,
-    backgroundColor: "#fff7e6",
+    borderRadius: 4,
+    backgroundColor: colors.labelStock,
     borderWidth: 1,
-    borderColor: "#f1d8a8",
+    borderColor: colors.border,
     marginBottom: 12,
   },
   bannerBad: { backgroundColor: colors.flareWash, borderColor: colors.flareWash },
@@ -314,7 +319,7 @@ const styles = StyleSheet.create({
   bannerButton: {
     paddingVertical: 6,
     paddingHorizontal: 10,
-    borderRadius: 4,
+    borderRadius: 3,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.white,

@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, StyleSheet, TextInput, View } from "react-native";
+import { Text } from "@/components/Text";
 import { api } from "@/lib/api";
 import type { Mix, Mode } from "@/lib/audio/mix";
 import type { Effects } from "@/lib/audio/takeEffects";
-import { colors } from "@/lib/theme";
+import { colors, fonts } from "@/lib/theme";
 
 export type PresetSettings = Mix & { mode: Mode; focus: string | null; effects: Effects | null };
 type Preset = { id: string; name: string; settings: PresetSettings };
@@ -130,16 +131,17 @@ const styles = StyleSheet.create({
     flex: 1,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 4,
+    borderRadius: 3,
     paddingHorizontal: 10,
     paddingVertical: 8,
     backgroundColor: colors.white,
     color: colors.ink,
+    fontFamily: fonts.body,
   },
   button: {
     paddingVertical: 7,
     paddingHorizontal: 10,
-    borderRadius: 4,
+    borderRadius: 3,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.white,

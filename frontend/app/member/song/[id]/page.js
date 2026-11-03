@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import Icon from "@/components/member/Icon";
 import { useAuth } from "@/contexts/AuthContext";
 import StemPlayer from "@/components/member/StemPlayer";
 import FavoriteButton from "@/components/member/library/FavoriteButton";
@@ -82,15 +83,12 @@ export default function SongPlayAlong() {
   return (
     <div style={{ maxWidth: 800, margin: "0 auto", padding: "40px 24px 100px" }}>
       <Link href="/member/library" style={{ fontSize: 13.5, color: "var(--rw-meta)", textDecoration: "none" }}>
-        &larr; Practice library
+        <Icon name="arrow-left" size={14} /> Practice library
       </Link>
       <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginTop: 10, marginBottom: 22 }}>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--rw-teal)" }}>
-            Play along{song.level ? ` · ${song.level}` : ""}
-          </div>
-          <h1 style={{ fontWeight: 600, fontSize: 30, color: "var(--rw-ink)", margin: "6px 0 2px" }}>{song.title}</h1>
-          <p style={{ color: "var(--rw-meta)", margin: 0 }}>{song.artist}</p>
+          <h1 style={{ fontWeight: 800, textTransform: "uppercase", fontSize: 30, color: "var(--rw-ink)", margin: "0 0 2px" }}>{song.title}</h1>
+          <p style={{ color: "var(--rw-meta)", margin: 0 }}>{[song.artist, song.level].filter(Boolean).join(" · ")}</p>
         </div>
         <FavoriteButton
           songId={song.id}
@@ -111,7 +109,7 @@ export default function SongPlayAlong() {
 
       {page.access && !page.access.allowed ? (
         // The server refuses the stems too; this just explains why instead of a broken player.
-        <div role="status" style={{ padding: 20, background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: 14, lineHeight: 1.55 }}>
+        <div role="status" style={{ padding: 20, background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)", lineHeight: 1.55 }}>
           <strong style={{ color: "var(--rw-ink)" }}>{page.access.message}</strong>
           <div style={{ marginTop: 6, color: "var(--rw-body)", fontSize: 14 }}>
             Your term&apos;s songs open month by month.{" "}
@@ -122,6 +120,11 @@ export default function SongPlayAlong() {
         </div>
       ) : tracks ? (
         <>
+          {practice.session?.position ? (
+            <p style={{ margin: "0 0 12px", fontSize: 13.5, color: "var(--rw-meta)", lineHeight: 1.55 }}>
+              Opened where you left off. Press Play when you&apos;re ready.
+            </p>
+          ) : null}
           <StemPlayer
             tracks={tracks.tracks}
             myPart={tracks.myPart}
@@ -131,14 +134,9 @@ export default function SongPlayAlong() {
             resume={practice.session}
             onSaveSession={saveSession}
           />
-          <p style={{ marginTop: 12, fontSize: 13.5, color: "var(--rw-meta)", lineHeight: 1.55 }}>
-            {practice.session?.position
-              ? "Opened where you left off. Press Play when you're ready."
-              : "Pick Without one part and choose your instrument to play along with the band."}
-          </p>
         </>
       ) : (
-        <div style={{ padding: 20, background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: 14 }}>
+        <div style={{ padding: 20, background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)" }}>
           {page.tracksOffline ? (
             <>
               You&apos;re offline, so the band can&apos;t load.{" "}
@@ -161,7 +159,7 @@ export default function SongPlayAlong() {
 
 const retryButton = {
   padding: "5px 12px",
-  borderRadius: 6,
+  borderRadius: "var(--rw-radius-sm)",
   border: "1px solid var(--rw-line)",
   background: "#fff",
   fontWeight: 700,

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Button } from "@/components/ui";
 import { formatClock, formatWhen } from "@/lib/practice";
 
 // The most recently opened song. The player reopens it where it was left, paused.
@@ -13,37 +13,30 @@ export default function ContinueCard({ item }) {
         alignItems: "center",
         gap: 16,
         flexWrap: "wrap",
-        padding: "18px 20px",
+        padding: "16px 20px",
         background: "var(--rw-surface)",
         border: "1px solid var(--rw-border)",
-        borderLeft: "4px solid var(--rw-orange)",
-        borderRadius: 14,
+        borderRadius: "var(--rw-radius-md)",
       }}
     >
       <div style={{ flex: "1 1 220px", minWidth: 0 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--rw-teal)" }}>
-          Continue practising
-        </div>
-        <div style={{ fontWeight: 700, fontSize: 18, color: "var(--rw-ink)", marginTop: 4 }}>{song.title}</div>
-        <div style={{ fontSize: 13.5, color: "var(--rw-meta)" }}>
-          {[song.artist, `opened ${formatWhen(lastOpenedAt)}`].filter(Boolean).join(" · ")}
-          {song.hasTracks && position ? ` · left off at ${formatClock(position)}` : ""}
+        <h2 style={{ margin: 0, fontWeight: 800, fontSize: "var(--rw-text-2xl)", lineHeight: 1.05, textTransform: "uppercase", color: "var(--rw-ink)" }}>
+          {song.title}
+        </h2>
+        <div style={{ fontSize: 13.5, color: "var(--rw-meta)", marginTop: 2 }}>
+          {[
+            "Continue practising",
+            song.artist,
+            song.hasTracks && position ? `left off at ${formatClock(position)}` : null,
+            `opened ${formatWhen(lastOpenedAt)}`,
+          ]
+            .filter(Boolean)
+            .join(" · ")}
         </div>
       </div>
-      <Link
-        href={`/member/song/${song.id}`}
-        style={{
-          padding: "10px 18px",
-          borderRadius: 8,
-          background: "var(--rw-orange)",
-          color: "#fff",
-          fontWeight: 700,
-          fontSize: 14,
-          textDecoration: "none",
-        }}
-      >
+      <Button href={`/member/song/${song.id}`} size="sm">
         Continue
-      </Link>
+      </Button>
     </section>
   );
 }

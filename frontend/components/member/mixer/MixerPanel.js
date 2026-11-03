@@ -74,7 +74,7 @@ export default function MixerPanel({ parts, mix, levels, onChange, takeLabel, on
 
       <div style={{ borderTop: "1px solid var(--rw-border)", marginTop: 4, paddingTop: 10 }}>
         <LevelSlider label="Master" labelWidth={96} value={mix.master} onChange={(master) => onChange({ ...mix, master })}>
-          <button type="button" onClick={onReset} style={{ ...smallBtn, width: 68 }}>
+          <button type="button" onClick={onReset} style={{ ...smallBtn, whiteSpace: "nowrap" }}>
             Reset mix
           </button>
         </LevelSlider>

@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
+import { Text } from "@/components/Text";
 import { DEFAULT_EFFECTS, EFFECT_PRESETS, Effects, REVERB_SIZES } from "@/lib/audio/takeEffects";
 import { colors } from "@/lib/theme";
 import { Slider } from "./Slider";
@@ -18,7 +19,7 @@ export function EffectsRack({ fx, onChange }: { fx: Effects; onChange: (fx: Effe
   return (
     <View>
       <View style={styles.header}>
-        <Text style={styles.eyebrow}>EFFECTS ON YOUR TAKE</Text>
+        <Text style={styles.heading}>Effects on your take</Text>
         <Chip label={fx.bypass ? "Bypassed" : "Bypass"} active={fx.bypass} onPress={() => set({ bypass: !fx.bypass })} />
         <Chip label="Reset" active={false} onPress={() => onChange({ ...DEFAULT_EFFECTS })} />
       </View>
@@ -122,7 +123,7 @@ function Chip({
 
 const styles = StyleSheet.create({
   header: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 10 },
-  eyebrow: { flex: 1, color: colors.lagoon, fontSize: 11.5, fontWeight: "700", letterSpacing: 1 },
+  heading: { flex: 1, color: colors.ink, fontSize: 15, fontWeight: "700" },
   row: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 6 },
   controls: { gap: 4, marginTop: 4 },
   off: { opacity: 0.5 },
@@ -132,7 +133,7 @@ const styles = StyleSheet.create({
   chip: {
     paddingVertical: 7,
     paddingHorizontal: 12,
-    borderRadius: 4,
+    borderRadius: 3,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.white,

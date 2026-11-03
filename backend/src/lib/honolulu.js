@@ -80,4 +80,13 @@ function display(date) {
   }).format(date)} HST`;
 }
 
-module.exports = { TZ, fromLocal, toLocal, toLocalDate, endOfLocalDay, addMonthsAndDays, display };
+// For students: "Dec 1". The time only appears when staff chose something other than midnight.
+function shortDisplay(date) {
+  const day = new Intl.DateTimeFormat("en-US", { timeZone: TZ, month: "short", day: "numeric" }).format(date);
+  const p = localParts(date);
+  if (p.hour === 0 && p.minute === 0) return day;
+  const time = new Intl.DateTimeFormat("en-US", { timeZone: TZ, hour: "numeric", minute: "2-digit" }).format(date);
+  return `${day}, ${time} HST`;
+}
+
+module.exports = { TZ, fromLocal, toLocal, toLocalDate, endOfLocalDay, addMonthsAndDays, display, shortDisplay };

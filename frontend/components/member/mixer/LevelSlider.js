@@ -20,7 +20,7 @@ export default function LevelSlider({
   const id = useId();
   const text = format(value);
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 10, opacity: disabled ? 0.5 : 1 }}>
+    <div className="rw-level-row" style={{ display: "flex", alignItems: "center", gap: 10, opacity: disabled ? 0.5 : 1 }}>
       <label
         htmlFor={id}
         style={{
@@ -43,11 +43,11 @@ export default function LevelSlider({
         disabled={disabled}
         onChange={(e) => onChange(Number(e.target.value))}
         aria-valuetext={text}
-        style={{ flex: 1, minWidth: 80, accentColor: dim ? "var(--rw-meta)" : "var(--rw-orange)" }}
+        style={{ flex: 1, minWidth: 0, accentColor: dim ? "var(--rw-meta)" : "var(--rw-orange)" }}
       />
       <output
         htmlFor={id}
-        style={{ width: 52, textAlign: "right", fontSize: 12.5, color: "var(--rw-body)", fontVariantNumeric: "tabular-nums" }}
+        style={{ width: 44, textAlign: "right", fontSize: 12.5, color: "var(--rw-body)", fontVariantNumeric: "tabular-nums" }}
       >
         {text}
       </output>

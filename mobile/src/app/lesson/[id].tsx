@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Text } from "@/components/Text";
+import { BackLink } from "@/components/BackLink";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import { LessonVideo } from "@/components/LessonVideo";
@@ -63,15 +65,11 @@ export default function LessonDetail() {
   return (
     <SafeAreaView style={styles.screen} edges={["top"]}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Pressable onPress={() => router.back()} hitSlop={12}>
-          <Text style={styles.back}>← Lessons</Text>
-        </Pressable>
-
-        <Text style={styles.eyebrow}>
-          {[lesson.difficulty, lesson.key && `Key of ${lesson.key}`].filter(Boolean).join(" · ")}
-        </Text>
+        <BackLink label="Lessons" />
         <Text style={styles.title}>{lesson.title}</Text>
-        {lesson.artist ? <Text style={styles.meta}>{lesson.artist}</Text> : null}
+        <Text style={styles.meta}>
+          {[lesson.artist, lesson.difficulty, lesson.key && `Key of ${lesson.key}`].filter(Boolean).join(" · ")}
+        </Text>
 
         <View style={styles.row}>
           {(["lesson", "playthrough"] as const).map((t) => (
@@ -130,13 +128,11 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.page },
   center: { alignItems: "center", justifyContent: "center", gap: 12 },
   content: { padding: 16, paddingBottom: 48 },
-  back: { color: colors.meta, marginBottom: 12 },
-  link: { color: colors.flareAction, fontWeight: "600" },
-  eyebrow: { color: colors.meta, fontSize: 12, fontWeight: "700", letterSpacing: 1, textTransform: "uppercase" },
+  link: { color: colors.flareInk, fontWeight: "600" },
   title: { fontFamily: fonts.display, fontSize: 48, color: colors.ink, lineHeight: 50 },
   meta: { color: colors.meta },
   row: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8, marginVertical: 14 },
-  pill: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 999, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface },
+  pill: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 3, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface },
   pillActive: { backgroundColor: colors.flareAction, borderColor: colors.flareAction },
   pillText: { fontWeight: "700", fontSize: 13, color: colors.ink },
   pillTextActive: { color: colors.white },

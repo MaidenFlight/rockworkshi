@@ -1,9 +1,17 @@
 import { Stack } from "expo-router";
 import { useFonts, BigShouldersDisplay_800ExtraBold } from "@expo-google-fonts/big-shoulders-display";
+import { LibreFranklin_400Regular, LibreFranklin_600SemiBold, LibreFranklin_700Bold } from "@expo-google-fonts/libre-franklin";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { AuthProvider, useAuth } from "@/context/auth";
 
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({ BigShouldersDisplay_800ExtraBold });
+  const [fontsLoaded] = useFonts({
+    BigShouldersDisplay_800ExtraBold,
+    LibreFranklin_400Regular,
+    LibreFranklin_600SemiBold,
+    LibreFranklin_700Bold,
+    ...MaterialCommunityIcons.font,
+  });
   if (!fontsLoaded) return null;
 
   return (

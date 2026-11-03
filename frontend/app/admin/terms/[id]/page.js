@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Icon from "@/components/member/Icon";
 import { useParams, useRouter } from "next/navigation";
 import { pill, slotStatus, termRequest } from "@/lib/terms";
 
@@ -63,13 +64,13 @@ export default function AdminTerm() {
   return (
     <div>
       <Link href="/admin/terms" style={{ fontSize: 13.5, color: "var(--rw-meta)", textDecoration: "none" }}>
-        &larr; Terms
+        <Icon name="arrow-left" size={14} /> Terms
       </Link>
-      <h1 style={{ fontWeight: 600, fontSize: 24, color: "var(--rw-ink)", margin: "8px 0 4px" }}>{group.name}</h1>
+      <h1 style={{ fontWeight: 800, textTransform: "uppercase", fontSize: 24, color: "var(--rw-ink)", margin: "8px 0 4px" }}>{group.name}</h1>
       <p style={{ color: "var(--rw-meta)", fontSize: 13.5, margin: "0 0 18px" }}>{group.period}</p>
 
       {error && (
-        <p role="alert" style={{ ...banner, background: "#fdecea", borderColor: "#f2b8b5" }}>
+        <p role="alert" style={{ ...banner, background: "var(--rw-orange-tint)" }}>
           {error}
         </p>
       )}
@@ -291,14 +292,14 @@ function Members({ members, candidates, onAdd, onRemove }) {
   );
 }
 
-const h2 = { fontWeight: 600, fontSize: 18, color: "var(--rw-ink)", margin: "28px 0 12px" };
-const card = { border: "1px solid var(--rw-border)", borderRadius: 10, background: "var(--rw-surface)", padding: "14px 16px" };
-const banner = { padding: "10px 12px", borderRadius: 8, border: "1px solid #b9dfc8", background: "#e9f6ee", fontSize: 13.5, color: "var(--rw-ink)" };
+const h2 = { fontWeight: 800, textTransform: "uppercase", fontSize: 18, color: "var(--rw-ink)", margin: "28px 0 12px" };
+const card = { border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)", background: "var(--rw-surface)", padding: "14px 16px" };
+const banner = { padding: "10px 12px", borderRadius: "var(--rw-radius-sm)", border: "1px solid var(--rw-border)", background: "var(--rw-sand)", fontSize: 13.5, color: "var(--rw-ink)" };
 const field = { display: "grid", gap: 4, fontSize: 12, fontWeight: 700, color: "var(--rw-ink)" };
-const input = { padding: "8px 10px", borderRadius: 8, border: "1px solid var(--rw-line)", fontSize: 13.5, fontFamily: "inherit", background: "#fff" };
+const input = { padding: "8px 10px", borderRadius: "var(--rw-radius-sm)", border: "1px solid var(--rw-line)", fontSize: 13.5, fontFamily: "inherit", background: "#fff" };
 const small = {
   padding: "7px 12px",
-  borderRadius: 8,
+  borderRadius: "var(--rw-radius-sm)",
   border: "1px solid var(--rw-line)",
   background: "#fff",
   color: "var(--rw-ink)",

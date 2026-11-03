@@ -37,7 +37,7 @@ export default function AdminTerms() {
 
   return (
     <div>
-      <h1 style={{ fontWeight: 600, fontSize: 24, color: "var(--rw-ink)", margin: "0 0 6px" }}>Terms</h1>
+      <h1 style={{ fontWeight: 800, textTransform: "uppercase", fontSize: 24, color: "var(--rw-ink)", margin: "0 0 6px" }}>Terms</h1>
       <p style={{ color: "var(--rw-meta)", fontSize: 13.5, margin: "0 0 20px", lineHeight: 1.55 }}>
         Each term group shares a three-month schedule. A month&apos;s song reaches its students once its unlock date
         has passed <em>and</em> you&apos;ve published it. Dates and times are Honolulu time. Paying for the Term plan
@@ -92,7 +92,7 @@ export default function AdminTerms() {
                 {g.slots.map((s) => (
                   <span key={s.month} style={pill(slotStatus(s).tone)}>
                     Month {s.month}: {s.song ? s.song.title : "no song"} · {slotStatus(s).label}
-                    {s.warnings.some((w) => w.blocking) ? " ⚠" : ""}
+                    {s.warnings.some((w) => w.blocking) ? " · needs attention" : ""}
                   </span>
                 ))}
               </div>
@@ -104,13 +104,13 @@ export default function AdminTerms() {
   );
 }
 
-const card = { border: "1px solid var(--rw-border)", borderRadius: 10, background: "var(--rw-surface)", padding: "14px 16px" };
-const input = { padding: "8px 10px", borderRadius: 8, border: "1px solid var(--rw-line)", fontSize: 13.5, fontFamily: "inherit", background: "#fff" };
+const card = { border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)", background: "var(--rw-surface)", padding: "14px 16px" };
+const input = { padding: "8px 10px", borderRadius: "var(--rw-radius-sm)", border: "1px solid var(--rw-line)", fontSize: 13.5, fontFamily: "inherit", background: "#fff" };
 const dateLabel = { display: "grid", gap: 4, fontSize: 12, fontWeight: 700, color: "var(--rw-ink)" };
 const primary = {
   alignSelf: "end",
   padding: "9px 16px",
-  borderRadius: 8,
+  borderRadius: "var(--rw-radius-sm)",
   border: "none",
   background: "var(--rw-orange)",
   color: "#fff",

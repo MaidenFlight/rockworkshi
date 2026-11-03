@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, AppState, LayoutChangeEvent, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, AppState, LayoutChangeEvent, Pressable, StyleSheet, View } from "react-native";
+import { Text } from "@/components/Text";
 import {
   AudioBuffer,
   AudioBufferSourceNode,
@@ -8,7 +9,7 @@ import {
   AudioRecorder,
   GainNode,
 } from "react-native-audio-api";
-import { colors, fonts } from "@/lib/theme";
+import { colors } from "@/lib/theme";
 import {
   Mix,
   MIX_MODES,
@@ -22,6 +23,7 @@ import {
   takeLevel,
 } from "@/lib/audio/mix";
 import { DEFAULT_EFFECTS, Effects, createTakeEffects } from "@/lib/audio/takeEffects";
+import { Icon } from "@/components/Icon";
 import { MixerPanel } from "@/components/mixer/MixerPanel";
 import { EffectsRack } from "@/components/mixer/EffectsRack";
 import { MixPresets, PresetSettings } from "@/components/mixer/MixPresets";
@@ -541,7 +543,7 @@ export function StemPlayer({
 
   return (
     <View style={styles.panel}>
-      <Text style={styles.eyebrow}>PLAY</Text>
+      <Text style={styles.heading}>Play</Text>
       <View style={styles.row}>
         {MODES.map((m) => (
           <Chip key={m.id} label={m.label} active={mode === m.id} onPress={() => setMode(m.id)} />
@@ -550,7 +552,7 @@ export function StemPlayer({
 
       {mode !== "full" && (
         <>
-          <Text style={[styles.eyebrow, styles.gapTop]}>{mode === "solo" ? "ONLY THIS PART" : "LEAVE OUT"}</Text>
+          <Text style={[styles.heading, styles.gapTop]}>{mode === "solo" ? "Only this part" : "Leave out"}</Text>
           <View style={styles.row}>
             {parts.map((p) => (
               <Chip key={p} label={p === myPart ? `${p} (yours)` : p} active={focus === p} onPress={() => setFocus(p)} />
@@ -560,7 +562,7 @@ export function StemPlayer({
       )}
 
       <View style={styles.section}>
-        <Text style={styles.eyebrow}>MIXER</Text>
+        <Text style={styles.heading}>Mixer</Text>
         <MixerPanel
           parts={parts}
           mix={mix}
@@ -599,7 +601,7 @@ export function StemPlayer({
             style={[styles.playButton, (!ready || recording) && styles.disabled]}
           >
             {ready ? (
-              <Text style={styles.playText}>{playing ? "PAUSE" : "PLAY"}</Text>
+              <Text style={styles.playText}>{playing ? "Pause" : "Play"}</Text>
             ) : (
               <View style={styles.row}>
                 <ActivityIndicator color={colors.white} size="small" />
@@ -617,7 +619,7 @@ export function StemPlayer({
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.eyebrow}>PRACTICE</Text>
+        <Text style={styles.heading}>Practice</Text>
         <Text style={styles.label}>Speed</Text>
         <View style={styles.row}>
           {SPEEDS.map((s) => (
@@ -653,15 +655,18 @@ export function StemPlayer({
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.eyebrow}>RECORD YOURSELF</Text>
+        <Text style={styles.heading}>Record yourself</Text>
         <Pressable
           onPress={recording ? stopRecording : startRecording}
           disabled={!ready}
           style={[styles.recordButton, recording && styles.recordButtonActive, !ready && styles.disabled]}
         >
-          <Text style={[styles.recordText, recording && styles.recordTextActive]}>
-            {recording ? "■  STOP" : take ? "●  RECORD AGAIN" : "●  RECORD"}
-          </Text>
+          <View style={styles.recordLabel}>
+            <Icon name={recording ? "stop" : "record"} size={18} color={recording ? colors.white : colors.flareInk} />
+            <Text style={[styles.recordText, recording && styles.recordTextActive]}>
+              {recording ? "Stop" : take ? "Record again" : "Record"}
+            </Text>
+          </View>
         </Pressable>
         <Text style={[styles.meta, styles.gapTop]}>
           {recording
@@ -690,10 +695,10 @@ export function StemPlayer({
                 >
                   <Text style={[styles.saveText, saveState === "saved" && styles.saveTextDone]}>
                     {saveState === "saving"
-                      ? "SAVING…"
+                      ? "Saving…"
                       : saveState === "saved"
-                        ? "✓  SAVED FOR YOUR ASSIGNMENT"
-                        : "SAVE TAKE FOR YOUR ASSIGNMENT"}
+                        ? "Saved for your assignment"
+                        : "Save take for your assignment"}
                   </Text>
                 </Pressable>
                 <Text style={[styles.meta, styles.gapTop]}>
@@ -719,7 +724,7 @@ export function StemPlayer({
 
       {songId && (
         <View style={styles.section}>
-          <Text style={styles.eyebrow}>SAVED MIXES</Text>
+          <Text style={styles.heading}>Saved mixes</Text>
           <MixPresets songId={songId} getSettings={() => ({ ...mix, mode, focus, effects: fx })} onApply={applyPreset} />
         </View>
       )}
@@ -758,12 +763,12 @@ function SmallButton({ label, onPress, disabled }: { label: string; onPress: () 
 }
 
 const styles = StyleSheet.create({
-  panel: { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: 8, padding: 16 },
+  panel: { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: 4, padding: 16 },
   section: { borderTopWidth: 1, borderTopColor: colors.border, marginTop: 16, paddingTop: 16 },
-  eyebrow: { color: colors.lagoon, fontSize: 11.5, fontWeight: "700", letterSpacing: 1, marginBottom: 10 },
+  heading: { color: colors.ink, fontSize: 15, fontWeight: "700", marginBottom: 10 },
   gapTop: { marginTop: 12 },
   row: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 8 },
-  chip: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: 4, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.white },
+  chip: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: 3, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.white },
   chipActive: { borderColor: colors.flareAction, backgroundColor: colors.flareWash },
   chipText: { fontWeight: "700", fontSize: 13, color: colors.ink },
   chipTextActive: { color: colors.flareInk },
@@ -772,30 +777,31 @@ const styles = StyleSheet.create({
   // pointerEvents none keeps taps on the bar itself, so locationX is measured from its left edge.
   loopBand: { position: "absolute", top: 0, bottom: 0, backgroundColor: colors.lagoon, opacity: 0.45, pointerEvents: "none" },
   transport: { marginTop: 14 },
-  playButton: { backgroundColor: colors.flareAction, borderRadius: 4, paddingVertical: 12, paddingHorizontal: 20, minWidth: 96, alignItems: "center" },
-  playText: { fontFamily: fonts.display, fontSize: 20, color: colors.white },
+  playButton: { backgroundColor: colors.flareAction, borderRadius: 3, paddingVertical: 12, paddingHorizontal: 20, minWidth: 96, alignItems: "center" },
+  playText: { fontWeight: "700", fontSize: 15, color: colors.white },
   time: { marginLeft: "auto", color: colors.body, fontVariant: ["tabular-nums"] },
-  smallButton: { paddingVertical: 7, paddingHorizontal: 10, borderRadius: 4, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.white, alignSelf: "flex-start" },
+  smallButton: { paddingVertical: 7, paddingHorizontal: 10, borderRadius: 3, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.white, alignSelf: "flex-start" },
   smallButtonText: { fontWeight: "700", fontSize: 12.5, color: colors.ink },
-  recordButton: { borderWidth: 1.5, borderColor: colors.flareAction, borderRadius: 4, paddingVertical: 12, alignItems: "center", backgroundColor: colors.white },
+  recordButton: { borderWidth: 1.5, borderColor: colors.flareAction, borderRadius: 3, paddingVertical: 12, alignItems: "center", backgroundColor: colors.white },
   recordButtonActive: { backgroundColor: colors.ink, borderColor: colors.ink },
-  recordText: { fontFamily: fonts.display, fontSize: 20, color: colors.flareAction },
+  recordLabel: { flexDirection: "row", alignItems: "center", gap: 6 },
+  recordText: { fontWeight: "700", fontSize: 15, color: colors.flareInk },
   recordTextActive: { color: colors.white },
   saveButton: {
     backgroundColor: colors.lagoon,
     borderWidth: 1.5,
     borderColor: colors.lagoon,
-    borderRadius: 4,
+    borderRadius: 3,
     paddingVertical: 12,
     alignItems: "center",
   },
   saveButtonDone: { backgroundColor: colors.white },
-  saveText: { fontFamily: fonts.display, fontSize: 18, color: colors.white },
+  saveText: { fontWeight: "700", fontSize: 15, color: colors.white },
   saveTextDone: { color: colors.lagoon },
   label: { fontWeight: "700", color: colors.ink, marginBottom: 8 },
   nudgeRow: { marginBottom: 12 },
   nudgeValue: { flex: 1, textAlign: "center", color: colors.body, fontVariant: ["tabular-nums"] },
   meta: { color: colors.meta, fontSize: 13, lineHeight: 19 },
-  error: { color: colors.flareAction, marginTop: 8 },
+  error: { color: colors.flareInk, marginTop: 8 },
   disabled: { opacity: 0.5 },
 });
