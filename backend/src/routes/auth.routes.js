@@ -1,9 +1,10 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
+const rateLimit = require("express-rate-limit").default;
 const passport = require("../config/passport");
 const prisma = require("../lib/prisma");
 const { requireAuth } = require("../middleware/auth");
+const { signMobileToken } = require("../lib/mobileToken");
 const {
   issueVerification,
   issueReset,
@@ -20,6 +21,16 @@ const {
 } = require("../lib/mailer");
 
 const router = express.Router();
+
+// Slows password guessing. Only failures count, per IP address, across the website and the app.
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 20,
+  skipSuccessfulRequests: true,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many failed sign-in attempts. Try again in 15 minutes." },
+});
 
 const SALT_ROUNDS = 12;
 
@@ -143,7 +154,7 @@ router.post("/signup", async (req, res, next) => {
   }
 });
 
-router.post("/login", (req, res, next) => {
+router.post("/login", loginLimiter, (req, res, next) => {
   passport.authenticate("local", (err, user, info) => {
     if (err) return next(err);
     if (!user) {
@@ -157,13 +168,13 @@ router.post("/login", (req, res, next) => {
 });
 
 // Same check as /login, but returns a token instead of starting a session.
-router.post("/mobile/login", (req, res, next) => {
+router.post("/mobile/login", loginLimiter, (req, res, next) => {
   passport.authenticate("local", { session: false }, (err, user, info) => {
     if (err) return next(err);
     if (!user) {
       return res.status(401).json({ error: info?.message || "Invalid credentials." });
     }
-    const token = jwt.sign({ sub: user.id }, process.env.JWT_SECRET, { expiresIn: "30d" });
+    const token = signMobileToken(user);
     return res.json({ token, user: toSafeUser(user) });
   })(req, res, next);
 });

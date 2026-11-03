@@ -9,7 +9,7 @@ const {
   LIST_INCLUDE,
   validateAssignment,
   validateFeedback,
-  deleteRecordings,
+  deleteAssignmentRecordings,
   presentAssignment,
   presentSubmission,
 } = require("../lib/assignments");
@@ -122,10 +122,10 @@ router.get("/assignments/:id", async (req, res) => {
 });
 
 router.delete("/assignments/:id", async (req, res) => {
-  const assignment = await findOwnAssignment(req, req.params.id);
+  const assignment = await findOwnAssignment(req, req.params.id, {});
   if (!assignment) return res.status(404).json({ error: "Not found." });
-  await deleteRecordings(assignment.submissions.map((s) => s.recordingKey));
   await prisma.assignment.delete({ where: { id: assignment.id } });
+  await deleteAssignmentRecordings([assignment.id]);
   res.status(204).end();
 });
 

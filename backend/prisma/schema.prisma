@@ -136,8 +136,9 @@ model TeacherStudent {
 // Practice work a teacher sets for one student.
 model Assignment {
   id        String @id @default(uuid())
-  teacherId String
-  teacher   User   @relation("AssignmentTeacher", fields: [teacherId], references: [id], onDelete: Cascade)
+  // Null once the teacher's account is deleted: the work and feedback belong to the student.
+  teacherId String?
+  teacher   User?  @relation("AssignmentTeacher", fields: [teacherId], references: [id], onDelete: SetNull)
   studentId String
   student   User   @relation("AssignmentStudent", fields: [studentId], references: [id], onDelete: Cascade)
 

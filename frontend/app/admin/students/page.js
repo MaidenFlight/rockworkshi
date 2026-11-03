@@ -2,6 +2,7 @@
 
 import { Suspense, useState } from "react";
 import Pagination from "@/components/Pagination";
+import { useAuth } from "@/contexts/AuthContext";
 import { API_URL } from "@/lib/api";
 import { usePagedList, usePageParam } from "@/lib/paging";
 
@@ -15,10 +16,12 @@ export default function AdminStudentsPage() {
 }
 
 function AdminStudents() {
+  const { user } = useAuth();
   const [page, setPage] = usePageParam();
   const [search, setSearch] = useState("");
   const [applied, setApplied] = useState("");
   const [openId, setOpenId] = useState(null);
+  const [removeError, setRemoveError] = useState("");
   const { items, pagination, loading, error, reload: load } = usePagedList("/admin/students", "students", {
     page,
     params: { search: applied },
@@ -40,9 +43,24 @@ function AdminStudents() {
     load();
   }
 
-  async function remove(id) {
-    await fetch(`${API_URL}/admin/students/${id}`, { method: "DELETE", credentials: "include" });
-    load();
+  async function remove(student) {
+    const who = student.name || student.email;
+    const warning = student.role === "teacher"
+      ? `Permanently delete ${who}'s teacher account? Their students keep their work and feedback. This can't be undone.`
+      : `Permanently delete ${who}'s account, practice work and recordings? This can't be undone.`;
+    if (!window.confirm(warning)) return;
+    setRemoveError("");
+    try {
+      const res = await fetch(`${API_URL}/admin/students/${student.id}`, { method: "DELETE", credentials: "include" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Request failed (${res.status})`);
+      }
+      setOpenId(null);
+      load();
+    } catch (err) {
+      setRemoveError(`${who} wasn't removed: ${err.message}`);
+    }
   }
 
   return (
@@ -67,6 +85,11 @@ function AdminStudents() {
         </button>
       </div>
 
+      {removeError && (
+        <p role="alert" style={{ color: "var(--rw-orange-deep)", fontSize: 13.5 }}>
+          {removeError}
+        </p>
+      )}
       {error && (
         <p role="alert" style={{ color: "var(--rw-orange-deep)", fontSize: 13.5 }}>
           {error}{" "}
@@ -137,9 +160,11 @@ function AdminStudents() {
                     <button onClick={() => setStatus(s.id, s.status === "active" ? "paused" : "active")} style={smallBtn}>
                       {s.status === "active" ? "Pause" : "Reactivate"}
                     </button>
-                    <button onClick={() => remove(s.id)} style={{ ...smallBtn, color: "var(--rw-orange-deep)" }}>
-                      Remove
-                    </button>
+                    {s.id !== user?.id && (
+                      <button onClick={() => remove(s)} style={{ ...smallBtn, color: "var(--rw-orange-deep)" }}>
+                        Remove
+                      </button>
+                    )}
                   </div>
                 </div>
               )}

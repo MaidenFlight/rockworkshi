@@ -4,6 +4,7 @@ const {
   PutObjectCommand,
   GetObjectCommand,
   HeadObjectCommand,
+  ListObjectsV2Command,
   DeleteObjectCommand,
 } = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
@@ -73,8 +74,20 @@ async function headObject(key) {
   }
 }
 
+// Every object under a prefix, as { key, lastModified }.
+async function listObjects(prefix) {
+  const objects = [];
+  let ContinuationToken;
+  do {
+    const out = await r2().send(new ListObjectsV2Command({ Bucket: process.env.R2_BUCKET, Prefix: prefix, ContinuationToken }));
+    for (const o of out.Contents || []) objects.push({ key: o.Key, lastModified: o.LastModified });
+    ContinuationToken = out.IsTruncated ? out.NextContinuationToken : undefined;
+  } while (ContinuationToken);
+  return objects;
+}
+
 async function deleteObject(key) {
   await r2().send(new DeleteObjectCommand({ Bucket: process.env.R2_BUCKET, Key: key }));
 }
 
-module.exports = { isR2Configured, putObject, signedUrl, signedUploadUrl, headObject, deleteObject };
+module.exports = { isR2Configured, putObject, signedUrl, signedUploadUrl, headObject, listObjects, deleteObject };

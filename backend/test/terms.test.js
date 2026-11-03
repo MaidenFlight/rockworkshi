@@ -8,7 +8,7 @@ process.env.ADMIN_EMAIL = `${RUN}-admin@example.test`;
 
 const { test, before, after } = require("node:test");
 const assert = require("node:assert/strict");
-const jwt = require("jsonwebtoken");
+const { signMobileToken } = require("../src/lib/mobileToken");
 const app = require("../src/app");
 const prisma = require("../src/lib/prisma");
 const clock = require("../src/lib/clock");
@@ -65,7 +65,7 @@ before(async () => {
   users.loner = await make("loner"); // no group
   users.lapsed = await make("lapsed", { paidAt: null }); // group A, membership ended
   await prisma.payment.create({ data: { userId: users.lapsed.id, plan: "Term", amountCents: 13500 } });
-  for (const [k, u] of Object.entries(users)) tokens[k] = jwt.sign({ sub: u.id }, process.env.JWT_SECRET, { expiresIn: "10m" });
+  for (const [k, u] of Object.entries(users)) tokens[k] = signMobileToken(u, "10m");
 
   for (const key of ["x", "y", "free"]) {
     songs[key] = await prisma.song.create({
@@ -290,7 +290,7 @@ test("paying for a term plan doesn't put anyone in a group", async () => {
   const buyer = await prisma.user.create({
     data: { email: `${RUN}-buyer@example.test`, passwordHash: "!", plan: "Term", instrument: "Guitar", emailVerifiedAt: new Date() },
   });
-  const token = jwt.sign({ sub: buyer.id }, process.env.JWT_SECRET, { expiresIn: "10m" });
+  const token = signMobileToken(buyer, "10m");
   const paid = await fetch(`${base}/billing/demo-pay`, { method: "POST", headers: { Authorization: `Bearer ${token}` } });
   if (paid.status === 200) assert.ok((await prisma.user.findUnique({ where: { id: buyer.id } })).paidAt);
   assert.equal(await prisma.termEnrollment.count({ where: { userId: buyer.id } }), 0);

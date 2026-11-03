@@ -3,7 +3,7 @@ const prisma = require("../lib/prisma");
 const { findPage } = require("../lib/pagination");
 const { requireAdmin } = require("../middleware/auth");
 const { validateSlot } = require("../lib/lessonVideos");
-const { ROLES, deleteRecordings } = require("../lib/assignments");
+const { ROLES, deleteAssignmentRecordings } = require("../lib/assignments");
 
 const router = express.Router();
 router.use(requireAdmin);
@@ -84,16 +84,14 @@ router.patch("/students/:id/status", async (req, res) => {
 });
 
 router.delete("/students/:id", async (req, res) => {
-  // Their assignments go with them (cascade), so remove the recordings those pointed at first.
-  const submissions = await prisma.submission.findMany({
-    where: {
-      recordingKey: { not: null },
-      assignment: { OR: [{ studentId: req.params.id }, { teacherId: req.params.id }] },
-    },
-    select: { recordingKey: true },
-  });
-  await deleteRecordings(submissions.map((s) => s.recordingKey));
-  await prisma.user.delete({ where: { id: req.params.id } });
+  if (req.params.id === req.user.id) return res.status(400).json({ error: "You can't remove your own account." });
+  const user = await prisma.user.findUnique({ where: { id: req.params.id }, select: { id: true } });
+  if (!user) return res.status(404).json({ error: "Not found." });
+  // A student's work goes with them (cascade), recordings included. Work a teacher set
+  // stays with the students who did it, with no teacher attached.
+  const assignments = await prisma.assignment.findMany({ where: { studentId: user.id }, select: { id: true } });
+  await prisma.user.delete({ where: { id: user.id } });
+  await deleteAssignmentRecordings(assignments.map((a) => a.id));
   res.status(204).end();
 });
 

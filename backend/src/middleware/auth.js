@@ -1,5 +1,5 @@
 const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || "").trim().toLowerCase();
-const jwt = require("jsonwebtoken");
+const { readMobileToken, passwordStamp } = require("../lib/mobileToken");
 const prisma = require("../lib/prisma");
 
 // Mobile app sends "Authorization: Bearer <token>" instead of a session cookie.
@@ -7,9 +7,10 @@ async function bearerAuth(req, res, next) {
   const header = req.headers.authorization || "";
   if (req.user || !header.startsWith("Bearer ")) return next();
   try {
-    const { sub } = jwt.verify(header.slice(7), process.env.JWT_SECRET);
+    const { sub, pw } = readMobileToken(header.slice(7));
     const user = await prisma.user.findUnique({ where: { id: sub } });
-    if (user) req.user = user;
+    // A stamp from an older password means the password changed after this token was issued.
+    if (user && pw === passwordStamp(user)) req.user = user;
   } catch {
     // Bad or expired token: carry on unauthenticated, routes will 401.
   }

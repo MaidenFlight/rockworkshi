@@ -4,7 +4,7 @@ require("dotenv").config({ quiet: true });
 
 const { test, before, after } = require("node:test");
 const assert = require("node:assert/strict");
-const jwt = require("jsonwebtoken");
+const { signMobileToken } = require("../src/lib/mobileToken");
 const app = require("../src/app");
 const prisma = require("../src/lib/prisma");
 
@@ -45,7 +45,7 @@ before(async () => {
     users[name] = await prisma.user.create({
       data: { email: `${RUN}-${name}@example.test`, passwordHash: "!no-login", ...(name === "unpaid" ? {} : { paidAt: new Date() }) },
     });
-    tokens[name] = jwt.sign({ sub: users[name].id }, process.env.JWT_SECRET, { expiresIn: "10m" });
+    tokens[name] = signMobileToken(users[name], "10m");
   }
   songs.one = await prisma.song.create({ data: { title: `${RUN} One`, artist: "Band", level: "Beginner" } });
   songs.two = await prisma.song.create({ data: { title: `${RUN} Two`, level: "Intermediate" } });

@@ -10,8 +10,10 @@ const {
   RECORDING_LINK_SECONDS,
   ASSIGNMENT_INCLUDE,
   LIST_INCLUDE,
+  MAX_UNSENT_RECORDINGS,
   newRecordingKey,
   isRecordingKeyFor,
+  tidyUnsentRecordings,
   deleteRecordings,
   presentAssignment,
   presentSubmission,
@@ -63,6 +65,15 @@ router.post("/:id/recording-upload", async (req, res) => {
   }
   if (!isR2Configured()) return res.status(503).json({ error: "Recording storage is not configured." });
 
+  const sent = await prisma.submission.findMany({
+    where: { assignmentId: assignment.id, recordingKey: { not: null } },
+    select: { recordingKey: true },
+  });
+  const unsent = await tidyUnsentRecordings(assignment.id, sent.map((s) => s.recordingKey));
+  if (unsent >= MAX_UNSENT_RECORDINGS) {
+    return res.status(429).json({ error: "Too many recordings are waiting to be sent. Try again in an hour." });
+  }
+
   const key = newRecordingKey(assignment.id);
   const uploadUrl = await signedUploadUrl(key, RECORDING_TYPE, size, UPLOAD_LINK_SECONDS);
   res.json({ key, uploadUrl, contentType: RECORDING_TYPE });
@@ -73,9 +84,11 @@ router.post("/:id/submit", async (req, res) => {
   const assignment = await findMyAssignment(req, req.params.id, {});
   if (!assignment) return res.status(404).json({ error: "Not found." });
 
-  const link = await prisma.teacherStudent.findUnique({
-    where: { teacherId_studentId: { teacherId: assignment.teacherId, studentId: assignment.studentId } },
-  });
+  const link =
+    assignment.teacherId &&
+    (await prisma.teacherStudent.findUnique({
+      where: { teacherId_studentId: { teacherId: assignment.teacherId, studentId: assignment.studentId } },
+    }));
   if (!link) {
     return res.status(409).json({ error: "The teacher who set this can't review it any more. Ask the school about it." });
   }

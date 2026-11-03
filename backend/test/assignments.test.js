@@ -10,7 +10,7 @@ process.env.ADMIN_EMAIL = `${RUN}-admin@example.test`;
 
 const { test, before, after } = require("node:test");
 const assert = require("node:assert/strict");
-const jwt = require("jsonwebtoken");
+const { signMobileToken } = require("../src/lib/mobileToken");
 const app = require("../src/app");
 const prisma = require("../src/lib/prisma");
 const { isR2Configured, headObject } = require("../src/lib/r2");
@@ -83,7 +83,7 @@ before(async () => {
   users.studentY = await make("studentY", { paidAt: new Date() });
   users.unpaid = await make("unpaid");
   for (const [key, user] of Object.entries(users)) {
-    tokens[key] = jwt.sign({ sub: user.id }, process.env.JWT_SECRET, { expiresIn: "10m" });
+    tokens[key] = signMobileToken(user, "10m");
   }
 
   await prisma.teacherStudent.createMany({

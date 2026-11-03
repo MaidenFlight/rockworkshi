@@ -1,7 +1,7 @@
 // Rules shared by the teacher routes (/teacher) and the student routes (/assignments).
 const crypto = require("crypto");
 const { INSTRUMENTS, MAX_LEVEL } = require("./lessonVideos");
-const { isR2Configured, signedUrl, deleteObject } = require("./r2");
+const { isR2Configured, signedUrl, listObjects, deleteObject } = require("./r2");
 
 // User.role values. The admin isn't one of them: it's whoever has ADMIN_EMAIL.
 const ROLES = ["student", "teacher"];
@@ -19,6 +19,10 @@ const RECORDING_TYPE = "audio/wav";
 const MAX_RECORDING_BYTES = 40 * 1024 * 1024;
 const UPLOAD_LINK_SECONDS = 10 * 60;
 const RECORDING_LINK_SECONDS = 15 * 60;
+// A take uploaded but never sent: kept this long in case sending is retried, and only this
+// many at once per assignment, so upload links can't fill the bucket.
+const UNSENT_RECORDING_MS = 60 * 60 * 1000;
+const MAX_UNSENT_RECORDINGS = 5;
 
 const ASSIGNMENT_INCLUDE = {
   song: { select: { id: true, title: true, artist: true } },
@@ -108,14 +112,18 @@ function validateFeedback(feedback) {
 
 // Keys are random and namespaced by assignment, so a student can only attach
 // a recording uploaded through this assignment's upload link.
+function recordingPrefix(assignmentId) {
+  return `submissions/${assignmentId}/`;
+}
+
 function newRecordingKey(assignmentId) {
-  return `submissions/${assignmentId}/${crypto.randomUUID()}.wav`;
+  return `${recordingPrefix(assignmentId)}${crypto.randomUUID()}.wav`;
 }
 
 function isRecordingKeyFor(assignmentId, key) {
   return (
     typeof key === "string" &&
-    key.startsWith(`submissions/${assignmentId}/`) &&
+    key.startsWith(recordingPrefix(assignmentId)) &&
     /^submissions\/[^/]+\/[0-9a-f-]{36}\.wav$/.test(key)
   );
 }
@@ -129,6 +137,28 @@ async function deleteRecordings(keys) {
   results.forEach((r, i) => {
     if (r.status === "rejected") console.error(`Could not delete recording ${list[i]}:`, r.reason);
   });
+}
+
+// Everything stored for these assignments, including takes that were uploaded but never sent
+// and so appear on no Submission row. Call it once the rows are gone.
+async function deleteAssignmentRecordings(assignmentIds) {
+  if (!assignmentIds.length || !isR2Configured()) return;
+  const results = await Promise.allSettled(
+    assignmentIds.map(async (id) => deleteRecordings((await listObjects(recordingPrefix(id))).map((o) => o.key)))
+  );
+  results.forEach((r, i) => {
+    if (r.status === "rejected") console.error(`Could not list recordings for assignment ${assignmentIds[i]}:`, r.reason);
+  });
+}
+
+// Deletes takes abandoned long enough ago, and returns how many recent unsent ones remain.
+async function tidyUnsentRecordings(assignmentId, sentKeys) {
+  const sent = new Set(sentKeys);
+  const unsent = (await listObjects(recordingPrefix(assignmentId))).filter((o) => !sent.has(o.key));
+  const cutoff = Date.now() - UNSENT_RECORDING_MS;
+  const abandoned = unsent.filter((o) => o.lastModified.getTime() < cutoff);
+  await deleteRecordings(abandoned.map((o) => o.key));
+  return unsent.length - abandoned.length;
 }
 
 // linkSeconds signs a short-lived playback link for each recording. Lists leave it out.
@@ -178,6 +208,7 @@ module.exports = {
   MAX_RECORDING_BYTES,
   UPLOAD_LINK_SECONDS,
   RECORDING_LINK_SECONDS,
+  MAX_UNSENT_RECORDINGS,
   ASSIGNMENT_INCLUDE,
   LIST_INCLUDE,
   validateAssignment,
@@ -185,6 +216,8 @@ module.exports = {
   newRecordingKey,
   isRecordingKeyFor,
   deleteRecordings,
+  deleteAssignmentRecordings,
+  tidyUnsentRecordings,
   presentSubmission,
   presentAssignment,
 };
