@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import Pagination from "@/components/Pagination";
+import { usePageParam } from "@/lib/paging";
 import Icon from "@/components/member/Icon";
 import { useAuth } from "@/contexts/AuthContext";
 import ContinueCard from "@/components/member/library/ContinueCard";
@@ -18,8 +20,20 @@ import {
   writeLibraryCache,
 } from "@/lib/practice";
 
-export default function PracticeLibrary() {
+const PAGE_SIZE = 20;
+
+export default function PracticeLibraryPage() {
+  // useSearchParams needs a Suspense boundary in a client page.
+  return (
+    <Suspense fallback={null}>
+      <PracticeLibrary />
+    </Suspense>
+  );
+}
+
+function PracticeLibrary() {
   const { user } = useAuth();
+  const [requestedPage, setPage] = usePageParam();
   const [data, setData] = useState(null); // { songs, continue, savedAt? }
   const [state, setState] = useState("loading"); // loading | ready | offline | error
   const [error, setError] = useState("");
@@ -57,7 +71,20 @@ export default function PracticeLibrary() {
   const levels = useMemo(() => levelsIn(songs), [songs]);
   const shown = useMemo(() => filterSongs(songs, filters), [songs, filters]);
   const filtering = JSON.stringify(filters) !== JSON.stringify(EMPTY_FILTERS);
-  const set = (patch) => setFilters((f) => ({ ...f, ...patch }));
+  const set = (patch) => {
+    setFilters((f) => ({ ...f, ...patch }));
+    setPage(1);
+  };
+  const clearFilters = () => {
+    setFilters(EMPTY_FILTERS);
+    setPage(1);
+  };
+
+  // Search and filters work on the whole library in the browser, and it's kept for offline
+  // use, so only the drawing is paged. The page shrinks with the list, e.g. after unstarring.
+  const totalPages = Math.max(1, Math.ceil(shown.length / PAGE_SIZE));
+  const page = Math.min(requestedPage, totalPages);
+  const visible = shown.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   function setFavorite(id, favorite) {
     setData((d) => ({ ...d, songs: d.songs.map((s) => (s.id === id ? { ...s, favorite } : s)) }));
@@ -153,7 +180,7 @@ export default function PracticeLibrary() {
               {shown.length} {shown.length === 1 ? "song" : "songs"}
             </span>
             {filtering && (
-              <button type="button" onClick={() => setFilters(EMPTY_FILTERS)} style={linkButton}>
+              <button type="button" onClick={clearFilters} style={linkButton}>
                 Clear filters
               </button>
             )}
@@ -166,13 +193,14 @@ export default function PracticeLibrary() {
               {filters.favorites && songs.every((s) => !s.favorite)
                 ? "You haven't starred any songs yet. Tap the star on a song to keep it here."
                 : "No songs match."}{" "}
-              <button type="button" onClick={() => setFilters(EMPTY_FILTERS)} style={linkButton}>
+              <button type="button" onClick={clearFilters} style={linkButton}>
                 Clear filters
               </button>
             </Empty>
           ) : (
+            <>
             <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 10 }}>
-              {shown.map((song) => (
+              {visible.map((song) => (
                 <li key={song.id} style={songRow}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <Link
@@ -206,6 +234,12 @@ export default function PracticeLibrary() {
                 </li>
               ))}
             </ul>
+            <Pagination
+              pagination={{ page, pageSize: PAGE_SIZE, total: shown.length, totalPages }}
+              onChange={setPage}
+              label="Song pages"
+            />
+            </>
           )}
         </>
       ) : null}

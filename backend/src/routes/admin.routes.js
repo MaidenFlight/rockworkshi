@@ -1,5 +1,6 @@
 const express = require("express");
 const prisma = require("../lib/prisma");
+const { findPage } = require("../lib/pagination");
 const { requireAdmin } = require("../middleware/auth");
 const { validateSlot } = require("../lib/lessonVideos");
 const { ROLES, deleteRecordings } = require("../lib/assignments");
@@ -39,15 +40,40 @@ const STUDENT_CSV_COLUMNS = [
   "createdAt",
 ];
 
+// The numbers on the admin home page, counted here because the lists themselves are paged.
+router.get("/overview", async (req, res) => {
+  const [students, newTrials, messages, lessons, instruments] = await Promise.all([
+    prisma.user.count(),
+    prisma.trialRequest.count({ where: { status: "New" } }),
+    prisma.contactMessage.count(),
+    prisma.lesson.count(),
+    prisma.user.groupBy({ by: ["instrument"], _count: { _all: true } }),
+  ]);
+
+  const counts = {};
+  for (const row of instruments) {
+    const name = row.instrument || "Unspecified";
+    counts[name] = (counts[name] || 0) + row._count._all;
+  }
+  const breakdown = Object.entries(counts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([name, count]) => ({ name, count, pct: Math.round((count / (students || 1)) * 100) }));
+
+  res.json({ students, newTrials, messages, lessons, breakdown });
+});
+
 router.get("/students", async (req, res) => {
-  const search = (req.query.search || "").trim().toLowerCase();
-  const users = await prisma.user.findMany({ orderBy: { createdAt: "desc" } });
-  const filtered = search
-    ? users.filter(
-        (u) => u.email.toLowerCase().includes(search) || (u.name || "").toLowerCase().includes(search)
-      )
-    : users;
-  res.json({ students: filtered.map(toSafeUser) });
+  const search = String(req.query.search || "").trim();
+  const where = search
+    ? {
+        OR: [
+          { email: { contains: search, mode: "insensitive" } },
+          { name: { contains: search, mode: "insensitive" } },
+        ],
+      }
+    : {};
+  const { items, pagination } = await findPage(prisma.user, { where, orderBy: [{ createdAt: "desc" }, { id: "asc" }] }, req.query);
+  res.json({ students: items.map(toSafeUser), pagination });
 });
 
 router.patch("/students/:id/status", async (req, res) => {
@@ -155,8 +181,8 @@ router.delete("/teaching/links/:teacherId/:studentId", async (req, res) => {
 const TRIAL_STATUS_CYCLE = ["New", "Contacted", "Trial Scheduled", "Enrolled", "Closed"];
 
 router.get("/trials", async (req, res) => {
-  const trials = await prisma.trialRequest.findMany({ orderBy: { createdAt: "desc" } });
-  res.json({ trials });
+  const { items, pagination } = await findPage(prisma.trialRequest, { orderBy: [{ createdAt: "desc" }, { id: "asc" }] }, req.query);
+  res.json({ trials: items, pagination });
 });
 
 router.post("/trials/:id/cycle-status", async (req, res) => {
@@ -171,8 +197,8 @@ router.post("/trials/:id/cycle-status", async (req, res) => {
 // ---------- Contact messages ----------
 
 router.get("/messages", async (req, res) => {
-  const messages = await prisma.contactMessage.findMany({ orderBy: { createdAt: "desc" } });
-  res.json({ messages });
+  const { items, pagination } = await findPage(prisma.contactMessage, { orderBy: [{ createdAt: "desc" }, { id: "asc" }] }, req.query);
+  res.json({ messages: items, pagination });
 });
 
 // ---------- Site text ----------

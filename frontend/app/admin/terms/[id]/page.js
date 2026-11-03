@@ -21,13 +21,14 @@ export default function AdminTerm() {
       termRequest(`/admin/terms/${id}`),
       termRequest("/admin/songs"),
       termRequest("/admin/lessons"),
-      termRequest("/admin/students"),
+      // Everyone, for the add-a-student picker.
+      termRequest("/admin/teaching"),
     ])
       .then(([g, s, l, p]) => {
         setGroup(g.group);
         setSongs(s.songs);
         setLessons(l.lessons);
-        setPeople(p.students);
+        setPeople(p.people);
       })
       .catch((err) => {
         setError(err.message);

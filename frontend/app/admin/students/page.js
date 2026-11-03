@@ -1,26 +1,34 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useState } from "react";
+import Pagination from "@/components/Pagination";
 import { API_URL } from "@/lib/api";
+import { usePagedList, usePageParam } from "@/lib/paging";
 
-export default function AdminStudents() {
-  const [students, setStudents] = useState([]);
+export default function AdminStudentsPage() {
+  // useSearchParams needs a Suspense boundary in a client page.
+  return (
+    <Suspense fallback={<p style={{ color: "var(--rw-meta)" }}>Loading…</p>}>
+      <AdminStudents />
+    </Suspense>
+  );
+}
+
+function AdminStudents() {
+  const [page, setPage] = usePageParam();
   const [search, setSearch] = useState("");
+  const [applied, setApplied] = useState("");
   const [openId, setOpenId] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { items, pagination, loading, error, reload: load } = usePagedList("/admin/students", "students", {
+    page,
+    params: { search: applied },
+  });
+  const students = items ?? [];
 
-  async function load() {
-    setLoading(true);
-    const res = await fetch(`${API_URL}/admin/students?search=${encodeURIComponent(search)}`, { credentials: "include" });
-    const data = await res.json();
-    setStudents(data.students || []);
-    setLoading(false);
+  function runSearch() {
+    setApplied(search);
+    setPage(1);
   }
-
-  useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   async function setStatus(id, status) {
     await fetch(`${API_URL}/admin/students/${id}/status`, {
@@ -50,20 +58,29 @@ export default function AdminStudents() {
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && load()}
+          onKeyDown={(e) => e.key === "Enter" && runSearch()}
           placeholder="Search by name or email"
           style={{ flex: 1, padding: "9px 12px", borderRadius: 8, border: "1px solid var(--rw-line)", fontSize: 13.5 }}
         />
-        <button onClick={load} style={smallBtn}>
+        <button onClick={runSearch} style={smallBtn}>
           Search
         </button>
       </div>
 
+      {error && (
+        <p role="alert" style={{ color: "var(--rw-orange-deep)", fontSize: 13.5 }}>
+          {error}{" "}
+          <button onClick={load} style={smallBtn}>
+            Retry
+          </button>
+        </p>
+      )}
       {loading ? (
         <p style={{ color: "var(--rw-meta)" }}>Loading…</p>
       ) : students.length === 0 ? (
-        <p style={{ color: "var(--rw-meta)" }}>No students found.</p>
+        !error && <p style={{ color: "var(--rw-meta)" }}>No students found.</p>
       ) : (
+        <>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {students.map((s) => (
             <div key={s.id} style={{ border: "1px solid var(--rw-border)", borderRadius: 10, background: "var(--rw-surface)" }}>
@@ -129,6 +146,8 @@ export default function AdminStudents() {
             </div>
           ))}
         </div>
+        <Pagination pagination={pagination} onChange={setPage} label="Student pages" />
+        </>
       )}
     </div>
   );

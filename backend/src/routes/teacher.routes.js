@@ -1,5 +1,6 @@
 const express = require("express");
 const prisma = require("../lib/prisma");
+const { findPage } = require("../lib/pagination");
 const { requireTeacher } = require("../middleware/auth");
 const {
   STATUSES,
@@ -84,12 +85,12 @@ router.get("/assignments", async (req, res) => {
   if (STATUSES.includes(status)) where.status = status;
   if (typeof studentId === "string" && studentId) where.studentId = studentId;
 
-  const assignments = await prisma.assignment.findMany({
-    where,
-    include: LIST_INCLUDE,
-    orderBy: { updatedAt: "desc" },
-  });
-  res.json({ assignments: await Promise.all(assignments.map((a) => presentAssignment(a))) });
+  const { items, pagination } = await findPage(
+    prisma.assignment,
+    { where, include: LIST_INCLUDE, orderBy: [{ updatedAt: "desc" }, { id: "asc" }] },
+    req.query
+  );
+  res.json({ assignments: await Promise.all(items.map((a) => presentAssignment(a))), pagination });
 });
 
 router.post("/assignments", async (req, res) => {

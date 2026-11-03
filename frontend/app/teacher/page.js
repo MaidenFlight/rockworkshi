@@ -1,36 +1,46 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
+import Pagination from "@/components/Pagination";
+import { usePagedList, usePageParam } from "@/lib/paging";
 import { pill } from "@/lib/terms";
 import { STATUS_LABELS, contentTitle, formatDate, studentName, teacherRequest } from "@/lib/teaching";
 
-export default function TeacherDashboard() {
+export default function TeacherDashboardPage() {
+  // useSearchParams needs a Suspense boundary in a client page.
+  return (
+    <Suspense fallback={<p style={{ color: "var(--rw-meta)" }}>Loading…</p>}>
+      <TeacherDashboard />
+    </Suspense>
+  );
+}
+
+function TeacherDashboard() {
   const [students, setStudents] = useState(null);
-  const [assignments, setAssignments] = useState([]);
   const [studentFilter, setStudentFilter] = useState("");
   const [error, setError] = useState("");
+  const [waitingPage, setWaitingPage] = usePageParam("waiting");
+  const [page, setPage] = usePageParam("page");
+  const waiting = usePagedList("/teacher/assignments", "assignments", { page: waitingPage, pageSize: 10, params: { status: "ready" } });
+  const all = usePagedList("/teacher/assignments", "assignments", { page, params: { studentId: studentFilter } });
 
   useEffect(() => {
-    Promise.all([teacherRequest("/teacher/students"), teacherRequest("/teacher/assignments")])
-      .then(([s, a]) => {
-        setStudents(s.students);
-        setAssignments(a.assignments);
-      })
+    teacherRequest("/teacher/students")
+      .then((s) => setStudents(s.students))
       .catch((err) => {
         setError(err.message);
         setStudents([]);
       });
   }, []);
 
-  const waiting = assignments.filter((a) => a.status === "ready");
-  const shown = assignments.filter((a) => !studentFilter || a.student?.id === studentFilter);
+  const problem = error || waiting.error || all.error;
 
   return (
     <div>
       <h1 style={{ fontWeight: 800, textTransform: "uppercase", fontSize: 30, color: "var(--rw-ink)", margin: "0 0 24px" }}>Your students</h1>
 
-      {error && <p style={{ color: "var(--rw-orange-deep)" }}>{error}</p>}
+      {problem && <p role="alert" style={{ color: "var(--rw-orange-deep)" }}>{problem}</p>}
 
       {students === null ? (
         <p style={{ color: "var(--rw-meta)" }}>Loading…</p>
@@ -38,14 +48,19 @@ export default function TeacherDashboard() {
         <>
           <section style={{ marginBottom: 32 }}>
             <h2 style={h2}>Waiting for review</h2>
-            {waiting.length === 0 ? (
-              <p style={muted}>Nothing to review right now.</p>
+            {waiting.loading ? (
+              <p style={muted}>Loading…</p>
+            ) : waiting.items.length === 0 ? (
+              !waiting.error && <p style={muted}>Nothing to review right now.</p>
             ) : (
-              <div style={{ display: "grid", gap: 8 }}>
-                {waiting.map((a) => (
-                  <AssignmentRow key={a.id} assignment={a} />
-                ))}
-              </div>
+              <>
+                <div style={{ display: "grid", gap: 8 }}>
+                  {waiting.items.map((a) => (
+                    <AssignmentRow key={a.id} assignment={a} />
+                  ))}
+                </div>
+                <Pagination pagination={waiting.pagination} onChange={setWaitingPage} label="Waiting for review pages" />
+              </>
             )}
           </section>
 
@@ -82,7 +97,10 @@ export default function TeacherDashboard() {
               {students.length > 0 && (
                 <select
                   value={studentFilter}
-                  onChange={(e) => setStudentFilter(e.target.value)}
+                  onChange={(e) => {
+                    setStudentFilter(e.target.value);
+                    setPage(1);
+                  }}
                   style={select}
                   aria-label="Show work for"
                 >
@@ -95,14 +113,19 @@ export default function TeacherDashboard() {
                 </select>
               )}
             </div>
-            {shown.length === 0 ? (
-              <p style={muted}>No practice work yet.</p>
+            {all.loading ? (
+              <p style={muted}>Loading…</p>
+            ) : all.items.length === 0 ? (
+              !all.error && <p style={muted}>No practice work yet.</p>
             ) : (
-              <div style={{ display: "grid", gap: 8 }}>
-                {shown.map((a) => (
-                  <AssignmentRow key={a.id} assignment={a} />
-                ))}
-              </div>
+              <>
+                <div style={{ display: "grid", gap: 8 }}>
+                  {all.items.map((a) => (
+                    <AssignmentRow key={a.id} assignment={a} />
+                  ))}
+                </div>
+                <Pagination pagination={all.pagination} onChange={setPage} label="Practice work pages" />
+              </>
             )}
           </section>
         </>

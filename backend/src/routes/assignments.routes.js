@@ -1,5 +1,6 @@
 const express = require("express");
 const prisma = require("../lib/prisma");
+const { findPage } = require("../lib/pagination");
 const { requireAuth } = require("../middleware/auth");
 const { isR2Configured, signedUploadUrl, headObject } = require("../lib/r2");
 const {
@@ -32,12 +33,12 @@ function numberOrNull(value, min, max) {
 }
 
 router.get("/", async (req, res) => {
-  const assignments = await prisma.assignment.findMany({
-    where: { studentId: req.user.id },
-    include: LIST_INCLUDE,
-    orderBy: { updatedAt: "desc" },
-  });
-  res.json({ assignments: await Promise.all(assignments.map((a) => presentAssignment(a))) });
+  const { items, pagination } = await findPage(
+    prisma.assignment,
+    { where: { studentId: req.user.id }, include: LIST_INCLUDE, orderBy: [{ updatedAt: "desc" }, { id: "asc" }] },
+    req.query
+  );
+  res.json({ assignments: await Promise.all(items.map((a) => presentAssignment(a))), pagination });
 });
 
 router.get("/:id", async (req, res) => {

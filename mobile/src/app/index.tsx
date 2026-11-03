@@ -10,6 +10,8 @@ import { Library } from "@/lib/library";
 import { YourTerm } from "@/components/YourTerm";
 import { colors, fonts } from "@/lib/theme";
 
+const WORK_PAGE_SIZE = 10;
+
 type Lesson = { id: string; title: string; artist?: string; difficulty?: string; locked?: boolean };
 
 export default function Home() {
@@ -17,6 +19,8 @@ export default function Home() {
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [library, setLibrary] = useState<Library | null>(null);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [workPage, setWorkPage] = useState(1);
+  const [workPages, setWorkPages] = useState({ page: 1, totalPages: 1 });
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -28,14 +32,17 @@ export default function Home() {
   // Statuses change while away (sent for review, feedback arrived), so reload on every visit.
   useFocusEffect(
     useCallback(() => {
-      api("/assignments")
-        .then((data) => setAssignments(data.assignments))
+      api(`/assignments?page=${workPage}&pageSize=${WORK_PAGE_SIZE}`)
+        .then((data) => {
+          setAssignments(data.assignments);
+          setWorkPages(data.pagination);
+        })
         .catch(() => setAssignments([]));
       // The library screen handles offline and retry; here the cards just show less.
       api("/library")
         .then(setLibrary)
         .catch(() => setLibrary(null));
-    }, [])
+    }, [workPage])
   );
 
   return (
@@ -84,6 +91,15 @@ export default function Home() {
                     </Pressable>
                   </Link>
                 ))}
+                {workPages.totalPages > 1 ? (
+                  <View style={styles.pager} accessibilityLabel="Teacher work pages">
+                    <PagerButton label="Previous" disabled={workPages.page <= 1} onPress={() => setWorkPage(workPages.page - 1)} />
+                    <Text style={styles.pagerText}>
+                      Page {workPages.page} of {workPages.totalPages}
+                    </Text>
+                    <PagerButton label="Next" disabled={workPages.page >= workPages.totalPages} onPress={() => setWorkPage(workPages.page + 1)} />
+                  </View>
+                ) : null}
               </View>
             ) : null}
             <Text style={styles.sectionTitle}>ALL LESSONS</Text>
@@ -104,6 +120,20 @@ export default function Home() {
   );
 }
 
+function PagerButton({ label, disabled, onPress }: { label: string; disabled: boolean; onPress: () => void }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      accessibilityRole="button"
+      accessibilityState={{ disabled }}
+      style={[styles.pagerButton, disabled && styles.pagerButtonEnded]}
+    >
+      <Text style={styles.pagerButtonText}>{label}</Text>
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.page, padding: 16 },
   header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
@@ -118,6 +148,11 @@ const styles = StyleSheet.create({
   cardTitleFlex: { flex: 1, fontFamily: fonts.display, fontSize: 26, color: colors.ink, textTransform: "uppercase" },
   badge: { fontSize: 11.5, fontWeight: "700", color: colors.flareInk, backgroundColor: colors.flareWash, paddingVertical: 3, paddingHorizontal: 8 },
   badgeDone: { color: colors.lagoon, backgroundColor: colors.labelStock },
+  pager: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, marginTop: 2 },
+  pagerText: { color: colors.ink, fontSize: 13, fontWeight: "700" },
+  pagerButton: { paddingVertical: 10, paddingHorizontal: 14, borderRadius: 3, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.white },
+  pagerButtonEnded: { opacity: 0.45 },
+  pagerButtonText: { fontWeight: "700", fontSize: 13, color: colors.ink },
   headerBlock: { marginTop: 4 },
   sectionTitle: { fontFamily: fonts.display, fontSize: 32, color: colors.ink, marginTop: 20, marginBottom: 8 },
 });

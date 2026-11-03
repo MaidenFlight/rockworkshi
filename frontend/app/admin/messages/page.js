@@ -1,27 +1,37 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { API_URL } from "@/lib/api";
+import { Suspense } from "react";
+import Pagination from "@/components/Pagination";
+import { usePagedList, usePageParam } from "@/lib/paging";
 
-export default function AdminMessages() {
-  const [messages, setMessages] = useState([]);
-  const [loading, setLoading] = useState(true);
+export default function AdminMessagesPage() {
+  // useSearchParams needs a Suspense boundary in a client page.
+  return (
+    <Suspense fallback={<p style={{ color: "var(--rw-meta)" }}>Loading…</p>}>
+      <AdminMessages />
+    </Suspense>
+  );
+}
 
-  useEffect(() => {
-    fetch(`${API_URL}/admin/messages`, { credentials: "include" })
-      .then((res) => res.json())
-      .then((data) => setMessages(data.messages || []))
-      .finally(() => setLoading(false));
-  }, []);
+function AdminMessages() {
+  const [page, setPage] = usePageParam();
+  const { items, pagination, loading, error } = usePagedList("/admin/messages", "messages", { page });
+  const messages = items ?? [];
 
   return (
     <div>
       <h1 style={{ fontWeight: 600, fontSize: 24, color: "var(--rw-ink)", marginBottom: 20 }}>Messages</h1>
+      {error && (
+        <p role="alert" style={{ color: "var(--rw-orange-deep)", fontSize: 13.5 }}>
+          {error}
+        </p>
+      )}
       {loading ? (
         <p style={{ color: "var(--rw-meta)" }}>Loading…</p>
       ) : messages.length === 0 ? (
-        <p style={{ color: "var(--rw-meta)" }}>No messages yet.</p>
+        !error && <p style={{ color: "var(--rw-meta)" }}>No messages yet.</p>
       ) : (
+        <>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {messages.map((m) => (
             <div key={m.id} style={{ padding: "14px 16px", border: "1px solid var(--rw-border)", borderRadius: 10, background: "var(--rw-surface)" }}>
@@ -36,6 +46,8 @@ export default function AdminMessages() {
             </div>
           ))}
         </div>
+        <Pagination pagination={pagination} onChange={setPage} label="Message pages" />
+        </>
       )}
     </div>
   );
