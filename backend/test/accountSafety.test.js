@@ -144,6 +144,22 @@ test("recordings never sent are deleted with the assignment and the student", { 
   for (const key of keys) assert.equal(await headObject(key), null);
 });
 
+test("a database failure while reading a token is a server error, not a sign-out", async () => {
+  const member = await prisma.user.findUnique({ where: { id: users.member.id } });
+  const token = signMobileToken(member);
+  const original = prisma.user.findUnique;
+  prisma.user.findUnique = () => Promise.reject(new Error("database down"));
+  const quiet = console.error;
+  console.error = () => {};
+  try {
+    assert.equal((await call(token, "GET", "/library")).status, 500);
+  } finally {
+    prisma.user.findUnique = original;
+    console.error = quiet;
+  }
+  assert.equal((await call("not-a-token", "GET", "/library")).status, 401);
+});
+
 // Last, because it uses up this process's allowance of failed sign-ins.
 test("repeated failed sign-ins are blocked, on the website and phone routes together", async () => {
   const body = { email: users.member.email, password: "wrong-password" };

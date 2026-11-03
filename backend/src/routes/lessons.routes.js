@@ -14,12 +14,12 @@ router.get("/", async (req, res) => {
     include: { videos: true },
   });
   const access = await loadAccess(req.user);
-  // Locked term lessons stay in the list (titles aren't secret) but without their videos.
+  // Locked term lessons stay in the list (titles aren't secret) but without their content.
   res.json({
     lessons: lessons.map((l) => {
       const a = access.lesson(l.id);
       if (a.allowed) return presentLesson(l, req.user.instrument);
-      const { videos, ...rest } = l;
+      const { videos, levels, ...rest } = l;
       return { ...rest, locked: true, lockedReason: a.reason, videoUrl: null, playthroughVideoUrl: null };
     }),
   });

@@ -6,14 +6,17 @@ const prisma = require("../lib/prisma");
 async function bearerAuth(req, res, next) {
   const header = req.headers.authorization || "";
   if (req.user || !header.startsWith("Bearer ")) return next();
+  let claims;
   try {
-    const { sub, pw } = readMobileToken(header.slice(7));
-    const user = await prisma.user.findUnique({ where: { id: sub } });
-    // A stamp from an older password means the password changed after this token was issued.
-    if (user && pw === passwordStamp(user)) req.user = user;
+    claims = readMobileToken(header.slice(7));
   } catch {
     // Bad or expired token: carry on unauthenticated, routes will 401.
+    return next();
   }
+  // Outside the try: a database failure is a server error, not a signed-out user.
+  const user = await prisma.user.findUnique({ where: { id: claims.sub } });
+  // A stamp from an older password means the password changed after this token was issued.
+  if (user && claims.pw === passwordStamp(user)) req.user = user;
   next();
 }
 

@@ -5,13 +5,25 @@ import { API_URL } from "@/lib/api";
 
 export default function AdminOverview() {
   const [stats, setStats] = useState(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     fetch(`${API_URL}/admin/overview`, { credentials: "include" })
-      .then((r) => r.json())
-      .then(setStats);
+      .then(async (res) => {
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+        setStats(data);
+      })
+      .catch((err) => setError(err instanceof TypeError ? "The overview couldn't load. Check your connection and try again." : err.message));
   }, []);
 
+  if (error) {
+    return (
+      <p role="alert" style={{ color: "var(--rw-orange-deep)" }}>
+        {error}
+      </p>
+    );
+  }
   if (!stats) return <p style={{ color: "var(--rw-meta)" }}>Loading…</p>;
 
   const cards = [

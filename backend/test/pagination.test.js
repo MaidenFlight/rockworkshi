@@ -105,7 +105,9 @@ test("student search pages over matches only, ignoring case", async () => {
   assert.equal(data.pagination.totalPages, 3);
   assert.equal(data.students.length, 2);
   assert.ok(data.students.every((s) => s.email.startsWith(RUN)));
-  assert.ok(data.students.every((s) => !("passwordHash" in s)));
+  for (const field of ["passwordHash", "verificationTokenHash", "resetTokenHash"]) {
+    assert.ok(data.students.every((s) => !(field in s)), field);
+  }
 });
 
 test("the overview counts everything, not one page", async () => {

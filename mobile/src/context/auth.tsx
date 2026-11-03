@@ -1,5 +1,5 @@
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
-import { api, clearToken, getToken, saveToken } from "@/lib/api";
+import { api, ApiError, clearToken, getToken, readCachedUser, saveCachedUser, saveToken } from "@/lib/api";
 
 type User = { id: string; email: string; name?: string; instrument?: string; paymentComplete: boolean };
 
@@ -16,16 +16,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // On launch: if a token was saved last time, check it's still good.
+  function remember({ id, email, name, instrument, paymentComplete }: User) {
+    setUser({ id, email, name, instrument, paymentComplete });
+    return saveCachedUser({ id, email, name, instrument, paymentComplete });
+  }
+
+  // On launch: if a token was saved last time, check it's still good. Only the server saying
+  // no ends the login: offline or during a server problem, carry on as the last known user.
   useEffect(() => {
     (async () => {
       try {
         if (await getToken()) {
           const data = await api("/auth/me");
-          setUser(data.user);
+          await remember(data.user);
         }
-      } catch {
-        await clearToken();
+      } catch (e) {
+        if (e instanceof ApiError && e.status === 401) await clearToken();
+        else setUser(await readCachedUser<User>());
       } finally {
         setLoading(false);
       }
@@ -38,7 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       body: JSON.stringify({ email, password }),
     });
     await saveToken(data.token);
-    setUser(data.user);
+    await remember(data.user);
   }
 
   async function signOut() {

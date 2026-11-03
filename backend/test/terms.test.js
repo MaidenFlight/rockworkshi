@@ -214,6 +214,7 @@ test("lessons and the library follow the same rules", async () => {
   assert.equal(list.locked, true);
   assert.equal(list.videoUrl, null);
   assert.equal("videos" in list, false, "no raw video rows for a locked lesson");
+  assert.equal("levels" in list, false, "no level notes for a locked lesson");
   at(T1);
   assert.equal((await call("a2", "GET", `/lessons/${lesson.id}`)).status, 200);
   assert.equal((await call("b1", "GET", `/lessons/${lesson.id}`)).status, 403, "not in group B's term");

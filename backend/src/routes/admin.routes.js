@@ -17,7 +17,7 @@ function pick(obj, keys) {
 }
 
 function toSafeUser(user) {
-  const { passwordHash, ...safe } = user;
+  const { passwordHash, verificationTokenHash, resetTokenHash, ...safe } = user;
   return safe;
 }
 
