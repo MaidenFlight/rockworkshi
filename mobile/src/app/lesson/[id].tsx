@@ -61,6 +61,7 @@ export default function LessonDetail() {
   }
 
   const uri = videoType === "lesson" ? lesson.videoUrl : lesson.playthroughVideoUrl;
+  const anyVideo = Boolean(lesson.videoUrl || lesson.playthroughVideoUrl);
 
   return (
     <SafeAreaView style={styles.screen} edges={["top"]}>
@@ -71,6 +72,7 @@ export default function LessonDetail() {
           {[lesson.artist, lesson.difficulty, lesson.key && `Key of ${lesson.key}`].filter(Boolean).join(" · ")}
         </Text>
 
+        {anyVideo ? (
         <View style={styles.row}>
           {(["lesson", "playthrough"] as const).map((t) => (
             <Pressable
@@ -84,12 +86,13 @@ export default function LessonDetail() {
             </Pressable>
           ))}
         </View>
+        ) : null}
 
         {uri ? (
           <LessonVideo key={uri} uri={uri} speed={speed} />
         ) : (
           <View style={styles.placeholder}>
-            <Text style={styles.placeholderText}>Video coming soon.</Text>
+            <Text style={styles.placeholderText}>Lesson videos are coming soon.</Text>
           </View>
         )}
 

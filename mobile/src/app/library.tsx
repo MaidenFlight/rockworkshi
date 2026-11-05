@@ -170,12 +170,20 @@ export default function LibraryScreen() {
             </View>
           }
           renderItem={({ item: song }) => (
+            !song.hasTracks ? (
+              <View style={styles.card}>
+                <View style={styles.cardText}>
+                  <Text style={[styles.cardTitle, styles.cardTitleSoon]}>{song.title}</Text>
+                  <Text style={styles.meta}>{["Coming soon", song.artist, song.level].filter(Boolean).join(" · ")}</Text>
+                </View>
+              </View>
+            ) : (
             <View style={styles.card}>
               <Link href={{ pathname: "/song/[id]", params: { id: song.id } }} asChild>
                 <Pressable style={styles.cardText} accessibilityRole="link">
                   <Text style={styles.cardTitle}>{song.title}</Text>
                   <Text style={styles.meta}>
-                    {[song.locked && "Unlocks with your term", song.artist, song.level, song.hasTracks ? `${song.parts.length} stems` : "No stems yet"]
+                    {[song.locked && "Unlocks with your term", song.artist, song.level, `${song.parts.length} stems`]
                       .filter(Boolean)
                       .join(" · ")}
                   </Text>
@@ -202,6 +210,7 @@ export default function LibraryScreen() {
                 }
               />
             </View>
+            )
           )}
         />
       )}
@@ -300,6 +309,7 @@ const styles = StyleSheet.create({
   },
   cardText: { flex: 1 },
   cardTitle: { fontFamily: fonts.display, fontSize: 24, color: colors.ink, textTransform: "uppercase" },
+  cardTitleSoon: { color: colors.meta },
   meta: { color: colors.meta },
   metaSmall: { color: colors.meta, fontSize: 12, marginTop: 2 },
   empty: { alignItems: "center", gap: 8, paddingVertical: 32 },

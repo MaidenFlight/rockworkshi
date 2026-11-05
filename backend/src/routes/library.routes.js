@@ -28,10 +28,10 @@ router.get("/", requirePaid, async (req, res) => {
   const access = await loadAccess(req.user);
   const locked = (song) => !access.song(song.id).allowed;
 
-  // Most recently opened song the student can still open, with where they left off in it.
+  // Most recently opened song the student can still open and play, with where they left off in it.
   let latest = null;
   for (const song of songs) {
-    if (locked(song)) continue;
+    if (locked(song) || !song.tracks.length) continue;
     const opened = song.practice[0]?.lastOpenedAt;
     if (opened && (!latest || opened > latest.practice[0].lastOpenedAt)) latest = song;
   }

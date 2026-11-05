@@ -80,7 +80,7 @@ export function filterSongs(songs, { query, level, stems, favorites }) {
     if (stems !== "any" && stems !== "stems" && !s.parts.includes(stems)) return false;
     if (q && !normalise(`${s.title} ${s.artist || ""}`).includes(q)) return false;
     return true;
-  });
+  }).sort((a, b) => Number(b.hasTracks) - Number(a.hasTracks)); // what's ready first, coming soon after
 }
 
 // Difficulty options come from the songs themselves (Song.level is free text).

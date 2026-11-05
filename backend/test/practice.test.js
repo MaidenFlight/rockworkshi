@@ -50,6 +50,9 @@ before(async () => {
   songs.one = await prisma.song.create({ data: { title: `${RUN} One`, artist: "Band", level: "Beginner" } });
   songs.two = await prisma.song.create({ data: { title: `${RUN} Two`, level: "Intermediate" } });
   songs.hidden = await prisma.song.create({ data: { title: `${RUN} Hidden`, published: false } });
+  await prisma.songTrack.createMany({
+    data: [songs.one, songs.two].map((song) => ({ songId: song.id, part: "Bass", storageKey: `${RUN}/${song.id}.mp3` })),
+  });
 });
 
 after(async () => {
@@ -109,6 +112,13 @@ test("continue practising picks the most recently opened song", async () => {
   assert.equal(lib.data.continue.song.id, songs.two.id);
   assert.equal(lib.data.continue.position, 42.5);
   assert.equal((await call("b", "GET", "/library")).data.continue?.song.title.startsWith(RUN) ?? false, false);
+
+  // A song with no stems is coming soon, so there's nothing to continue even if it was opened last.
+  const soon = await prisma.song.create({ data: { title: `${RUN} Soon` } });
+  await new Promise((r) => setTimeout(r, 20));
+  await call("a", "POST", `/songs/${soon.id}/practice/opened`);
+  assert.equal((await call("a", "GET", "/library")).data.continue.song.id, songs.two.id);
+  await prisma.song.delete({ where: { id: soon.id } });
 });
 
 test("resume state merges, validates, and never touches named presets", async () => {
@@ -146,4 +156,22 @@ test("resume state merges, validates, and never touches named presets", async ()
 
   // B's session for the same song is separate.
   assert.equal((await call("b", "GET", `/songs/${one}/practice`)).data.practice.session, null);
+});
+
+test("lesson videos stay hidden until they're switched on", () => {
+  const { presentLesson } = require("../src/lib/lessonVideos");
+  const lesson = {
+    id: "x",
+    videos: [{ published: true, instrument: "Guitar", kind: "lesson", level: 1, provider: "direct", videoId: "https://example.test/a.mp4" }],
+  };
+  const before = process.env.LESSON_VIDEOS_READY;
+  try {
+    delete process.env.LESSON_VIDEOS_READY;
+    assert.equal(presentLesson(lesson, "Guitar").videoUrl, null);
+    process.env.LESSON_VIDEOS_READY = "true";
+    assert.equal(presentLesson(lesson, "Guitar").videoUrl, "https://example.test/a.mp4");
+  } finally {
+    if (before === undefined) delete process.env.LESSON_VIDEOS_READY;
+    else process.env.LESSON_VIDEOS_READY = before;
+  }
 });

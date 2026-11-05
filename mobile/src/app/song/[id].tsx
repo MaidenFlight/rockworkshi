@@ -177,9 +177,7 @@ export default function SongPlayAlong() {
                   </Pressable>
                 </>
               ) : (
-                <Text style={styles.meta}>
-                  This song doesn&apos;t have play-along stems yet. You can still star it and keep notes.
-                </Text>
+                <Text style={styles.meta}>This song&apos;s play-along is coming soon.</Text>
               )}
             </View>
           )}

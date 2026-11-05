@@ -10,6 +10,8 @@ const VIDEO_PROVIDERS = ["bunny", "direct"];
 const MAX_LEVEL = 5;
 
 function playableUrl(video) {
+  // Lesson videos aren't ready yet, so every app shows "coming soon" until this is switched on.
+  if (process.env.LESSON_VIDEOS_READY !== "true") return null;
   if (!video) return null;
   if (video.provider === "direct") return video.videoId;
   // TODO: sign Bunny URLs. Until then the UI shows "coming soon".

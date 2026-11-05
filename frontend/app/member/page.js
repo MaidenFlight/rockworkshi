@@ -86,27 +86,29 @@ export default function MemberDashboard() {
         <div>
           <h2 style={{ fontWeight: 800, textTransform: "uppercase", fontSize: 24, color: "var(--rw-ink)", marginBottom: 16 }}>Your lessons</h2>
           <div className="rw-cols-2" style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 16 }}>
-            {lessons.map((lesson) => (
-              <Link
-                key={lesson.id}
-                href={`/member/lesson/${lesson.id}`}
-                className="rw-card"
-                style={{
-                  display: "block",
-                  padding: 18,
-                  background: "var(--rw-surface)",
-                  border: "1px solid var(--rw-border)",
-                  borderRadius: "var(--rw-radius-md)",
-                  textDecoration: "none",
-                }}
-              >
+            {lessons.map((lesson) => {
+              // Lesson videos aren't all ready, and a lesson without one has nothing to open yet.
+              const ready = Boolean(lesson.videoUrl || lesson.playthroughVideoUrl);
+              const card = { display: "block", padding: 18, background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)", textDecoration: "none" };
+              const inside = (
+                <>
                 <div style={{ fontWeight: 700, fontSize: 17, color: "var(--rw-ink)" }}>{lesson.title}</div>
                 <div style={{ fontSize: 13.5, color: "var(--rw-meta)" }}>{[lesson.artist, lesson.difficulty, lesson.key].filter(Boolean).join(" · ")}</div>
                 <div style={{ fontSize: 12.5, color: "var(--rw-body)", marginTop: 8 }}>
-                  {lesson.locked ? "Unlocks with your term" : lesson.estTime}
+                  {lesson.locked ? "Unlocks with your term" : ready ? lesson.estTime : "Coming soon"}
                 </div>
-              </Link>
-            ))}
+                </>
+              );
+              return ready || lesson.locked ? (
+                <Link key={lesson.id} href={`/member/lesson/${lesson.id}`} className="rw-card" style={card}>
+                  {inside}
+                </Link>
+              ) : (
+                <div key={lesson.id} style={card}>
+                  {inside}
+                </div>
+              );
+            })}
             {lessons.length === 0 && <p style={{ color: "var(--rw-meta)" }}>No lessons assigned yet.</p>}
           </div>
 
@@ -126,7 +128,7 @@ export default function MemberDashboard() {
               <div style={{ fontWeight: 700, fontSize: 17, color: "var(--rw-ink)" }}>Practice library</div>
               <div style={{ fontSize: 13.5, color: "var(--rw-meta)" }}>
                 {library
-                  ? `${library.songs.length} songs · ${library.songs.filter((s) => s.hasTracks).length} with play-along stems · ${library.songs.filter((s) => s.favorite).length} favourites`
+                  ? `${library.songs.filter((s) => s.hasTracks).length} ready to play · more coming soon · ${library.songs.filter((s) => s.favorite).length} favourites`
                   : "Search, filter and pick up where you left off."}
               </div>
             </Link>

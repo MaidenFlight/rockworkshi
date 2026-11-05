@@ -21,6 +21,7 @@ import {
 } from "@/lib/practice";
 
 const PAGE_SIZE = 20;
+const songTitle = { fontFamily: "var(--rw-font-display)", fontWeight: 800, fontSize: "var(--rw-text-2xl)", lineHeight: 1.05, textTransform: "uppercase", color: "var(--rw-ink)", textDecoration: "none" };
 
 export default function PracticeLibraryPage() {
   // useSearchParams needs a Suspense boundary in a client page.
@@ -203,34 +204,37 @@ function PracticeLibrary() {
               {visible.map((song) => (
                 <li key={song.id} style={songRow}>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <Link
-                      href={`/member/song/${song.id}`}
-                      style={{ fontFamily: "var(--rw-font-display)", fontWeight: 800, fontSize: "var(--rw-text-2xl)", lineHeight: 1.05, textTransform: "uppercase", color: "var(--rw-ink)", textDecoration: "none" }}
-                    >
-                      {song.title}
-                    </Link>
+                    {song.hasTracks ? (
+                      <Link href={`/member/song/${song.id}`} style={songTitle}>
+                        {song.title}
+                      </Link>
+                    ) : (
+                      <span style={{ ...songTitle, color: "var(--rw-meta)" }}>{song.title}</span>
+                    )}
                     <div style={{ fontSize: 13.5, color: "var(--rw-meta)" }}>{song.artist || "Unknown artist"}</div>
                     <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
-                      {song.locked && <Tag tone="lock">Unlocks with your term</Tag>}
+                      {song.locked && song.hasTracks && <Tag tone="lock">Unlocks with your term</Tag>}
                       {song.level && <Tag>{song.level}</Tag>}
-                      {song.hasTracks ? <Tag tone="teal">Play-along · {song.parts.join(", ")}</Tag> : <Tag>No stems yet</Tag>}
+                      {song.hasTracks ? <Tag tone="teal">Play-along · {song.parts.join(", ")}</Tag> : <Tag tone="lock">Coming soon</Tag>}
                       {song.hasNotes && <Tag>Notes</Tag>}
                       {song.lastOpenedAt && <Tag>Opened {formatWhen(song.lastOpenedAt)}</Tag>}
                     </div>
                   </div>
-                  <FavoriteButton
-                    songId={song.id}
-                    title={song.title}
-                    favorite={song.favorite}
-                    onChange={(fav) => setFavorite(song.id, fav)}
-                    onError={(err) =>
-                      setNotice(
-                        err instanceof NetworkError
-                          ? "You're offline, so that favourite wasn't saved."
-                          : `That favourite wasn't saved: ${err.message}`
-                      )
-                    }
-                  />
+                  {song.hasTracks && (
+                    <FavoriteButton
+                      songId={song.id}
+                      title={song.title}
+                      favorite={song.favorite}
+                      onChange={(fav) => setFavorite(song.id, fav)}
+                      onError={(err) =>
+                        setNotice(
+                          err instanceof NetworkError
+                            ? "You're offline, so that favourite wasn't saved."
+                            : `That favourite wasn't saved: ${err.message}`
+                        )
+                      }
+                    />
+                  )}
                 </li>
               ))}
             </ul>

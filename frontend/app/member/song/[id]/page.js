@@ -184,7 +184,7 @@ function SongPlayAlong() {
               </button>
             </>
           ) : (
-            "This song doesn't have play-along stems yet. You can still star it and keep notes."
+            "This song's play-along is coming soon."
           )}
         </div>
       )}

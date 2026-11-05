@@ -12,7 +12,15 @@ import { colors, fonts } from "@/lib/theme";
 
 const WORK_PAGE_SIZE = 10;
 
-type Lesson = { id: string; title: string; artist?: string; difficulty?: string; locked?: boolean };
+type Lesson = {
+  id: string;
+  title: string;
+  artist?: string;
+  difficulty?: string;
+  locked?: boolean;
+  videoUrl?: string | null;
+  playthroughVideoUrl?: string | null;
+};
 
 export default function Home() {
   const { user, signOut } = useAuth();
@@ -68,7 +76,7 @@ export default function Home() {
                 <Text style={styles.cardTitle}>SONG LIBRARY</Text>
                 <Text style={styles.metaTight}>
                   {library
-                    ? `${library.songs.length} songs · ${library.songs.filter((s) => s.hasTracks).length} with stems · ${library.songs.filter((s) => s.favorite).length} favourites`
+                    ? `${library.songs.filter((s) => s.hasTracks).length} ready to play · more coming soon · ${library.songs.filter((s) => s.favorite).length} favourites`
                     : "Search, favourites, notes and play-along"}
                 </Text>
               </Pressable>
@@ -105,7 +113,14 @@ export default function Home() {
             <Text style={styles.sectionTitle}>ALL LESSONS</Text>
           </View>
         }
-        renderItem={({ item }) => (
+        renderItem={({ item }) =>
+          // Lesson videos aren't all ready, and a lesson without one has nothing to open yet.
+          !item.locked && !item.videoUrl && !item.playthroughVideoUrl ? (
+            <View style={styles.card}>
+              <Text style={[styles.cardTitle, styles.cardTitleSoon]}>{item.title}</Text>
+              <Text style={styles.metaTight}>{["Coming soon", item.artist].filter(Boolean).join(" · ")}</Text>
+            </View>
+          ) : (
           <Link href={{ pathname: "/lesson/[id]", params: { id: item.id } }} asChild>
             <Pressable style={styles.card} android_ripple={{ color: colors.border }}>
               <Text style={styles.cardTitle}>{item.title}</Text>
@@ -114,7 +129,8 @@ export default function Home() {
               </Text>
             </Pressable>
           </Link>
-        )}
+          )
+        }
       />
     </SafeAreaView>
   );
@@ -143,6 +159,7 @@ const styles = StyleSheet.create({
   metaTight: { color: colors.meta, marginTop: 2 },
   error: { color: colors.flareInk, marginBottom: 12 },
   card: { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: 4, padding: 16, marginBottom: 10 },
+  cardTitleSoon: { color: colors.meta },
   cardRow: { flexDirection: "row", alignItems: "center", gap: 10 },
   cardTitle: { fontFamily: fonts.display, fontSize: 26, color: colors.ink, textTransform: "uppercase" },
   cardTitleFlex: { flex: 1, fontFamily: fonts.display, fontSize: 26, color: colors.ink, textTransform: "uppercase" },

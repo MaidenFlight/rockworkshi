@@ -293,6 +293,14 @@ export default function VideoPlayer({ lesson }) {
     ? { name: "Custom loop", start: customStart, end: customEnd }
     : null;
 
+  if (!lesson.videoUrl && !lesson.playthroughVideoUrl) {
+    return (
+      <div role="status" style={{ padding: "48px 24px", textAlign: "center", background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)", fontWeight: 700, color: "var(--rw-ink)" }}>
+        Lesson videos are coming soon.
+      </div>
+    );
+  }
+
   return (
     <div>
       <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>

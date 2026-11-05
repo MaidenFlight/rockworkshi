@@ -141,10 +141,10 @@ function NewAssignment() {
             <select value={itemId} onChange={(e) => setItemId(e.target.value)} required style={input} aria-label={kind}>
               <option value="">Choose a {kind}…</option>
               {items.map((item) => (
-                <option key={item.id} value={item.id}>
+                <option key={item.id} value={item.id} disabled={kind === "song" && !item.hasTracks}>
                   {item.title}
                   {item.artist ? ` · ${item.artist}` : ""}
-                  {item.hasTracks ? " (play-along)" : ""}
+                  {kind === "song" ? (item.hasTracks ? " (play-along)" : " (coming soon)") : ""}
                 </option>
               ))}
             </select>
