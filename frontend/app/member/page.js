@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { API_URL } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
+import TeacherWork from "@/components/member/TeacherWork";
 import YourTerm from "@/components/member/YourTerm";
 import { practiceRequest } from "@/lib/practice";
 
@@ -51,6 +52,11 @@ export default function MemberDashboard() {
       <p style={{ color: "var(--rw-body)", marginBottom: 24 }}>Pick up where you left off, or grab a practice tool.</p>
 
       <YourTerm continueItem={library?.continue ?? null} />
+
+      {/* useSearchParams needs a Suspense boundary in a client page. */}
+      <Suspense fallback={null}>
+        <TeacherWork />
+      </Suspense>
 
       <div className="rw-cols-5" style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 14, marginBottom: 44 }}>
         {TOOLS.map((tool) => (

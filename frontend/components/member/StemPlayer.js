@@ -11,6 +11,7 @@ import {
   stemLevels,
   takeLevel,
 } from "@/lib/audio/mix";
+import { createStretchVoice } from "@/lib/audio/stretch";
 import { DEFAULT_EFFECTS, createTakeEffects } from "@/lib/audio/takeEffects";
 import Icon from "./Icon";
 import MixerPanel from "./mixer/MixerPanel";
@@ -27,6 +28,12 @@ const MODES = [
 ];
 
 const NUDGE_LIMIT_MS = 300;
+const SPEEDS = [0.5, 0.75, 0.9, 1];
+const MIN_LOOP_S = 1;
+// The next pass of a loop is scheduled this far before the loop end, so it starts on time.
+const LOOP_LOOKAHEAD_S = 0.4;
+// The upload limit in the API (MAX_RECORDING_BYTES).
+const MAX_RECORDING_BYTES = 40 * 1024 * 1024;
 
 // Captures raw mic samples inside the audio engine, stamped with the AudioContext clock,
 // so a take lines up with the band. MediaRecorder can't say when it really started.
@@ -98,6 +105,9 @@ function toWav(buffer) {
 // resume is the student's saved session for this song: the player opens there, paused.
 // onSaveSession(session, { keepalive }) is called now and then while practising, and on
 // pause and leave; it returns a promise.
+// initialLoop = { start, end } opens looping that section (a teacher's assignment). It wins
+// over the saved loop and position.
+// onSendTake({ blob, offset, duration }, onProgress) offers sending a take to a teacher.
 export default function StemPlayer({
   tracks,
   myPart,
@@ -108,12 +118,16 @@ export default function StemPlayer({
   mixLevel = null,
   resume = null,
   onSaveSession = null,
+  initialLoop = null,
+  onSendTake = null,
 }) {
   const parts = useMemo(() => tracks.map((t) => t.part), [tracks]);
   const reviewUrl = review?.url;
   const reviewTime = review?.songTime ?? 0;
   const saved = resume?.mixer;
-  const startPosition = review ? 0 : (resume?.position ?? 0);
+  const startPosition = review ? 0 : (initialLoop?.start ?? resume?.position ?? 0);
+  const startSpeed = !review && SPEEDS.includes(resume?.speed) ? resume.speed : 1;
+  const startLoop = review ? null : (initialLoop ?? resume?.loop ?? null);
 
   const [status, setStatus] = useState("loading"); // 'loading' | 'ready' | 'error'
   const [loadedCount, setLoadedCount] = useState(0);
@@ -130,6 +144,12 @@ export default function StemPlayer({
   const [nudgeMs, setNudgeMs] = useState(0); // positive moves the take earlier
   const [micError, setMicError] = useState("");
   const [exporting, setExporting] = useState(false);
+  const [speed, setSpeed] = useState(startSpeed);
+  const [loop, setLoop] = useState(startLoop); // { start, end } only repeats once end is set
+  const [preparingSpeed, setPreparingSpeed] = useState(false);
+  const [speedError, setSpeedError] = useState("");
+  const [sendProgress, setSendProgress] = useState(null); // set while sending
+  const [sendError, setSendError] = useState("");
   const [mix, setMix] = useState(() => (saved ? mixFromSettings(saved, parts) : defaultMix(parts)));
   const [fx, setFx] = useState(saved?.effects ? { ...DEFAULT_EFFECTS, ...saved.effects } : DEFAULT_EFFECTS);
 
@@ -141,7 +161,14 @@ export default function StemPlayer({
   const fxRef = useRef(null); // the take's effects chain
   const takeGainRef = useRef(null);
   const sourcesRef = useRef([]); // the AudioBufferSourceNodes currently playing
-  const startedAtRef = useRef(0); // AudioContext time at which song position 0 played
+  const endingRef = useRef([]); // the previous pass of a loop, still sounding until the next begins
+  const stemsVoiceRef = useRef(null); // the stems' stretcher, made the first time a song is slowed
+  const takeVoiceRef = useRef(null);
+  // AudioContext time at which song position 0 played (or would have, at the current speed).
+  // Song position = (context time - startedAt) * speed.
+  const startedAtRef = useRef(0);
+  const speedRef = useRef(startSpeed);
+  const loopRef = useRef(startLoop);
   const offsetRef = useRef(startPosition); // song position to resume from while paused
 
   // Read inside startAt and the playhead loop, which would otherwise see stale state.
@@ -167,7 +194,7 @@ export default function StemPlayer({
   function positionNow() {
     const ctx = ctxRef.current;
     if (!playingRef.current || !ctx) return offsetRef.current;
-    return Math.max(0, ctx.currentTime - startedAtRef.current);
+    return Math.max(0, (ctx.currentTime - startedAtRef.current) * speedRef.current);
   }
 
   function saveSession({ keepalive = false } = {}) {
@@ -175,6 +202,8 @@ export default function StemPlayer({
     if (!onSaveRef.current || !latest?.ready || recordingRef.current) return;
     const session = {
       position: Math.round(positionNow() * 10) / 10,
+      speed: speedRef.current,
+      loop: loopRef.current,
       mixer: { mode: latest.mode, focus: latest.focus, ...latest.mix, effects: latest.fx },
     };
     const json = JSON.stringify(session);
@@ -217,7 +246,7 @@ export default function StemPlayer({
     const id = setTimeout(() => saveSession(), 2500);
     return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mix, mode, focus, fx]);
+  }, [mix, mode, focus, fx, speed, loop]);
 
   // Download and decode every stem once. Decoded audio stays in memory so play/seek is instant.
   useEffect(() => {
@@ -281,10 +310,14 @@ export default function StemPlayer({
     return () => {
       cancelled = true;
       stopSources();
+      stemsVoiceRef.current = null;
+      takeVoiceRef.current = null;
       micRef.current?.stream.getTracks().forEach((t) => t.stop());
       micRef.current = null;
       ctx.close();
     };
+    // stopSources only reads refs.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tracks, reviewUrl, reviewTime, mixLevel]);
 
   // Mode, volume, mute and solo all land here as smoothed gain changes on the running
@@ -305,12 +338,20 @@ export default function StemPlayer({
     fxRef.current?.apply(fx);
   }, [fx]);
 
-  // Move the playhead while playing, and stop at the end.
+  // Move the playhead while playing, repeat the loop, and stop at the end.
   useEffect(() => {
     if (!playing) return;
     let raf;
     function tick() {
-      const t = ctxRef.current.currentTime - startedAtRef.current;
+      const ctx = ctxRef.current;
+      const current = loopRef.current;
+      if (current?.end != null && !recordingRef.current) {
+        const loopEndsAt = startedAtRef.current + current.end / speedRef.current;
+        if (loopEndsAt - ctx.currentTime < LOOP_LOOKAHEAD_S) {
+          startAt(current.start, Math.max(loopEndsAt, ctx.currentTime + startLead()));
+        }
+      }
+      const t = (ctx.currentTime - startedAtRef.current) * speedRef.current;
       if (t >= duration) {
         if (recordingRef.current) stopRecording();
         else stopSources();
@@ -324,12 +365,16 @@ export default function StemPlayer({
     }
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-    // stopRecording only reads refs, so it doesn't need to restart the loop.
+    // stopRecording and startAt only read refs, so they don't need to restart the loop.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playing, duration]);
 
+  function allVoices() {
+    return [stemsVoiceRef.current, takeVoiceRef.current].filter(Boolean);
+  }
+
   function stopSources() {
-    for (const src of sourcesRef.current) {
+    for (const src of [...endingRef.current, ...sourcesRef.current]) {
       try {
         src.stop();
       } catch {
@@ -337,45 +382,132 @@ export default function StemPlayer({
       }
     }
     sourcesRef.current = [];
+    endingRef.current = [];
+    allVoices().forEach((v) => v.stop());
   }
 
-  // A source node plays once, so every play or seek makes fresh ones.
-  // They're scheduled slightly ahead so all stems start on the same sample.
-  function startAt(offset) {
+  // How far ahead a start can be scheduled to be clean. The stretcher needs a little longer.
+  function startLead() {
+    const voice = stemsVoiceRef.current;
+    return speedRef.current !== 1 && voice ? Math.max(0.05, voice.latency) : 0.05;
+  }
+
+  // A source node plays once, so every play, seek or loop pass makes fresh ones, scheduled
+  // slightly ahead so all stems start on the same sample. What was playing stops exactly when
+  // this starts, so a loop has no gap. Off full speed the stretch voices play instead.
+  function startAt(offset, when = ctxRef.current.currentTime + startLead()) {
     const ctx = ctxRef.current;
-    stopSources();
-    const when = ctx.currentTime + 0.05;
-    sourcesRef.current = parts.map((part) => {
-      const src = ctx.createBufferSource();
-      src.buffer = buffersRef.current[part];
-      src.connect(gainsRef.current[part]);
-      src.start(when, offset);
-      return src;
-    });
+    const rate = speedRef.current;
+    for (const src of [...endingRef.current, ...sourcesRef.current]) src.stop(when);
+    endingRef.current = sourcesRef.current;
+    sourcesRef.current = [];
 
     // The take starts wherever it was recorded, which may be before or after this point.
-    const current = takeRef.current;
-    if (current && !recordingRef.current) {
-      const src = ctx.createBufferSource();
-      src.buffer = current.buffer;
-      src.connect(fxRef.current.input);
-      const takeStart = current.songTime - nudgeRef.current / 1000;
-      if (offset >= takeStart) src.start(when, offset - takeStart);
-      else src.start(when + (takeStart - offset));
-      sourcesRef.current.push(src);
+    const current = recordingRef.current ? null : takeRef.current;
+    const takeStart = current ? current.songTime - nudgeRef.current / 1000 : 0;
+
+    if (rate === 1) {
+      allVoices().forEach((v) => v.stop(when));
+      sourcesRef.current = parts.map((part) => {
+        const src = ctx.createBufferSource();
+        src.buffer = buffersRef.current[part];
+        src.connect(gainsRef.current[part]);
+        src.start(when, offset);
+        return src;
+      });
+      if (current) {
+        const src = ctx.createBufferSource();
+        src.buffer = current.buffer;
+        src.connect(fxRef.current.input);
+        if (offset >= takeStart) src.start(when, offset - takeStart);
+        else src.start(when + (takeStart - offset));
+        sourcesRef.current.push(src);
+      }
+    } else {
+      stemsVoiceRef.current.play(when, offset, rate);
+      const takeVoice = takeVoiceRef.current;
+      if (takeVoice && takeVoice.buffer === current?.buffer) {
+        if (offset >= takeStart) takeVoice.play(when, offset - takeStart, rate);
+        else takeVoice.play(when + (takeStart - offset) / rate, 0, rate);
+      } else takeVoice?.stop(when);
     }
 
-    startedAtRef.current = when - offset;
+    startedAtRef.current = when - offset / rate;
+  }
+
+  // Makes the stretchers for the stems and take, if they don't have one yet.
+  async function prepareVoices() {
+    const ctx = ctxRef.current;
+    if (!stemsVoiceRef.current) {
+      stemsVoiceRef.current = await createStretchVoice(
+        ctx,
+        parts.map((part) => ({ buffer: buffersRef.current[part], output: gainsRef.current[part] }))
+      );
+    }
+    const current = takeRef.current;
+    if (current && takeVoiceRef.current?.buffer !== current.buffer) {
+      takeVoiceRef.current?.dispose();
+      takeVoiceRef.current = await createStretchVoice(ctx, [{ buffer: current.buffer, output: fxRef.current.input }]);
+    }
+  }
+
+  // Gets the voices ready for a slower speed. The music carries on as it was in the meantime.
+  // Returns false, and says so, if this browser can't do it.
+  async function readyForSlowSpeed() {
+    setPreparingSpeed(true);
+    try {
+      await prepareVoices();
+      setSpeedError("");
+      return true;
+    } catch (err) {
+      console.error("Could not prepare slow playback:", err);
+      setSpeedError("Slow playback isn't available in this browser, so the song plays at full speed.");
+      return false;
+    } finally {
+      setPreparingSpeed(false);
+    }
+  }
+
+  async function changeSpeed(value) {
+    if (value !== 1 && !(await readyForSlowSpeed())) return;
+    const t = currentPosition(); // read at the old speed
+    speedRef.current = value;
+    setSpeed(value);
+    if (playingRef.current) startAt(t);
+  }
+
+  function updateLoop(next) {
+    loopRef.current = next;
+    setLoop(next);
+  }
+
+  function markLoopStart() {
+    const t = currentPosition();
+    const end = loopRef.current?.end;
+    updateLoop({ start: t, end: end != null && end >= t + MIN_LOOP_S ? end : null });
+  }
+
+  // Marking the end while playing jumps straight back to the start, like any A–B repeat.
+  function markLoopEnd() {
+    updateLoop({ start: loopRef.current?.start ?? 0, end: currentPosition() });
   }
 
   function currentPosition() {
     if (!playing) return offsetRef.current;
-    return Math.min(duration, Math.max(0, ctxRef.current.currentTime - startedAtRef.current));
+    return Math.min(duration, Math.max(0, (ctxRef.current.currentTime - startedAtRef.current) * speedRef.current));
   }
 
   async function play() {
     // Browsers keep audio suspended until the user clicks something.
     await ctxRef.current.resume();
+    // A saved slow speed, or a new take heard at this speed for the first time.
+    if (speedRef.current !== 1 && !(await readyForSlowSpeed())) {
+      speedRef.current = 1;
+      setSpeed(1);
+    }
+    // Pressing play after the loop's end goes back to its start.
+    const current = loopRef.current;
+    if (current?.end != null && offsetRef.current >= current.end) offsetRef.current = current.start;
     startAt(offsetRef.current);
     setPlaying(true);
   }
@@ -442,6 +574,9 @@ export default function StemPlayer({
       return;
     }
     stopSources();
+    // A take lines up with the song in real time, so it's always recorded at full speed.
+    speedRef.current = 1;
+    setSpeed(1);
     chunksRef.current = [];
     recordingRef.current = true;
     mic.worklet.port.postMessage("start");
@@ -480,17 +615,36 @@ export default function StemPlayer({
   }
 
   function changeNudge(ms) {
+    const t = currentPosition();
     nudgeRef.current = ms;
     setNudgeMs(ms);
-    if (playing) startAt(currentPosition());
+    if (playing) startAt(t);
   }
 
   function deleteTake() {
+    const t = currentPosition();
     takeRef.current = null;
     setTake(null);
     nudgeRef.current = 0;
     setNudgeMs(0);
-    if (playing) startAt(currentPosition());
+    if (playing) startAt(t);
+  }
+
+  async function sendTake() {
+    const blob = toWav(take.buffer);
+    setSendError("");
+    if (blob.size > MAX_RECORDING_BYTES) {
+      setSendError("This take is too long to send. Recordings can be up to about 7 minutes.");
+      return;
+    }
+    setSendProgress(0);
+    try {
+      await onSendTake({ blob, offset: take.songTime - nudgeMs / 1000, duration: take.buffer.duration }, setSendProgress);
+    } catch (err) {
+      setSendError(err.message);
+    } finally {
+      setSendProgress(null);
+    }
   }
 
   // Renders the mix as heard (volumes, mode, mute, solo, master, the take's effects and the
@@ -594,17 +748,34 @@ export default function StemPlayer({
       </div>
 
       <div style={{ padding: "18px 22px", borderBottom: "1px solid var(--rw-border)" }}>
-        <input
-          type="range"
-          min={0}
-          max={duration || 0}
-          step={0.1}
-          value={position}
-          onChange={(e) => seek(Number(e.target.value))}
-          disabled={!ready || recording}
-          aria-label="Song position"
-          style={{ width: "100%", accentColor: "var(--rw-orange)" }}
-        />
+        <div style={{ position: "relative" }}>
+          {loop && duration > 0 && (
+            <div
+              aria-hidden="true"
+              style={{
+                position: "absolute",
+                top: 0,
+                bottom: 0,
+                left: `${(loop.start / duration) * 100}%`,
+                width: loop.end != null ? `${((loop.end - loop.start) / duration) * 100}%` : 3,
+                background: "var(--rw-teal)",
+                opacity: 0.35,
+                pointerEvents: "none",
+              }}
+            />
+          )}
+          <input
+            type="range"
+            min={0}
+            max={duration || 0}
+            step={0.1}
+            value={position}
+            onChange={(e) => seek(Number(e.target.value))}
+            disabled={!ready || recording}
+            aria-label="Song position"
+            style={{ width: "100%", accentColor: "var(--rw-orange)", display: "block" }}
+          />
+        </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10, flexWrap: "wrap" }}>
           <button onClick={() => skip(-5)} disabled={!ready || recording} style={btn}>
             −5s
@@ -624,6 +795,49 @@ export default function StemPlayer({
           </span>
         </div>
       </div>
+
+      {!review && (
+        <div style={{ padding: "18px 22px", borderBottom: "1px solid var(--rw-border)" }}>
+          <div style={eyebrow}>Practice</div>
+          <div role="group" aria-label="Speed" style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: "var(--rw-ink)", width: 48 }}>Speed</span>
+            {SPEEDS.map((s) => (
+              <button key={s} onClick={() => changeSpeed(s)} disabled={!ready || recording || preparingSpeed} style={chip(speed === s)} aria-pressed={speed === s}>
+                {Math.round(s * 100)}%
+              </button>
+            ))}
+            {preparingSpeed && (
+              <span role="status" style={{ fontSize: 13, color: "var(--rw-meta)" }}>
+                Getting slow playback ready…
+              </span>
+            )}
+          </div>
+          {speedError && (
+            <p role="alert" style={{ margin: "8px 0 0", fontSize: 13.5, color: "var(--rw-orange-deep)" }}>
+              {speedError}
+            </p>
+          )}
+          <div role="group" aria-label="Loop a section" style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: "var(--rw-ink)", width: 48 }}>Loop</span>
+            <button onClick={markLoopStart} disabled={!ready || recording} style={btn}>
+              {loop ? `Start ${fmtT(loop.start)}` : "Set start"}
+            </button>
+            <button onClick={markLoopEnd} disabled={!ready || recording || position < (loop?.start ?? 0) + MIN_LOOP_S} style={btn}>
+              {loop?.end != null ? `End ${fmtT(loop.end)}` : "Set end"}
+            </button>
+            {loop && (
+              <button onClick={() => updateLoop(null)} disabled={recording} style={btn}>
+                Clear
+              </button>
+            )}
+          </div>
+          <p style={{ margin: "8px 0 0", fontSize: 12.5, color: "var(--rw-meta)", lineHeight: 1.5 }}>
+            {loop?.end != null
+              ? `Repeating ${fmtT(loop.start)}–${fmtT(loop.end)}.`
+              : "While the song plays, choose Set start, then Set end. That part repeats until you clear it."}
+          </p>
+        </div>
+      )}
 
       {review ? (
         <div style={{ padding: "18px 22px" }}>
@@ -673,7 +887,7 @@ export default function StemPlayer({
             <span style={{ fontSize: 13, color: "var(--rw-meta)", lineHeight: 1.5, flex: "1 1 240px" }}>
               {recording
                 ? "Recording. The band plays in the mode you picked."
-                : "Starts from the current position. Wear headphones so the mic only hears you."}
+                : "Starts from the current position at full speed, and plays straight through any loop. Wear headphones so the mic only hears you."}
             </span>
           </div>
           {micError && <p style={{ margin: "10px 0 0", fontSize: 13.5, color: "var(--rw-orange-deep)" }}>{micError}</p>}
@@ -698,6 +912,15 @@ export default function StemPlayer({
                 />
               </label>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {onSendTake && (
+                  <button
+                    onClick={sendTake}
+                    disabled={sendProgress !== null}
+                    style={{ ...btn, background: "var(--rw-orange)", border: "1px solid var(--rw-orange)", color: "#fff" }}
+                  >
+                    {sendProgress !== null ? `Sending ${Math.round(sendProgress * 100)}%` : "Send to your teacher"}
+                  </button>
+                )}
                 <button onClick={downloadMix} disabled={exporting} style={btn}>
                   {exporting ? "Preparing…" : "Download mix (.wav)"}
                 </button>
@@ -705,8 +928,13 @@ export default function StemPlayer({
                   Delete take
                 </button>
               </div>
+              {sendError && (
+                <p role="alert" style={{ margin: 0, fontSize: 13.5, color: "var(--rw-orange-deep)" }}>
+                  {sendError}
+                </p>
+              )}
               <p style={{ margin: 0, fontSize: 12.5, color: "var(--rw-meta)" }}>
-                Your take stays on this device. Leaving the page deletes it, so download it first if you want to keep it.
+                {onSendTake ? "Until you send it, your take" : "Your take"} stays on this device. Leaving the page deletes it, so download it first if you want to keep it.
               </p>
             </div>
           )}

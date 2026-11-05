@@ -160,6 +160,65 @@ test("a database failure while reading a token is a server error, not a sign-out
   assert.equal((await call("not-a-token", "GET", "/library")).status, 401);
 });
 
+test("recordings through the API are checked before anything is stored", async () => {
+  const teacher = await make("teacherUpload", { role: "teacher" });
+  const student = await make("studentUpload", { paidAt: new Date() });
+  const other = await make("otherUpload", { paidAt: new Date() });
+  const work = await setWork(teacher, student);
+  const put = (who, body, type = "audio/wav") =>
+    fetch(`${base}/assignments/${work.id}/recording`, {
+      method: "PUT",
+      headers: { Authorization: `Bearer ${signMobileToken(who)}`, "Content-Type": type },
+      body,
+    });
+  const wav = Buffer.concat([Buffer.from("RIFF"), Buffer.alloc(100)]);
+
+  assert.equal((await put(other, wav)).status, 404, "someone else's assignment");
+  assert.equal((await put(student, Buffer.alloc(100))).status, 400, "not a WAV");
+  assert.equal((await put(student, Buffer.from("RIFF"))).status, 400, "too short");
+  assert.equal((await put(student, wav, "application/octet-stream")).status, 400, "wrong type");
+  const huge = await put(student, Buffer.concat([Buffer.from("RIFF"), Buffer.alloc(40 * 1024 * 1024 + 1)]));
+  assert.equal(huge.status, 413);
+  assert.match((await huge.json()).error, /40 MB/);
+
+  await prisma.assignment.update({ where: { id: work.id }, data: { status: "ready" } });
+  assert.equal((await put(student, wav)).status, 409, "already waiting for the teacher");
+});
+
+test("a recording through the API can be sent and played back", { skip: !process.env.TEST_R2 }, async () => {
+  const teacher = await make("teacherSend", { role: "teacher" });
+  const student = await make("studentSend", { paidAt: new Date() });
+  const work = await setWork(teacher, student);
+  const token = signMobileToken(student);
+  const res = await fetch(`${base}/assignments/${work.id}/recording`, {
+    method: "PUT",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "audio/wav" },
+    body: Buffer.concat([Buffer.from("RIFF"), Buffer.alloc(1000)]),
+  });
+  assert.equal(res.status, 201);
+  const { key } = await res.json();
+  assert.ok((await headObject(key)).size > 1000);
+
+  const sent = await call(token, "POST", `/assignments/${work.id}/submit`, { recording: { key, offset: 12.5, duration: 30 } });
+  assert.equal(sent.status, 201);
+  const seen = await call(signMobileToken(teacher), "GET", `/teacher/assignments/${work.id}`);
+  assert.equal(seen.data.assignment.submissions[0].recording.offset, 12.5);
+  assert.ok(seen.data.assignment.submissions[0].recording.url);
+
+  assert.equal((await call(adminToken(), "DELETE", `/admin/students/${student.id}`)).status, 204);
+  assert.equal(await headObject(key), null);
+});
+
+test("the website's speed and loop save with the rest of the session", async () => {
+  const song2 = song.id;
+  const student = await make("studentSession", { paidAt: new Date() });
+  const token = signMobileToken(student);
+  const session = { position: 20, speed: 0.75, loop: { start: 10, end: 30 } };
+  assert.equal((await call(token, "PUT", `/songs/${song2}/practice/session`, { session })).status, 204);
+  const { data } = await call(token, "GET", `/songs/${song2}/practice`);
+  assert.deepEqual(data.practice.session, session);
+});
+
 // Last, because it uses up this process's allowance of failed sign-ins.
 test("repeated failed sign-ins are blocked, on the website and phone routes together", async () => {
   const body = { email: users.member.email, password: "wrong-password" };

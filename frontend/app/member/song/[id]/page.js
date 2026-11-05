@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Icon from "@/components/member/Icon";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,9 +9,22 @@ import StemPlayer from "@/components/member/StemPlayer";
 import FavoriteButton from "@/components/member/library/FavoriteButton";
 import PracticeNotes from "@/components/member/library/PracticeNotes";
 import { NetworkError, practiceRequest } from "@/lib/practice";
+import { hasLoop, sendForReview } from "@/lib/teaching";
 
-export default function SongPlayAlong() {
+export default function SongPlayAlongPage() {
+  // useSearchParams needs a Suspense boundary in a client page.
+  return (
+    <Suspense fallback={null}>
+      <SongPlayAlong />
+    </Suspense>
+  );
+}
+
+function SongPlayAlong() {
   const { id } = useParams();
+  const router = useRouter();
+  // Set when the song was opened from a teacher's practice work.
+  const assignmentId = useSearchParams().get("assignment");
   const { user } = useAuth();
   // undefined = loading, null = failed (see failure)
   const [page, setPage] = useState(undefined); // { song, practice, tracks: data | null }
@@ -24,8 +37,13 @@ export default function SongPlayAlong() {
     let cancelled = false;
     // The practice row says whether the song exists; the tracks may 404 just because
     // the song has no stems yet, which still leaves notes and favourites to show.
-    Promise.allSettled([practiceRequest(`/songs/${id}/practice`), practiceRequest(`/songs/${id}/tracks`)]).then(
-      ([practice, tracks]) => {
+    // The assignment only adds the brief, the loop and sending, so the song opens without it.
+    Promise.allSettled([
+      practiceRequest(`/songs/${id}/practice`),
+      practiceRequest(`/songs/${id}/tracks`),
+      assignmentId ? practiceRequest(`/assignments/${assignmentId}`) : Promise.resolve(null),
+    ]).then(
+      ([practice, tracks, assignment]) => {
         if (cancelled) return;
         if (practice.status === "rejected") {
           setFailure({ offline: practice.reason instanceof NetworkError, message: practice.reason.message });
@@ -37,6 +55,7 @@ export default function SongPlayAlong() {
           ...practice.value,
           tracks: tracks.status === "fulfilled" ? tracks.value : null,
           tracksOffline: tracks.status === "rejected" && tracks.reason instanceof NetworkError,
+          assignment: assignment.status === "fulfilled" && assignment.value?.assignment.song?.id === id ? assignment.value.assignment : null,
         });
         setFailure(null);
       }
@@ -46,7 +65,7 @@ export default function SongPlayAlong() {
     return () => {
       cancelled = true;
     };
-  }, [id, attempt]);
+  }, [id, assignmentId, attempt]);
 
   if (page === undefined) {
     return (
@@ -71,7 +90,9 @@ export default function SongPlayAlong() {
     );
   }
 
-  const { song, practice, tracks } = page;
+  const { song, practice, tracks, assignment } = page;
+  const backHref = assignment ? `/member/assignment/${assignment.id}` : "/member/library";
+  const initialLoop = assignment && hasLoop(assignment) ? { start: assignment.sectionStart, end: assignment.sectionEnd } : null;
   // Resume state only goes back to the server when something changed, and at most every few seconds.
   const saveSession = (session, { keepalive } = {}) =>
     practiceRequest(`/songs/${song.id}/practice/session`, {
@@ -82,8 +103,8 @@ export default function SongPlayAlong() {
 
   return (
     <div style={{ maxWidth: 800, margin: "0 auto", padding: "40px 24px 100px" }}>
-      <Link href="/member/library" style={{ fontSize: 13.5, color: "var(--rw-meta)", textDecoration: "none" }}>
-        <Icon name="arrow-left" size={14} /> Practice library
+      <Link href={backHref} style={{ fontSize: 13.5, color: "var(--rw-meta)", textDecoration: "none" }}>
+        <Icon name="arrow-left" size={14} /> {assignment ? "Practice work" : "Practice library"}
       </Link>
       <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginTop: 10, marginBottom: 22 }}>
         <div style={{ flex: 1 }}>
@@ -107,6 +128,15 @@ export default function SongPlayAlong() {
         </p>
       )}
 
+      {assignment && (
+        <div style={{ padding: "14px 18px", marginBottom: 16, background: "var(--rw-sand)", borderRadius: "var(--rw-radius-md)", lineHeight: 1.55 }}>
+          <div style={{ fontWeight: 700, color: "var(--rw-ink)" }}>
+            {[assignment.instrument, `Level ${assignment.level}${assignment.levelName ? ` ${assignment.levelName}` : ""}`, assignment.section].filter(Boolean).join(" · ")}
+          </div>
+          <div style={{ color: "var(--rw-body)", whiteSpace: "pre-wrap" }}>{assignment.instruction}</div>
+        </div>
+      )}
+
       {page.access && !page.access.allowed ? (
         // The server refuses the stems too; this just explains why instead of a broken player.
         <div role="status" style={{ padding: 20, background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)", lineHeight: 1.55 }}>
@@ -120,7 +150,7 @@ export default function SongPlayAlong() {
         </div>
       ) : tracks ? (
         <>
-          {practice.session?.position ? (
+          {practice.session?.position && !initialLoop ? (
             <p style={{ margin: "0 0 12px", fontSize: 13.5, color: "var(--rw-meta)", lineHeight: 1.55 }}>
               Opened where you left off. Press Play when you&apos;re ready.
             </p>
@@ -133,6 +163,15 @@ export default function SongPlayAlong() {
             mixLevel={tracks.mixLevel}
             resume={practice.session}
             onSaveSession={saveSession}
+            initialLoop={initialLoop}
+            onSendTake={
+              assignment && assignment.status !== "ready"
+                ? async (take, onProgress) => {
+                    await sendForReview(assignment.id, take, onProgress);
+                    router.push(`/member/assignment/${assignment.id}`);
+                  }
+                : null
+            }
           />
         </>
       ) : (

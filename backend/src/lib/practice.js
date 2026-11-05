@@ -1,6 +1,6 @@
 // A student's own state per song (SongPractice): favourite, notes and resume state.
-// The website and phone send the same resume shape; the website has no speed or loop,
-// so saves are merged rather than replaced and one never wipes the other's settings.
+// The website and phone send the same resume shape. Saves are merged rather than replaced,
+// so one never wipes settings the other didn't send.
 const { validateSettings } = require("./mixPresets");
 const { sortTracks } = require("./songTracks");
 
@@ -14,8 +14,8 @@ function seconds(v) {
 
 // Returns { session } with only the keys that were sent, or { error }.
 //   position  seconds into the song
-//   speed     phone only, one of SPEEDS
-//   loop      phone only, null or { start, end } (end null while only the start is marked)
+//   speed     one of SPEEDS
+//   loop      null or { start, end } (end null while only the start is marked)
 //   mixer     mode, focus, volumes, mute/solo and take effects, as in a mix preset
 function validateSession(input) {
   if (!input || typeof input !== "object") return { error: "session is required." };

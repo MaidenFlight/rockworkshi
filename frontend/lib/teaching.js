@@ -25,6 +25,58 @@ export function contentTitle(assignment) {
   return item.artist ? `${item.title} · ${item.artist}` : item.title;
 }
 
+// The student's side: a title without the artist, which gets its own line, and what each
+// status means from where they sit.
+export function assignmentTitle(assignment) {
+  return (assignment.song || assignment.lesson)?.title ?? "Removed song or lesson";
+}
+
+export function studentStatus(assignment) {
+  if (assignment.status === "ready") return { label: "Waiting for your teacher", tone: "ready" };
+  if (assignment.status === "reviewed") return { label: "Feedback ready", tone: "open" };
+  return { label: "To practise", tone: "draft" };
+}
+
+export function hasLoop(assignment) {
+  return assignment.sectionStart !== null && assignment.sectionEnd !== null;
+}
+
+// XMLHttpRequest because fetch can't report upload progress.
+function uploadRecording(assignmentId, blob, onProgress) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("PUT", `${API_URL}/assignments/${assignmentId}/recording`);
+    xhr.withCredentials = true;
+    xhr.setRequestHeader("Content-Type", "audio/wav");
+    xhr.upload.onprogress = (e) => e.lengthComputable && onProgress?.(e.loaded / e.total);
+    xhr.onerror = () => reject(new Error("The recording didn't upload. Check your connection and try again."));
+    xhr.onload = () => {
+      let data = {};
+      try {
+        data = JSON.parse(xhr.responseText);
+      } catch {
+        // Not JSON, so the status below speaks for it.
+      }
+      if (xhr.status >= 200 && xhr.status < 300) resolve(data.key);
+      else reject(new Error(data.error || `The recording didn't upload (${xhr.status}). Try again.`));
+    };
+    xhr.send(blob);
+  });
+}
+
+// Marks the work ready for review. A take is { blob, offset, duration } and is uploaded first.
+export async function sendForReview(assignmentId, take, onProgress) {
+  let recording;
+  if (take) {
+    const key = await uploadRecording(assignmentId, take.blob, onProgress);
+    recording = { key, offset: take.offset, duration: take.duration };
+  }
+  await teacherRequest(`/assignments/${assignmentId}/submit`, {
+    method: "POST",
+    body: JSON.stringify(recording ? { recording } : {}),
+  });
+}
+
 // Which stem belongs to an instrument. Mirrors PART_FOR_INSTRUMENT in backend/src/lib/songTracks.js.
 const PART_FOR_INSTRUMENT = {
   Guitar: "Guitar",
