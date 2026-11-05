@@ -175,3 +175,37 @@ test("lesson videos stay hidden until they're switched on", () => {
     else process.env.LESSON_VIDEOS_READY = before;
   }
 });
+
+test("chord charts are checked, and only reach members who can open the song", async () => {
+  const { validateChart } = require("../src/lib/chordChart");
+  const good = { end: 10, sections: [{ name: "Intro", bars: [{ time: 1, chords: [{ name: "C", time: 1 }, { name: "G", time: 3 }] }] }] };
+  assert.deepEqual(validateChart(good).chart, good);
+  assert.ok(validateChart({ end: 10, sections: [] }).error);
+  assert.ok(validateChart({ ...good, end: 2 }).error, "ends before its last chord");
+  assert.ok(validateChart({ end: 10, sections: [{ name: "A", bars: [{ time: 3, chords: [{ name: "C", time: 3 }, { name: "G", time: 1 }] }] }] }).error, "out of order");
+  assert.ok(validateChart({ end: 10, sections: [{ name: "A", bars: [{ time: 1, chords: [{ name: "C", time: 2 }] }] }] }).error, "bar and chord disagree");
+
+  const parts = {
+    Bass: { draft: true, notes: [{ time: 1, len: 0.5, midi: 36, extra: "dropped" }] },
+    Vocals: { notes: [{ time: 2, len: 0.5, midi: 60 }] },
+    Drums: { draft: true, hits: [{ time: 1, drum: "kick" }, { time: 1, drum: "hat" }] },
+  };
+  const withParts = validateChart({ ...good, parts }).chart;
+  assert.deepEqual(withParts.parts.Bass.notes, [{ time: 1, len: 0.5, midi: 36 }]);
+  assert.equal(withParts.parts.Vocals.draft, false);
+  assert.equal(withParts.parts.Drums.hits.length, 2);
+  assert.ok(validateChart({ ...good, parts: { Bass: { notes: [{ time: 1, len: 0, midi: 36 }] } } }).error, "a note needs a length");
+  assert.ok(validateChart({ ...good, parts: { Bass: { notes: [{ time: 2, len: 1, midi: 36 }, { time: 1, len: 1, midi: 36 }] } } }).error, "out of order");
+  assert.ok(validateChart({ ...good, parts: { Drums: { hits: [{ time: 1, drum: "cowbell" }] } } }).error, "unknown drum");
+
+  await prisma.song.update({ where: { id: songs.one.id }, data: { chart: good } });
+  const list = await fetch(`${base}/songs`).then((r) => r.json());
+  const listed = list.songs.find((s) => s.id === songs.one.id);
+  assert.ok(listed, "listed publicly");
+  assert.equal("chart" in listed, false, "no chart in the public list");
+
+  if (process.env.R2_BUCKET) {
+    assert.deepEqual((await call("a", "GET", `/songs/${songs.one.id}/tracks`)).data.chart, good);
+    assert.equal((await call("a", "GET", `/songs/${songs.two.id}/tracks`)).data.chart, null);
+  }
+});

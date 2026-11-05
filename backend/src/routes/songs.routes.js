@@ -33,6 +33,8 @@ router.get("/:id/tracks", requirePaid, async (req, res) => {
     myPart: partForInstrument(req.user.instrument),
     // The players set their headroom from this. null = not measured yet (see songs:measure).
     mixLevel: song.mixLevel,
+    // Served here, behind the same checks as the stems. null until a chart is added.
+    chart: song.chart,
   });
 });
 

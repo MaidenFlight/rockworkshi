@@ -110,3 +110,50 @@ export function PianoDiagram({ notes, accent = "var(--rw-orange)" }) {
     </svg>
   );
 }
+
+const KEY_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+const KEYBOARD_LOW = 41; // F2
+const KEYBOARD_HIGH = 72; // C5
+const KEY_W = 14;
+const KEY_H = 66;
+const BLACK_W = 9;
+const BLACK_H = 40;
+
+// The exact keys to press, by MIDI note: right hand in one colour, left hand in the other.
+export function KeyboardDiagram({ right = [], left = [] }) {
+  const notes = [];
+  for (let m = KEYBOARD_LOW; m <= KEYBOARD_HIGH; m++) notes.push(m);
+  const isBlack = (m) => BLACK_SEMITONES.includes(m % 12);
+  const whites = notes.filter((m) => !isBlack(m));
+  const width = whites.length * KEY_W;
+  const fill = (m, off) => (right.includes(m) ? "var(--rw-orange)" : left.includes(m) ? "var(--rw-teal)" : off);
+  const pressed = (m) => right.includes(m) || left.includes(m);
+
+  return (
+    <svg viewBox={`0 0 ${width} ${KEY_H}`} width={width} height={KEY_H} style={{ maxWidth: "100%", height: "auto" }} data-keys={[...left, ...right].join(",")}>
+      {whites.map((m, i) => (
+        <g key={m}>
+          <rect x={i * KEY_W} y={0} width={KEY_W} height={KEY_H} fill={fill(m, "#fff")} stroke="var(--rw-ink)" strokeWidth={1} />
+          {pressed(m) && (
+            <text x={i * KEY_W + KEY_W / 2} y={KEY_H - 5} fontSize={9} fontWeight={700} textAnchor="middle" fill="#fff">
+              {KEY_NAMES[m % 12]}
+            </text>
+          )}
+        </g>
+      ))}
+      {notes.filter(isBlack).map((m) => {
+        const i = whites.filter((w) => w < m).length;
+        return (
+          <g key={m}>
+            <rect x={i * KEY_W - BLACK_W / 2} y={0} width={BLACK_W} height={BLACK_H} fill={fill(m, "var(--rw-ink)")} />
+            {pressed(m) && (
+              <text x={i * KEY_W} y={BLACK_H - 5} fontSize={7} fontWeight={700} textAnchor="middle" fill="#fff">
+                {KEY_NAMES[m % 12]}
+              </text>
+            )}
+          </g>
+        );
+      })}
+    </svg>
+  );
+}

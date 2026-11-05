@@ -25,8 +25,8 @@ router.get("/songs", async (req, res) => {
     orderBy: { order: "asc" },
     include: { _count: { select: { tracks: true } } },
   });
-  // hasTracks only says a play-along exists; the tracks themselves are members-only.
-  res.json({ songs: songs.map(({ _count, ...song }) => ({ ...song, hasTracks: _count.tracks > 0 })) });
+  // hasTracks only says a play-along exists; the tracks and chord chart are members-only.
+  res.json({ songs: songs.map(({ _count, chart, ...song }) => ({ ...song, hasTracks: _count.tracks > 0 })) });
 });
 
 router.get("/onstage", async (req, res) => {

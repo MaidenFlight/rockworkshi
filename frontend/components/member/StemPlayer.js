@@ -13,6 +13,7 @@ import {
 } from "@/lib/audio/mix";
 import { createStretchVoice } from "@/lib/audio/stretch";
 import { DEFAULT_EFFECTS, createTakeEffects } from "@/lib/audio/takeEffects";
+import ChordChart from "./ChordChart";
 import Icon from "./Icon";
 import MixerPanel from "./mixer/MixerPanel";
 import EffectsRack from "./mixer/EffectsRack";
@@ -108,6 +109,7 @@ function toWav(buffer) {
 // initialLoop = { start, end } opens looping that section (a teacher's assignment). It wins
 // over the saved loop and position.
 // onSendTake({ blob, offset, duration }, onProgress) offers sending a take to a teacher.
+// chart is the song's chord chart, if it has one.
 export default function StemPlayer({
   tracks,
   myPart,
@@ -120,6 +122,7 @@ export default function StemPlayer({
   onSaveSession = null,
   initialLoop = null,
   onSendTake = null,
+  chart = null,
 }) {
   const parts = useMemo(() => tracks.map((t) => t.part), [tracks]);
   const reviewUrl = review?.url;
@@ -487,6 +490,11 @@ export default function StemPlayer({
     updateLoop({ start: t, end: end != null && end >= t + MIN_LOOP_S ? end : null });
   }
 
+  function loopSection(start, end) {
+    updateLoop({ start, end });
+    seek(start);
+  }
+
   // Marking the end while playing jumps straight back to the start, like any A–B repeat.
   function markLoopEnd() {
     updateLoop({ start: loopRef.current?.start ?? 0, end: currentPosition() });
@@ -701,6 +709,19 @@ export default function StemPlayer({
   const levels = stemLevels(mix, mode, focus, parts);
   const ready = status === "ready";
 
+  // "Whole song" means every part, so it also clears any solo or mute left in the mixer.
+  // Those are saved with the session, so one can come back from an earlier visit.
+  function playAllParts() {
+    setMode("full");
+    setMix((m) => ({
+      ...m,
+      stems: Object.fromEntries(Object.entries(m.stems).map(([part, stem]) => [part, { ...stem, muted: false, soloed: false }])),
+    }));
+  }
+
+  const heldBack = parts.some((p) => mix.stems[p]?.soloed || mix.stems[p]?.muted);
+  const playingParts = parts.filter((p) => levels[p].audible);
+
   function applyPreset(s) {
     setMix(mixFromSettings(s, parts));
     if (MIX_MODES.includes(s.mode)) setMode(s.mode);
@@ -714,11 +735,21 @@ export default function StemPlayer({
         <div style={eyebrow}>Play</div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           {MODES.map((m) => (
-            <button key={m.id} onClick={() => setMode(m.id)} style={chip(mode === m.id)} aria-pressed={mode === m.id}>
+            <button key={m.id} onClick={() => (m.id === "full" ? playAllParts() : setMode(m.id))} style={chip(mode === m.id)} aria-pressed={mode === m.id}>
               {m.label}
             </button>
           ))}
         </div>
+        {heldBack && (
+          <div role="status" style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginTop: 12, fontSize: 13.5, color: "var(--rw-body)" }}>
+            <span style={{ flex: "1 1 220px" }}>
+              Solo or mute is on in the mixer, so {playingParts.length ? `only ${playingParts.join(", ")} ${playingParts.length === 1 ? "is" : "are"} playing` : "nothing is playing"}.
+            </span>
+            <button onClick={playAllParts} style={btn}>
+              Play all parts
+            </button>
+          </div>
+        )}
 
         {mode !== "full" && (
           <>
@@ -733,18 +764,6 @@ export default function StemPlayer({
             </div>
           </>
         )}
-      </div>
-
-      <div style={section}>
-        <div style={eyebrow}>Mixer</div>
-        <MixerPanel
-          parts={parts}
-          mix={mix}
-          levels={levels}
-          onChange={setMix}
-          takeLabel={take ? review?.label || "Your take" : null}
-          onReset={() => setMix(defaultMix(parts))}
-        />
       </div>
 
       <div style={{ padding: "18px 22px", borderBottom: "1px solid var(--rw-border)" }}>
@@ -796,6 +815,19 @@ export default function StemPlayer({
         </div>
       </div>
 
+      {chart && !review && (
+        <div style={{ padding: "18px 22px", borderBottom: "1px solid var(--rw-border)" }}>
+          <ChordChart
+            chart={chart}
+            position={position}
+            myPart={myPart}
+            disabled={!ready || recording}
+            onSeek={seek}
+            onLoopSection={loopSection}
+          />
+        </div>
+      )}
+
       {!review && (
         <div style={{ padding: "18px 22px", borderBottom: "1px solid var(--rw-border)" }}>
           <div style={eyebrow}>Practice</div>
@@ -838,6 +870,18 @@ export default function StemPlayer({
           </p>
         </div>
       )}
+
+      <div style={section}>
+        <div style={eyebrow}>Mixer</div>
+        <MixerPanel
+          parts={parts}
+          mix={mix}
+          levels={levels}
+          onChange={setMix}
+          takeLabel={take ? review?.label || "Your take" : null}
+          onReset={() => setMix(defaultMix(parts))}
+        />
+      </div>
 
       {review ? (
         <div style={{ padding: "18px 22px" }}>

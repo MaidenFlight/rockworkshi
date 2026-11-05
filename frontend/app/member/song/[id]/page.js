@@ -161,6 +161,7 @@ function SongPlayAlong() {
             title={song.title}
             songId={song.id}
             mixLevel={tracks.mixLevel}
+            chart={tracks.chart}
             resume={practice.session}
             onSaveSession={saveSession}
             initialLoop={initialLoop}

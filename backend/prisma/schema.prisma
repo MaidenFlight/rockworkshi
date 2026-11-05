@@ -292,6 +292,9 @@ model Song {
   // sample level (1.0 = full scale). Stems often sum well past full scale, so the
   // players turn the mix down by this much. Set by songs:upload / songs:measure.
   mixLevel Float?
+
+  // Chords and when each starts in the stems (lib/chordChart.js). Set by songs:chart.
+  chart Json?
 }
 
 // One audio stem of a song, stored in R2. Playing every stem together is the full song.
