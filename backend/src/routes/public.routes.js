@@ -1,7 +1,18 @@
 const express = require("express");
+const rateLimit = require("express-rate-limit").default;
 const prisma = require("../lib/prisma");
+const { trialRequestEmails } = require("../lib/mailer");
 
 const router = express.Router();
+
+// Each trial request sends an email to the address typed in, so one connection can't send a stream.
+const trialLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many requests from here. Try again in a few minutes." },
+});
 
 // Admin wording overrides as { key: value }.
 router.get("/site-text", async (req, res) => {
@@ -44,8 +55,10 @@ function clean(value, max) {
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-router.post("/trial", async (req, res) => {
+router.post("/trial", trialLimiter, async (req, res) => {
   const b = req.body || {};
+  // The form has a field people never see. Anything in it came from a bot: thank it and keep nothing.
+  if (clean(b.website, 200)) return res.status(201).json({ trial: {} });
   const studentName = clean(b.studentName, 120);
   const email = clean(b.email, 254);
   if (!studentName || !email) {
@@ -71,6 +84,8 @@ router.post("/trial", async (req, res) => {
     },
   });
   res.status(201).json({ trial: { id: trial.id } });
+  // Sent in the background: the request is saved and listed in Admin either way.
+  trialRequestEmails(trial).catch((err) => console.error("Could not send trial request emails:", err.message));
 });
 
 router.post("/contact", async (req, res) => {

@@ -1,4 +1,5 @@
 const nodemailer = require("nodemailer");
+const { INSTRUMENTS } = require("./lessonVideos");
 
 // SMTP mailer (Resend in production, see .env.example).
 // In dev with no SMTP config, mail goes to an Ethereal test inbox and the
@@ -61,11 +62,12 @@ function getTransport() {
   return transportPromise;
 }
 
-async function sendMail({ to, subject, text, html }) {
+// Replies go to the school's inbox unless a notice to the school points them at the sender instead.
+async function sendMail({ to, subject, text, html, replyTo = REPLY_TO }) {
   const { transport, kind } = await getTransport();
   const info = await transport.sendMail({
     from: FROM,
-    ...(REPLY_TO ? { replyTo: REPLY_TO } : {}),
+    ...(replyTo ? { replyTo } : {}),
     to,
     subject,
     text,
@@ -96,6 +98,11 @@ async function sendMail({ to, subject, text, html }) {
 // Anything a person typed (a student's name, say) must go through this before it reaches HTML.
 function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+}
+
+// Something a person typed, as one short line: control characters and line breaks become spaces.
+function oneLine(value, max) {
+  return String(value ?? "").replace(/[\u0000-\u001f\u007f]+/g, " ").trim().slice(0, max);
 }
 
 // heading, lines and the button are plain text and are escaped here. footer is trusted HTML
@@ -234,7 +241,7 @@ function passwordChangedEmail({ to }) {
 // An admin invites a parent or guardian to follow a student's classes and work. The student chose
 // their own name, so it's kept to one short line here and escaped by layout() in the HTML.
 function renderGuardianInvite({ studentName, link }) {
-  const name = String(studentName || "your student").replace(/[\u0000-\u001f\u007f]+/g, " ").trim().slice(0, 80) || "your student";
+  const name = oneLine(studentName, 80) || "your student";
   return {
     subject: "You're invited to follow " + name + " at Rock Works",
     text: [
@@ -261,10 +268,71 @@ function guardianInviteEmail({ to, studentName, link }) {
   return sendMail({ to, ...renderGuardianInvite({ studentName, link }) });
 }
 
+// The reply to a trial request. Whoever typed the address gets back only the names and a known
+// instrument, never the free text, so the public form can't send a stranger someone else's words.
+function renderTrialConfirmation({ studentName, guardian, instrument }) {
+  const student = oneLine(studentName, 80);
+  const parent = oneLine(guardian, 80);
+  const lesson = INSTRUMENTS.includes(instrument)
+    ? `a free ${instrument === "Drums" ? "drum" : instrument.toLowerCase()} lesson`
+    : "a free trial lesson";
+  const lines = [
+    `Hi ${parent || student || "there"},`,
+    `Thanks for asking about ${lesson}${parent && student ? ` for ${student}` : ""}.`,
+    "Our website is still in its testing stage. Our goal is to have it fully live by the start of 2027, and we'll be in touch within the next month or two to find a time that works.",
+    ...(REPLY_TO ? ["If you have a question before then, just reply to this email."] : []),
+  ];
+  const why =
+    "You're getting this because this address was used to ask for a trial lesson on the Rock Works website. If that wasn't you, you can ignore this email.";
+  return {
+    subject: "Your trial lesson request — Rock Works School of Music",
+    text: [...lines, why].join("\n\n"),
+    html: layout({ heading: "We got your trial request", lines, footer: why }),
+  };
+}
+
+// The same request for the school's inbox, with everything the form sent. Reply-To is the sender,
+// so answering them is just Reply.
+function renderTrialNotice(trial) {
+  const fields = [
+    ["Student", trial.studentName],
+    ["Age", trial.age],
+    ["Parent or guardian", trial.guardian],
+    ["Email", trial.email],
+    ["Phone", trial.phone],
+    ["Instrument", trial.instrument],
+    ["Played before", trial.experience],
+    ["Format", trial.format],
+    ["Availability", trial.availability],
+    ["Favorite music", trial.favorites],
+    ["A song they want to play", trial.goals],
+    ["Notes", trial.notes],
+  ];
+  const lines = fields.filter(([, value]) => value).map(([label, value]) => `${label}: ${value}`);
+  const next = "Reply to this email to answer them. They've been told to expect to hear from the school within the next month or two.";
+  return {
+    subject: `New trial request: ${oneLine(trial.studentName, 80)}`,
+    text: [...lines, "", next].join("\n"),
+    html: layout({ heading: "New trial request", lines: [...lines, next] }),
+  };
+}
+
+// Both emails for a new trial request. One failing doesn't stop the other, and the request is
+// saved and listed in Admin either way.
+async function trialRequestEmails(trial) {
+  const sends = [sendMail({ to: trial.email, ...renderTrialConfirmation(trial) })];
+  if (REPLY_TO) sends.push(sendMail({ to: REPLY_TO, replyTo: trial.email, ...renderTrialNotice(trial) }));
+  const failed = (await Promise.allSettled(sends)).find((r) => r.status === "rejected");
+  if (failed) throw failed.reason;
+}
+
 module.exports = {
   escapeHtml,
   renderGuardianInvite,
   guardianInviteEmail,
+  renderTrialConfirmation,
+  renderTrialNotice,
+  trialRequestEmails,
   sendMail,
   verificationEmail,
   passwordResetEmail,
