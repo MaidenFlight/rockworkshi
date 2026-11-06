@@ -155,6 +155,12 @@ uses it. Songs in no term stay open to every paying member.
   band and get a chance to perform in Hawaii." Two claims, and the difference
   between them is load-bearing: joining a band is what *happens*, performing is
   a *chance*. Copy must not upgrade the second into a guarantee.
+- **Brian Albus runs Rock Works and is, so far, its only teacher.** Confirmed by the
+  user on 2026-11-05 ("the main guy of rock works and so far the only teacher").
+  `/teachers` lists him alone. His instruments, bio and photo are not on hand yet.
+- **The site is still in testing**, with the goal of being fully live by the start
+  of 2027 (user, 2026-11-05). Trial requests are told to expect contact within the
+  next month or two. Update both when the school launches.
 
 **Not real. Placeholder content currently on a live site that takes payment.
 Future work must not repeat any of it as fact, and must not invent more:**
@@ -164,11 +170,13 @@ Future work must not repeat any of it as fact, and must not invent more:**
 - The statistics band — **96%** of families, **9 in 10** students still playing
   after five years — and its attribution to a "Rock Works Family Survey, 2026".
   No such survey is confirmed to exist.
-- The teacher profiles on `/teachers`.
+- The three teacher profiles that were on `/teachers`: Kalani Akana, Maya Reyes and
+  Ben Torres. Gone from the seed; the live database keeps them until they're
+  deleted in Admin.
 
 **Absences to respect:** there are no confirmed customer quotes, no outcome data,
-and no confirmed staff roster. Where a design calls for proof, ask for it rather
-than writing it.
+and no confirmed staff roster beyond Brian Albus. Where a design calls for proof,
+ask for it rather than writing it.
 
 ## Product Principles
 
