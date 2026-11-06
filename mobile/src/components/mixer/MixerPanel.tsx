@@ -12,11 +12,15 @@ type Props = {
   takeLabel: string | null; // null when there's no take
   onReset: () => void;
   disabled?: boolean;
+  // A student's mixer: their own part against the backing band. Each stem gets its label here and
+  // no mute or solo (the play modes choose what's heard); a fader its mode silences is switched off.
+  // The hint replaces the mute and solo one. Mirrors the website's mixer/PartBalance.js.
+  balance?: { labels: Record<string, string>; silenced: Record<string, boolean>; hint: string | null };
 };
 
 // Volume, mute and solo per stem, plus the take and master. Changing any of these only
 // moves gains on the running audio graph: playback, loops and speed carry on untouched.
-export function MixerPanel({ parts, mix, levels, onChange, takeLabel, onReset, disabled }: Props) {
+export function MixerPanel({ parts, mix, levels, onChange, takeLabel, onReset, disabled, balance }: Props) {
   const setStem = (part: string, patch: Partial<Mix["stems"][string]>) =>
     onChange({ ...mix, stems: { ...mix.stems, [part]: { ...stemOf(mix, part), ...patch } } });
 
@@ -28,6 +32,18 @@ export function MixerPanel({ parts, mix, levels, onChange, takeLabel, onReset, d
       {parts.map((part) => {
         const stem = stemOf(mix, part);
         const audible = levels[part]?.audible;
+        if (balance) {
+          return (
+            <Channel
+              key={part}
+              label={balance.labels[part] ?? part}
+              off={!audible}
+              volume={stem.volume}
+              onVolume={(volume) => setStem(part, { volume })}
+              disabled={balance.silenced[part]}
+            />
+          );
+        }
         return (
           <Channel
             key={part}
@@ -61,7 +77,13 @@ export function MixerPanel({ parts, mix, levels, onChange, takeLabel, onReset, d
         </Pressable>
       </View>
 
-      {bandSilent || anySolo ? (
+      {balance ? (
+        balance.hint ? (
+          <Text style={styles.hint} accessibilityLiveRegion="polite">
+            {balance.hint}
+          </Text>
+        ) : null
+      ) : bandSilent || anySolo ? (
         <Text style={styles.hint} accessibilityLiveRegion="polite">
           {bandSilent
             ? "The band is silent: the play mode, mute and solo leave no part playing."
@@ -81,9 +103,10 @@ type ChannelProps = {
   onMute?: () => void;
   soloed?: boolean;
   onSolo?: () => void;
+  disabled?: boolean;
 };
 
-function Channel({ label, volume, onVolume, off = false, muted, onMute, soloed, onSolo }: ChannelProps) {
+function Channel({ label, volume, onVolume, off = false, muted, onMute, soloed, onSolo, disabled }: ChannelProps) {
   return (
     <View>
       <View style={styles.head}>
@@ -97,7 +120,7 @@ function Channel({ label, volume, onVolume, off = false, muted, onMute, soloed, 
         )}
         {onSolo && <Toggle text="S" pressed={!!soloed} tone={colors.lagoon} onPress={onSolo} accessibilityLabel={`Solo ${label}`} />}
       </View>
-      <Slider label={`${label} volume`} value={volume} onChange={onVolume} dim={off} />
+      <Slider label={`${label} volume`} value={volume} onChange={onVolume} dim={off} disabled={disabled} />
     </View>
   );
 }

@@ -7,6 +7,7 @@ import Pagination from "@/components/Pagination";
 import { usePageParam } from "@/lib/paging";
 import Icon from "@/components/member/Icon";
 import { useAuth } from "@/contexts/AuthContext";
+import { partForInstrument } from "@/lib/teaching";
 import ContinueCard from "@/components/member/library/ContinueCard";
 import FavoriteButton from "@/components/member/library/FavoriteButton";
 import {
@@ -107,8 +108,21 @@ function PracticeLibrary() {
   }, [user?.id]);
 
   const songs = useMemo(() => data?.songs ?? [], [data]);
+  // A student's list names only their own stem (the server sends no others), so the filter does too.
+  const student = data?.scope === "instrument";
+  const noun = data?.instrument?.toLowerCase() || null;
+  const stemFilters = useMemo(() => {
+    if (!student) return STEM_FILTERS.map((f) => ({ ...f, label: f.id === "any" ? "Any stems" : f.label }));
+    const own = partForInstrument(data.instrument);
+    return [
+      { id: "any", label: "Any songs" },
+      { id: "stems", label: "With a play-along" },
+      ...(own ? [{ id: own, label: `With your ${noun} part` }] : []),
+    ];
+  }, [student, data, noun]);
+  const stemsChoice = stemFilters.some((f) => f.id === filters.stems) ? filters.stems : "any";
   const levels = useMemo(() => levelsIn(songs), [songs]);
-  const shown = useMemo(() => sortSongs(filterSongs(songs, filters), sort), [songs, filters, sort]);
+  const shown = useMemo(() => sortSongs(filterSongs(songs, { ...filters, stems: stemsChoice }), sort), [songs, filters, stemsChoice, sort]);
   // Songs with a play-along make the main list, ones that open now ahead of term songs that
   // don't. Songs still without one are a short list of their own underneath.
   const playable = shown.filter((s) => s.hasTracks && !s.locked);
@@ -210,10 +224,10 @@ function PracticeLibrary() {
                 </option>
               ))}
             </select>
-            <select value={filters.stems} onChange={(e) => set({ stems: e.target.value })} aria-label="Stems" style={control}>
-              {STEM_FILTERS.map((f) => (
+            <select value={stemsChoice} onChange={(e) => set({ stems: e.target.value })} aria-label="Stems" style={control}>
+              {stemFilters.map((f) => (
                 <option key={f.id} value={f.id}>
-                  {f.id === "any" ? "Any stems" : f.label}
+                  {f.label}
                 </option>
               ))}
             </select>
@@ -286,7 +300,9 @@ function PracticeLibrary() {
                     <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
                       {song.locked && <Tag tone="lock">{LOCK_LABELS[song.lockReason] ?? LOCK_LABELS.not_in_term}</Tag>}
                       {song.level && <Tag>{song.level}</Tag>}
-                      <Tag tone="teal">Play-along · {song.parts.join(", ")}</Tag>
+                      <Tag tone="teal">
+                        Play-along · {student ? (song.parts.length ? `your ${noun}` : "whole song") : song.parts.join(", ")}
+                      </Tag>
                       {song.hasNotes && <Tag>Notes</Tag>}
                       {song.lastOpenedAt && <Tag>Opened {formatWhen(song.lastOpenedAt)}</Tag>}
                     </div>

@@ -57,8 +57,9 @@ export default function Format() {
         <p style={{ marginTop: 24, fontSize: 15.5, lineHeight: 1.7, color: "var(--rw-prose)", maxWidth: 640 }}>
           <T k="format.membership.note">
             Membership is the online member area: lesson videos, the song library and the practice tools.
-            Lessons at the school are a separate arrangement &mdash; times and fees are agreed with us
-            directly, usually at your free trial.
+            It works on its own, from anywhere, so you don&apos;t need to take lessons with us to join.
+            Lessons at the school in Honolulu are a separate arrangement &mdash; times and fees are agreed
+            with us directly, usually at your free trial.
           </T>
         </p>
         <div style={{ marginTop: 20 }}>

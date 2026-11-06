@@ -2,6 +2,7 @@ const express = require("express");
 const prisma = require("../lib/prisma");
 const { findPage } = require("../lib/pagination");
 const { requireTeacher } = require("../middleware/auth");
+const { canonicalInstrument } = require("../lib/instrumentAccess");
 const {
   STATUSES,
   RECORDING_LINK_SECONDS,
@@ -111,6 +112,17 @@ router.post("/assignments", async (req, res) => {
 
   if (!(await isLinked(req.user.id, data.studentId))) {
     return res.status(403).json({ error: "You can only set work for your own students." });
+  }
+
+  // Students practise the one instrument the school has on file for them, so that's the only one
+  // work can be set for. Assigning a song never opens another instrument's part.
+  const student = await prisma.user.findUnique({ where: { id: data.studentId }, select: { instrument: true } });
+  const theirs = canonicalInstrument(student?.instrument);
+  if (!theirs) {
+    return res.status(400).json({ error: "This student has no instrument set yet. Ask the admin to set it first." });
+  }
+  if (data.instrument !== theirs) {
+    return res.status(400).json({ error: `This student studies ${theirs}, so set the work for ${theirs}.` });
   }
 
   const content = data.songId

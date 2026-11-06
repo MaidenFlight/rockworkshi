@@ -4,6 +4,7 @@ import { Suspense, useState } from "react";
 import Pagination from "@/components/Pagination";
 import { useAuth } from "@/contexts/AuthContext";
 import { API_URL } from "@/lib/api";
+import { instruments } from "@/lib/content";
 import { usePagedList, usePageParam } from "@/lib/paging";
 
 export default function AdminStudentsPage() {
@@ -156,6 +157,7 @@ function AdminStudents() {
                       </>
                     )}
                   </div>
+                  <InstrumentControl student={s} onSaved={load} />
                   <div style={{ display: "flex", gap: 8 }}>
                     <button onClick={() => setStatus(s.id, s.status === "active" ? "paused" : "active")} style={smallBtn}>
                       {s.status === "active" ? "Pause" : "Reactivate"}
@@ -189,6 +191,58 @@ const ctaBtn = {
   cursor: "pointer",
   textDecoration: "none",
 };
+
+// The instrument decides which part of every song a student gets, and after signup only staff change it.
+// Saving clears their saved mixer settings, which belonged to the old instrument.
+function InstrumentControl({ student, onSaved }) {
+  const current = instruments.find((i) => i.name.toLowerCase() === (student.instrument || "").trim().toLowerCase())?.name || "";
+  const [value, setValue] = useState(current);
+  const [state, setState] = useState({ saving: false, message: "", error: false });
+  const id = `instrument-${student.id}`;
+
+  async function save() {
+    setState({ saving: true, message: "", error: false });
+    try {
+      const res = await fetch(`${API_URL}/admin/students/${student.id}/instrument`, {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ instrument: value || null }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+      setState({ saving: false, message: value ? `Now studying ${value}.` : "Instrument cleared.", error: false });
+      onSaved();
+    } catch (err) {
+      setState({ saving: false, message: err.message, error: true });
+    }
+  }
+
+  return (
+    <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, marginBottom: 14 }}>
+      <label htmlFor={id} style={{ fontWeight: 700 }}>
+        Instrument
+      </label>
+      <select id={id} value={value} onChange={(e) => setValue(e.target.value)} style={{ padding: "7px 10px", borderRadius: 8, border: "1px solid var(--rw-line)", fontSize: 13.5 }}>
+        <option value="">Not set</option>
+        {instruments.map((i) => (
+          <option key={i.name} value={i.name}>
+            {i.name}
+          </option>
+        ))}
+      </select>
+      <button onClick={save} disabled={state.saving || value === current} style={smallBtn}>
+        {state.saving ? "Saving…" : "Save instrument"}
+      </button>
+      {!current && student.instrument && <span style={{ color: "var(--rw-meta)" }}>On file: “{student.instrument}”, not one of the six.</span>}
+      {state.message && (
+        <span role={state.error ? "alert" : "status"} style={{ color: state.error ? "var(--rw-orange-deep)" : "var(--rw-teal)", fontWeight: 700 }}>
+          {state.message}
+        </span>
+      )}
+    </div>
+  );
+}
 
 const smallBtn = {
   padding: "7px 12px",

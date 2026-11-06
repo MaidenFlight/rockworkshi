@@ -12,11 +12,13 @@ const TICKS = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
 // input lies over it, so dragging, clicking, the keyboard and screen readers all work as they do
 // for any slider. Values are 0-100.
 // on: whether the channel is heard (lit lamp), separate from how loud its fader is.
-export default function Fader({ label, value, onChange, on = null, master = false, meter = null, status = null, format = (v) => `${v}%`, children }) {
+// disabled: the fader can't do anything right now (a play mode silences its channel). describedBy
+// points at the sentence saying why, so it never just looks broken.
+export default function Fader({ label, value, onChange, on = null, master = false, meter = null, status = null, format = (v) => `${v}%`, disabled = false, describedBy = undefined, children }) {
   const id = useId();
   const text = format(value);
   return (
-    <div className="rw-fader-strip" data-on={on === null ? undefined : on ? "true" : "false"}>
+    <div className="rw-fader-strip" data-on={on === null ? undefined : on ? "true" : "false"} data-disabled={disabled ? "true" : undefined}>
       <span aria-hidden="true" className="rw-fader-lamp" title={on === null ? undefined : on ? "Heard" : "Not heard"} />
       <div className="rw-fader-body">
         <div className="rw-fader" style={{ height: HEIGHT }}>
@@ -32,6 +34,8 @@ export default function Fader({ label, value, onChange, on = null, master = fals
             value={value}
             onChange={(e) => onChange(Number(e.target.value))}
             aria-valuetext={text}
+            disabled={disabled}
+            aria-describedby={describedBy}
           />
           <span aria-hidden="true" className="rw-fader-cap" data-master={master ? "true" : undefined} style={{ top: (1 - value / 100) * TRAVEL, height: CAP }} />
         </div>

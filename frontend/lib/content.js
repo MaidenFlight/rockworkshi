@@ -5,6 +5,7 @@ export const primaryNav = [
     menu: [
       { label: "Philosophy", href: "/about/philosophy" },
       { label: "History", href: "/about/history" },
+      { label: "Teachers", href: "/teachers" },
       { label: "Alumni", href: "/community/alumni" },
     ],
   },
@@ -24,8 +25,6 @@ export const primaryNav = [
     menu: [
       { label: "Individual Lessons", href: "/community/programs/individual-lessons" },
       { label: "Rock Band Program", href: "/community/programs/rock-band-program" },
-      { label: "School Program", href: "/community/programs/school-program" },
-      { label: "After-School Program", href: "/community/programs/after-school-program" },
     ],
   },
   { label: "Events", href: "/community/events" },
@@ -121,48 +120,16 @@ export const programs = [
     progress: "Most bands are stage-ready within 8–10 weeks.",
     ctaLabel: "Ask About Rock Band",
   },
-  {
-    slug: "school-program",
-    title: "School Program",
-    desc: "In-school music instruction Rock Works runs on-site during the school day.",
-    method:
-      "Rock Works partners with schools to run the same song-based curriculum on campus, in-class or during an elective period — no separate transportation or after-school scheduling needed for families.",
-    structureItems: [
-      "Weekly on-site lessons during the school day or an elective block",
-      "Same five-level, song-based curriculum as our studio program",
-      "Coordinated with school staff and schedules",
-      "Optional showcase at a school assembly or event",
-    ],
-    forWho: "Schools and families who want music instruction built into the school day.",
-    instruments: "Guitar, piano, bass, drums, voice, or ukulele, depending on the school's setup.",
-    format: "Weekly on-site group or individual sessions, arranged with the school.",
-    progress: "Tracks the standard curriculum pace — one song every 4–6 weeks per student.",
-    ctaLabel: "Ask About the School Program",
-  },
-  {
-    slug: "after-school-program",
-    title: "After-School Program",
-    desc: "Drop-in music lessons that fit right into an existing after-school routine.",
-    method:
-      "Students already staying for after-school care or activities join a Rock Works instructor on-site for their weekly lesson — no extra pickup or drop-off required.",
-    structureItems: [
-      "Weekly lesson slotted into the after-school block",
-      "Same five-level, song-based curriculum as our studio program",
-      "No additional transportation — lessons happen where kids already are",
-      "Regular progress updates sent home to families",
-    ],
-    forWho: "Families who want lessons to fit inside an existing after-school schedule.",
-    instruments: "Guitar, piano, bass, drums, voice, or ukulele, depending on the site's setup.",
-    format: "Weekly on-site lesson during after-school hours.",
-    progress: "Tracks the standard curriculum pace — one song every 4–6 weeks per student.",
-    ctaLabel: "Ask About the After-School Program",
-  },
+  // Rock Works teaches in person at its own school in Honolulu, and the member area serves everyone
+  // else online. A "School Program" and an "After-School Program" (lessons at other sites) were
+  // invented and removed on 2026-11-06.
 ];
 
 // The legal pages at /terms, /privacy and /refunds are deliberately NOT listed here yet.
 export const footerLinks = [
   { label: "About", href: "/about/philosophy" },
   { label: "Lessons", href: "/song-library" },
+  { label: "Teachers", href: "/teachers" },
   { label: "Practice Tools", href: "/tools" },
   { label: "FAQ", href: "/faq" },
   { label: "Contact", href: "/contact" },

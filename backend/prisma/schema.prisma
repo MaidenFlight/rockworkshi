@@ -295,6 +295,8 @@ model Song {
   updatedAt  DateTime @updatedAt
 
   tracks      SongTrack[]
+  mixes       SongMix[]
+  videos      LessonVideo[]
   assignments Assignment[]
   mixPresets  MixPreset[]
   practice    SongPractice[]
@@ -317,7 +319,7 @@ model SongTrack {
   songId String
   song   Song   @relation(fields: [songId], references: [id], onDelete: Cascade)
 
-  // "Vocals", "Guitar", "Keys", "Bass" or "Drums" (see PARTS in lib/songTracks.js)
+  // "Vocals", "Guitar", "Keys", "Bass", "Drums" or "Ukulele" (see PARTS in lib/songTracks.js)
   part String
 
   // Object key in the R2 bucket, not a URL: download URLs are signed and expire.
@@ -328,6 +330,27 @@ model SongTrack {
 
   @@unique([songId, part])
   @@index([songId])
+}
+
+// A track mixed ahead of time from a song's stems, so a student can play along without being sent
+// other instruments' stems one by one (lib/instrumentAccess.js). `without` names the stem left out:
+// "Guitar" is everything but the guitar, a guitar student's backing band. "" is every stem, the whole
+// song, for a student whose instrument has no stem in the recording. Made by songs:backing.
+model SongMix {
+  id         String   @id @default(uuid())
+  songId     String
+  song       Song     @relation(fields: [songId], references: [id], onDelete: Cascade)
+  without    String
+  // Object key in storage (R2, or MEDIA_DIR in development), not a URL.
+  storageKey String
+  // The mix was turned down by this much so it can't clip; the players turn it back up.
+  gain       Float
+  // Fingerprint of the stems it was made from (lib/songMixes.js). Once a stem is replaced the
+  // fingerprint no longer matches, and the mix isn't served until it's made again.
+  sources    String
+  createdAt  DateTime @default(now())
+
+  @@unique([songId, without])
 }
 
 model OnStagePost {
@@ -385,11 +408,15 @@ model Lesson {
   termGrants  TermGrant[]
 }
 
-// One video per (lesson, instrument, level, kind). Most slots start empty.
+// One video per (lesson or song, instrument, level, kind). Most slots start empty.
+// A row belongs to exactly one lesson or one song (a CHECK in the migration enforces it).
+// A song's videos are its tutorials, shown above the practice player.
 model LessonVideo {
-  id       String @id @default(uuid())
-  lessonId String
-  lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  id       String  @id @default(uuid())
+  lessonId String?
+  lesson   Lesson? @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  songId   String?
+  song     Song?   @relation(fields: [songId], references: [id], onDelete: Cascade)
 
   // must match User.instrument (see INSTRUMENTS in lib/lessonVideos.js)
   instrument String
@@ -410,6 +437,7 @@ model LessonVideo {
   updatedAt DateTime @updatedAt
 
   @@unique([lessonId, instrument, level, kind])
+  @@unique([songId, instrument, level, kind])
   @@index([lessonId])
 }
 

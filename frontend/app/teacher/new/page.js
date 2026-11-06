@@ -37,11 +37,11 @@ function NewAssignment() {
   const [end, setEnd] = useState("");
   const [instruction, setInstruction] = useState("");
 
-  // Defaults the instrument to the student's own.
+  // Work is set for the student's own instrument, the only part of a song they can open.
   function pickStudent(id, list = students) {
     setStudentId(id);
     const own = list?.find((s) => s.id === id)?.instrument;
-    if (own && instruments.some((i) => i.name === own)) setInstrument(own);
+    setInstrument(instruments.find((i) => i.name.toLowerCase() === (own || "").trim().toLowerCase())?.name || "");
   }
 
   useEffect(() => {
@@ -69,6 +69,10 @@ function NewAssignment() {
     const sectionEnd = kind === "song" ? parseClock(end) : null;
     if (Number.isNaN(sectionStart) || Number.isNaN(sectionEnd)) {
       setError("Write section times like 1:05.");
+      return;
+    }
+    if (!instrument) {
+      setError("This student has no instrument set yet. Ask the admin to set it first.");
       return;
     }
 
@@ -155,14 +159,8 @@ function NewAssignment() {
 
           <div style={{ display: "grid", gap: 18, gridTemplateColumns: "1fr 1fr" }}>
             <Field label="Instrument">
-              <select value={instrument} onChange={(e) => setInstrument(e.target.value)} required style={input}>
-                <option value="">Choose…</option>
-                {instruments.map((i) => (
-                  <option key={i.name} value={i.name}>
-                    {i.name}
-                  </option>
-                ))}
-              </select>
+              {/* Fixed to the student's own: students only open their instrument's part of a song. */}
+              <input value={instrument || (studentId ? "Not set: ask the admin to set it" : "Choose a student first")} readOnly aria-readonly="true" style={{ ...input, color: instrument ? undefined : "var(--rw-meta)" }} />
             </Field>
             <Field label="Level">
               <select value={level} onChange={(e) => setLevel(Number(e.target.value))} style={input}>

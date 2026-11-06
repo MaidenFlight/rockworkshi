@@ -381,3 +381,12 @@
     transform: translateY(6px);
   }
 }
+
+/* A field people never see, so only a bot fills it in (see the trial form). */
+.trap {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}

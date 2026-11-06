@@ -8,19 +8,28 @@ import { StemPlayer, TakeToSave, Track } from "@/components/StemPlayer";
 import { FavoriteButton } from "@/components/library/FavoriteButton";
 import { PracticeNotes } from "@/components/library/PracticeNotes";
 import { useAuth } from "@/context/auth";
-import { api, NetworkError } from "@/lib/api";
+import { api, ApiError, NetworkError } from "@/lib/api";
 import { Assignment, hasLoop } from "@/lib/assignments";
 import { Practice, Session } from "@/lib/library";
 import { saveTake } from "@/lib/takes";
 import { colors, fonts } from "@/lib/theme";
 
 type SongInfo = { id: string; title: string; artist: string | null; level: string | null };
-type SongTracks = { tracks: Track[]; myPart: string | null; mixLevel: number | null };
+// A student's scope is "instrument": just their own stem and a backing band (either may be missing).
+type SongTracks = {
+  tracks: Track[];
+  myPart: string | null;
+  mixLevel: number | null;
+  scope?: "all" | "instrument";
+  instrument?: string | null;
+};
 type Page = {
   song: SongInfo;
   practice: Practice;
   tracks: SongTracks | null; // null when the song has no stems yet, or they couldn't load
   tracksOffline: boolean;
+  // Why the server refused the tracks, e.g. the school hasn't set the student's instrument.
+  tracksRefused: string | null;
   assignment: Assignment | null;
   // From the server's term rules; when not allowed the stems are refused anyway.
   access: { allowed: boolean; message: string | null };
@@ -60,6 +69,10 @@ export default function SongPlayAlong() {
         practice: practice.value.practice,
         tracks: tracks.status === "fulfilled" ? tracks.value : null,
         tracksOffline: tracks.status === "rejected" && tracks.reason instanceof NetworkError,
+        tracksRefused:
+          tracks.status === "rejected" && tracks.reason instanceof ApiError && tracks.reason.status === 403
+            ? tracks.reason.message
+            : null,
         assignment: assignment.status === "fulfilled" ? (assignment.value?.assignment ?? null) : null,
         access: practice.value.access ?? { allowed: true, message: null },
       });
@@ -147,6 +160,14 @@ export default function SongPlayAlong() {
               <Text style={styles.lockTitle}>{page.access.message}</Text>
               <Text style={styles.meta}>Your term&apos;s songs open month by month. See Your term on the home screen.</Text>
             </View>
+          ) : tracks && !tracks.tracks.length ? (
+            // A student's part and backing band aren't ready yet. Nothing else is sent in their place.
+            <View style={styles.panel}>
+              <Text style={styles.meta}>
+                This song&apos;s practice tracks are still being prepared for your {tracks.instrument?.toLowerCase() || "instrument"}.
+                Check back soon, or pick another song from your library.
+              </Text>
+            </View>
           ) : tracks ? (
             <>
               {practice.session?.position && !loop ? (
@@ -155,6 +176,8 @@ export default function SongPlayAlong() {
               <StemPlayer
                 tracks={tracks.tracks}
                 myPart={tracks.myPart}
+                scope={tracks.scope}
+                instrument={tracks.instrument}
                 initialLoop={loop}
                 songId={song.id}
                 mixLevel={tracks.mixLevel}
@@ -176,6 +199,8 @@ export default function SongPlayAlong() {
                     <Text style={styles.buttonText}>Retry</Text>
                   </Pressable>
                 </>
+              ) : page.tracksRefused ? (
+                <Text style={styles.meta}>{page.tracksRefused}</Text>
               ) : (
                 <Text style={styles.meta}>This song&apos;s play-along is coming soon.</Text>
               )}

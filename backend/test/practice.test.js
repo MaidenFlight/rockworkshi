@@ -7,6 +7,7 @@ const assert = require("node:assert/strict");
 const { signMobileToken } = require("../src/lib/mobileToken");
 const app = require("../src/app");
 const prisma = require("../src/lib/prisma");
+const { isMediaConfigured } = require("../src/lib/media");
 
 const RUN = `practice-test-${Date.now()}`;
 let server;
@@ -27,13 +28,14 @@ async function call(who, method, path, body) {
   return { status: res.status, data: await res.json().catch(() => null) };
 }
 
+// A bass student's mixer: their own part and the backing band (lib/instrumentAccess.js).
 const mixer = {
   mode: "minus",
-  focus: "Guitar",
+  focus: "Bass",
   master: 80,
   take: 100,
   takeMuted: false,
-  stems: { Drums: { volume: 40, muted: false, soloed: false } },
+  stems: { Bass: { volume: 40, muted: false, soloed: false }, Backing: { volume: 90, muted: false, soloed: false } },
   effects: null,
 };
 
@@ -43,7 +45,7 @@ before(async () => {
   base = `http://localhost:${server.address().port}`;
   for (const name of ["a", "b", "unpaid"]) {
     users[name] = await prisma.user.create({
-      data: { email: `${RUN}-${name}@example.test`, passwordHash: "!no-login", ...(name === "unpaid" ? {} : { paidAt: new Date() }) },
+      data: { email: `${RUN}-${name}@example.test`, passwordHash: "!no-login", instrument: "Bass", ...(name === "unpaid" ? {} : { paidAt: new Date() }) },
     });
     tokens[name] = signMobileToken(users[name], "10m");
   }
@@ -218,8 +220,11 @@ test("chord charts are checked, and only reach members who can open the song", a
   assert.ok(listed, "listed publicly");
   assert.equal("chart" in listed, false, "no chart in the public list");
 
-  if (process.env.R2_BUCKET) {
-    assert.deepEqual((await call("a", "GET", `/songs/${songs.one.id}/tracks`)).data.chart, good);
+  if (isMediaConfigured()) {
+    // A bass student gets the shared form and chords; this chart has no bass part for them yet.
+    const mine = (await call("a", "GET", `/songs/${songs.one.id}/tracks`)).data;
+    assert.deepEqual(mine.chart, good);
+    assert.equal(mine.available.chart, false);
     assert.equal((await call("a", "GET", `/songs/${songs.two.id}/tracks`)).data.chart, null);
   }
 });

@@ -112,6 +112,14 @@ reached it in their term, or whose teacher assigned it, plus staff. Members who 
 in a term don't get term songs, including "Have You Ever Seen the Rain" once a term
 uses it. Songs in no term stay open to every paying member.
 
+**Each student practises only their own instrument** (enforced by the API in
+`backend/src/lib/instrumentAccess.js`; details in `docs/instrument-access.md`). Of a song they're
+entitled to under the rules above, a student gets their own stem plus one pre-mixed backing band of the
+other parts, the song's chords and form plus their own instrument's chart, and their own instrument's
+lesson videos. They play it three ways: the whole song, without their instrument, or their instrument
+alone. Staff keep every part. The instrument is the one the school has on file: chosen at signup, and
+after enrolment changed only by the admin (a student asks from Account settings).
+
 ## Capabilities and Constraints
 
 - **Six instruments, and the six names are load-bearing strings**: Guitar, Piano,
@@ -155,6 +163,16 @@ uses it. Songs in no term stay open to every paying member.
   band and get a chance to perform in Hawaii." Two claims, and the difference
   between them is load-bearing: joining a band is what *happens*, performing is
   a *chance*. Copy must not upgrade the second into a guarantee.
+- **Brian Albus runs Rock Works and is, so far, its only teacher.** Confirmed by the
+  user on 2026-11-05 ("the main guy of rock works and so far the only teacher").
+  `/teachers` lists him alone. His instruments, bio and photo are not on hand yet.
+- **Who Rock Works is for** (user, 2026-11-06): in-person classes happen at the
+  school in Honolulu, for students already signed up with it; anyone else uses
+  the member area purely online, from anywhere. Rock Works runs no lessons inside
+  other schools or at after-school sites.
+- **The site is still in testing**, with the goal of being fully live by the start
+  of 2027 (user, 2026-11-05). Trial requests are told to expect contact within the
+  next month or two. Update both when the school launches.
 
 **Not real. Placeholder content currently on a live site that takes payment.
 Future work must not repeat any of it as fact, and must not invent more:**
@@ -164,11 +182,16 @@ Future work must not repeat any of it as fact, and must not invent more:**
 - The statistics band — **96%** of families, **9 in 10** students still playing
   after five years — and its attribution to a "Rock Works Family Survey, 2026".
   No such survey is confirmed to exist.
-- The teacher profiles on `/teachers`.
+- A "School Program" of lessons run inside partner schools during the school day,
+  and an "After-School Program" of lessons at after-school care sites. Neither
+  exists, and both were removed from the site on 2026-11-06.
+- The three teacher profiles that were on `/teachers`: Kalani Akana, Maya Reyes and
+  Ben Torres. Gone from the seed; the live database keeps them until they're
+  deleted in Admin.
 
 **Absences to respect:** there are no confirmed customer quotes, no outcome data,
-and no confirmed staff roster. Where a design calls for proof, ask for it rather
-than writing it.
+and no confirmed staff roster beyond Brian Albus. Where a design calls for proof,
+ask for it rather than writing it.
 
 ## Product Principles
 

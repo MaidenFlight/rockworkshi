@@ -1,0 +1,777 @@
+/* The chord and scale library. Paper ground under a lacquer header; diagrams sit on tags. */
+
+.page {
+  max-width: var(--rw-measure-wide);
+  margin: 0 auto;
+  padding: var(--rw-space-6) var(--rw-space-5) 100px;
+}
+
+/* ---- Controls shared by every tab ---- */
+
+.label {
+  display: block;
+  margin: 0 0 var(--rw-space-3);
+  font-family: var(--rw-font-display);
+  font-weight: 700;
+  font-size: var(--rw-text-xs);
+  letter-spacing: var(--rw-track-eyebrow);
+  text-transform: uppercase;
+  color: var(--rw-teal);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--rw-space-2);
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 var(--rw-space-4);
+  border: 1px solid var(--rw-line);
+  border-radius: var(--rw-radius-sm);
+  background: var(--rw-surface);
+  color: var(--rw-ink);
+  font-family: var(--rw-font-display);
+  font-weight: 700;
+  font-size: var(--rw-text-md);
+  letter-spacing: 0.04em;
+  /* Not uppercased: chord symbols are case-sensitive (Am is A minor, AM would be A major). */
+  cursor: pointer;
+  transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+}
+
+.btn:hover {
+  border-color: var(--rw-ink);
+}
+
+.btn[aria-pressed="true"],
+.btn[aria-selected="true"] {
+  background: var(--rw-ink);
+  border-color: var(--rw-ink);
+  color: var(--rw-cream);
+}
+
+.btn:focus-visible,
+.tab:focus-visible,
+.link:focus-visible {
+  outline: 2px solid var(--rw-teal);
+  outline-offset: 2px;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.btnSmall {
+  font-size: var(--rw-text-base);
+  padding: 0 var(--rw-space-3);
+}
+
+/* The one solid red control on a tab: hearing the thing. */
+.play {
+  composes: btn;
+  background: var(--rw-orange);
+  border-color: var(--rw-orange);
+  color: #fff;
+  text-transform: uppercase;
+}
+
+.play:hover {
+  border-color: var(--rw-orange);
+  filter: brightness(1.04);
+}
+
+.play[aria-pressed="true"] {
+  background: var(--rw-ink);
+  border-color: var(--rw-ink);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rw-space-2);
+  align-items: center;
+}
+
+.group {
+  margin-bottom: var(--rw-space-5);
+}
+
+.groupName {
+  margin: 0 0 var(--rw-space-2);
+  font-size: var(--rw-text-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--rw-meta);
+}
+
+/* A two- or three-way switch for what the dots say. */
+.seg {
+  display: inline-flex;
+  flex-wrap: wrap;
+}
+
+.seg .btn {
+  border-radius: 0;
+  font-size: var(--rw-text-base);
+}
+
+.seg .btn + .btn {
+  border-left: 0;
+}
+
+.seg .btn:first-child {
+  border-radius: var(--rw-radius-sm) 0 0 var(--rw-radius-sm);
+}
+
+.seg .btn:last-child {
+  border-radius: 0 var(--rw-radius-sm) var(--rw-radius-sm) 0;
+}
+
+.link {
+  color: var(--rw-orange-deep);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1.5px;
+}
+
+.muted {
+  color: var(--rw-meta);
+  font-size: var(--rw-text-sm);
+}
+
+/* ---- Staff instrument switch and tabs ---- */
+
+.staffBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rw-space-3);
+  margin-bottom: var(--rw-space-5);
+  padding: var(--rw-space-3) var(--rw-space-4);
+  background: var(--rw-sand);
+  border: 1px solid var(--rw-border);
+}
+
+.staffBar p {
+  margin: 0;
+  flex: 1 1 220px;
+  font-size: var(--rw-text-sm);
+  color: var(--rw-body);
+}
+
+.tabs {
+  display: flex;
+  gap: var(--rw-space-1);
+  margin: 0 0 var(--rw-space-6);
+  border-bottom: 1px solid var(--rw-rule);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tab {
+  flex: none;
+  min-height: 48px;
+  padding: 0 var(--rw-space-4);
+  border: 0;
+  border-bottom: 4px solid transparent;
+  background: none;
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: var(--rw-text-xl);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--rw-meta);
+  cursor: pointer;
+  transition: color 0.16s ease, border-color 0.16s ease;
+}
+
+.tab:hover {
+  color: var(--rw-ink);
+}
+
+.tab[aria-selected="true"] {
+  color: var(--rw-ink);
+  border-bottom-color: var(--rw-flare);
+}
+
+/* ---- Pickers ---- */
+
+.start {
+  margin: 0 0 var(--rw-space-6);
+  padding: var(--rw-space-4) var(--rw-space-4) var(--rw-space-3);
+  background: var(--rw-sand);
+  border: 1px solid var(--rw-border);
+}
+
+.start .btn {
+  min-width: 56px;
+  font-size: var(--rw-text-xl);
+}
+
+.roots {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--rw-space-1);
+  margin-bottom: var(--rw-space-5);
+}
+
+.roots .btn {
+  padding: 0 2px;
+  font-size: var(--rw-text-lg);
+  min-width: 0;
+}
+
+.rootSub {
+  display: block;
+  font-size: var(--rw-text-2xs);
+  letter-spacing: 0.02em;
+  opacity: 0.8;
+}
+
+.types {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: var(--rw-space-4) var(--rw-space-5);
+  margin-bottom: var(--rw-space-6);
+}
+
+.types .group {
+  margin: 0;
+}
+
+.types .btn {
+  font-size: var(--rw-text-base);
+  text-transform: none;
+  letter-spacing: 0.01em;
+}
+
+/* ---- The chord or scale being shown ---- */
+
+.head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--rw-space-4) var(--rw-space-6);
+  align-items: start;
+  padding: var(--rw-space-5) 0;
+  border-top: 1px solid var(--rw-rule);
+  margin-bottom: var(--rw-space-5);
+}
+
+.name {
+  margin: 0;
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: var(--rw-text-4xl);
+  line-height: 0.95;
+  letter-spacing: var(--rw-track-poster);
+  text-transform: uppercase;
+  color: var(--rw-ink);
+}
+
+/* Chord symbols and numerals are case-sensitive, so they're never uppercased. */
+.asWritten {
+  text-transform: none;
+  letter-spacing: -0.01em;
+}
+
+.fullName {
+  margin: 6px 0 var(--rw-space-4);
+  font-size: var(--rw-text-md);
+  color: var(--rw-body);
+}
+
+.notes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rw-space-1);
+  margin: 0 0 var(--rw-space-4);
+  padding: 0;
+  list-style: none;
+}
+
+.note {
+  display: grid;
+  justify-items: center;
+  min-width: 52px;
+  padding: 6px 8px 5px;
+  background: var(--rw-surface);
+  border: 1px solid var(--rw-border);
+  border-top: 3px solid var(--rw-ink);
+}
+
+.noteRoot {
+  border-top-color: var(--rw-orange);
+}
+
+.noteName {
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: var(--rw-text-2xl);
+  line-height: 1;
+  color: var(--rw-ink);
+}
+
+.noteInterval {
+  font-size: var(--rw-text-xs);
+  font-weight: 700;
+  color: var(--rw-meta);
+}
+
+.about {
+  max-width: 62ch;
+  margin: 0 0 var(--rw-space-3);
+  font-size: var(--rw-text-base);
+  line-height: 1.6;
+  color: var(--rw-body);
+}
+
+.headSide {
+  display: grid;
+  gap: var(--rw-space-3);
+  justify-items: end;
+}
+
+/* "Played in": the songs on the site that use the chord or fit the scale. */
+.songs {
+  margin: var(--rw-space-4) 0 0;
+  padding: var(--rw-space-3) var(--rw-space-4);
+  background: var(--rw-sand);
+  border-left: 4px solid var(--rw-flare);
+  max-width: 62ch;
+}
+
+.songs p {
+  margin: 0;
+  font-size: var(--rw-text-base);
+  line-height: 1.55;
+  color: var(--rw-prose);
+}
+
+.songs p + p {
+  margin-top: 6px;
+}
+
+/* ---- Diagram cards ---- */
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: var(--rw-space-4);
+}
+
+.cardsWide {
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--rw-space-3);
+  padding: var(--rw-space-4) var(--rw-space-3) var(--rw-space-3);
+  background: var(--rw-surface);
+  border: 1px solid var(--rw-border);
+  border-top: 5px solid var(--rw-flare);
+  min-width: 0;
+}
+
+.cardTitle {
+  margin: 0;
+  align-self: stretch;
+  font-family: var(--rw-font-display);
+  font-weight: 700;
+  font-size: var(--rw-text-base);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--rw-ink);
+  text-align: center;
+}
+
+.cardMeta {
+  margin: 0;
+  font-size: var(--rw-text-xs);
+  color: var(--rw-meta);
+  text-align: center;
+}
+
+.scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.neck {
+  padding: var(--rw-space-4);
+  background: var(--rw-surface);
+  border: 1px solid var(--rw-border);
+  margin-bottom: var(--rw-space-4);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rw-space-4);
+  margin: var(--rw-space-3) 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--rw-text-xs);
+  color: var(--rw-meta);
+}
+
+.legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--rw-ink);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rw-space-3) var(--rw-space-5);
+  align-items: flex-end;
+  margin: 0 0 var(--rw-space-4);
+}
+
+.toolbar > div {
+  display: grid;
+  gap: 6px;
+}
+
+/* ---- Tables: keys, progressions, songs ---- */
+
+.keyGrid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--rw-space-1);
+  margin-bottom: var(--rw-space-6);
+}
+
+.degree {
+  display: grid;
+  gap: 2px;
+  justify-items: center;
+  padding: var(--rw-space-3) 4px;
+  min-height: 44px;
+  background: var(--rw-surface);
+  border: 1px solid var(--rw-border);
+  color: var(--rw-ink);
+  cursor: pointer;
+  font: inherit;
+  transition: border-color 0.16s ease;
+}
+
+.degree:hover {
+  border-color: var(--rw-ink);
+}
+
+.degree:focus-visible {
+  outline: 2px solid var(--rw-teal);
+  outline-offset: 2px;
+}
+
+.numeral {
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: var(--rw-text-xl);
+  color: var(--rw-orange-deep);
+}
+
+.degreeName {
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: var(--rw-text-2xl);
+  line-height: 1;
+}
+
+.list {
+  display: grid;
+  gap: var(--rw-space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  padding: var(--rw-space-4) var(--rw-space-5);
+  background: var(--rw-surface);
+  border: 1px solid var(--rw-border);
+  border-left: 5px solid var(--rw-flare);
+}
+
+.itemHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--rw-space-2) var(--rw-space-4);
+  margin-bottom: var(--rw-space-2);
+}
+
+.itemTitle {
+  margin: 0;
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: var(--rw-text-2xl);
+  line-height: 1.05;
+  text-transform: uppercase;
+  color: var(--rw-ink);
+}
+
+.chordChip {
+  composes: btn;
+  flex-direction: column;
+  gap: 0;
+  min-width: 56px;
+  padding: 4px 10px;
+  text-transform: none;
+}
+
+.chordChipName {
+  font-size: var(--rw-text-xl);
+  line-height: 1.05;
+}
+
+.chordChipSub {
+  font-family: var(--rw-font-body);
+  font-size: var(--rw-text-2xs);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--rw-meta);
+}
+
+.chordChip[aria-pressed="true"] .chordChipSub {
+  color: var(--rw-cream);
+}
+
+.bars {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--rw-space-1);
+  max-width: 560px;
+}
+
+.bar {
+  padding: var(--rw-space-2);
+  background: var(--rw-surface);
+  border: 1px solid var(--rw-border);
+  text-align: center;
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: var(--rw-text-lg);
+}
+
+.barNumeral {
+  display: block;
+  font-family: var(--rw-font-body);
+  font-size: var(--rw-text-2xs);
+  font-weight: 700;
+  color: var(--rw-meta);
+}
+
+.barLit {
+  background: var(--rw-ink);
+  color: var(--rw-cream);
+}
+
+.barLit .barNumeral {
+  color: var(--rw-cream);
+}
+
+/* ---- Drums ---- */
+
+.grid {
+  border-collapse: collapse;
+  font-size: var(--rw-text-xs);
+}
+
+.grid th {
+  padding: 0 var(--rw-space-3) 0 0;
+  text-align: right;
+  font-weight: 700;
+  color: var(--rw-body);
+  white-space: nowrap;
+}
+
+.grid td {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  text-align: center;
+  border: 1px solid var(--rw-rule);
+}
+
+.grid tr.counts td {
+  border: 0;
+  height: 26px;
+  color: var(--rw-meta);
+  font-weight: 700;
+}
+
+.grid td.beat {
+  border-left: 2px solid var(--rw-line);
+}
+
+.grid td.now {
+  background: var(--rw-sand);
+}
+
+.hit,
+.accent,
+.rest {
+  display: inline-block;
+}
+
+.hit {
+  width: 16px;
+  height: 16px;
+  background: var(--rw-ink);
+}
+
+.accent {
+  width: 22px;
+  height: 22px;
+  background: var(--rw-orange);
+}
+
+.rest {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--rw-line);
+}
+
+.stroke {
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: var(--rw-text-xl);
+  color: var(--rw-ink);
+}
+
+.strokeAccent {
+  color: var(--rw-orange-deep);
+}
+
+.grace {
+  font-family: var(--rw-font-body);
+  font-size: var(--rw-text-2xs);
+  font-weight: 700;
+  color: var(--rw-meta);
+  vertical-align: super;
+}
+
+.tempo {
+  display: flex;
+  align-items: center;
+  gap: var(--rw-space-3);
+  font-size: var(--rw-text-sm);
+  color: var(--rw-body);
+}
+
+.tempo input {
+  width: 180px;
+  accent-color: var(--rw-orange);
+}
+
+.tempoValue {
+  min-width: 70px;
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: var(--rw-text-xl);
+  font-variant-numeric: tabular-nums;
+  color: var(--rw-ink);
+}
+
+/* ---- States ---- */
+
+.notice {
+  max-width: 62ch;
+  padding: var(--rw-space-5);
+  background: var(--rw-sand);
+  border: 1px solid var(--rw-border);
+  border-top: 5px solid var(--rw-flare);
+}
+
+.notice h2 {
+  margin: 0 0 var(--rw-space-2);
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: var(--rw-text-2xl);
+  text-transform: uppercase;
+  color: var(--rw-ink);
+}
+
+.notice p {
+  margin: 0 0 var(--rw-space-3);
+  color: var(--rw-body);
+}
+
+.quizResult {
+  margin: var(--rw-space-3) 0 0;
+  font-weight: 700;
+  color: var(--rw-prose);
+}
+
+@media (max-width: 860px) {
+  .head {
+    grid-template-columns: 1fr;
+  }
+  .headSide {
+    justify-items: start;
+  }
+  .keyGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .roots {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+  .tab {
+    font-size: var(--rw-text-lg);
+    padding: 0 var(--rw-space-3);
+  }
+  .cards {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+  .cardsWide {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .page {
+    padding-left: var(--rw-space-4);
+    padding-right: var(--rw-space-4);
+  }
+  .name {
+    font-size: var(--rw-text-3xl);
+  }
+  .bars {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .tab,
+  .degree {
+    transition: none;
+  }
+}

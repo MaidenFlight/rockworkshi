@@ -120,7 +120,7 @@ export function SendAlert({ result }) {
     body = result.message || "Check the answers above and send again.";
   } else if (result.kind === "busy") {
     title = "That was a lot of sends at once.";
-    body = <>Wait a minute and try again. Your answers are still here.</>;
+    body = <>Wait a few minutes and try again. Your answers are still here.</>;
   } else if (result.kind === "offline") {
     title = "It didn’t send.";
     body = <>We couldn’t connect, so nothing reached the school. Check your connection and press send again. Your answers are still here.</>;

@@ -1,14 +1,11 @@
 // Rules shared by the teacher routes (/teacher) and the student routes (/assignments).
 const crypto = require("crypto");
-const { INSTRUMENTS, MAX_LEVEL } = require("./lessonVideos");
+const { INSTRUMENTS, MAX_LEVEL, LEVEL_NAMES } = require("./lessonVideos");
 const { isR2Configured, signedUrl, listObjects, deleteObject } = require("./r2");
 
 // User.role values. The admin isn't one of them: it's whoever has ADMIN_EMAIL.
 const ROLES = ["student", "teacher"];
 const STATUSES = ["assigned", "ready", "reviewed"];
-
-// Must match songLevels in frontend/lib/content.js.
-const LEVEL_NAMES = ["Sing-a-long", "Chords", "Scales & fills", "Melody", "Improv"];
 
 const MAX_INSTRUCTION = 500;
 const MAX_SECTION = 80;

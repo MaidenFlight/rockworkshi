@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import StemPlayer from "@/components/member/StemPlayer";
 import FavoriteButton from "@/components/member/library/FavoriteButton";
 import PracticeNotes from "@/components/member/library/PracticeNotes";
+import SongTutorials from "@/components/member/SongTutorials";
 import { NetworkError, practiceRequest } from "@/lib/practice";
 import { hasLoop, sendForReview } from "@/lib/teaching";
 
@@ -55,6 +56,8 @@ function SongPlayAlong() {
           ...practice.value,
           tracks: tracks.status === "fulfilled" ? tracks.value : null,
           tracksOffline: tracks.status === "rejected" && tracks.reason instanceof NetworkError,
+          // The school hasn't set this student's instrument, so there's no part to give them.
+          noInstrument: tracks.status === "rejected" && tracks.reason?.reason === "no_instrument",
           assignment: assignment.status === "fulfilled" && assignment.value?.assignment.song?.id === id ? assignment.value.assignment : null,
         });
         setFailure(null);
@@ -91,6 +94,7 @@ function SongPlayAlong() {
   }
 
   const { song, practice, tracks, assignment } = page;
+  const locked = page.access && !page.access.allowed;
   const backHref = assignment ? `/member/assignment/${assignment.id}` : "/member/library";
   const initialLoop = assignment && hasLoop(assignment) ? { start: assignment.sectionStart, end: assignment.sectionEnd } : null;
   // Resume state only goes back to the server when something changed, and at most every few seconds.
@@ -137,7 +141,10 @@ function SongPlayAlong() {
         </div>
       )}
 
-      {page.access && !page.access.allowed ? (
+      {/* A shut song gets the one explanation below, which covers its tutorials too. */}
+      {!locked && <SongTutorials songId={song.id} user={user} playerId="practice-player" playerBelow={Boolean(tracks?.tracks?.length)} />}
+
+      {locked ? (
         // The server refuses the stems too; this just explains why instead of a broken player.
         <div role="status" style={{ padding: 20, background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)", lineHeight: 1.55 }}>
           <strong style={{ color: "var(--rw-ink)" }}>{page.access.message}</strong>
@@ -148,8 +155,26 @@ function SongPlayAlong() {
             </Link>
           </div>
         </div>
+      ) : page.noInstrument ? (
+        // The server sends no stems or chart without an instrument; this says how to get one set.
+        <div role="status" style={statusBox}>
+          <strong style={{ color: "var(--rw-ink)" }}>Your account doesn&apos;t have an instrument yet.</strong>
+          <div style={{ marginTop: 6, color: "var(--rw-body)", fontSize: 14 }}>
+            Each song opens with the part for your instrument, and the school sets which one that is.{" "}
+            <Link href="/member/settings#instrument" style={{ color: "var(--rw-orange-deep)" }}>
+              Ask the school to set it
+            </Link>
+          </div>
+        </div>
+      ) : tracks && !tracks.tracks.length ? (
+        // A student's part and backing band aren't ready yet. Nothing else is sent in their place.
+        <div role="status" style={statusBox}>
+          <strong style={{ color: "var(--rw-ink)" }}>This song&apos;s practice tracks are still being prepared for your {tracks.instrument?.toLowerCase() || "instrument"}.</strong>
+          <div style={{ marginTop: 6, color: "var(--rw-body)", fontSize: 14 }}>Check back soon, or pick another song from your library.</div>
+        </div>
       ) : tracks ? (
-        <>
+        // The tutorials' "Go to practice player" lands here, clear of the sticky header.
+        <section id="practice-player" tabIndex={-1} aria-label="Practice player" style={{ scrollMarginTop: 96, outline: "none" }}>
           {practice.session?.position && !initialLoop ? (
             <p style={{ margin: "0 0 12px", fontSize: 13.5, color: "var(--rw-meta)", lineHeight: 1.55 }}>
               Opened where you left off. Press Play when you&apos;re ready.
@@ -158,6 +183,9 @@ function SongPlayAlong() {
           <StemPlayer
             tracks={tracks.tracks}
             myPart={tracks.myPart}
+            scope={tracks.scope}
+            instrument={tracks.instrument}
+            available={tracks.available}
             title={song.title}
             songId={song.id}
             mixLevel={tracks.mixLevel}
@@ -174,7 +202,7 @@ function SongPlayAlong() {
                 : null
             }
           />
-        </>
+        </section>
       ) : (
         <div style={{ padding: 20, background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)" }}>
           {page.tracksOffline ? (
@@ -196,6 +224,8 @@ function SongPlayAlong() {
     </div>
   );
 }
+
+const statusBox = { padding: 20, background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)", lineHeight: 1.55 };
 
 const retryButton = {
   padding: "5px 12px",

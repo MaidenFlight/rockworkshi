@@ -1,0 +1,338 @@
+/* The song page's video tutorials (SongTutorials.js): a tag (surface, edge, flare rule, square), so it
+   reads apart from the lacquer console under it and from the player's warm first-visit note. */
+
+.tutorials {
+  margin: 0 0 var(--rw-space-5);
+  padding: 20px 24px 24px;
+  background: var(--rw-surface);
+  border: 1px solid var(--rw-border);
+  border-top: 5px solid var(--rw-flare);
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rw-space-2) var(--rw-space-3);
+  margin-bottom: var(--rw-space-4);
+}
+
+.mark {
+  display: inline-flex;
+  color: var(--rw-ink);
+}
+
+.title {
+  margin: 0;
+  font-weight: 800;
+  font-size: var(--rw-text-xl);
+  line-height: 1.05;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--rw-ink);
+}
+
+.headEnd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rw-space-2) var(--rw-space-3);
+  margin-left: auto;
+}
+
+.previewAs {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rw-space-2);
+  font-size: var(--rw-text-xs);
+  color: var(--rw-meta);
+}
+
+.select {
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid var(--rw-line);
+  border-radius: var(--rw-radius-field);
+  background: #fff;
+  color: var(--rw-ink);
+  font: inherit;
+  font-size: var(--rw-text-sm);
+}
+
+/* ---- One panel per state: coming soon, no instrument, failed, no access ---- */
+
+.state {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--rw-space-4) var(--rw-space-6);
+}
+
+.soon {
+  margin: 0 0 6px;
+  font-weight: 800;
+  font-size: var(--rw-text-4xl);
+  line-height: 0.95;
+  letter-spacing: var(--rw-track-poster);
+  text-transform: uppercase;
+  color: var(--rw-ink);
+}
+
+.problem {
+  margin: 0 0 6px;
+  font-weight: 800;
+  font-size: var(--rw-text-2xl);
+  line-height: 1.02;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--rw-orange-deep);
+}
+
+.line {
+  margin: 0;
+  max-width: 62ch;
+  font-size: var(--rw-text-base);
+  line-height: 1.6;
+  color: var(--rw-body);
+}
+
+.strong {
+  color: var(--rw-ink);
+}
+
+.link {
+  color: var(--rw-orange-deep);
+}
+
+.quiet {
+  margin: 0;
+  font-size: var(--rw-text-sm);
+  color: var(--rw-meta);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rw-space-2);
+}
+
+/* Buttons and the player link keep the 44px floor. */
+.action {
+  min-height: 44px;
+}
+
+.down {
+  display: inline-flex;
+  transform: rotate(-90deg);
+}
+
+/* ---- Published videos: one player beside the five levels ---- */
+
+.videos {
+  display: grid;
+  grid-template-columns: minmax(0, 640px) minmax(260px, 1fr);
+  gap: var(--rw-space-5) var(--rw-space-6);
+  align-items: start;
+}
+
+.stage {
+  margin: 0;
+}
+
+.frame {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: var(--rw-ink-deep);
+}
+
+.video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--rw-ink-deep);
+}
+
+.cantPlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: var(--rw-space-2);
+  padding: var(--rw-space-5);
+  background: var(--rw-console);
+  color: var(--rw-console-text);
+}
+
+.cantPlayHead {
+  margin: 0;
+  font-weight: 800;
+  font-size: var(--rw-text-2xl);
+  line-height: 1.02;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--rw-console-text);
+}
+
+.cantPlayLine {
+  margin: 0 0 var(--rw-space-2);
+  font-size: var(--rw-text-base);
+  color: var(--rw-console-meta);
+}
+
+.caption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rw-space-2) var(--rw-space-3);
+  margin-top: var(--rw-space-3);
+  font-size: var(--rw-text-base);
+  font-weight: 700;
+  color: var(--rw-ink);
+}
+
+/* Lesson and playthrough read apart by name first; the fill only backs that up. */
+.kind {
+  padding: 4px 8px 3px;
+  border: 1px solid var(--rw-ink);
+  font-size: var(--rw-text-2xs);
+  letter-spacing: var(--rw-track-eyebrow);
+  text-transform: uppercase;
+  color: var(--rw-ink);
+}
+
+.kind[data-kind="playthrough"] {
+  background: var(--rw-ink);
+  color: var(--rw-cream);
+}
+
+.levels {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--rw-rule);
+}
+
+.level {
+  display: flex;
+  align-items: center;
+  gap: var(--rw-space-3);
+  min-height: 56px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--rw-rule);
+}
+
+.levelN {
+  flex: 0 0 26px;
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: var(--rw-text-2xl);
+  line-height: 1;
+  text-align: center;
+  color: var(--rw-ink);
+}
+
+.levelName {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--rw-text-base);
+  font-weight: 700;
+  color: var(--rw-ink);
+}
+
+.choices {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.choice {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--rw-line);
+  border-radius: var(--rw-radius-sm);
+  background: #fff;
+  color: var(--rw-ink);
+  font: inherit;
+  font-size: var(--rw-text-sm);
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease;
+}
+
+.choice:hover {
+  border-color: var(--rw-ink);
+}
+
+.choice[aria-pressed="true"] {
+  border-color: var(--rw-ink);
+  background: var(--rw-ink);
+  color: var(--rw-cream);
+}
+
+.choice:focus-visible {
+  outline: 2px solid var(--rw-teal);
+  outline-offset: 2px;
+}
+
+/* A level with nothing published yet: listed, but quieter and shorter. Nothing in it is a control. */
+.pending {
+  min-height: 40px;
+}
+
+.pending .levelN,
+.pending .levelName {
+  color: var(--rw-meta);
+}
+
+.pending .levelName {
+  font-size: var(--rw-text-sm);
+  font-weight: 400;
+}
+
+.soonTag {
+  font-size: var(--rw-text-2xs);
+  font-weight: 700;
+  letter-spacing: var(--rw-track-eyebrow);
+  text-transform: uppercase;
+  color: var(--rw-meta);
+}
+
+@media (max-width: 860px) {
+  .videos {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .tutorials {
+    padding: 16px 16px 20px;
+  }
+
+  .soon {
+    font-size: var(--rw-text-3xl);
+    letter-spacing: 0.01em;
+  }
+
+  .headEnd {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  /* Full-width targets on a phone. */
+  .state > .action,
+  .actions,
+  .actions > .action,
+  .headEnd > .action {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .choice {
+    transition: none;
+  }
+}

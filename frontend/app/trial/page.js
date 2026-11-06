@@ -22,6 +22,7 @@ const EMPTY = {
   instrument: INSTRUMENT_NAMES[0],
   experience: EXPERIENCE[0].value,
   goals: "",
+  website: "",
 };
 
 function validate(form) {
@@ -217,6 +218,19 @@ export default function BookATrial() {
                 </Field>
               </fieldset>
 
+              {/* People never see this field. Bots fill in every field they find, which is how the API tells them apart. */}
+              <div className={f.trap} aria-hidden="true">
+                <label htmlFor="trial-website">Leave this empty</label>
+                <input
+                  id="trial-website"
+                  name="website"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={form.website}
+                  onChange={(e) => set("website", e.target.value)}
+                />
+              </div>
+
               <SendAlert result={result} />
 
               <div className={f.actions}>
@@ -249,6 +263,9 @@ function Done({ sent, headingRef }) {
           </>
         ) : null}{" "}
         to find a time that works.
+      </p>
+      <p className={f.doneBody}>
+        <T k="trial.done.testing">The website is still in its testing stage, so it may be a month or two before you hear from us.</T>
       </p>
       <p className={f.doneBody}>
         <T k="trial.done.nothing">There&apos;s nothing to pay and nothing else to do until then.</T>

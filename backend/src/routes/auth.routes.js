@@ -1,4 +1,5 @@
 const { rolesOf } = require("../lib/roles");
+const { canonicalInstrument, instrumentLocked } = require("../lib/instrumentAccess");
 const express = require("express");
 const bcrypt = require("bcrypt");
 const rateLimit = require("express-rate-limit").default;
@@ -71,7 +72,9 @@ function toSafeUser(user) {
     isTeacher,
     isGuardian,
     emailVerified: Boolean(user.emailVerifiedAt),
-    profileComplete: guardianOnly || Boolean(user.instrument),
+    // Someone who has already paid is past onboarding even without a valid instrument: they can't pick
+    // one themselves any more (PATCH /me), so the member area shows how to get the school to set it.
+    profileComplete: guardianOnly || Boolean(user.instrument) || Boolean(user.paidAt),
     // Teachers are staff and don't buy a membership (see requirePaid).
     paymentComplete: guardianOnly || isAdmin || isTeacher || Boolean(user.paidAt),
   };
@@ -119,6 +122,16 @@ function collectProfileFields(body) {
   return data;
 }
 
+const INSTRUMENT_CHOICES = "Choose Guitar, Piano, Bass, Drums, Voice or Ukulele.";
+
+// The instrument decides which part of every song a student gets (lib/instrumentAccess.js), so it's
+// only ever stored as one of the six names. Returns { value } (the name, or null to leave it unset) or { error }.
+function cleanInstrument(value) {
+  if (value === "" || value === null) return { value: null };
+  const instrument = canonicalInstrument(value);
+  return instrument ? { value: instrument } : { error: INSTRUMENT_CHOICES };
+}
+
 router.post("/signup", async (req, res, next) => {
   const email = (req.body.email || "").trim().toLowerCase();
   const { password } = req.body;
@@ -137,6 +150,11 @@ router.post("/signup", async (req, res, next) => {
   }
   if (profile.isMinor && (!profile.sponsorName || !profile.sponsorEmail)) {
     return res.status(400).json({ error: "A sponsor name and email are required for a minor." });
+  }
+  if (profile.instrument !== undefined) {
+    const { error, value } = cleanInstrument(profile.instrument);
+    if (error) return res.status(400).json({ error });
+    profile.instrument = value;
   }
 
   try {
@@ -206,11 +224,30 @@ router.get("/me", (req, res) => {
   return res.json({ user: toSafeUser(req.user) });
 });
 
+// Students choose their instrument while signing up and onboarding. Once enrolled it's the school's
+// to change (PUT /admin/students/:id/instrument; a student asks with POST /me/instrument-request),
+// because it decides which part of every song they get.
 router.patch("/me", requireAuth, async (req, res, next) => {
   const data = collectProfileFields(req.body);
 
   try {
-    const user = await prisma.user.update({ where: { id: req.user.id }, data });
+    if (data.instrument !== undefined) {
+      const { error, value } = cleanInstrument(data.instrument);
+      if (error) return res.status(400).json({ error });
+      if (value === canonicalInstrument(req.user.instrument)) {
+        delete data.instrument; // unchanged: saving the rest of the form is fine
+      } else if (await instrumentLocked(req.user)) {
+        return res.status(403).json({
+          error: "Your instrument is set by the school. Ask us to change it from your account settings.",
+          reason: "instrument_locked",
+        });
+      } else {
+        data.instrument = value;
+      }
+    }
+
+    // With its roles, or the saved copy would drop a granted teacher or admin role until the next sign-in.
+    const user = await prisma.user.update({ where: { id: req.user.id }, data, include: { roles: true } });
     return res.json({ user: toSafeUser(user) });
   } catch (err) {
     next(err);
