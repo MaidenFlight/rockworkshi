@@ -93,6 +93,25 @@ test("local times survive daylight-saving changes", () => {
   }
 });
 
+test("the guardian invite email can't carry HTML or headers from a student's name", () => {
+  const { renderGuardianInvite } = require("../src/lib/mailer");
+  const name = 'Sam</h1><a href="https://evil.example/login">Sign in here</a>\r\nBcc: someone@example.test';
+  const mail = renderGuardianInvite({ studentName: name, link: "https://rockworks.example/family/accept?token=abc" });
+  assert.ok(!mail.html.includes('<a href="https://evil.example'), "the student's link isn't live HTML");
+  assert.ok(mail.html.includes("Sam&lt;/h1&gt;&lt;a href=&quot;https://evil.example/login&quot;&gt;"), "it shows as text");
+  assert.ok(mail.html.includes('<a href="https://rockworks.example/family/accept?token=abc"'), "the real button still works");
+  assert.ok(!/[\r\n]/.test(mail.subject), "one line");
+  assert.ok(mail.subject.length < 140, "and short");
+});
+
+test("names and other profile fields are capped when saved", async () => {
+  const long = "x".repeat(500);
+  assert.equal((await call("ben", "PATCH", "/auth/me", { name: long, sponsorName: long })).status, 200);
+  const saved = await prisma.user.findUnique({ where: { id: users.ben.id } });
+  assert.equal(saved.name.length, 200);
+  assert.equal(saved.sponsorName.length, 200);
+});
+
 test("monthly classes skip months without that day", () => {
   assert.deepEqual(sessionDates({ repeat: "monthly", firstDate: "2027-01-31", repeatUntil: "2027-05-31" }), ["2027-01-31", "2027-03-31", "2027-05-31"]);
 });

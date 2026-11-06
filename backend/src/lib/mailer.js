@@ -93,14 +93,22 @@ async function sendMail({ to, subject, text, html }) {
   return { delivered: true, kind };
 }
 
+// Anything a person typed (a student's name, say) must go through this before it reaches HTML.
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+}
+
+// heading, lines and the button are plain text and are escaped here. footer is trusted HTML
+// written in this file (it may hold a mailto link), so never put anything a user typed in it.
 function layout({ heading, lines, button, footer }) {
   // Tables + inline styles for email client support.
   const body = lines
     .map(
       (line) =>
-        `<p style="margin:0 0 14px;font-size:15px;line-height:1.6;color:#33454f;">${line}</p>`
+        `<p style="margin:0 0 14px;font-size:15px;line-height:1.6;color:#33454f;">${escapeHtml(line)}</p>`
     )
     .join("");
+  const href = button ? escapeHtml(button.href) : "";
 
   return `<!doctype html>
 <html>
@@ -117,16 +125,16 @@ function layout({ heading, lines, button, footer }) {
             </tr>
             <tr>
               <td style="padding:32px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-                <h1 style="margin:0 0 16px;font-family:Georgia,'Times New Roman',serif;font-size:24px;font-weight:600;color:#0a2338;">${heading}</h1>
+                <h1 style="margin:0 0 16px;font-family:Georgia,'Times New Roman',serif;font-size:24px;font-weight:600;color:#0a2338;">${escapeHtml(heading)}</h1>
                 ${body}
                 ${
                   button
                     ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0 8px;">
                          <tr><td style="border-radius:999px;background:#ef5130;">
-                           <a href="${button.href}" style="display:inline-block;padding:14px 30px;font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:999px;">${button.label}</a>
+                           <a href="${href}" style="display:inline-block;padding:14px 30px;font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:999px;">${escapeHtml(button.label)}</a>
                          </td></tr>
                        </table>
-                       <p style="margin:16px 0 0;font-size:12.5px;line-height:1.55;color:#8a7d6a;">If the button doesn't work, paste this into your browser:<br><a href="${button.href}" style="color:#0e8a97;word-break:break-all;">${button.href}</a></p>`
+                       <p style="margin:16px 0 0;font-size:12.5px;line-height:1.55;color:#8a7d6a;">If the button doesn't work, paste this into your browser:<br><a href="${href}" style="color:#0e8a97;word-break:break-all;">${href}</a></p>`
                     : ""
                 }
                 ${
@@ -223,13 +231,14 @@ function passwordChangedEmail({ to }) {
   });
 }
 
-// An admin invites a parent or guardian to follow a student's classes and work.
-function guardianInviteEmail({ to, studentName, link }) {
-  return sendMail({
-    to,
-    subject: "You're invited to follow " + studentName + " at Rock Works",
+// An admin invites a parent or guardian to follow a student's classes and work. The student chose
+// their own name, so it's kept to one short line here and escaped by layout() in the HTML.
+function renderGuardianInvite({ studentName, link }) {
+  const name = String(studentName || "your student").replace(/[\u0000-\u001f\u007f]+/g, " ").trim().slice(0, 80) || "your student";
+  return {
+    subject: "You're invited to follow " + name + " at Rock Works",
     text: [
-      "Rock Works School of Music has invited you to follow " + studentName + "'s classes, practice work and feedback.",
+      "Rock Works School of Music has invited you to follow " + name + "'s classes, practice work and feedback.",
       "",
       "Accept the invitation here:",
       link,
@@ -237,18 +246,24 @@ function guardianInviteEmail({ to, studentName, link }) {
       "The link is good for 7 days. If you weren't expecting this, ignore this email.",
     ].join("\n"),
     html: layout({
-      heading: "Follow " + studentName + " at Rock Works",
+      heading: "Follow " + name + " at Rock Works",
       lines: [
-        "Rock Works School of Music has invited you to follow " + studentName + "'s classes, practice work and teacher feedback.",
+        "Rock Works School of Music has invited you to follow " + name + "'s classes, practice work and teacher feedback.",
         "You'll also be the one who gives or withdraws consent for what the school keeps about them.",
       ],
       button: { href: link, label: "Accept the invitation" },
       footer: "This link is good for 7 days. If you weren't expecting this, you can ignore this email.",
     }),
-  });
+  };
+}
+
+function guardianInviteEmail({ to, studentName, link }) {
+  return sendMail({ to, ...renderGuardianInvite({ studentName, link }) });
 }
 
 module.exports = {
+  escapeHtml,
+  renderGuardianInvite,
   guardianInviteEmail,
   sendMail,
   verificationEmail,

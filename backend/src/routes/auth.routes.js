@@ -107,10 +107,13 @@ const PROFILE_STRING_FIELDS = [
   "plan",
 ];
 
+// Long enough for any real name, address or phone number; longer is not one.
+const MAX_PROFILE_FIELD = 200;
+
 function collectProfileFields(body) {
   const data = {};
   for (const key of PROFILE_STRING_FIELDS) {
-    if (typeof body[key] === "string") data[key] = body[key].trim();
+    if (typeof body[key] === "string") data[key] = body[key].trim().slice(0, MAX_PROFILE_FIELD);
   }
   if (typeof body.isMinor === "boolean") data.isMinor = body.isMinor;
   return data;
