@@ -1,3 +1,4 @@
+const { rolesOf } = require("../lib/roles");
 const express = require("express");
 const bcrypt = require("bcrypt");
 const rateLimit = require("express-rate-limit").default;
@@ -54,21 +55,25 @@ async function sendVerificationLink(req, user, token) {
   }
 }
 
-const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || "").trim().toLowerCase();
-
 function toSafeUser(user) {
   if (!user) return null;
-  const { passwordHash, verificationTokenHash, resetTokenHash, ...safe } = user;
-  const isAdmin = Boolean(ADMIN_EMAIL) && user.email === ADMIN_EMAIL;
-  const isTeacher = user.role === "teacher";
+  const { passwordHash, verificationTokenHash, resetTokenHash, roles: grants, ...safe } = user;
+  const roles = rolesOf(user);
+  const isAdmin = roles.includes("admin");
+  const isTeacher = roles.includes("teacher");
+  const isGuardian = roles.includes("guardian");
+  // A guardian who isn't also a student follows their child; they don't enrol or pay.
+  const guardianOnly = user.role === "guardian";
   return {
     ...safe,
+    roles,
     isAdmin,
     isTeacher,
+    isGuardian,
     emailVerified: Boolean(user.emailVerifiedAt),
-    profileComplete: Boolean(user.instrument),
+    profileComplete: guardianOnly || Boolean(user.instrument),
     // Teachers are staff and don't buy a membership (see requirePaid).
-    paymentComplete: isAdmin || isTeacher || Boolean(user.paidAt),
+    paymentComplete: guardianOnly || isAdmin || isTeacher || Boolean(user.paidAt),
   };
 }
 
@@ -80,7 +85,8 @@ function nextStepFor(user) {
   if (!safe.emailVerified) return "/verify-email";
   if (!safe.profileComplete) return "/onboarding";
   if (!safe.paymentComplete) return "/onboarding/payment";
-  return safe.isTeacher ? "/teacher" : "/member";
+  if (safe.isTeacher) return "/teacher";
+  return safe.role === "guardian" ? "/family" : "/member";
 }
 
 function isEmailValid(email) {

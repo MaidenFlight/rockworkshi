@@ -13,6 +13,8 @@ const teacherRoutes = require("./routes/teacher.routes");
 const assignmentsRoutes = require("./routes/assignments.routes");
 const libraryRoutes = require("./routes/library.routes");
 const termRoutes = require("./routes/terms.routes");
+const classRoutes = require("./routes/classes.routes");
+const peopleRoutes = require("./routes/people.routes");
 const { router: billingRoutes, stripeWebhook } = require("./routes/billing.routes");
 
 const app = express();
@@ -74,11 +76,18 @@ app.get("/health", (req, res) => res.json({ ok: true }));
 app.use("/auth", authRoutes);
 // Before /admin so the terms router handles its own paths.
 app.use("/admin/terms", termRoutes.admin);
+app.use("/admin/classes", classRoutes.admin);
+app.use("/admin", peopleRoutes.admin);
 app.use("/admin", adminRoutes);
 app.use("/lessons", lessonsRoutes);
 app.use("/billing", billingRoutes);
 app.use("/songs", songsRoutes);
+app.use("/teacher", classRoutes.teacher);
+app.use("/teacher", peopleRoutes.teacher);
 app.use("/teacher", teacherRoutes);
+app.use("/me", peopleRoutes.me);
+app.use("/family", peopleRoutes.family);
+app.use("/calendar", classRoutes.calendar);
 app.use("/assignments", assignmentsRoutes);
 app.use("/library", libraryRoutes);
 app.use("/term", termRoutes.student);

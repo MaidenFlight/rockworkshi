@@ -5,6 +5,7 @@ const { requireAdmin } = require("../middleware/auth");
 const { validateSlot } = require("../lib/lessonVideos");
 const { ROLES, deleteAssignmentRecordings } = require("../lib/assignments");
 
+const { audit } = require("../lib/audit");
 const router = express.Router();
 router.use(requireAdmin);
 
@@ -139,10 +140,14 @@ router.patch("/students/:id/role", async (req, res) => {
   if (!user) return res.status(404).json({ error: "Not found." });
 
   // Someone who stops teaching loses their students. Their assignments stay as history.
+  // The teacher role in UserRole follows, so both ways of granting it agree.
   const [updated] = await prisma.$transaction([
     prisma.user.update({ where: { id: user.id }, data: { role } }),
-    ...(role === "teacher" ? [] : [prisma.teacherStudent.deleteMany({ where: { teacherId: user.id } })]),
+    ...(role === "teacher"
+      ? [prisma.userRole.upsert({ where: { userId_role: { userId: user.id, role: "teacher" } }, create: { userId: user.id, role: "teacher", grantedBy: req.user.id }, update: {} })]
+      : [prisma.teacherStudent.deleteMany({ where: { teacherId: user.id } }), prisma.userRole.deleteMany({ where: { userId: user.id, role: "teacher" } })]),
   ]);
+  await audit(req.user, "role.set", "user", user.id, { role });
   res.json({ student: toSafeUser(updated) });
 });
 

@@ -223,7 +223,33 @@ function passwordChangedEmail({ to }) {
   });
 }
 
+// An admin invites a parent or guardian to follow a student's classes and work.
+function guardianInviteEmail({ to, studentName, link }) {
+  return sendMail({
+    to,
+    subject: "You're invited to follow " + studentName + " at Rock Works",
+    text: [
+      "Rock Works School of Music has invited you to follow " + studentName + "'s classes, practice work and feedback.",
+      "",
+      "Accept the invitation here:",
+      link,
+      "",
+      "The link is good for 7 days. If you weren't expecting this, ignore this email.",
+    ].join("\n"),
+    html: layout({
+      heading: "Follow " + studentName + " at Rock Works",
+      lines: [
+        "Rock Works School of Music has invited you to follow " + studentName + "'s classes, practice work and teacher feedback.",
+        "You'll also be the one who gives or withdraws consent for what the school keeps about them.",
+      ],
+      button: { href: link, label: "Accept the invitation" },
+      footer: "This link is good for 7 days. If you weren't expecting this, you can ignore this email.",
+    }),
+  });
+}
+
 module.exports = {
+  guardianInviteEmail,
   sendMail,
   verificationEmail,
   passwordResetEmail,

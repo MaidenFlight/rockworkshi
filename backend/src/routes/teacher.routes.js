@@ -33,9 +33,21 @@ async function findOwnAssignment(req, id, include = ASSIGNMENT_INCLUDE) {
 }
 
 router.get("/students", async (req, res) => {
+  const search = typeof req.query.search === "string" ? req.query.search.trim() : "";
+  const instrument = typeof req.query.instrument === "string" ? req.query.instrument : "";
   const links = await prisma.teacherStudent.findMany({
-    where: { teacherId: req.user.id },
-    include: { student: { select: { id: true, name: true, instrument: true, level: true } } },
+    where: {
+      teacherId: req.user.id,
+      student: {
+        ...(search ? { name: { contains: search, mode: "insensitive" } } : {}),
+        ...(instrument ? { OR: [{ instrument }, { instruments: { some: { instrument } } }] } : {}),
+      },
+    },
+    include: {
+      student: {
+        select: { id: true, name: true, instrument: true, level: true, instruments: { select: { instrument: true, primary: true, selfLevel: true, teacherLevel: true } } },
+      },
+    },
   });
   const counts = await prisma.assignment.groupBy({
     by: ["studentId", "status"],

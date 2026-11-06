@@ -15,7 +15,7 @@
 const prisma = require("./prisma");
 const clock = require("./clock");
 
-const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || "").trim().toLowerCase();
+const { isAdmin, isTeacher } = require("./roles");
 
 // Signed links for term-managed songs last this long instead of the usual hour, so a link
 // handed out just before staff unpublish a month or remove a student stops working soon after.
@@ -23,7 +23,7 @@ const TERM_LINK_SECONDS = 10 * 60;
 const DEFAULT_LINK_SECONDS = 60 * 60;
 
 function isStaff(user) {
-  return Boolean(user) && ((Boolean(ADMIN_EMAIL) && user.email === ADMIN_EMAIL) || user.role === "teacher");
+  return Boolean(user) && (isAdmin(user) || isTeacher(user));
 }
 
 function isOpen(slot, now) {

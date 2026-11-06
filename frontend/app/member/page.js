@@ -5,6 +5,7 @@ import Link from "next/link";
 import { API_URL } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import TeacherWork from "@/components/member/TeacherWork";
+import UpcomingClasses from "@/components/member/UpcomingClasses";
 import YourTerm from "@/components/member/YourTerm";
 import { practiceRequest } from "@/lib/practice";
 
@@ -50,6 +51,8 @@ export default function MemberDashboard() {
         Welcome back{user?.name ? `, ${user.name}` : ""}
       </h1>
       <p style={{ color: "var(--rw-body)", marginBottom: 24 }}>Pick up where you left off, or grab a practice tool.</p>
+
+      <UpcomingClasses />
 
       <YourTerm continueItem={library?.continue ?? null} />
 

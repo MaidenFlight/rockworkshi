@@ -11,7 +11,8 @@ export function nextEnrolmentStep(user) {
 
 export function dashboardFor(user) {
   if (user?.isAdmin) return "/admin";
-  return user?.role === "teacher" ? "/teacher" : "/member";
+  if (user?.isTeacher || user?.role === "teacher") return "/teacher";
+  return user?.role === "guardian" ? "/family" : "/member";
 }
 
 // Where to send someone right after they sign in or finish a step.

@@ -14,21 +14,19 @@ datasource db {
 model User {
   id String @id @default(uuid())
 
-
   email        String @unique
   passwordHash String
 
   // null until the email is confirmed
-  emailVerifiedAt DateTime?
+  emailVerifiedAt       DateTime?
   // token fields store a sha-256 hash, not the token
   verificationTokenHash String?
   verificationSentAt    DateTime?
   verificationExpiresAt DateTime?
 
-
-  resetTokenHash  String?
-  resetSentAt     DateTime?
-  resetExpiresAt  DateTime?
+  resetTokenHash String?
+  resetSentAt    DateTime?
+  resetExpiresAt DateTime?
 
   createdAt DateTime @default(now())
 
@@ -75,6 +73,19 @@ model User {
   // Teaching groups. Set by staff only; paying for a plan never adds one.
   termEnrollments TermEnrollment[]
   termGrants      TermGrant[]
+
+  // Phase 1: roles beyond User.role, the student's own profile, classes and guardians.
+  roles           UserRole[]
+  profile         StudentProfile?
+  instruments     InstrumentSkill[]
+  availability    Availability[]
+  classesTaught   Class[]           @relation("ClassTeacher")
+  classEnrolments ClassEnrollment[]
+  attendance      Attendance[]
+  consents        ConsentRecord[]   @relation("ConsentStudent")
+  consentsGiven   ConsentRecord[]   @relation("ConsentGiver")
+  guardianOf      GuardianLink[]    @relation("GuardianSide")
+  guardians       GuardianLink[]    @relation("GuardedSide")
 }
 
 // One student's own state for one song: favourite, private notes, and where they left off.
@@ -127,6 +138,8 @@ model TeacherStudent {
   teacher   User     @relation("TeacherSide", fields: [teacherId], references: [id], onDelete: Cascade)
   studentId String
   student   User     @relation("StudentSide", fields: [studentId], references: [id], onDelete: Cascade)
+  // The teacher's private notes about this student. Never shown to the student or a guardian.
+  notes     String?
   createdAt DateTime @default(now())
 
   @@id([teacherId, studentId])
@@ -135,12 +148,12 @@ model TeacherStudent {
 
 // Practice work a teacher sets for one student.
 model Assignment {
-  id        String @id @default(uuid())
+  id        String  @id @default(uuid())
   // Null once the teacher's account is deleted: the work and feedback belong to the student.
   teacherId String?
-  teacher   User?  @relation("AssignmentTeacher", fields: [teacherId], references: [id], onDelete: SetNull)
+  teacher   User?   @relation("AssignmentTeacher", fields: [teacherId], references: [id], onDelete: SetNull)
   studentId String
-  student   User   @relation("AssignmentStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  student   User    @relation("AssignmentStudent", fields: [studentId], references: [id], onDelete: Cascade)
 
   // Exactly one is set when the assignment is created. Deleting the song or lesson
   // later keeps the assignment and its feedback, so it's SetNull rather than Cascade.
@@ -149,9 +162,9 @@ model Assignment {
   lessonId String?
   lesson   Lesson? @relation(fields: [lessonId], references: [id], onDelete: SetNull)
 
-  instrument  String // one of INSTRUMENTS in lib/lessonVideos.js
-  level       Int // 1-5, the song levels (Sing-a-long ... Improv)
-  section     String? // e.g. "Chorus"
+  instrument   String // one of INSTRUMENTS in lib/lessonVideos.js
+  level        Int // 1-5, the song levels (Sing-a-long ... Improv)
+  section      String? // e.g. "Chorus"
   // Optional part of a song in seconds. The phone player loops it.
   sectionStart Float?
   sectionEnd   Float?
@@ -285,6 +298,7 @@ model Song {
   assignments Assignment[]
   mixPresets  MixPreset[]
   practice    SongPractice[]
+  classes     Class[]
   termSlots   TermSlot[]
   termGrants  TermGrant[]
 
@@ -353,7 +367,6 @@ model Media {
   updatedAt DateTime @updatedAt
 }
 
-
 model Lesson {
   id         String   @id @default(uuid())
   order      Int      @default(0)
@@ -390,13 +403,11 @@ model LessonVideo {
   // "bunny" (Bunny Stream guid) or "direct" (plain URL, used in dev)
   provider String @default("bunny")
 
-
   videoId String
 
   published Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
 
   @@unique([lessonId, instrument, level, kind])
   @@index([lessonId])
@@ -468,17 +479,207 @@ model TermEnrollment {
 // access"), even after the term ends, they leave the group, or staff change that month.
 // The paid-membership check still applies on top.
 model TermGrant {
-  id       String  @id @default(uuid())
-  userId   String
-  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  songId   String?
-  song     Song?   @relation(fields: [songId], references: [id], onDelete: Cascade)
-  lessonId String?
-  lesson   Lesson? @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  songId    String?
+  song      Song?    @relation(fields: [songId], references: [id], onDelete: Cascade)
+  lessonId  String?
+  lesson    Lesson?  @relation(fields: [lessonId], references: [id], onDelete: Cascade)
   // The term it came from, for the record. Not a relation, so it outlives a deleted term.
   groupId   String?
   grantedAt DateTime @default(now())
 
   @@unique([userId, songId])
   @@unique([userId, lessonId])
+}
+
+// ---------------------------------------------------------------------------------------------
+// Phase 1 of the platform plan (docs/platform-plan.md): roles, profiles, classes, guardians.
+// ---------------------------------------------------------------------------------------------
+
+// Roles a person holds, on top of User.role (kept for the phone app and older code). One of
+// "teacher", "admin", "guardian". The ADMIN_EMAIL account is always an admin. Granted by an admin
+// and recorded in the audit log.
+model UserRole {
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      String
+  grantedBy String?
+  createdAt DateTime @default(now())
+
+  @@id([userId, role])
+}
+
+// What a student chooses to tell the school about themselves. Every field is optional. A minor's
+// profile is only stored once a guardian has consented (ConsentRecord purpose "profile").
+model StudentProfile {
+  userId              String   @id
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ageBracket          String? // "under-13" | "13-17" | "18+", self-declared, never inferred
+  area                String? // a general area the student names, never worked out from their IP
+  goals               String?
+  rehearsalFormat     String? // "online" | "in-person" | "either"
+  genres              String[]
+  favouriteArtists    String?
+  learningPreferences String? // in the student's own words
+  bandInterest        Boolean  @default(false)
+  performInterest     Boolean  @default(false)
+  productionInterest  Boolean  @default(false)
+  // "teachers": the student's linked teachers and admins can read it. "private": only the student.
+  visibility          String   @default("teachers")
+  updatedAt           DateTime @updatedAt
+}
+
+// One row per instrument a student plays. The student's own view of their level and a teacher's
+// assessment are kept apart on purpose.
+model InstrumentSkill {
+  userId       String
+  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  instrument   String // one of INSTRUMENTS in lib/lessonVideos.js
+  primary      Boolean @default(false)
+  selfLevel    String?
+  teacherLevel String?
+  assessedBy   String?
+
+  @@id([userId, instrument])
+}
+
+// A weekly window someone is usually free, in their own time zone.
+model Availability {
+  id          String @id @default(uuid())
+  userId      String
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  weekday     Int // 0 Sunday ... 6 Saturday
+  startMinute Int // minutes after local midnight
+  endMinute   Int
+  timeZone    String
+
+  @@index([userId])
+}
+
+// A lesson, group class, workshop, rehearsal or performance. Its time is a local wall-clock time in
+// the teacher's chosen time zone, so a weekly lesson stays at 4pm across daylight-saving changes.
+// The dated sessions are ClassOccurrence rows, generated ahead of time.
+model Class {
+  id              String   @id @default(uuid())
+  teacherId       String?
+  teacher         User?    @relation("ClassTeacher", fields: [teacherId], references: [id], onDelete: SetNull)
+  kind            String // "lesson" | "group" | "workshop" | "rehearsal" | "performance"
+  title           String
+  description     String?
+  level           String?
+  instruments     String[]
+  topics          String?
+  capacity        Int?
+  timeZone        String // IANA, e.g. "Pacific/Honolulu"
+  firstDate       String // "YYYY-MM-DD" in timeZone
+  startMinute     Int // minutes after local midnight
+  durationMinutes Int
+  repeat          String   @default("none") // "none" | "weekly" | "monthly"
+  repeatUntil     String? // "YYYY-MM-DD" in timeZone, inclusive
+  meetingUrl      String? // a pasted link works before any video integration
+  songId          String?
+  song            Song?    @relation(fields: [songId], references: [id], onDelete: SetNull)
+  status          String   @default("active") // "active" | "cancelled"
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  occurrences ClassOccurrence[]
+  enrolments  ClassEnrollment[]
+
+  @@index([teacherId])
+}
+
+model ClassOccurrence {
+  id        String    @id @default(uuid())
+  classId   String
+  class     Class     @relation(fields: [classId], references: [id], onDelete: Cascade)
+  startsAt  DateTime // UTC
+  endsAt    DateTime
+  status    String    @default("scheduled") // "scheduled" | "cancelled"
+  // Set when this one session was moved away from the class's usual time. Regenerating the
+  // series (after the class's time changes) leaves moved and cancelled sessions alone.
+  movedFrom DateTime?
+  notes     String? // the teacher's private notes for this session
+
+  attendance Attendance[]
+
+  @@index([classId, startsAt])
+  @@index([startsAt])
+}
+
+// Who is in a class. Only an admin enrols. Over capacity, a student waits; when a place frees up
+// the longest-waiting student moves in.
+model ClassEnrollment {
+  classId   String
+  class     Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status    String   @default("enrolled") // "enrolled" | "waitlisted"
+  createdAt DateTime @default(now())
+
+  @@id([classId, userId])
+  @@index([userId])
+}
+
+model Attendance {
+  occurrenceId String
+  occurrence   ClassOccurrence @relation(fields: [occurrenceId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status       String // "present" | "late" | "absent" | "excused"
+  source       String          @default("teacher") // "teacher" | "provider"
+  updatedAt    DateTime        @updatedAt
+
+  @@id([occurrenceId, userId])
+}
+
+// Consent is a history: each change is a new row, and the latest row for a purpose is the answer.
+// A minor's consent is given by a linked guardian.
+model ConsentRecord {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation("ConsentStudent", fields: [userId], references: [id], onDelete: Cascade)
+  givenById String?
+  givenBy   User?    @relation("ConsentGiver", fields: [givenById], references: [id], onDelete: SetNull)
+  purpose   String // "profile" | "share-practice" | "band-matching"
+  granted   Boolean
+  createdAt DateTime @default(now())
+
+  @@index([userId, purpose, createdAt])
+}
+
+// A parent or guardian, invited by an admin to the email address the school has on file.
+// guardianId is filled in when they accept.
+model GuardianLink {
+  id              String    @id @default(uuid())
+  studentId       String
+  student         User      @relation("GuardedSide", fields: [studentId], references: [id], onDelete: Cascade)
+  guardianId      String?
+  guardian        User?     @relation("GuardianSide", fields: [guardianId], references: [id], onDelete: Cascade)
+  email           String
+  relationship    String? // "parent" | "guardian"
+  invitedBy       String?
+  inviteTokenHash String?   @unique // sha-256 of the emailed token, single use
+  inviteExpiresAt DateTime?
+  acceptedAt      DateTime?
+  createdAt       DateTime  @default(now())
+
+  @@index([guardianId])
+  @@index([studentId])
+}
+
+// Sensitive administrative changes: roles, enrolments, guardians, consent.
+model AuditEvent {
+  id         String   @id @default(uuid())
+  actorId    String?
+  action     String
+  targetType String
+  targetId   String
+  detail     Json?
+  createdAt  DateTime @default(now())
+
+  @@index([targetType, targetId])
+  @@index([createdAt])
 }
