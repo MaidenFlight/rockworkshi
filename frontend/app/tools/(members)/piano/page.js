@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { PIANO, playNote, prepare } from "@/lib/audio/instruments";
 
 const WHITE_SEMITONES = [0, 2, 4, 5, 7, 9, 11];
 const BLACK_AFTER = { 0: 1, 2: 3, 5: 6, 7: 8, 9: 10 }; // white semitone -> black semitone that follows it
@@ -11,8 +12,10 @@ const BLACK_H = 100;
 const WHITE_W_MAX = 42;
 const BLACK_W_RATIO = 0.62;
 
-function noteFreqFromMidi(midi) {
-  return 440 * Math.pow(2, (midi - 69) / 12);
+// Every MIDI note on screen: `span` octaves up from the C of `octave`.
+function keyRange(octave, span) {
+  const first = (octave + 1) * 12;
+  return Array.from({ length: span * 12 }, (_, i) => first + i);
 }
 
 const NOTE_LETTERS = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
@@ -34,6 +37,20 @@ export default function Piano() {
   const ctxRef = useRef(null);
   const voicesRef = useRef({});
 
+  // Load the recordings for the keys on screen before anyone presses one.
+  useEffect(() => {
+    prepare(PIANO, keyRange(octave, span));
+  }, [octave, span]);
+
+  // Leaving the page stops anything still ringing.
+  useEffect(
+    () => () => {
+      ctxRef.current?.close();
+      ctxRef.current = null;
+    },
+    [],
+  );
+
   function ensureCtx() {
     if (!ctxRef.current) {
       ctxRef.current = new (window.AudioContext || window.webkitAudioContext)();
@@ -42,49 +59,16 @@ export default function Piano() {
     return ctxRef.current;
   }
 
-  function pianoVoice(freq) {
-    const ctx = ensureCtx();
-    const t = ctx.currentTime;
-    const master = ctx.createGain();
-    master.connect(ctx.destination);
-    master.gain.setValueAtTime(0.0001, t);
-    master.gain.exponentialRampToValueAtTime(0.35, t + 0.005);
-    master.gain.exponentialRampToValueAtTime(0.12, t + 0.4);
-
-    const osc1 = ctx.createOscillator();
-    osc1.type = "triangle";
-    osc1.frequency.value = freq;
-    const osc2 = ctx.createOscillator();
-    osc2.type = "sine";
-    osc2.frequency.value = freq * 2;
-    const osc2Gain = ctx.createGain();
-    osc2Gain.gain.value = 0.18;
-
-    osc1.connect(master);
-    osc2.connect(osc2Gain);
-    osc2Gain.connect(master);
-    osc1.start(t);
-    osc2.start(t);
-
-    return { master, oscs: [osc1, osc2] };
-  }
-
   function noteOn(id, midi) {
     if (voicesRef.current[id]) return;
-    const voice = pianoVoice(noteFreqFromMidi(midi));
-    voicesRef.current[id] = voice;
+    voicesRef.current[id] = playNote(ensureCtx(), PIANO, midi);
     setDown((d) => ({ ...d, [id]: true }));
   }
 
   function noteOff(id) {
     const voice = voicesRef.current[id];
     if (voice) {
-      const ctx = ctxRef.current;
-      const t = ctx.currentTime;
-      voice.master.gain.cancelScheduledValues(t);
-      voice.master.gain.setValueAtTime(voice.master.gain.value, t);
-      voice.master.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
-      voice.oscs.forEach((o) => o.stop(t + 0.32));
+      voice.stop(0.5);
       delete voicesRef.current[id];
     }
     setDown((d) => {
@@ -192,9 +176,23 @@ export default function Piano() {
           />
         ))}
       </div>
+
+      <p style={creditStyle}>
+        Piano sound:{" "}
+        <a href="https://sfzinstruments.github.io/pianos/salamander" target="_blank" rel="noreferrer">
+          Salamander Grand Piano
+        </a>{" "}
+        by Alexander Holm,{" "}
+        <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noreferrer">
+          CC BY 3.0
+        </a>
+        .
+      </p>
     </div>
   );
 }
+
+const creditStyle = { fontSize: 12.5, lineHeight: 1.5, color: "var(--rw-meta)", marginTop: 20 };
 
 const pillBtn = {
   padding: "9px 16px",

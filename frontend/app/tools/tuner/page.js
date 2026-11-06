@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { BASS, GUITAR, noteToMidi, playNote, prepare } from "@/lib/audio/instruments";
 
 const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 
@@ -24,22 +25,8 @@ const TUNINGS = {
   },
 };
 
-const PLUCK_PARAMS = {
-  Ukulele: { dur: 2.0, damping: 0.993 },
-  Bass: { dur: 3.8, damping: 0.9975 },
-};
-const DEFAULT_PLUCK = { dur: 3.2, damping: 0.996 };
-
-function noteFreq(name) {
-  const m = /^([A-G])([#b]?)(-?\d+)$/.exec(name);
-  if (!m) return 0;
-  const [, letter, accidental, octaveStr] = m;
-  const base = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }[letter];
-  const offset = accidental === "#" ? 1 : accidental === "b" ? -1 : 0;
-  const octave = parseInt(octaveStr, 10);
-  const midi = base + offset + (octave + 1) * 12;
-  return 440 * Math.pow(2, (midi - 69) / 12);
-}
+// No free ukulele recording has a clear enough licence, so the ukulele strings play the guitar's.
+const REF_SETS = { Guitar: GUITAR, Ukulele: GUITAR, Bass: BASS };
 
 function autoCorrelate(buf, sampleRate) {
   const SIZE = buf.length;
@@ -113,10 +100,12 @@ export default function Tuner() {
   const analyserRef = useRef(null);
   const bufRef = useRef(new Float32Array(2048));
   const rafRef = useRef(null);
-  const refSourceRef = useRef(null);
-  const refGainRef = useRef(null);
+  const refVoiceRef = useRef(null);
 
-  useEffect(() => stopMic, []);
+  // Load the chosen tuning's recordings before a string is pressed.
+  useEffect(() => {
+    prepare(REF_SETS[refInstrument], TUNINGS[refInstrument][refTuning].map(noteToMidi));
+  }, [refInstrument, refTuning]);
 
   function ensureCtx() {
     if (!ctxRef.current) {
@@ -176,69 +165,33 @@ export default function Tuner() {
     }
   }
 
-  function makePluck(ctx, freq, dur, damping) {
-    const sampleRate = ctx.sampleRate;
-    const bufferSize = Math.floor(sampleRate * dur);
-    const buffer = ctx.createBuffer(1, bufferSize, sampleRate);
-    const data = buffer.getChannelData(0);
-    const N = Math.max(2, Math.round(sampleRate / freq));
-    const ring = new Array(N);
-    for (let i = 0; i < N; i++) ring[i] = Math.random() * 2 - 1;
-    let idx = 0;
-    for (let i = 0; i < bufferSize; i++) {
-      const next = ring[idx];
-      const following = ring[(idx + 1) % N];
-      const avg = damping * 0.5 * (next + following);
-      ring[idx] = avg;
-      data[i] = next;
-      idx = (idx + 1) % N;
-    }
-    const attackSamples = Math.floor(sampleRate * 0.004);
-    for (let i = 0; i < attackSamples && i < bufferSize; i++) data[i] *= i / attackSamples;
-    const releaseSamples = Math.floor(sampleRate * 0.18);
-    for (let i = 0; i < releaseSamples && i < bufferSize; i++) {
-      const idxFromEnd = bufferSize - 1 - i;
-      if (idxFromEnd >= 0) data[idxFromEnd] *= i / releaseSamples;
-    }
-    return buffer;
-  }
-
-  function playRef(freq, id) {
+  function playRef(noteName, id) {
     if (refPlaying === id) {
       stopRef();
       return;
     }
     stopRef();
-    const ctx = ensureCtx();
-    const { dur, damping } = PLUCK_PARAMS[refInstrument] || DEFAULT_PLUCK;
-    const buffer = makePluck(ctx, freq, dur, damping);
-    const source = ctx.createBufferSource();
-    source.buffer = buffer;
-    const gain = ctx.createGain();
-    gain.gain.value = 0.9;
-    source.connect(gain);
-    gain.connect(ctx.destination);
-    source.start();
-    refSourceRef.current = source;
-    refGainRef.current = gain;
+    refVoiceRef.current = playNote(ensureCtx(), REF_SETS[refInstrument], noteToMidi(noteName), {
+      onEnd: () => setRefPlaying((p) => (p === id ? null : p)),
+    });
     setRefPlaying(id);
-    source.onended = () => setRefPlaying((p) => (p === id ? null : p));
   }
 
   function stopRef() {
-    if (refGainRef.current && ctxRef.current) {
-      const ctx = ctxRef.current;
-      refGainRef.current.gain.setTargetAtTime(0, ctx.currentTime, 0.05);
-    }
-    if (refSourceRef.current) {
-      try {
-        refSourceRef.current.stop(ctxRef.current.currentTime + 0.1);
-      } catch {}
-    }
-    refSourceRef.current = null;
-    refGainRef.current = null;
+    refVoiceRef.current?.stop(0.2);
+    refVoiceRef.current = null;
     setRefPlaying(null);
   }
+
+  // Leaving the page stops the mic and anything still ringing (a low bass tone lasts over 20 s).
+  useEffect(
+    () => () => {
+      stopMic();
+      ctxRef.current?.close();
+      ctxRef.current = null;
+    },
+    [],
+  );
 
   function changeInstrument(v) {
     setRefInstrument(v);
@@ -326,7 +279,7 @@ export default function Tuner() {
             return (
               <button
                 key={id}
-                onClick={() => playRef(noteFreq(noteName), id)}
+                onClick={() => playRef(noteName, id)}
                 style={{
                   padding: "14px 6px",
                   borderRadius: 10,
@@ -343,6 +296,19 @@ export default function Tuner() {
             );
           })}
         </div>
+
+        <p style={{ fontSize: 12.5, lineHeight: 1.5, color: "var(--rw-meta)", margin: "16px 0 0" }}>
+          Recorded guitar (also used for the ukulele strings): University of Iowa Electronic Music Studios. Bass:
+          Karoryfer Samples. Both edited by Nicholaus Brosowsky for{" "}
+          <a href="https://github.com/nbrosowsky/tonejs-instruments" target="_blank" rel="noreferrer">
+            tonejs-instruments
+          </a>
+          ,{" "}
+          <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noreferrer">
+            CC BY 3.0
+          </a>
+          .
+        </p>
       </div>
     </div>
   );
