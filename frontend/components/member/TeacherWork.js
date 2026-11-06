@@ -7,19 +7,21 @@ import { assignmentTitle, studentStatus } from "@/lib/teaching";
 import { pill } from "@/lib/terms";
 
 // Practice work set by the student's teacher. Draws nothing until there is some,
-// since most students without a linked teacher will never have any.
-export default function TeacherWork() {
+// since most students without a linked teacher will never have any. `exclude` is the piece the
+// practice panel already shows, so a single assignment isn't listed twice.
+export default function TeacherWork({ exclude = null }) {
   const [page, setPage] = usePageParam("work");
   const { items, pagination } = usePagedList("/assignments", "assignments", { page, pageSize: 10 });
-  if (!items?.length) return null;
+  const shown = items?.filter((a) => a.id !== exclude) ?? [];
+  if (!shown.length && !(pagination?.totalPages > 1)) return null;
 
   return (
     <section aria-labelledby="teacher-work" style={{ marginBottom: 36 }}>
-      <h2 id="teacher-work" style={{ fontWeight: 800, textTransform: "uppercase", fontSize: 24, color: "var(--rw-ink)", marginBottom: 12 }}>
-        From your teacher
+      <h2 id="teacher-work" style={{ fontWeight: 800, textTransform: "uppercase", fontSize: "var(--rw-text-xl)", color: "var(--rw-ink)", marginBottom: 12 }}>
+        {exclude ? "More from your teacher" : "From your teacher"}
       </h2>
       <div style={{ display: "grid", gap: 8 }}>
-        {items.map((a) => {
+        {shown.map((a) => {
           const status = studentStatus(a);
           return (
             <Link key={a.id} href={`/member/assignment/${a.id}`} style={row} className="rw-card">

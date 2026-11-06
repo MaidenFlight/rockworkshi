@@ -221,8 +221,11 @@ test("lessons and the library follow the same rules", async () => {
 
   const lib = (who) => call(who, "GET", "/library").then((r) => r.data.songs.find((s) => s.id === songs.x.id));
   assert.equal((await lib("a1")).locked, false);
+  assert.equal((await lib("a1")).lockReason, null);
   assert.equal((await lib("b1")).locked, true);
+  assert.equal((await lib("b1")).lockReason, "locked", "it's group B's month 3, so it opens later");
   assert.equal((await lib("loner")).locked, true, "no group and no assignment any more");
+  assert.equal((await lib("loner")).lockReason, "not_in_term", "never opens without a term");
   const practice = await call("b1", "GET", `/songs/${songs.x.id}/practice`);
   assert.equal(practice.data.access.allowed, false);
   assert.equal(practice.status, 200, "notes and favourites still load for a locked song");

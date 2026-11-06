@@ -21,6 +21,12 @@ import {
 } from "@/lib/practice";
 
 const PAGE_SIZE = 20;
+// Why a term song is shut, from the API's lockReason. Only someone in the term is told it will open.
+const LOCK_LABELS = {
+  locked: "Unlocks later in your term",
+  preparing: "Being prepared for your term",
+  not_in_term: "Part of a school term",
+};
 const songTitle = { fontFamily: "var(--rw-font-display)", fontWeight: 800, fontSize: "var(--rw-text-2xl)", lineHeight: 1.05, textTransform: "uppercase", color: "var(--rw-ink)", textDecoration: "none" };
 
 export default function PracticeLibraryPage() {
@@ -213,7 +219,7 @@ function PracticeLibrary() {
                     )}
                     <div style={{ fontSize: 13.5, color: "var(--rw-meta)" }}>{song.artist || "Unknown artist"}</div>
                     <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
-                      {song.locked && song.hasTracks && <Tag tone="lock">Unlocks with your term</Tag>}
+                      {song.locked && song.hasTracks && <Tag tone="lock">{LOCK_LABELS[song.lockReason] ?? LOCK_LABELS.not_in_term}</Tag>}
                       {song.level && <Tag>{song.level}</Tag>}
                       {song.hasTracks ? <Tag tone="teal">Play-along · {song.parts.join(", ")}</Tag> : <Tag tone="lock">Coming soon</Tag>}
                       {song.hasNotes && <Tag>Notes</Tag>}

@@ -4078,3 +4078,227 @@ div:has(> .rw-scrub:focus-visible) {
   margin: 0;
   color: var(--rw-prose);
 }
+
+/* ---- Member dashboard: one practice panel, then the week and the tools ---- */
+.rw-dash-title {
+  margin: 0 0 20px;
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: var(--rw-text-4xl);
+  line-height: 1;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--rw-ink);
+}
+.rw-dash {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 32px;
+  align-items: start;
+}
+.rw-dash-main,
+.rw-dash-side {
+  display: grid;
+  gap: 24px;
+  min-width: 0;
+}
+.rw-dash-main > section:not(.rw-next) {
+  margin-bottom: 0 !important;
+}
+.rw-dash-h2 {
+  margin: 0 0 12px;
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: var(--rw-text-xl);
+  text-transform: uppercase;
+  color: var(--rw-ink);
+}
+
+.rw-next-label {
+  margin: 0 0 6px;
+  font-size: var(--rw-text-xs);
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--rw-teal);
+}
+.rw-next-title {
+  margin: 0 0 6px;
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: var(--rw-text-4xl);
+  line-height: 1;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--rw-ink);
+}
+.rw-next-meta {
+  margin: 0 0 14px;
+  font-size: var(--rw-text-base);
+  color: var(--rw-meta);
+}
+.rw-next-brief {
+  margin: 0 0 14px;
+  padding: 12px 16px;
+  background: var(--rw-sand);
+  border-left: 3px solid var(--rw-flare);
+  font-size: var(--rw-text-base);
+  line-height: 1.6;
+  color: var(--rw-prose);
+  white-space: pre-wrap;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.rw-next-text {
+  margin: 0 0 16px;
+  max-width: 60ch;
+  font-size: var(--rw-text-base);
+  line-height: 1.6;
+  color: var(--rw-body);
+}
+.rw-next-text strong {
+  color: var(--rw-ink);
+  font-variant-numeric: tabular-nums;
+}
+.rw-next-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.rw-next-aside {
+  margin: 18px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--rw-border);
+  font-size: var(--rw-text-sm);
+  color: var(--rw-body);
+}
+.rw-next-aside a {
+  color: var(--rw-orange-deep);
+  font-weight: 700;
+}
+.rw-next-skel {
+  height: 15px;
+  margin-bottom: 12px;
+  background: var(--rw-rule);
+}
+
+.rw-dash-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.rw-dash-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 10px 16px;
+  background: var(--rw-surface);
+  border: 1px solid var(--rw-border);
+  border-radius: var(--rw-radius-md);
+  text-decoration: none;
+}
+.rw-dash-row[data-link] {
+  transition: border-color 0.16s ease;
+}
+.rw-dash-row[data-link]:hover {
+  border-color: var(--rw-ink);
+}
+.rw-dash-row-title {
+  display: block;
+  font-weight: 700;
+  font-size: var(--rw-text-base);
+  color: var(--rw-ink);
+}
+.rw-dash-row-meta {
+  display: block;
+  font-size: var(--rw-text-sm);
+  color: var(--rw-meta);
+}
+.rw-dash-row-status {
+  flex-shrink: 0;
+  font-size: var(--rw-text-xs);
+  color: var(--rw-meta);
+}
+
+.rw-dash-tools {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.rw-dash-tools a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  border-top: 1px solid var(--rw-border);
+  font-weight: 700;
+  font-size: var(--rw-text-base);
+  color: var(--rw-ink);
+  text-decoration: none;
+  transition: color 0.16s ease;
+}
+.rw-dash-tools a:hover {
+  color: var(--rw-orange-deep);
+}
+.rw-dash-tools svg {
+  color: var(--rw-teal);
+}
+.rw-dash-tools .rw-dash-row-meta {
+  font-weight: 400;
+}
+.rw-dash-row:focus-visible,
+.rw-dash-tools a:focus-visible,
+.rw-next-aside a:focus-visible {
+  outline: 2px solid var(--rw-teal);
+  outline-offset: 2px;
+}
+
+.rw-dash-work:empty {
+  display: none;
+}
+.rw-next-actions > a:not(:first-child),
+.rw-dash-link {
+  min-height: 44px;
+}
+.rw-dash-link {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* One column on a phone: the panel and teacher work, then the week and tools, then lesson videos. */
+@media (max-width: 860px) {
+  .rw-dash {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .rw-dash-main,
+  .rw-dash-side {
+    display: contents;
+  }
+  .rw-dash-main > * {
+    order: 3;
+  }
+  .rw-dash-main > .rw-next,
+  .rw-dash-main > .rw-dash-work {
+    order: 1;
+  }
+  .rw-dash-side > * {
+    order: 2;
+  }
+}
+@media (max-width: 560px) {
+  .rw-dash-title,
+  .rw-next-title {
+    font-size: var(--rw-text-3xl);
+  }
+  .rw-next-actions > :first-child {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+}

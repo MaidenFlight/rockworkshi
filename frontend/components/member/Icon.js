@@ -17,6 +17,13 @@ const PATHS = {
   "eye-off": <path d="M4 4l16 16M9.9 5.8A9.7 9.7 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a17 17 0 0 1-2.7 3.4M6.2 7.6A16 16 0 0 0 2.5 12S6 18.5 12 18.5a9 9 0 0 0 4.1-1" />,
   chart: <path d="M4 5h16M4 10h16M4 15h16M4 20h10" />,
   check: <path d="M4.5 12.5l5 5L20 7" />,
+  // The practice tools.
+  tuner: <path d="M3.5 17a8.5 8.5 0 0 1 17 0M12 17l4.5-6.5M3 20.5h18" />,
+  metronome: <path d="M8.5 3h7l4.5 18H4zM12 16l5.5-9.5M6.6 16h10.8" />,
+  chords: <path d="M5 3.5h14v17H5zM5 7.5h14M9.7 3.5v17M14.3 3.5v17M5 12h14" />,
+  keys: <path d="M3 5h18v14H3zM7.5 5v14M12 5v14M16.5 5v14M6 5v7M10.5 5v7M15 5v7" />,
+  drum: <path d="M4 9c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 9v7c0 1.7 3.6 3 8 3s8-1.3 8-3V9M8 2l4 6.5M16 2l-4 6.5" />,
+  library: <path d="M4 4h4.5v16H4zM10 4h4.5v16H10zM15.6 5l3.9-1 3 15.5-3.9 1z" />,
 };
 
 export default function Icon({ name, size = 16 }) {
