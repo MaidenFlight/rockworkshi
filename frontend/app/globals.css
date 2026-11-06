@@ -515,11 +515,26 @@ summary:focus-visible,
   transition: opacity 0.16s ease, transform 0.16s ease, visibility 0.16s;
   z-index: 60;
 }
+/* Pointer users get it on hover; keyboard and touch users open it with the button. */
 .rw-navgroup:hover .rw-dropdown,
-.rw-navgroup:focus-within .rw-dropdown {
+.rw-navgroup[data-open="true"] .rw-dropdown {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
+}
+.rw-dropdown[data-wide="true"] {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(190px, 1fr));
+  column-gap: 4px;
+}
+.rw-dropitem[aria-current="page"] {
+  color: var(--rw-nav-active) !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rw-dropdown {
+    transition: none;
+    transform: none;
+  }
 }
 .rw-dropitem:hover {
   background: var(--rw-nav-hover);
@@ -533,6 +548,11 @@ summary:focus-visible,
 .rw-navtrigger:focus-visible,
 .rw-menu-trigger:focus-visible,
 .rw-menu-item:focus-visible,
+.rw-dropitem:focus-visible,
+.rw-burger:focus-visible,
+.rw-nav-close:focus-visible,
+[role="dialog"] a:focus-visible,
+[role="dialog"] button:focus-visible,
 .rw-cta:focus-visible {
   outline: 2px solid var(--rw-teal);
   outline-offset: 2px;

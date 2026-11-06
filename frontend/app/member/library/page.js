@@ -100,7 +100,7 @@ function PracticeLibrary() {
   return (
     <div style={{ maxWidth: 1000, margin: "0 auto", padding: "40px 24px 100px" }}>
       <Link href="/member" className="rw-back">
-        <Icon name="arrow-left" size={14} /> Dashboard
+        <Icon name="arrow-left" size={14} /> Practice
       </Link>
       <h1 style={{ fontWeight: 800, textTransform: "uppercase", fontSize: 30, color: "var(--rw-ink)", margin: "10px 0 4px" }}>Practice library</h1>
       <p style={{ color: "var(--rw-body)", margin: "0 0 24px" }}>

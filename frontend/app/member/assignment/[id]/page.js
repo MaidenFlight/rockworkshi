@@ -66,7 +66,7 @@ export default function AssignmentPage() {
   return (
     <div style={{ maxWidth: 800, margin: "0 auto", padding: "40px 24px 100px" }}>
       <Link href="/member" className="rw-back">
-        <Icon name="arrow-left" size={14} /> Dashboard
+        <Icon name="arrow-left" size={14} /> Practice
       </Link>
 
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap", margin: "10px 0 22px" }}>

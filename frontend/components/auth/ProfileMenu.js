@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { dashboardFor } from "@/lib/auth/enrolment";
 import { firstNameOf, initialsOf } from "@/lib/auth/displayName";
 
 const MENU_ITEMS = [
@@ -68,7 +69,10 @@ export default function ProfileMenu() {
 
       {open && (
         <div role="menu" aria-label="Account menu" style={menuStyle}>
-          {(user?.role === "teacher" ? [TEACHER_ITEM, ...MENU_ITEMS] : MENU_ITEMS).map((item) => (
+          {/* A student's dashboard is Practice in the header, so it isn't listed again here. */}
+          {(user?.role === "teacher" ? [TEACHER_ITEM, ...MENU_ITEMS] : MENU_ITEMS)
+            .filter((item) => item.href !== "/member" || dashboardFor(user) !== "/member")
+            .map((item) => (
             <Link key={item.href} href={item.href} role="menuitem" className="rw-menu-item" onClick={() => setOpen(false)} style={menuItemStyle}>
               {item.label}
             </Link>
