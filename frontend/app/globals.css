@@ -4989,3 +4989,74 @@ div:has(> .rw-scrub:focus-visible) {
     margin-left: auto;
   }
 }
+
+/* ---- Homepage: the silent player preview, at the foot of the method band ---- */
+.rw-preview {
+  margin-top: var(--rw-space-8);
+  padding-top: var(--rw-space-7);
+  border-top: 1px solid var(--rw-console-edge);
+}
+.rw-preview-head {
+  margin-bottom: 22px;
+}
+.rw-preview-title {
+  margin: 0;
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: var(--rw-text-3xl);
+  line-height: 1.05;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: #fff;
+}
+.rw-preview-cap {
+  margin: 12px 0 0;
+  max-width: 66ch;
+}
+/* In the preview the transport sits in the page; it doesn't stick under the header. */
+.rw-preview .rw-transport {
+  position: static;
+}
+.rw-preview .rw-focus-chip {
+  min-height: 44px;
+}
+.rw-preview-silent {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  padding: 6px 10px;
+  border: 1px solid var(--rw-console-edge);
+  border-radius: var(--rw-radius-sm);
+  font-size: var(--rw-text-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--rw-console-meta);
+}
+.rw-preview-slot {
+  min-height: 980px;
+  border: 1px solid var(--rw-console-edge);
+  border-radius: var(--rw-radius-md);
+  background: var(--rw-console);
+}
+.rw-preview-cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  margin-top: 24px;
+}
+/* On a phone the preview is the Simple view: transport, the section ruler and the chart. */
+@media (max-width: 720px) {
+  .rw-preview .rw-tl-head,
+  .rw-preview .rw-tl-lane {
+    display: none;
+  }
+  .rw-preview-silent {
+    margin-left: 0;
+  }
+  .rw-preview-slot {
+    min-height: 900px;
+  }
+}

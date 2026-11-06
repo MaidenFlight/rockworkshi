@@ -24,6 +24,7 @@ const PATHS = {
   keys: <path d="M3 5h18v14H3zM7.5 5v14M12 5v14M16.5 5v14M6 5v7M10.5 5v7M15 5v7" />,
   drum: <path d="M4 9c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 9v7c0 1.7 3.6 3 8 3s8-1.3 8-3V9M8 2l4 6.5M16 2l-4 6.5" />,
   library: <path d="M4 4h4.5v16H4zM10 4h4.5v16H10zM15.6 5l3.9-1 3 15.5-3.9 1z" />,
+  "sound-off": <path d="M3.5 9h4l5-4v14l-5-4h-4zM16 9.5l5 5M21 9.5l-5 5" />,
 };
 
 export default function Icon({ name, size = 16 }) {

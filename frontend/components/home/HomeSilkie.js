@@ -2,6 +2,7 @@ import Link from "next/link";
 import { instruments, audiences, songLevels, bandPromise } from "@/lib/content";
 import RockWorksIcon from "@/components/RockWorksIcon";
 import InstrumentIcon from "@/components/InstrumentIcon";
+import PlayerPreview from "@/components/home/PlayerPreview";
 import { Section, Container, SectionHead, Eyebrow, Button } from "@/components/ui";
 import T from "@/components/T";
 
@@ -111,6 +112,7 @@ export default function HomeSilkie() {
             </li>
           ))}
         </ol>
+        <PlayerPreview />
       </Section>
 
       <Section band="sand">
