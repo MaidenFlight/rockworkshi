@@ -62,8 +62,10 @@ export default function ProfileMenu() {
           {initialsOf(user)}
         </span>
         <span style={{ fontWeight: 700, fontSize: 14, color: "var(--rw-ink)" }}>{firstNameOf(user)}</span>
-        <span aria-hidden="true" style={{ fontSize: 9, opacity: 0.7, color: "var(--rw-prose)" }}>
-          &#9662;
+        <span aria-hidden="true" style={{ display: "inline-flex", color: "var(--rw-prose)" }}>
+          <svg viewBox="0 0 12 12" width={10} height={10} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="butt" style={{ opacity: 0.75, transform: open ? "rotate(180deg)" : undefined }}>
+            <path d="M2 4.5l4 4 4-4" />
+          </svg>
         </span>
       </button>
 

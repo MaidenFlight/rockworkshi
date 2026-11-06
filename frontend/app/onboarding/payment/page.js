@@ -267,7 +267,7 @@ export default function OnboardingPayment() {
   return (
     <ProtectedRoute requireEnrolment={false}>
       <div>
-        <PageHero mark={<RockWorksIcon size={40} color="var(--rw-gold)" />} eyebrow="Last step" title={<>Confirm your enrolment</>} compact />
+        <PageHero mark={<RockWorksIcon size={40} color="var(--rw-gold)" />} title={<>Confirm your enrolment</>} compact />
 
         <div style={{ maxWidth: 520, margin: "0 auto", padding: "40px 24px 80px" }}>
           {/* PaymentContent reads the query string Stripe redirects back with. */}

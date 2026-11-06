@@ -124,8 +124,9 @@ uses it. Songs in no term stay open to every paying member.
 - **Video hosting is Bunny Stream, and playback is not finished.** Signed URLs
   are unimplemented, so a pasted Bunny id deliberately shows "coming soon"
   rather than a player that fails silently. Plain URLs play directly.
-- **Practice tools in the member area:** tuner, metronome, chord library,
-  on-screen piano, rhythm trainer.
+- **Practice tools:** the tuner and metronome are free for everyone (decided
+  2026-11-05); the chord library, on-screen piano and rhythm trainer come with
+  membership. Until then all five were members-only.
 - Members can cancel their own membership.
 - Contact addresses must resolve to a real mailbox. Verifying a sending domain
   does not create one, so a visible address that bounces is a defect, not a

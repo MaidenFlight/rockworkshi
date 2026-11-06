@@ -18,7 +18,6 @@ export default function Format() {
   return (
     <div>
       <EditorialHero
-        eyebrow={<T k="format.hero.eyebrow">Program</T>}
         title={<T k="format.hero.title">Format & Pricing</T>}
         intro={<T k="format.hero.intro">Choose how you want to learn — solo, with friends, or in a band — and what it costs.</T>}
       />

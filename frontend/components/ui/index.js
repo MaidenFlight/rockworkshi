@@ -41,13 +41,16 @@ export function Eyebrow({ children, className }) {
   return <div className={cx(s.eyebrowSolo, className)}>{children}</div>;
 }
 
-// The dark banner at the top of a page, with the wave cut into its foot.
-export function PageHero({ title, eyebrow, lead, compact, mark, children }) {
+// The dark banner at the top of a page, with the wave cut into its foot. No label above the
+// title: the flare rule marks the start and the title carries its own weight. A banner with
+// nothing under its title is shorter, so a phone's first screen isn't mostly empty lacquer.
+export function PageHero({ title, lead, compact, mark, children }) {
+  const bare = !lead && !children;
   return (
-    <section className={cx(s.hero, compact && s.heroCompact)}>
+    <section className={cx(s.hero, compact && s.heroCompact, bare && s.heroBare)}>
       <div className={s.heroInner}>
         {mark && <div className={s.heroMark}>{mark}</div>}
-        {eyebrow && <div className={s.heroEyebrow}>{eyebrow}</div>}
+        <span className={s.heroRule} aria-hidden="true" />
         <h1 className={s.heroTitle}>{title}</h1>
         {lead && <p className={s.heroLead}>{lead}</p>}
         {children}

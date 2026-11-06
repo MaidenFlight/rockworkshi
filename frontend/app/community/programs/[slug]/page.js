@@ -16,7 +16,6 @@ export default async function ProgramDetail({ params }) {
   return (
     <div>
       <PageHero
-        eyebrow={<T k="program.hero.eyebrow">Programs</T>}
         title={<T k={`programs.${slug}.title`}>{program.title}</T>}
         lead={<T k={`programs.${slug}.desc`}>{program.desc}</T>}
       />

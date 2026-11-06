@@ -257,7 +257,7 @@ Motion is short and few: `0.16s ease` for colour and border changes, `0.18s ease
 - **Tag** — the replacement for a row of equal rounded cards. Label stock, 1px edge, square, and a 5px flare rule across the top where a sewn tag carries its band of colour. The rule is what makes a row read as one set rather than three boxes. `.rw-tag-link` makes the whole panel the target.
 - **Field** — full-bleed flare carrying the motif repeat and poster type. Type on it is lacquer, never white.
 - **Border band** — lacquer, carrying the offer: both products named, both actions, and the price.
-- **Page header** — lacquer, left-aligned, flare rule above a gold label, poster-scale title, 54ch lead, wave at the foot.
+- **Page header** — lacquer, left-aligned, flare rule, poster-scale title, 54ch lead, wave at the foot. No label above the title (decided 2026-11-05): the labels repeated the menu group and disagreed with it. A header with nothing under its title is shorter (`heroBare`), so a phone's first screen isn't mostly empty lacquer. Classic hides the rule.
 - **Nav** — sticky, lacquer at 90% with a 14px backdrop blur, gold active link with a 2px inset underline, chrome wordmark. Seven `--rw-nav-*` tokens so it inverts with the world.
 - **Instrument marks** — six drawn SVGs, butt caps and miter joins, one accent per mark placed where the sound comes out. The flat terminals were chosen to match the display face's blunt terminals; Big Shoulders shares that trait, so the rationale survived the type change.
 - **The motif repeat** — the six marks tiled behind the field at ≤9% opacity. Decoration only, `aria-hidden`, and it never carries meaning the copy does not also carry.
@@ -265,6 +265,8 @@ Motion is short and few: `0.16s ease` for colour and border changes, `0.18s ease
 - **World switch** — a two-option radiogroup in the footer writing `data-world` on `<html>`.
 
 **The Focus Ring Rule.** A 2px Lagoon outline at 2px offset on every interactive element, form fields included. The skip link is the only element that uses `:focus` instead of `:focus-visible`.
+
+**The One Name Rule.** `globals.css` is shared by every route, so a class name means one thing site-wide. The practice console once reused `.rw-field`, `.rw-timeline` and `.rw-record`, and in production that turned the homepage field white and painted the History page as a dark console. Console classes now stay inside their own vocabulary (`rw-console-*`, `rw-tl-*`, `rw-recorder`, …). Before adding a top-level class, search the stylesheet and the components for the name.
 
 **Two Button Treatments, Not Three.** The `Button` primitive and the auth submit (pill, gradient, glow) coexist deliberately. They must not multiply into a third.
 
@@ -341,4 +343,4 @@ Headless browsers report no window focus, so `:focus` never matches and focus st
 2. **The footer's three social links point at `#`.** The marks are real; the destinations are not.
 3. **Five public routes keep their previous body compositions** — `/program/curriculum`, `/program/how-it-works`, `/community/events`, `/community/alumni` and the legal pages. They inherit the header, palette, type and radii, so they are consistent, but their interiors have not been rethought.
 4. **`Card` and `Prose` primitives exist and are still barely adopted.** Pages hand-roll both. New work should use the primitives.
-5. **Labels above headings are used throughout** (`SectionHead`, the page header, `.rw-field-tag`). Recorded as what the build does, **not** as a pattern to reach for: a kicker above a heading is a device to justify each time, and a new section should first ask whether the heading can carry its own weight.
+5. **Labels above headings remain in places** (`SectionHead`, `.rw-field-tag`, the homepage record). The page header dropped its label on 2026-11-05. Recorded as what the build does, **not** as a pattern to reach for: a kicker above a heading is a device to justify each time, and a new section should first ask whether the heading can carry its own weight.

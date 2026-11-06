@@ -1,77 +1,93 @@
+"use client";
+
 import Link from "next/link";
 import EditorialHero from "@/components/EditorialHero";
+import { Button } from "@/components/ui";
+import Icon from "@/components/member/Icon";
 import T from "@/components/T";
+import { useAuth } from "@/contexts/AuthContext";
+import { nextEnrolmentStep } from "@/lib/auth/enrolment";
 
+// The tuner and metronome are open to everyone; the rest come with membership.
 const TOOLS = [
-  { title: "Metronome", desc: "A steady click at any tempo, with tap tempo.", emoji: "⏱️", bg: "var(--rw-orange-tint)", href: "/tools/metronome" },
-  { title: "Tuner", desc: "Mic-based tuning plus plucked reference tones.", emoji: "\u{1F3B8}", bg: "#e6f0fb", href: "/tools/tuner" },
-  { title: "Chord Library", desc: "Real fingerings for guitar, ukulele, bass, and piano.", emoji: "\u{1F4D6}", bg: "#fdf3d9", href: "/tools/chords" },
-  { title: "Piano", desc: "A two-octave, polyphonic on-screen keyboard.", emoji: "\u{1F3B9}", bg: "#e3f3ea", href: "/tools/piano" },
-  { title: "Rhythm Trainer", desc: "Clap or play along with a count-in and highlighted beats.", emoji: "\u{1F941}", bg: "#f3e6da", href: "/tools/rhythm" },
+  { key: "tuner", title: "Tuner", desc: "Mic-based tuning plus plucked reference tones.", icon: "tuner", free: true },
+  { key: "metronome", title: "Metronome", desc: "A steady click at any tempo, with tap tempo.", icon: "metronome", free: true },
+  { key: "chords", title: "Chord Library", desc: "Real fingerings for guitar, ukulele, bass, and piano.", icon: "chords" },
+  { key: "piano", title: "Piano", desc: "A two-octave, polyphonic on-screen keyboard.", icon: "keys" },
+  { key: "rhythm", title: "Rhythm Trainer", desc: "Clap or play along with a count-in and highlighted beats.", icon: "drum" },
 ];
 
 export default function ToolsHub() {
+  const { user, isAuthenticated, isLoading } = useAuth();
+  // A paying member (or staff) opens everything; anyone else gets the two free tools.
+  const member = isAuthenticated && !nextEnrolmentStep(user);
+
   return (
     <div>
       <EditorialHero
-        eyebrow={<T k="tools.hero.eyebrow">Practice</T>}
         title={<T k="tools.hero.title">Music Tools</T>}
-        intro={<T k="tools.hero.intro">Free practice tools for students and anyone dropping by — no sign-in required.</T>}
+        intro={
+          <T k="tools.hero.intro.split">
+            The tuner and metronome are free for anyone. The chord library, piano and rhythm trainer come with membership.
+          </T>
+        }
       />
-      <div style={{ maxWidth: 900, margin: "0 auto", padding: "48px 24px 100px" }}>
-        <div className="rw-cols-2" style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 18, marginBottom: 20 }}>
-          {TOOLS.map((t) => (
-            <Link
-              key={t.href}
-              href={t.href}
-              className="rw-card"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 18,
-                background: "var(--rw-surface)",
-                border: "1px solid var(--rw-border)",
-                borderRadius: 14,
-                padding: "22px 24px",
-                textDecoration: "none",
-              }}
-            >
-              <div
-                style={{
-                  flexShrink: 0,
-                  width: 56,
-                  height: 56,
-                  borderRadius: 16,
-                  background: t.bg,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 26,
-                }}
-              >
-                {t.emoji}
-              </div>
-              <div>
-                <div style={{ fontWeight: 700, fontSize: 17, color: "var(--rw-ink)" }}><T k={`tools.${t.href.split("/").pop()}.title`}>{t.title}</T></div>
-                <div style={{ fontSize: 14, color: "var(--rw-body)", marginTop: 2 }}><T k={`tools.${t.href.split("/").pop()}.desc`}>{t.desc}</T></div>
-              </div>
-            </Link>
-          ))}
-        </div>
+      <div style={{ maxWidth: 1000, margin: "0 auto", padding: "56px 24px 100px" }}>
+        <ul className="rw-toolgrid">
+          {TOOLS.map((t) => {
+            const open = t.free || member;
+            const inside = (
+              <>
+                <span className="rw-tool-mark" aria-hidden="true">
+                  <Icon name={t.icon} size={30} />
+                </span>
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <span className="rw-tool-title">
+                    <T k={`tools.${t.key}.title`}>{t.title}</T>
+                  </span>
+                  <span className="rw-tool-desc">
+                    <T k={`tools.${t.key}.desc`}>{t.desc}</T>
+                  </span>
+                </span>
+                <span className="rw-tool-state" data-free={t.free ? "true" : undefined}>
+                  {t.free ? "Free" : member ? "Open" : "With membership"}
+                </span>
+              </>
+            );
+            return (
+              <li key={t.key}>
+                {open ? (
+                  <Link href={`/tools/${t.key}`} className="rw-tag rw-tag-link rw-tool">
+                    {inside}
+                  </Link>
+                ) : (
+                  <div className="rw-tag rw-tool" data-locked="true">
+                    {inside}
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
 
-        <div style={{ display: "flex", gap: 16, flexWrap: "wrap", justifyContent: "center", padding: 22, background: "var(--rw-sand)", borderRadius: 14 }}>
-          <Link href="/trial" style={{ fontSize: 14, fontWeight: 700, color: "var(--rw-orange-deep)", textDecoration: "none" }}>
-            <T k="tools.links.trial">Book a Trial</T>
-          </Link>
-          <span style={{ color: "var(--rw-line)" }}>&middot;</span>
-          <Link href="/program/curriculum" style={{ fontSize: 14, fontWeight: 700, color: "var(--rw-teal)", textDecoration: "none" }}>
-            <T k="tools.links.curriculum">See the Curriculum</T>
-          </Link>
-          <span style={{ color: "var(--rw-line)" }}>&middot;</span>
-          <Link href="/signin" style={{ fontSize: 14, fontWeight: 700, color: "var(--rw-teal)", textDecoration: "none" }}>
-            <T k="tools.links.signin">Student Sign In</T>
-          </Link>
-        </div>
+        {!isLoading && !member && (
+          <div className="rw-tool-join">
+            <p>
+              <T k="tools.join.copy">Membership opens all five tools, the lesson videos and the song library.</T>
+            </p>
+            <div style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center" }}>
+              {/* Someone signed in but not paid yet goes to their next signup step, not a new account. */}
+              <Button href={(isAuthenticated && nextEnrolmentStep(user)) || "/signup"}>
+                <T k="cta.join">Join the member area</T>
+              </Button>
+              {!isAuthenticated && (
+                <Button href="/signin?next=/tools" variant="quiet">
+                  <T k="tools.links.signin">Student Sign In</T>
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

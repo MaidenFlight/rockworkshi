@@ -114,7 +114,6 @@ export default function ResetPassword() {
     <div>
       <PageHero
         mark={<RockWorksIcon size={40} color="var(--rw-gold)" />}
-        eyebrow="Account help"
         title="Set a new password"
         compact
       />

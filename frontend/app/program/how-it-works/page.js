@@ -34,7 +34,6 @@ export default function HowItWorks() {
   return (
     <div>
       <EditorialHero
-        eyebrow={<T k="how.hero.eyebrow">Lessons</T>}
         title={<T k="how.hero.title">How It Works</T>}
         intro={<T k="how.hero.intro">One weekly lesson, one real song, five levels — and a band of your own at six months.</T>}
       />

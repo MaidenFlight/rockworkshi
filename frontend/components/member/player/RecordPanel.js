@@ -114,7 +114,7 @@ export default function RecordPanel({
           : { tone: "ask", text: "Your browser will ask to use the mic the first time you record or check it." };
 
   return (
-    <div className="rw-record">
+    <div className="rw-recorder">
       <div className="rw-rec-status" data-rec-state={state.id} role="status" aria-live="polite">
         <span className="rw-rec-pill">
           <Icon name={state.icon} size={13} />
@@ -183,7 +183,7 @@ export default function RecordPanel({
             <label className="rw-take-name">
               <span>Name</span>
               <input
-                className="rw-field"
+                className="rw-console-input"
                 value={takeInput}
                 placeholder={takeName}
                 maxLength={30}

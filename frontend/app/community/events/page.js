@@ -34,7 +34,6 @@ export default function Events() {
   return (
     <div>
       <EditorialHero
-        eyebrow={<T k="events.hero.eyebrow">Community</T>}
         title={<T k="events.hero.title">Events</T>}
         intro={<T k="events.hero.intro">Recitals, showcases, and performances throughout the year.</T>}
       />

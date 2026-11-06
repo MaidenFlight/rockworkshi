@@ -16,7 +16,7 @@ function SignupFromLink() {
 export default function SignUp() {
   return (
     <div>
-      <PageHero mark={<RockWorksIcon size={40} color="var(--rw-gold)" />} eyebrow="Join Rock Works" title={<>Sign up</>} compact />
+      <PageHero mark={<RockWorksIcon size={40} color="var(--rw-gold)" />} title={<>Sign up</>} compact />
 
       <div style={{ maxWidth: 640, margin: "0 auto", padding: "40px 24px 80px" }}>
         <Suspense fallback={<SignupWizard mode="signup" />}>

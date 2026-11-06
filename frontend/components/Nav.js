@@ -123,8 +123,8 @@ export default function Nav() {
             <span
               style={{
                 fontWeight: 700,
-                fontSize: 10.5,
-                letterSpacing: "0.28em",
+                fontSize: 11,
+                letterSpacing: "0.22em",
                 textTransform: "uppercase",
                 color: "var(--rw-nav-sub)",
                 marginTop: 4,
@@ -150,13 +150,13 @@ export default function Nav() {
                   <>
                     <button
                       type="button"
-                      className="rw-nav-link rw-navtrigger"
+                      className="rw-nav-link rw-navtrigger rw-navtrigger-chev"
                       aria-expanded={openGroup === item.label}
                       aria-controls={`menu-${item.label}`}
                       onClick={() => setOpenGroup(openGroup === item.label ? null : item.label)}
                       style={isActive(item) ? activeNavLinkStyle : navLinkStyle}
                     >
-                      {item.label} <span aria-hidden="true" style={{ fontSize: 9, opacity: 0.7 }}>&#9662;</span>
+                      {item.label} <Chevron open={openGroup === item.label} />
                     </button>
                     <div
                       id={`menu-${item.label}`}
@@ -297,7 +297,9 @@ export default function Nav() {
                         style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", background: "transparent", border: "none", fontFamily: "inherit", padding: "15px 8px", fontSize: 16, fontWeight: 700, color: "var(--rw-ink)", cursor: "pointer" }}
                       >
                         {item.label}
-                        <span style={{ fontSize: 12, color: "var(--rw-meta)" }}>&#9662;</span>
+                        <span style={{ color: "var(--rw-meta)", display: "inline-flex" }}>
+                          <Chevron open={mobileExpanded === item.label} />
+                        </span>
                       </button>
                       {mobileExpanded === item.label && (
                         <div style={{ padding: "0 8px 12px" }}>
@@ -405,6 +407,15 @@ export default function Nav() {
         document.body
       )}
     </header>
+  );
+}
+
+function Chevron({ open = false }) {
+  // Drawn, like the instrument marks: butt caps and miter joins.
+  return (
+    <svg viewBox="0 0 12 12" width={10} height={10} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="butt" strokeLinejoin="miter" aria-hidden="true" style={{ flexShrink: 0, opacity: 0.75, transform: open ? "rotate(180deg)" : undefined }}>
+      <path d="M2 4.5l4 4 4-4" />
+    </svg>
   );
 }
 

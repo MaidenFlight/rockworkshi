@@ -30,6 +30,15 @@ body {
   box-sizing: border-box;
 }
 
+/* Form controls don't inherit the page's face on their own, so a bare button fell back to the
+   system sans. Size and weight stay with each component. */
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
 a {
   color: inherit;
 }
@@ -255,6 +264,15 @@ summary:focus-visible,
 
 .rw-wave-top svg {
   transform: scaleY(-1);
+}
+
+/* Inside a field the wave sits over the motif repeat. The band a top wave is cut from loses its
+   bottom edge, which would otherwise show as a hairline across the join. */
+.rw-field .rw-wave {
+  z-index: 1;
+}
+section:has(+ .rw-field-ask) {
+  border-bottom-color: transparent;
 }
 
 /* ---- The ways in ---- */
@@ -507,6 +525,11 @@ summary:focus-visible,
   border: none;
   font-family: inherit;
 }
+.rw-navtrigger-chev {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
 
 .rw-dropdown {
   opacity: 0;
@@ -698,8 +721,9 @@ main:focus {
   color: var(--rw-ink);
 }
 
+/* The closing field opens straight on its wave, cut from the label stock above it. */
 .rw-field-ask {
-  padding-top: 46px;
+  padding-top: 0;
 }
 
 .rw-repeat {
@@ -2089,7 +2113,7 @@ main:focus {
   border-color: var(--rw-gold);
   color: var(--rw-ink);
 }
-.rw-field {
+.rw-console-input {
   flex: 1 1 160px;
   min-height: 36px;
   padding: 0 10px;
@@ -3085,7 +3109,7 @@ div:has(> .rw-scrub:focus-visible) {
 }
 
 /* ---- Recorder ---- */
-.rw-record {
+.rw-recorder {
   display: grid;
   gap: 14px;
 }
@@ -4771,4 +4795,197 @@ div:has(> .rw-scrub:focus-visible) {
 .rw-today-step:has(input:checked) span {
   color: var(--rw-meta);
   text-decoration: line-through;
+}
+
+/* ---- History: the school's dates, in the How-it-works path idiom ---- */
+.rw-history {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.rw-history-step {
+  padding: 26px 24px 30px 0;
+  border-top: 5px solid var(--rw-ink);
+}
+.rw-history-step + .rw-history-step {
+  padding-left: 24px;
+}
+.rw-history-year {
+  display: block;
+  margin-bottom: 12px;
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: var(--rw-text-4xl);
+  line-height: 0.9;
+  letter-spacing: var(--rw-track-poster);
+  font-variant-numeric: tabular-nums;
+  color: var(--rw-orange-deep);
+}
+.rw-history-text {
+  margin: 0;
+  font-size: var(--rw-text-base);
+  line-height: 1.6;
+  color: var(--rw-prose);
+}
+@media (max-width: 860px) {
+  .rw-history {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .rw-history-step:nth-child(odd) {
+    padding-left: 0;
+  }
+}
+@media (max-width: 560px) {
+  .rw-history {
+    grid-template-columns: 1fr;
+  }
+  .rw-history-step,
+  .rw-history-step + .rw-history-step {
+    padding: 20px 0 24px;
+  }
+}
+
+/* ---- FAQ questions ---- */
+.rw-faq-q {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  min-height: 56px;
+  padding: 14px 4px;
+  background: transparent;
+  border: 0;
+  text-align: left;
+  font-weight: 700;
+  font-size: var(--rw-text-md);
+  color: var(--rw-ink);
+  cursor: pointer;
+}
+.rw-faq-q svg {
+  flex-shrink: 0;
+  color: var(--rw-orange-deep);
+}
+.rw-faq-q:hover {
+  color: var(--rw-orange-deep);
+}
+.rw-faq-q:focus-visible {
+  outline: 2px solid var(--rw-teal);
+  outline-offset: 2px;
+}
+
+/* ---- On Stage: a post's video link ---- */
+.rw-media-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  background: var(--rw-ink);
+  color: var(--rw-cream);
+  font-weight: 700;
+  font-size: var(--rw-text-base);
+  text-decoration: none;
+}
+.rw-media-link svg {
+  color: var(--rw-flare);
+}
+.rw-media-link:hover span {
+  text-decoration: underline;
+}
+.rw-media-link:focus-visible {
+  outline: 2px solid var(--rw-teal);
+  outline-offset: -4px;
+}
+
+/* ---- Music tools hub ---- */
+.rw-toolgrid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.rw-tool {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  height: 100%;
+  padding: 20px 22px;
+}
+.rw-tool[data-locked] {
+  border-top-color: var(--rw-border);
+}
+.rw-tool-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  border: 1px solid var(--rw-border);
+  background: var(--rw-cream);
+  color: var(--rw-teal);
+}
+.rw-tool[data-locked] .rw-tool-mark {
+  color: var(--rw-meta);
+}
+.rw-tool-title {
+  display: block;
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: var(--rw-text-xl);
+  line-height: 1.05;
+  text-transform: uppercase;
+  color: var(--rw-ink);
+}
+.rw-tool-desc {
+  display: block;
+  margin-top: 4px;
+  font-size: var(--rw-text-sm);
+  line-height: 1.5;
+  color: var(--rw-body);
+}
+.rw-tool-state {
+  flex-shrink: 0;
+  align-self: flex-start;
+  padding: 3px 8px;
+  border: 1px solid var(--rw-line);
+  font-size: var(--rw-text-xs);
+  font-weight: 700;
+  color: var(--rw-meta);
+}
+.rw-tool-state[data-free] {
+  border-color: var(--rw-teal);
+  color: var(--rw-teal);
+}
+.rw-tool-join {
+  margin-top: 32px;
+  padding: 24px 26px;
+  background: var(--rw-sand);
+  border: 1px solid var(--rw-border);
+}
+.rw-tool-join p {
+  margin: 0 0 16px;
+  max-width: 60ch;
+  font-size: var(--rw-text-base);
+  line-height: 1.6;
+  color: var(--rw-prose);
+}
+@media (max-width: 720px) {
+  .rw-toolgrid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 420px) {
+  .rw-tool {
+    flex-wrap: wrap;
+  }
+  .rw-tool-state {
+    order: -1;
+    margin-left: auto;
+  }
 }
