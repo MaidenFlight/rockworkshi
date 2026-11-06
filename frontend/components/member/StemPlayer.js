@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   MIX_MODES,
   createMasterBus,
@@ -11,14 +11,19 @@ import {
   stemLevels,
   takeLevel,
 } from "@/lib/audio/mix";
+import { analyser } from "@/lib/audio/meters";
+import { peaksInTurn, peaksOf } from "@/lib/audio/peaks";
 import { createStretchVoice } from "@/lib/audio/stretch";
 import { DEFAULT_EFFECTS, createTakeEffects } from "@/lib/audio/takeEffects";
 import ChordChart from "./ChordChart";
-import Icon from "./Icon";
 import MixerPanel from "./mixer/MixerPanel";
 import EffectsRack from "./mixer/EffectsRack";
 import MixPresets from "./mixer/MixPresets";
-import { btn, chip, eyebrow, section } from "./mixer/styles";
+import RecordPanel from "./player/RecordPanel";
+import StudioTabs from "./player/StudioTabs";
+import Timeline, { partColor } from "./player/Timeline";
+import Transport from "./player/Transport";
+import { PlayClock } from "./player/clock";
 
 // Every mode plays all the stems in sync and only changes which are audible,
 // so switching mode mid-song never stops or jumps.
@@ -33,6 +38,31 @@ const SPEEDS = [0.5, 0.75, 0.9, 1];
 const MIN_LOOP_S = 1;
 // The next pass of a loop is scheduled this far before the loop end, so it starts on time.
 const LOOP_LOOKAHEAD_S = 0.4;
+// Clicks are scheduled this far ahead, more than the loop's lookahead so a pass never loses its last beat.
+const METRONOME_LOOKAHEAD_S = 0.5;
+// Arrow left goes back to the start of the bar if it's this far in, else to the bar before.
+const BAR_RESTART_S = 0.6;
+// How often the page re-renders with the song position while playing. Anything that glides (the
+// playhead, chart cursors, meters, reels) follows the audio clock on its own every frame. Rendering
+// the whole player every frame would starve the router, so links stopped working mid-song.
+const POSITION_EVERY_MS = 66;
+
+function remembered(key) {
+  try {
+    return window.localStorage.getItem(key) === "on";
+  } catch {
+    return false;
+  }
+}
+
+function remember(key, on) {
+  try {
+    window.localStorage.setItem(key, on ? "on" : "off");
+  } catch {
+    // Only a convenience: it just won't be remembered.
+  }
+}
+
 // The upload limit in the API (MAX_RECORDING_BYTES).
 const MAX_RECORDING_BYTES = 40 * 1024 * 1024;
 
@@ -144,6 +174,8 @@ export default function StemPlayer({
 
   const [recording, setRecording] = useState(false);
   const [take, setTake] = useState(null); // { buffer, songTime } songTime = song position of the take's first sample
+  const [takeCount, setTakeCount] = useState(0); // takes recorded on this visit, so each gets the next number
+  const [takeName, setTakeName] = useState("");
   const [nudgeMs, setNudgeMs] = useState(0); // positive moves the take earlier
   const [micError, setMicError] = useState("");
   const [exporting, setExporting] = useState(false);
@@ -153,8 +185,14 @@ export default function StemPlayer({
   const [speedError, setSpeedError] = useState("");
   const [sendProgress, setSendProgress] = useState(null); // set while sending
   const [sendError, setSendError] = useState("");
+  const [countIn, setCountIn] = useState(() => remembered("rw-count-in"));
+  const [metronome, setMetronome] = useState(() => remembered("rw-metronome"));
   const [mix, setMix] = useState(() => (saved ? mixFromSettings(saved, parts) : defaultMix(parts)));
   const [fx, setFx] = useState(saved?.effects ? { ...DEFAULT_EFFECTS, ...saved.effects } : DEFAULT_EFFECTS);
+  const [peaks, setPeaks] = useState({}); // part -> waveform outline, worked out after loading
+  const [monitoring, setMonitoring] = useState(false); // the mic is open for a level check, not recording
+  const [micLabel, setMicLabel] = useState("");
+  const [recordFrom, setRecordFrom] = useState(0); // the song position the recording started from
 
   // stems -> per-stem gain -> master bus; take -> effects -> take gain -> master bus.
   const ctxRef = useRef(null);
@@ -179,8 +217,37 @@ export default function StemPlayer({
   const nudgeRef = useRef(0);
   const recordingRef = useRef(false);
   const micRef = useRef(null); // { stream, source, worklet }
+  const micLevelRef = useRef(0); // the mic's latest RMS while recording, for the tape deck's meter
+  // Analysers in the real signal path, for the meters: after each stem's fader, after the take's,
+  // on the master after the clipper (left and right), and on the mic before anything else.
+  const metersRef = useRef({ parts: {}, master: [], take: null, mic: null });
+  const countInBeatRef = useRef(0); // seconds per beat of the count-in under way
   const chunksRef = useRef([]);
   const playingRef = useRef(false);
+
+  // Count-in and metronome clicks, scheduled on the same clock as the song.
+  const clicksRef = useRef([]); // { osc, when }
+  const countInUntilRef = useRef(0); // context time the count-in ends; the song holds still until then
+  const passStartRef = useRef(0); // context time the current pass of the song began
+  const scheduledRef = useRef(new Set()); // beats already given a click in this pass
+  const metronomeRef = useRef(metronome);
+  const countInRef = useRef(countIn);
+  const beatsRef = useRef([]);
+  const keysRef = useRef(null); // the keyboard shortcuts' actions, kept current
+
+  // Bars, sections and beats from the chord chart, for the arrow keys, loops and clicks.
+  const barTimes = useMemo(() => chart?.sections.flatMap((s) => s.bars.map((b) => b.time)) ?? [], [chart]);
+  const sectionTimes = useMemo(() => chart?.sections.map((s) => s.bars[0].time) ?? [], [chart]);
+  const beats = useMemo(() => {
+    if (!chart) return [];
+    const starts = [...barTimes, chart.end];
+    const out = [];
+    for (let i = 0; i + 1 < starts.length; i++) {
+      const length = starts[i + 1] - starts[i];
+      for (let b = 0; b < 4; b++) out.push({ time: starts[i] + (length * b) / 4, accent: b === 0 });
+    }
+    return out;
+  }, [chart, barTimes]);
 
   // ---------- Resume state ----------
   // Saved every 15 s while playing, a few seconds after a settings change, on pause, and
@@ -192,11 +259,94 @@ export default function StemPlayer({
     latestRef.current = { mix, mode, focus, fx, ready: status === "ready" };
     onSaveRef.current = onSaveSession;
     playingRef.current = playing;
+    beatsRef.current = beats;
+    keysRef.current = {
+      ready: status === "ready",
+      recording,
+      toggle: () => (recordingRef.current ? stopRecording() : playingRef.current ? pause() : play()),
+      step: stepBar,
+      seek,
+      loopStart: markLoopStart,
+      loopEnd: () => canEndLoop() && markLoopEnd(),
+      clearLoop: () => updateLoop(null),
+    };
   });
+
+  // Keyboard shortcuts, as in tab players: Space plays and pauses, the arrows move by bar (by
+  // section with Shift), Home goes to the start, [ and ] set the loop, \ clears it.
+  // Typing in a field never triggers them, sliders keep their own arrow keys, and Space still
+  // presses an ordinary focused button.
+  useEffect(() => {
+    function onKey(e) {
+      if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey) return;
+      const el = e.target;
+      const tag = el?.tagName;
+      if (el?.isContentEditable || tag === "TEXTAREA" || tag === "SELECT") return;
+      const slider = tag === "INPUT" && el.type === "range";
+      if (tag === "INPUT" && !slider) return;
+      const keys = keysRef.current;
+      if (!keys?.ready) return;
+      const onButton = (tag === "BUTTON" || tag === "A") && !el.closest("[data-start]");
+      if (e.key === " ") {
+        if (onButton) return;
+        e.preventDefault();
+        keys.toggle();
+        return;
+      }
+      if (keys.recording) return;
+      if ((e.key === "ArrowRight" || e.key === "ArrowLeft") && !slider) {
+        e.preventDefault();
+        keys.step(e.key === "ArrowRight" ? 1 : -1, e.shiftKey);
+      } else if (e.key === "Home" && !slider) {
+        e.preventDefault();
+        keys.seek(0);
+      } else if (e.key === "[") {
+        e.preventDefault();
+        keys.loopStart();
+      } else if (e.key === "]") {
+        e.preventDefault();
+        keys.loopEnd();
+      } else if (e.key === "\\") {
+        e.preventDefault();
+        keys.clearLoop();
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  function countingIn() {
+    return Boolean(ctxRef.current) && ctxRef.current.currentTime < countInUntilRef.current;
+  }
+
+  // Which click of the count-in is sounding (0-3), or -1 when there's no count-in under way.
+  function countInBeat() {
+    const ctx = ctxRef.current;
+    if (!ctx || !countingIn() || !countInBeatRef.current) return -1;
+    const left = countInUntilRef.current - ctx.currentTime;
+    return Math.max(0, Math.min(3, 3 - Math.floor(left / countInBeatRef.current)));
+  }
+
+  // Which beat of its bar the song is on (0-3), from the chart's beats, or -1.
+  function beatNow() {
+    const t = positionNow();
+    const list = beatsRef.current;
+    let lo = 0;
+    let hi = list.length - 1;
+    let found = -1;
+    while (lo <= hi) {
+      const mid = (lo + hi) >> 1;
+      if (list[mid].time <= t + 0.02) {
+        found = mid;
+        lo = mid + 1;
+      } else hi = mid - 1;
+    }
+    return found < 0 ? -1 : found % 4;
+  }
 
   function positionNow() {
     const ctx = ctxRef.current;
-    if (!playingRef.current || !ctx) return offsetRef.current;
+    if (!playingRef.current || !ctx || countingIn()) return offsetRef.current;
     return Math.max(0, (ctx.currentTime - startedAtRef.current) * speedRef.current);
   }
 
@@ -259,16 +409,28 @@ export default function StemPlayer({
     const bus = createMasterBus(ctx, mixLevel);
     busRef.current = bus;
     gainsRef.current = {};
+    const meters = { parts: {}, master: [], take: null, mic: null };
     for (const t of tracks) {
       const gain = ctx.createGain();
       gain.connect(bus.input);
       gainsRef.current[t.part] = gain;
+      meters.parts[t.part] = analyser(ctx);
+      gain.connect(meters.parts[t.part]);
     }
     const chain = createTakeEffects(ctx);
     fxRef.current = chain;
     takeGainRef.current = ctx.createGain();
     chain.output.connect(takeGainRef.current);
     takeGainRef.current.connect(bus.input);
+    meters.take = analyser(ctx);
+    takeGainRef.current.connect(meters.take);
+    const split = ctx.createChannelSplitter(2);
+    bus.output.connect(split);
+    meters.master = [analyser(ctx), analyser(ctx)];
+    split.connect(meters.master[0], 0);
+    split.connect(meters.master[1], 1);
+    metersRef.current = meters;
+    let stopPeaks = () => {};
 
     const decodeUrl = async (url, label) => {
       const res = await fetch(url);
@@ -289,6 +451,7 @@ export default function StemPlayer({
       .then(([entries, reviewBuffer]) => {
         if (cancelled) return;
         buffersRef.current = Object.fromEntries(entries);
+        stopPeaks = peaksInTurn(entries, (part, outline) => setPeaks((all) => ({ ...all, [part]: outline })));
         const length = Math.max(...entries.map(([, b]) => b.duration));
         setDuration(length);
         // A session saved at the very end starts again from the top.
@@ -312,6 +475,7 @@ export default function StemPlayer({
 
     return () => {
       cancelled = true;
+      stopPeaks();
       stopSources();
       stemsVoiceRef.current = null;
       takeVoiceRef.current = null;
@@ -345,9 +509,16 @@ export default function StemPlayer({
   useEffect(() => {
     if (!playing) return;
     let raf;
-    function tick() {
+    let shown = 0;
+    function tick(now) {
       const ctx = ctxRef.current;
       const current = loopRef.current;
+      if (countingIn()) {
+        // The song hasn't started yet: hold still until the count-in ends.
+        raf = requestAnimationFrame(tick);
+        return;
+      }
+      if (metronomeRef.current) scheduleBeats(current);
       if (current?.end != null && !recordingRef.current) {
         const loopEndsAt = startedAtRef.current + current.end / speedRef.current;
         if (loopEndsAt - ctx.currentTime < LOOP_LOOKAHEAD_S) {
@@ -363,7 +534,10 @@ export default function StemPlayer({
         setPlaying(false);
         return;
       }
-      setPosition(Math.max(0, t));
+      if (now - shown >= POSITION_EVERY_MS) {
+        shown = now;
+        setPosition(Math.max(0, t));
+      }
       raf = requestAnimationFrame(tick);
     }
     raf = requestAnimationFrame(tick);
@@ -376,7 +550,57 @@ export default function StemPlayer({
     return [stemsVoiceRef.current, takeVoiceRef.current].filter(Boolean);
   }
 
+  // One click: higher on the first beat of the bar. Straight to the speakers, past the mixer.
+  function scheduleClick(when, accent) {
+    const ctx = ctxRef.current;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.frequency.value = accent ? 1600 : 1100;
+    gain.gain.setValueAtTime(0.0001, when);
+    gain.gain.exponentialRampToValueAtTime(accent ? 0.5 : 0.3, when + 0.002);
+    gain.gain.exponentialRampToValueAtTime(0.0001, when + 0.06);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(when);
+    osc.stop(when + 0.07);
+    const click = { osc, when };
+    clicksRef.current.push(click);
+    osc.onended = () => {
+      clicksRef.current = clicksRef.current.filter((c) => c !== click);
+      gain.disconnect();
+    };
+  }
+
+  // Silences clicks due at or after a time, or all of them.
+  function stopClicks(from = -Infinity) {
+    for (const click of clicksRef.current) {
+      if (click.when < from - 0.001) continue;
+      try {
+        click.osc.stop();
+      } catch {
+        // Already finished.
+      }
+    }
+    clicksRef.current = clicksRef.current.filter((c) => c.when < from - 0.001);
+  }
+
+  // Gives the beats coming up in the next moment their click, once each, in time with the song
+  // at any speed. Beats past a loop's end belong to the next pass, which schedules its own.
+  function scheduleBeats(loopNow) {
+    const ctx = ctxRef.current;
+    const rate = speedRef.current;
+    const from = (Math.max(ctx.currentTime, passStartRef.current) - startedAtRef.current) * rate;
+    const until = (ctx.currentTime + METRONOME_LOOKAHEAD_S - startedAtRef.current) * rate;
+    const limit = loopNow?.end != null && !recordingRef.current ? loopNow.end : Infinity;
+    beatsRef.current.forEach((beat, i) => {
+      if (beat.time < from - 0.0001 || beat.time >= until || beat.time >= limit - 0.0001 || scheduledRef.current.has(i)) return;
+      scheduledRef.current.add(i);
+      scheduleClick(startedAtRef.current + beat.time / rate, beat.accent);
+    });
+  }
+
   function stopSources() {
+    stopClicks();
+    countInUntilRef.current = 0;
     for (const src of [...endingRef.current, ...sourcesRef.current]) {
       try {
         src.stop();
@@ -401,6 +625,10 @@ export default function StemPlayer({
   function startAt(offset, when = ctxRef.current.currentTime + startLead()) {
     const ctx = ctxRef.current;
     const rate = speedRef.current;
+    // Clicks already due on the old timeline after this point no longer fit.
+    stopClicks(when);
+    passStartRef.current = when;
+    scheduledRef.current = new Set();
     for (const src of [...endingRef.current, ...sourcesRef.current]) src.stop(when);
     endingRef.current = sourcesRef.current;
     sourcesRef.current = [];
@@ -479,15 +707,82 @@ export default function StemPlayer({
     if (playingRef.current) startAt(t);
   }
 
+  // Plays from a position, after a bar of clicks if the count-in is on. The song holds still
+  // through the count-in, so the cursor and recording only start with the music.
+  function startWithCountIn(offset) {
+    const ctx = ctxRef.current;
+    let when = ctx.currentTime + startLead();
+    const counting = countInRef.current && barTimes.length > 0;
+    if (counting) {
+      const i = Math.max(0, barTimes.findLastIndex((t) => t <= offset + 0.001));
+      const beat = ((barTimes[i + 1] ?? chart.end) - barTimes[i]) / 4 / speedRef.current;
+      for (let b = 0; b < 4; b++) scheduleClick(when + b * beat, b === 0);
+      countInBeatRef.current = beat;
+      when += 4 * beat;
+    }
+    startAt(offset, when);
+    countInUntilRef.current = counting ? when : 0;
+  }
+
+  // The bar a position is in, from the chord chart. Loops set there snap to whole bars.
+  function barStartAt(t) {
+    const i = barTimes.findLastIndex((b) => b <= t + 0.001);
+    return i < 0 ? 0 : barTimes[i];
+  }
+
+  function barEndAt(t) {
+    return barTimes.find((b) => b > t + 0.001) ?? chart?.end ?? duration;
+  }
+
+  // Next or previous bar (or section). Back from partway into one goes to its start first.
+  function stepBar(direction, bySection) {
+    const list = bySection ? sectionTimes : barTimes;
+    if (!list.length) {
+      skip(direction * 5);
+      return;
+    }
+    const t = currentPosition();
+    if (direction > 0) {
+      const next = list.find((b) => b > t + 0.05);
+      if (next !== undefined) seek(next);
+      return;
+    }
+    const i = list.findLastIndex((b) => b <= t + 0.05);
+    if (i < 0) seek(0);
+    else if (t - list[i] > BAR_RESTART_S) seek(list[i]);
+    else seek(i > 0 ? list[i - 1] : 0);
+  }
+
   function updateLoop(next) {
     loopRef.current = next;
     setLoop(next);
   }
 
   function markLoopStart() {
-    const t = currentPosition();
+    const t = chart ? barStartAt(currentPosition()) : currentPosition();
     const end = loopRef.current?.end;
     updateLoop({ start: t, end: end != null && end >= t + MIN_LOOP_S ? end : null });
+  }
+
+  function loopEndCandidate() {
+    return chart ? barEndAt(currentPosition()) : currentPosition();
+  }
+
+  function canEndLoop() {
+    return loopEndCandidate() >= (loopRef.current?.start ?? 0) + MIN_LOOP_S;
+  }
+
+  function toggleCountIn() {
+    countInRef.current = !countIn;
+    setCountIn(!countIn);
+    remember("rw-count-in", !countIn);
+  }
+
+  function toggleMetronome() {
+    metronomeRef.current = !metronome;
+    setMetronome(!metronome);
+    remember("rw-metronome", !metronome);
+    if (metronome) stopClicks(ctxRef.current?.currentTime ?? 0);
   }
 
   function loopSection(start, end) {
@@ -495,13 +790,14 @@ export default function StemPlayer({
     seek(start);
   }
 
-  // Marking the end while playing jumps straight back to the start, like any A–B repeat.
+  // With a chart the loop ends at the end of this bar, so it plays out first; without one it
+  // ends here and jumps straight back, like any A–B repeat.
   function markLoopEnd() {
-    updateLoop({ start: loopRef.current?.start ?? 0, end: currentPosition() });
+    updateLoop({ start: loopRef.current?.start ?? 0, end: loopEndCandidate() });
   }
 
   function currentPosition() {
-    if (!playing) return offsetRef.current;
+    if (!playing || countingIn()) return offsetRef.current;
     return Math.min(duration, Math.max(0, (ctxRef.current.currentTime - startedAtRef.current) * speedRef.current));
   }
 
@@ -516,7 +812,7 @@ export default function StemPlayer({
     // Pressing play after the loop's end goes back to its start.
     const current = loopRef.current;
     if (current?.end != null && offsetRef.current >= current.end) offsetRef.current = current.start;
-    startAt(offsetRef.current);
+    startWithCountIn(offsetRef.current);
     setPlaying(true);
   }
 
@@ -554,9 +850,17 @@ export default function StemPlayer({
       URL.revokeObjectURL(moduleUrl);
     }
     const source = ctx.createMediaStreamSource(stream);
+    metersRef.current.mic = analyser(ctx);
+    source.connect(metersRef.current.mic);
+    setMicLabel(stream.getAudioTracks()[0]?.label || "");
     const worklet = new AudioWorkletNode(ctx, "rw-recorder");
     worklet.port.onmessage = (e) => {
-      if (recordingRef.current) chunksRef.current.push(e.data);
+      if (!recordingRef.current) return;
+      chunksRef.current.push(e.data);
+      const { samples } = e.data;
+      let sum = 0;
+      for (let i = 0; i < samples.length; i++) sum += samples[i] * samples[i];
+      micLevelRef.current = Math.sqrt(sum / samples.length);
     };
     // The worklet only runs while connected to the output. The muted gain keeps the mic out of your ears.
     const mute = ctx.createGain();
@@ -566,6 +870,27 @@ export default function StemPlayer({
     return micRef.current;
   }
 
+  function micProblem(err) {
+    console.error("Microphone unavailable:", err);
+    setMicError(
+      err.name === "NotAllowedError"
+        ? "Microphone access was blocked. Allow it in your browser's site settings and try again."
+        : "No microphone found."
+    );
+  }
+
+  // Opens the mic just to watch its level, before recording anything.
+  async function checkMic() {
+    setMicError("");
+    try {
+      await ctxRef.current.resume();
+      await ensureMic();
+      setMonitoring(true);
+    } catch (err) {
+      micProblem(err);
+    }
+  }
+
   async function startRecording() {
     setMicError("");
     let mic;
@@ -573,12 +898,7 @@ export default function StemPlayer({
       await ctxRef.current.resume();
       mic = await ensureMic();
     } catch (err) {
-      console.error("Microphone unavailable:", err);
-      setMicError(
-        err.name === "NotAllowedError"
-          ? "Microphone access was blocked. Allow it in your browser's site settings and try again."
-          : "No microphone found."
-      );
+      micProblem(err);
       return;
     }
     stopSources();
@@ -587,8 +907,9 @@ export default function StemPlayer({
     setSpeed(1);
     chunksRef.current = [];
     recordingRef.current = true;
+    setRecordFrom(offsetRef.current);
     mic.worklet.port.postMessage("start");
-    startAt(offsetRef.current);
+    startWithCountIn(offsetRef.current);
     setRecording(true);
     setPlaying(true);
   }
@@ -619,7 +940,24 @@ export default function StemPlayer({
     const songTime = chunks[0].time - startedAtRef.current - roundTripLatency(ctx, mic.stream);
     takeRef.current = { buffer, songTime };
     setTake(takeRef.current);
+    setTakeCount((n) => n + 1);
+    setTakeName("");
     setMix((m) => ({ ...m, takeMuted: false }));
+  }
+
+  // A take is called by its number until it's given a name.
+  const takeTitle = takeName.trim() || `Take ${takeCount}`;
+
+  // Plays the song from just before the take comes in, so you hear yourself with the band.
+  function playTake() {
+    if (playingRef.current) {
+      pause();
+      return;
+    }
+    const from = Math.max(0, (takeRef.current?.songTime ?? 0) - nudgeRef.current / 1000 - 1);
+    offsetRef.current = from;
+    setPosition(from);
+    play();
   }
 
   function changeNudge(ms) {
@@ -694,7 +1032,7 @@ export default function StemPlayer({
       const url = URL.createObjectURL(toWav(await offline.startRendering()));
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${title} - my take.wav`;
+      a.download = `${title} - ${takeTitle}.wav`;
       a.click();
       setTimeout(() => URL.revokeObjectURL(url), 10_000);
     } finally {
@@ -702,11 +1040,54 @@ export default function StemPlayer({
     }
   }
 
+  // ---------- What the interface reads ----------
+  // Steady functions for the parts of the page that follow the audio clock or the meters every
+  // frame, so they don't restart on each render.
+  const liveRef = useRef(null);
+  useEffect(() => {
+    liveRef.current = { positionNow, countInBeat, beatNow };
+  });
+  const getPosition = useCallback(() => liveRef.current?.positionNow() ?? 0, []);
+  const getCountInBeat = useCallback(() => liveRef.current?.countInBeat() ?? -1, []);
+  const getBeat = useCallback(() => liveRef.current?.beatNow() ?? -1, []);
+  const partMeters = useMemo(() => Object.fromEntries(parts.map((p) => [p, () => [metersRef.current.parts[p]]])), [parts]);
+  const getMaster = useCallback(() => metersRef.current.master, []);
+  const getTake = useCallback(() => [metersRef.current.take], []);
+  const getMic = useCallback(() => (metersRef.current.mic ? [metersRef.current.mic] : []), []);
+  const clock = useMemo(() => ({ getPosition, playing }), [getPosition, playing]);
+
+  const levels = useMemo(() => stemLevels(mix, mode, focus, parts), [mix, mode, focus, parts]);
+  // Why each part is or isn't heard, in the order that explains it best.
+  const states = useMemo(() => {
+    const anySolo = parts.some((p) => mix.stems[p]?.soloed);
+    return Object.fromEntries(
+      parts.map((p) => {
+        const s = mix.stems[p];
+        const inMode = mode === "solo" ? p === focus : mode === "minus" ? p !== focus : true;
+        return [p, s?.muted ? "muted" : !inMode ? "off" : anySolo && !s?.soloed ? "silent" : s?.soloed ? "solo" : "playing"];
+      })
+    );
+  }, [mix, mode, focus, parts]);
+  const takePeaks = useMemo(() => (take ? peaksOf(take.buffer) : null), [take]);
+  const takeStart = take ? take.songTime - nudgeMs / 1000 : 0;
+  const takeLabel = take ? review?.label || "Your take" : null;
+  const lanes = useMemo(() => {
+    const list = parts.map((p) => ({
+      id: p,
+      label: p === myPart ? `${p} (${partLabel})` : p,
+      color: partColor(p),
+      state: states[p],
+      peaks: peaks[p] ?? null,
+      getMeter: partMeters[p],
+    }));
+    if (take) list.push({ id: "take", label: takeLabel, color: partColor("take"), state: mix.takeMuted ? "muted" : "playing", peaks: takePeaks, offset: takeStart, getMeter: getTake });
+    return list;
+  }, [parts, myPart, partLabel, states, peaks, partMeters, take, takeLabel, mix.takeMuted, takePeaks, takeStart, getTake]);
+
   if (status === "error") {
     return <div style={panel}>The tracks couldn&apos;t be loaded. Refresh the page to try again.</div>;
   }
 
-  const levels = stemLevels(mix, mode, focus, parts);
   const ready = status === "ready";
 
   // "Whole song" means every part, so it also clears any solo or mute left in the mixer.
@@ -729,281 +1110,285 @@ export default function StemPlayer({
     if (s.effects) setFx({ ...DEFAULT_EFFECTS, ...s.effects });
   }
 
-  return (
-    <div style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)" }}>
-      <div style={{ padding: "20px 22px", borderBottom: "1px solid var(--rw-border)" }}>
-        <div style={eyebrow}>Play</div>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+  // Where the song is, by the chart: section, and bar within it.
+  let where = null;
+  if (chart && position < chart.end) {
+    const s = chart.sections.findLastIndex((sec) => sec.bars[0].time <= position + 0.001);
+    if (s >= 0) {
+      const bars = chart.sections[s].bars;
+      where = { section: chart.sections[s].name, bar: bars.findLastIndex((b) => b.time <= position + 0.001) + 1, bars: bars.length };
+    }
+  }
+
+  // One line on what to try next, for someone new to practising like this.
+  const nextSpeed = SPEEDS.find((s) => s > speed);
+  const coach = !ready
+    ? null
+    : recording
+      ? "Keep going to the end of the part, then press Stop."
+      : take
+        ? `Listen back with your take, nudge it into time if it sounds early or late, then ${onSendTake ? "send it to your teacher" : "download it"}.`
+        : loop?.end != null
+          ? nextSpeed
+            ? `Repeat this loop until it feels easy, then step up to ${Math.round(nextSpeed * 100)}%.`
+            : "You're looping at full speed. When it's solid, clear the loop and play the whole song."
+          : speed < 1
+            ? `When ${Math.round(speed * 100)}% feels easy, try ${Math.round(nextSpeed * 100)}%.`
+            : !playing && position < 1
+              ? "Press Play, or Space, and follow along. Stuck on a part? Drag across its bars on the Loop strip to repeat it."
+              : "Tricky bar? Drag across it on the Loop strip above to repeat it, and slow it down with Speed.";
+
+  const bandHeader = (
+    <div className="rw-tl-header">
+      <div role="group" aria-label="Band" className="rw-tp-group">
+        <span className="rw-tp-label">Band</span>
+        <span className="rw-seg">
           {MODES.map((m) => (
-            <button key={m.id} onClick={() => (m.id === "full" ? playAllParts() : setMode(m.id))} style={chip(mode === m.id)} aria-pressed={mode === m.id}>
+            <button key={m.id} type="button" onClick={() => (m.id === "full" ? playAllParts() : setMode(m.id))} aria-pressed={mode === m.id}>
               {m.label}
             </button>
           ))}
-        </div>
-        {heldBack && (
-          <div role="status" style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginTop: 12, fontSize: 13.5, color: "var(--rw-body)" }}>
-            <span style={{ flex: "1 1 220px" }}>
-              Solo or mute is on in the mixer, so {playingParts.length ? `only ${playingParts.join(", ")} ${playingParts.length === 1 ? "is" : "are"} playing` : "nothing is playing"}.
-            </span>
-            <button onClick={playAllParts} style={btn}>
-              Play all parts
-            </button>
-          </div>
-        )}
-
-        {mode !== "full" && (
-          <>
-            <div style={{ ...eyebrow, marginTop: 16 }}>{mode === "solo" ? "Only this part" : "Leave out"}</div>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              {parts.map((p) => (
-                <button key={p} onClick={() => setFocus(p)} style={chip(focus === p)} aria-pressed={focus === p}>
-                  {p}
-                  {p === myPart ? ` (${partLabel})` : ""}
-                </button>
-              ))}
-            </div>
-          </>
-        )}
+        </span>
       </div>
-
-      <div style={{ padding: "18px 22px", borderBottom: "1px solid var(--rw-border)" }}>
-        <div style={{ position: "relative" }}>
-          {loop && duration > 0 && (
-            <div
-              aria-hidden="true"
-              style={{
-                position: "absolute",
-                top: 0,
-                bottom: 0,
-                left: `${(loop.start / duration) * 100}%`,
-                width: loop.end != null ? `${((loop.end - loop.start) / duration) * 100}%` : 3,
-                background: "var(--rw-teal)",
-                opacity: 0.35,
-                pointerEvents: "none",
-              }}
-            />
-          )}
-          <input
-            type="range"
-            min={0}
-            max={duration || 0}
-            step={0.1}
-            value={position}
-            onChange={(e) => seek(Number(e.target.value))}
-            disabled={!ready || recording}
-            aria-label="Song position"
-            style={{ width: "100%", accentColor: "var(--rw-orange)", display: "block" }}
-          />
+      {mode !== "full" && (
+        <div role="group" aria-label={mode === "solo" ? "Only this part" : "Leave out"} className="rw-tp-group">
+          <span className="rw-tp-label">{mode === "solo" ? "Only" : "Leave out"}</span>
+          {parts.map((p) => (
+            <button key={p} type="button" onClick={() => setFocus(p)} aria-pressed={focus === p} className="rw-focus-chip" style={{ "--lane": partColor(p) }}>
+              {p}
+              {p === myPart ? ` (${partLabel})` : ""}
+            </button>
+          ))}
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10, flexWrap: "wrap" }}>
-          <button onClick={() => skip(-5)} disabled={!ready || recording} style={btn}>
-            −5s
+      )}
+      {!review && (
+        <div role="group" aria-label="Loop a section" className="rw-tp-group rw-tl-loopkeys">
+          <span className="rw-tp-label">Loop</span>
+          <button type="button" className="rw-btn rw-btn-small" onClick={markLoopStart} disabled={!ready || recording} title="Loop from the start of this bar ([)">
+            {loop ? `Start ${fmtT(loop.start)}` : "Set start"}
           </button>
           <button
-            onClick={playing ? pause : play}
-            disabled={!ready || recording}
-            style={{ ...btn, minWidth: 96, background: "var(--rw-orange)", border: "1px solid var(--rw-orange)", color: "#fff" }}
+            type="button"
+            className="rw-btn rw-btn-small"
+            onClick={markLoopEnd}
+            disabled={!ready || recording || (chart ? barEndAt(position) : position) < (loop?.start ?? 0) + MIN_LOOP_S}
+            title="End the loop at the end of this bar (])"
           >
-            {!ready ? `Loading ${loadedCount}/${parts.length}` : playing ? "Pause" : "Play"}
+            {loop?.end != null ? `End ${fmtT(loop.end)}` : "Set end"}
           </button>
-          <button onClick={() => skip(5)} disabled={!ready || recording} style={btn}>
-            +5s
-          </button>
-          <span style={{ marginLeft: "auto", fontSize: 13, color: "var(--rw-body)", fontVariantNumeric: "tabular-nums" }}>
-            {fmtT(position)} / {fmtT(duration)}
+          {loop && (
+            <button type="button" className="rw-btn rw-btn-small" onClick={() => updateLoop(null)} disabled={recording}>
+              Clear
+            </button>
+          )}
+        </div>
+      )}
+      {heldBack && (
+        <div role="status" className="rw-tl-note">
+          <span>
+            Solo or mute is on in the mixer, so {playingParts.length ? `only ${playingParts.join(", ")} ${playingParts.length === 1 ? "is" : "are"} playing` : "nothing is playing"}.
           </span>
-        </div>
-      </div>
-
-      {chart && !review && (
-        <div style={{ padding: "18px 22px", borderBottom: "1px solid var(--rw-border)" }}>
-          <ChordChart
-            chart={chart}
-            position={position}
-            myPart={myPart}
-            disabled={!ready || recording}
-            onSeek={seek}
-            onLoopSection={loopSection}
-          />
-        </div>
-      )}
-
-      {!review && (
-        <div style={{ padding: "18px 22px", borderBottom: "1px solid var(--rw-border)" }}>
-          <div style={eyebrow}>Practice</div>
-          <div role="group" aria-label="Speed" style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-            <span style={{ fontSize: 13, fontWeight: 700, color: "var(--rw-ink)", width: 48 }}>Speed</span>
-            {SPEEDS.map((s) => (
-              <button key={s} onClick={() => changeSpeed(s)} disabled={!ready || recording || preparingSpeed} style={chip(speed === s)} aria-pressed={speed === s}>
-                {Math.round(s * 100)}%
-              </button>
-            ))}
-            {preparingSpeed && (
-              <span role="status" style={{ fontSize: 13, color: "var(--rw-meta)" }}>
-                Getting slow playback ready…
-              </span>
-            )}
-          </div>
-          {speedError && (
-            <p role="alert" style={{ margin: "8px 0 0", fontSize: 13.5, color: "var(--rw-orange-deep)" }}>
-              {speedError}
-            </p>
-          )}
-          <div role="group" aria-label="Loop a section" style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
-            <span style={{ fontSize: 13, fontWeight: 700, color: "var(--rw-ink)", width: 48 }}>Loop</span>
-            <button onClick={markLoopStart} disabled={!ready || recording} style={btn}>
-              {loop ? `Start ${fmtT(loop.start)}` : "Set start"}
-            </button>
-            <button onClick={markLoopEnd} disabled={!ready || recording || position < (loop?.start ?? 0) + MIN_LOOP_S} style={btn}>
-              {loop?.end != null ? `End ${fmtT(loop.end)}` : "Set end"}
-            </button>
-            {loop && (
-              <button onClick={() => updateLoop(null)} disabled={recording} style={btn}>
-                Clear
-              </button>
-            )}
-          </div>
-          <p style={{ margin: "8px 0 0", fontSize: 12.5, color: "var(--rw-meta)", lineHeight: 1.5 }}>
-            {loop?.end != null
-              ? `Repeating ${fmtT(loop.start)}–${fmtT(loop.end)}.`
-              : "While the song plays, choose Set start, then Set end. That part repeats until you clear it."}
-          </p>
-        </div>
-      )}
-
-      <div style={section}>
-        <div style={eyebrow}>Mixer</div>
-        <MixerPanel
-          parts={parts}
-          mix={mix}
-          levels={levels}
-          onChange={setMix}
-          takeLabel={take ? review?.label || "Your take" : null}
-          onReset={() => setMix(defaultMix(parts))}
-        />
-      </div>
-
-      {review ? (
-        <div style={{ padding: "18px 22px" }}>
-          <label style={{ fontSize: 13, color: "var(--rw-body)", display: "block" }}>
-            <span style={{ display: "flex", justifyContent: "space-between" }}>
-              <span>Line up the take</span>
-              <span style={{ fontVariantNumeric: "tabular-nums", color: "var(--rw-meta)" }}>
-                {nudgeMs > 0 ? `${nudgeMs} ms earlier` : nudgeMs < 0 ? `${-nudgeMs} ms later` : "as sent"}
-              </span>
-            </span>
-            <input
-              type="range"
-              min={-NUDGE_LIMIT_MS}
-              max={NUDGE_LIMIT_MS}
-              step={5}
-              value={nudgeMs}
-              onChange={(e) => changeNudge(Number(e.target.value))}
-              disabled={!take}
-              style={{ width: "100%", accentColor: "var(--rw-orange)", marginTop: 6 }}
-            />
-          </label>
-          <p style={{ margin: "8px 0 0", fontSize: 12.5, color: "var(--rw-meta)", lineHeight: 1.5 }}>
-            The take plays where it was recorded in the song. Phones can be a little off, so nudge it if it sounds
-            early or late before judging the timing.
-          </p>
-        </div>
-      ) : (
-        <div style={{ padding: "18px 22px" }}>
-          <div style={eyebrow}>Record yourself</div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-            <button
-              onClick={recording ? stopRecording : startRecording}
-              disabled={!ready}
-              style={{
-                ...btn,
-                minWidth: 120,
-                background: recording ? "var(--rw-ink)" : "#fff",
-                color: recording ? "#fff" : "var(--rw-orange)",
-                border: `1px solid ${recording ? "var(--rw-ink)" : "var(--rw-orange)"}`,
-              }}
-            >
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                <Icon name={recording ? "stop" : "record"} size={14} />
-                {recording ? "Stop" : take ? "Record again" : "Record"}
-              </span>
-            </button>
-            <span style={{ fontSize: 13, color: "var(--rw-meta)", lineHeight: 1.5, flex: "1 1 240px" }}>
-              {recording
-                ? "Recording. The band plays in the mode you picked."
-                : "Starts from the current position at full speed, and plays straight through any loop. Wear headphones so the mic only hears you."}
-            </span>
-          </div>
-          {micError && <p style={{ margin: "10px 0 0", fontSize: 13.5, color: "var(--rw-orange-deep)" }}>{micError}</p>}
-
-          {take && !recording && (
-            <div style={{ marginTop: 16, display: "grid", gap: 12 }}>
-              <label style={{ fontSize: 13, color: "var(--rw-body)" }}>
-                <span style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span>Line up your take</span>
-                  <span style={{ fontVariantNumeric: "tabular-nums", color: "var(--rw-meta)" }}>
-                    {nudgeMs > 0 ? `${nudgeMs} ms earlier` : nudgeMs < 0 ? `${-nudgeMs} ms later` : "as recorded"}
-                  </span>
-                </span>
-                <input
-                  type="range"
-                  min={-NUDGE_LIMIT_MS}
-                  max={NUDGE_LIMIT_MS}
-                  step={5}
-                  value={nudgeMs}
-                  onChange={(e) => changeNudge(Number(e.target.value))}
-                  style={{ width: "100%", accentColor: "var(--rw-orange)", marginTop: 6 }}
-                />
-              </label>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                {onSendTake && (
-                  <button
-                    onClick={sendTake}
-                    disabled={sendProgress !== null}
-                    style={{ ...btn, background: "var(--rw-orange)", border: "1px solid var(--rw-orange)", color: "#fff" }}
-                  >
-                    {sendProgress !== null ? `Sending ${Math.round(sendProgress * 100)}%` : "Send to your teacher"}
-                  </button>
-                )}
-                <button onClick={downloadMix} disabled={exporting} style={btn}>
-                  {exporting ? "Preparing…" : "Download mix (.wav)"}
-                </button>
-                <button onClick={deleteTake} style={{ ...btn, color: "var(--rw-meta)" }}>
-                  Delete take
-                </button>
-              </div>
-              {sendError && (
-                <p role="alert" style={{ margin: 0, fontSize: 13.5, color: "var(--rw-orange-deep)" }}>
-                  {sendError}
-                </p>
-              )}
-              <p style={{ margin: 0, fontSize: 12.5, color: "var(--rw-meta)" }}>
-                {onSendTake ? "Until you send it, your take" : "Your take"} stays on this device. Leaving the page deletes it, so download it first if you want to keep it.
-              </p>
-            </div>
-          )}
-        </div>
-      )}
-
-      {take && !review && (
-        <div style={{ ...section, borderTop: "1px solid var(--rw-border)", borderBottom: 0 }}>
-          <EffectsRack fx={fx} onChange={setFx} />
-        </div>
-      )}
-
-      {songId && !review && (
-        <div style={{ ...section, borderTop: "1px solid var(--rw-border)", borderBottom: 0 }}>
-          <div style={eyebrow}>Saved mixes</div>
-          <MixPresets
-            songId={songId}
-            getSettings={() => ({ mode, focus, ...mix, effects: fx })}
-            onApply={applyPreset}
-          />
+          <button type="button" className="rw-btn rw-btn-small" onClick={playAllParts}>
+            Play all parts
+          </button>
         </div>
       )}
     </div>
   );
+
+  const shortcuts = (
+    <details className="rw-shortcuts">
+      <summary>Keyboard shortcuts</summary>
+      <p>
+        <kbd style={kbd}>Space</kbd> play or pause · <kbd style={kbd}>←</kbd> <kbd style={kbd}>→</kbd> {chart ? "previous or next bar (with Shift, section)" : "back or forward 5 seconds"} ·{" "}
+        <kbd style={kbd}>Home</kbd> start · <kbd style={kbd}>[</kbd> <kbd style={kbd}>]</kbd> loop start and end · <kbd style={kbd}>\</kbd> clear the loop
+      </p>
+    </details>
+  );
+
+  const mixerTab = {
+    id: "mixer",
+    label: "Mixer",
+    content: (
+      <>
+        <MixerPanel
+          parts={parts}
+          mix={mix}
+          levels={levels}
+          states={states}
+          onChange={setMix}
+          takeLabel={takeLabel}
+          onReset={() => setMix(defaultMix(parts))}
+          meters={partMeters}
+          getMaster={getMaster}
+          getTake={getTake}
+          active={playing}
+        />
+        {songId && !review && (
+          <div className="rw-studio-block">
+            <MixPresets songId={songId} getSettings={() => ({ mode, focus, ...mix, effects: fx })} onApply={applyPreset} />
+          </div>
+        )}
+      </>
+    ),
+  };
+
+  const studioTabs = review
+    ? [
+        mixerTab,
+        {
+          id: "take",
+          label: "The take",
+          content: (
+            <div className="rw-record">
+              <label className="rw-nudge">
+                <span className="rw-nudge-head">
+                  <span>Line up the take</span>
+                  <output>{nudgeMs > 0 ? `${nudgeMs} ms earlier` : nudgeMs < 0 ? `${-nudgeMs} ms later` : "as sent"}</output>
+                </span>
+                <input type="range" className="rw-range" min={-NUDGE_LIMIT_MS} max={NUDGE_LIMIT_MS} step={5} value={nudgeMs} onChange={(e) => changeNudge(Number(e.target.value))} disabled={!take} />
+              </label>
+              <p className="rw-studio-hint">The take plays where it was recorded in the song. Phones can be a little off, so nudge it if it sounds early or late before judging the timing.</p>
+            </div>
+          ),
+        },
+      ]
+    : [
+        mixerTab,
+        {
+          id: "recorder",
+          label: "Recorder",
+          badge: recording ? <span className="rw-rec-dot" aria-label="recording" /> : null,
+          content: (
+            <RecordPanel
+              ready={ready}
+              playing={playing}
+              recording={recording}
+              monitoring={monitoring}
+              take={take}
+              takePeaks={takePeaks}
+              takeStart={takeStart}
+              position={position}
+              duration={duration}
+              recordTime={recording ? Math.max(0, position - recordFrom) : 0}
+              getPosition={getPosition}
+              getMic={getMic}
+              micLevel={micLevelRef}
+              micLabel={micLabel}
+              micError={micError}
+              onRecord={startRecording}
+              onStop={stopRecording}
+              onCheckMic={checkMic}
+              onStopCheck={() => setMonitoring(false)}
+              nudgeMs={nudgeMs}
+              onNudge={changeNudge}
+              onSend={onSendTake ? sendTake : null}
+              sendProgress={sendProgress}
+              sendError={sendError}
+              onDownload={downloadMix}
+              exporting={exporting}
+              onDelete={deleteTake}
+              takeName={takeTitle}
+              takeInput={takeName}
+              nextTakeName={`Take ${takeCount + 1}`}
+              onRename={setTakeName}
+              onPlayTake={playTake}
+            />
+          ),
+        },
+        {
+          id: "effects",
+          label: "Effects",
+          disabled: !take,
+          hint: "Record a take to put effects on it",
+          content: take ? <EffectsRack fx={fx} onChange={setFx} getTake={getTake} active={playing} /> : null,
+        },
+      ];
+
+  return (
+    <PlayClock.Provider value={clock}>
+    <div className="rw-player" data-review={review ? "true" : undefined}>
+      <Transport
+        ready={ready}
+        loadedCount={loadedCount}
+        total={parts.length}
+        playing={playing}
+        recording={recording}
+        review={Boolean(review)}
+        onPlayPause={playing ? pause : play}
+        onStep={(direction) => stepBar(direction, false)}
+        hasChart={Boolean(chart)}
+        position={position}
+        duration={duration}
+        where={where}
+        speed={speed}
+        speeds={SPEEDS}
+        onSpeed={changeSpeed}
+        preparingSpeed={preparingSpeed}
+        speedError={speedError}
+        countIn={countIn}
+        onCountIn={toggleCountIn}
+        metronome={metronome}
+        onMetronome={toggleMetronome}
+        getBeat={getBeat}
+        getCountInBeat={getCountInBeat}
+        loop={loop}
+        onClearLoop={() => updateLoop(null)}
+        recordTime={recording ? Math.max(0, position - recordFrom) : 0}
+        getMaster={getMaster}
+      />
+
+      <Timeline
+        duration={duration}
+        chart={chart}
+        lanes={lanes}
+        loop={loop}
+        snap={{ start: (t) => (chart ? barStartAt(t) : t), end: (t) => (chart ? barEndAt(t) : t) }}
+        onLoop={loopSection}
+        getPosition={getPosition}
+        playing={playing}
+        position={position}
+        onSeek={seek}
+        disabled={!ready || recording}
+        header={bandHeader}
+        footer={
+          <div className="rw-tl-footer">
+            {!chart && !review && coach && <p className="rw-coach">{coach}</p>}
+            {shortcuts}
+          </div>
+        }
+      />
+
+      <div className="rw-player-cols" data-chart={chart && !review ? "true" : "false"}>
+        {chart && !review && (
+          <section className="rw-practice" aria-label="Play along">
+            <ChordChart chart={chart} position={position} myPart={myPart} loop={loop} disabled={!ready || recording} onSeek={seek} onLoopSection={loopSection} coach={coach} />
+          </section>
+        )}
+        <aside className="rw-studio" aria-label="Studio">
+          <StudioTabs tabs={studioTabs} />
+        </aside>
+      </div>
+    </div>
+    </PlayClock.Provider>
+  );
 }
+
+const kbd = {
+  display: "inline-block",
+  minWidth: 18,
+  padding: "0 5px",
+  border: "1px solid var(--rw-line)",
+  borderBottomWidth: 2,
+  borderRadius: "var(--rw-radius-sm)",
+  background: "#fff",
+  color: "var(--rw-ink)",
+  fontFamily: "inherit",
+  fontSize: 12,
+  fontWeight: 700,
+  lineHeight: "18px",
+  textAlign: "center",
+};
 
 const panel = {
   padding: 28,

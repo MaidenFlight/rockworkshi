@@ -1,15 +1,18 @@
 "use client";
 
-import { memo, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChordDiagram, KeyboardDiagram } from "@/components/ChordDiagram";
 import { songChordShape } from "@/lib/chords";
-import PartChart from "./PartChart";
+import Icon from "./Icon";
+import PartChart, { clickedTime, loopBand, useDragToLoop, useFollowScroll } from "./PartChart";
+import { partColor } from "./player/Timeline";
+import { useClockCursor } from "./player/clock";
 import { btn, chip, eyebrow, hint } from "./mixer/styles";
 
 const MODES = [
-  { id: "guide", label: "Guide me", help: "Follows the song and shows what to play now and what's coming next." },
-  { id: "chart", label: "Chart only", help: "The whole chart, without following along. You keep your own place." },
-  { id: "solo", label: "On my own", help: "Stays hidden so you can play from memory. Peek if you get stuck." },
+  { id: "guide", label: "Guide me", icon: "eye", help: "A cursor follows the song through the chart, and the chord to play now is shown large." },
+  { id: "chart", label: "Chart only", icon: "chart", help: "The whole chart, without following along. You keep your own place." },
+  { id: "solo", label: "On my own", icon: "eye-off", help: "The chart stays hidden so you play from memory. Peek at a bar if you get stuck." },
 ];
 const MODE_KEY = "rw-chord-mode";
 const PART_KEY = "rw-chart-part";
@@ -41,7 +44,16 @@ function Diagram({ name, keys }) {
 
 // Follows the song by position, so it stays right at any speed and through a loop.
 // A chart here has times from the API: see backend/src/lib/chordChart.js.
-export default function ChordChart({ chart, position, myPart = null, disabled = false, onSeek, onLoopSection }) {
+// coach is a line of advice on what to try next, from the player.
+export default function ChordChart({ chart, position, myPart = null, loop = null, disabled = false, onSeek, onLoopSection, coach = null }) {
+  // The player hands down new functions on every frame. Steady ones let the bars skip redrawing.
+  const handlers = useRef({ onSeek, onLoopSection });
+  useEffect(() => {
+    handlers.current = { onSeek, onLoopSection };
+  });
+  const seekTo = useCallback((t) => handlers.current.onSeek(t), []);
+  const loopRange = useCallback((start, end) => handlers.current.onLoopSection(start, end), []);
+
   const available = useMemo(() => [...CHORD_PARTS, ...NOTE_PARTS.filter((p) => chart.parts?.[p])], [chart]);
   // What was picked last, or else the part this student plays.
   const [part, setPart] = useState(() => saved(PART_KEY, available, available.includes(myPart) ? myPart : "Guitar"));
@@ -90,27 +102,50 @@ export default function ChordChart({ chart, position, myPart = null, disabled = 
   const peeking = peeked !== null && peeked === current;
   const help = MODES.find((m) => m.id === mode).help;
 
+  // Where you are, and what's coming, in words.
+  const nextSection = now ? chart.sections[now.s + 1] : chart.sections[0];
+  const barsLeft = now ? section.bars.length - now.b - 1 : 0;
+
   return (
-    <div>
-      <div style={eyebrow}>Play along</div>
-      <div role="group" aria-label="Show the part for" style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
-        {available.map((p) => (
-          <button key={p} onClick={() => choosePart(p)} style={chip(part === p)} aria-pressed={part === p}>
-            {p}
-          </button>
-        ))}
+    <div className="rw-play-along" data-mode={mode}>
+      <div className="rw-pa-head">
+        <h2 className="rw-pa-title">Play along</h2>
+        <div role="group" aria-label="Show the part for" className="rw-part-tabs">
+          {available.map((p) => (
+            <button key={p} type="button" onClick={() => choosePart(p)} aria-pressed={part === p} className="rw-part-tab" style={{ "--lane": partColor(p) }}>
+              <span aria-hidden="true" className="rw-part-swatch" />
+              {p}
+            </button>
+          ))}
+        </div>
       </div>
-      <div role="group" aria-label="How much help" style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+      <div role="group" aria-label="How much help" className="rw-help-modes">
         {MODES.map((m) => (
-          <button key={m.id} onClick={() => chooseMode(m.id)} style={chip(mode === m.id)} aria-pressed={mode === m.id}>
+          <button key={m.id} type="button" onClick={() => chooseMode(m.id)} aria-pressed={mode === m.id} className="rw-help-mode">
+            <Icon name={m.icon} size={16} />
             {m.label}
           </button>
         ))}
       </div>
-      <p style={{ ...hint, margin: "8px 0 14px" }}>{help}</p>
+      <p className="rw-help-text">{help}</p>
+      <div className="rw-now-next" data-now-next="true">
+        <span>
+          <span className="rw-nn-label">Now</span>
+          {now ? `${section.name}, bar ${now.b + 1} of ${section.bars.length}` : position >= chart.end ? "The end" : "Before the first bar"}
+        </span>
+        <span>
+          <span className="rw-nn-label">Next</span>
+          {nextSection ? (now ? `${nextSection.name} in ${barsLeft + 1} bar${barsLeft ? "s" : ""}` : nextSection.name) : "The end of the song"}
+        </span>
+      </div>
+      {coach && (
+        <p className="rw-coach" role="status">
+          {coach}
+        </p>
+      )}
 
       {NOTE_PARTS.includes(part) && (
-        <PartChart chart={chart} part={part} position={position} mode={mode} disabled={disabled} onSeek={onSeek} onLoopSection={onLoopSection} />
+        <PartChart chart={chart} part={part} position={position} mode={mode} loop={loop} disabled={disabled} onSeek={seekTo} onLoopSection={loopRange} />
       )}
 
       {!NOTE_PARTS.includes(part) && keys && (
@@ -121,25 +156,33 @@ export default function ChordChart({ chart, position, myPart = null, disabled = 
       )}
 
       {!NOTE_PARTS.includes(part) && mode === "guide" && (
-        <div data-testid="chord-now" style={{ display: "flex", gap: 24, flexWrap: "wrap", alignItems: "flex-start", marginBottom: 16 }}>
-          <div style={{ flex: "1 1 170px", display: "flex", gap: 14, alignItems: "flex-start", flexWrap: keys ? "wrap" : "nowrap" }}>
+        <div data-testid="chord-now" className="rw-chord-now">
+          <div className="rw-chord-card" data-role="now">
             <div>
-              <div style={label}>{now ? "Play now" : "Get ready"}</div>
-              <div style={bigChord}>{now ? now.name : "–"}</div>
-              <div aria-hidden="true" style={{ display: "flex", gap: 4, marginTop: 8 }}>
+              <div className="rw-chord-label">{now ? "Play now" : "Get ready"}</div>
+              <div className="rw-chord-name">{now ? now.name : "–"}</div>
+              <div aria-hidden="true" className="rw-beat-dots">
                 {[0, 1, 2, 3].map((i) => (
-                  <span key={i} style={{ width: 12, height: 6, background: i === beat ? "var(--rw-orange)" : "var(--rw-border)" }} />
+                  <span key={i} data-on={i === beat ? "true" : undefined} />
                 ))}
               </div>
             </div>
-            {now && <Diagram name={now.name} keys={keys} />}
+            {now && (
+              <div className="rw-chord-shape">
+                <Diagram name={now.name} keys={keys} />
+              </div>
+            )}
           </div>
-          <div style={{ flex: "1 1 170px", display: "flex", gap: 14, alignItems: "flex-start", flexWrap: keys ? "wrap" : "nowrap", opacity: next ? 1 : 0.4 }}>
+          <div className="rw-chord-card" data-role="next" style={{ opacity: next ? undefined : 0.4 }}>
             <div>
-              <div style={label}>Next</div>
-              <div style={{ ...bigChord, color: "var(--rw-meta)" }}>{next ? next.name : "–"}</div>
+              <div className="rw-chord-label">Next</div>
+              <div className="rw-chord-name">{next ? next.name : "–"}</div>
             </div>
-            {next && <Diagram name={next.name} keys={keys} />}
+            {next && (
+              <div className="rw-chord-shape">
+                <Diagram name={next.name} keys={keys} />
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -160,9 +203,12 @@ export default function ChordChart({ chart, position, myPart = null, disabled = 
           chart={chart}
           // In Chart only there's no marker, so the grid doesn't follow the song at all.
           currentTime={mode === "guide" && now ? now.time : null}
+          cursor={mode === "guide" ? position : null}
+          loopStart={loop?.start ?? null}
+          loopEnd={loop?.end ?? null}
           disabled={disabled}
-          onSeek={onSeek}
-          onLoopSection={onLoopSection}
+          onSeek={seekTo}
+          onLoopSection={loopRange}
         />
       )}
 
@@ -185,24 +231,30 @@ export default function ChordChart({ chart, position, myPart = null, disabled = 
   );
 }
 
-// Redrawn only when the current chord changes, not on every playhead tick.
-const ChartGrid = memo(function ChartGrid({ chart, currentTime, disabled, onSeek, onLoopSection }) {
+const ChartGrid = memo(function ChartGrid({ chart, currentTime, cursor, loopStart, loopEnd, disabled, onSeek, onLoopSection }) {
   const boxRef = useRef(null);
-
-  // Keeps the current bar in view by scrolling the chart's own box, never the page.
-  useEffect(() => {
-    if (currentTime === null) return;
-    const box = boxRef.current;
-    const el = box?.querySelector('[aria-current="true"]');
-    if (!el) return;
-    const top = el.offsetTop; // the box is positioned, so this is already relative to it
-    if (top < box.scrollTop || top + el.offsetHeight > box.scrollTop + box.clientHeight) {
-      box.scrollTop = Math.max(0, top - 48);
-    }
-  }, [currentTime]);
+  const { onPointerDown, consumeDrag } = useDragToLoop(onLoopSection);
+  // Scrolls once per bar, not on every chord change inside one.
+  const currentBarTime = useMemo(() => {
+    if (currentTime === null) return -1;
+    for (const section of chart.sections) for (const bar of section.bars) if (bar.chords.some((c) => c.time === currentTime)) return bar.time;
+    return -1;
+  }, [chart, currentTime]);
+  useFollowScroll(boxRef, currentBarTime);
+  const upcomingTime = useMemo(() => {
+    if (currentBarTime < 0) return -1;
+    const all = chart.sections.flatMap((section) => section.bars.map((bar) => bar.time));
+    return all[all.indexOf(currentBarTime) + 1] ?? -1;
+  }, [chart, currentBarTime]);
 
   return (
-    <div ref={boxRef} tabIndex={0} aria-label="Chord chart" style={{ position: "relative", maxHeight: 340, overflowY: "auto" }}>
+    <div
+      ref={boxRef}
+      tabIndex={0}
+      aria-label="Chord chart"
+      onPointerDown={disabled ? undefined : onPointerDown}
+      style={{ position: "relative", maxHeight: 340, overflowY: "auto", userSelect: "none" }}
+    >
       {chart.sections.map((section, s) => {
         const end = chart.sections[s + 1]?.bars[0].time ?? chart.end;
         return (
@@ -220,42 +272,22 @@ const ChartGrid = memo(function ChartGrid({ chart, currentTime, disabled, onSeek
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 4 }}>
               {section.bars.map((bar, b) => {
+                const barEnd = section.bars[b + 1]?.time ?? chart.sections[s + 1]?.bars[0].time ?? chart.end;
                 const active = bar.chords.some((c) => c.time === currentTime);
                 return (
-                  <button
+                  <ChordBar
                     key={bar.time}
-                    onClick={() => onSeek(bar.time)}
+                    bar={bar}
+                    end={barEnd}
+                    label={`${section.name} bar ${b + 1}: ${bar.chords.map((c) => c.name).join(", ")}`}
+                    currentTime={active ? currentTime : null}
+                    upcoming={bar.time === upcomingTime}
+                    cursor={active ? cursor : null}
+                    band={loopBand(loopStart, loopEnd, bar.time, barEnd)?.join(",") ?? null}
+                    consumeDrag={consumeDrag}
                     disabled={disabled}
-                    aria-current={active ? "true" : undefined}
-                    aria-label={`${section.name} bar ${b + 1}: ${bar.chords.map((c) => c.name).join(", ")}`}
-                    style={{
-                      display: "flex",
-                      gap: 6,
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexWrap: "wrap",
-                      minHeight: 40,
-                      padding: "6px 4px",
-                      border: "1px solid var(--rw-border)",
-                      borderRadius: "var(--rw-radius-sm)",
-                      background: active ? "var(--rw-sand)" : "#fff",
-                      cursor: disabled ? "default" : "pointer",
-                      fontWeight: 700,
-                      fontSize: 14,
-                      color: "var(--rw-ink)",
-                    }}
-                  >
-                    {bar.chords.map((c) => (
-                      <span
-                        key={c.time}
-                        data-chord={c.name}
-                        data-current={c.time === currentTime ? "true" : undefined}
-                        style={c.time === currentTime ? { padding: "1px 6px", background: "var(--rw-orange)", color: "#fff" } : { padding: "1px 6px" }}
-                      >
-                        {c.name}
-                      </span>
-                    ))}
-                  </button>
+                    onSeek={onSeek}
+                  />
                 );
               })}
             </div>
@@ -265,6 +297,55 @@ const ChartGrid = memo(function ChartGrid({ chart, currentTime, disabled, onSeek
     </div>
   );
 });
+
+// One bar of the chord chart. Only the bar the cursor is in redraws as the song moves.
+// The current bar is outlined in red with its chord filled, the next bar is dashed, the rest recede.
+const ChordBar = memo(function ChordBar({ bar, end, label: name, currentTime, upcoming = false, cursor, band, consumeDrag, disabled, onSeek }) {
+  const active = currentTime !== null;
+  const inside = cursor !== null && cursor >= bar.time && cursor < end;
+  return (
+    <button
+      onClick={(e) => !consumeDrag() && onSeek(clickedTime(e, bar.time, end))}
+      data-start={bar.time}
+      data-end={end}
+      data-upcoming={upcoming ? "true" : undefined}
+      disabled={disabled}
+      aria-current={active ? "true" : undefined}
+      aria-label={name}
+      className="rw-chord-bar"
+    >
+      {bar.chords.map((c) => (
+        <span key={c.time} data-chord={c.name} data-current={c.time === currentTime ? "true" : undefined}>
+          {c.name}
+        </span>
+      ))}
+      {band && (
+        // The loop, as on the song position bar.
+        <span
+          data-in-loop="true"
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            top: 0,
+            height: 4,
+            left: `${Number(band.split(",")[0]) * 100}%`,
+            width: `max(3px, ${Number(band.split(",")[1]) * 100}%)`,
+            background: "var(--rw-teal)",
+          }}
+        />
+      )}
+      {inside && <BarCursor at={cursor} start={bar.time} end={end} />}
+    </button>
+  );
+});
+
+const placeLeft = (el, f) => (el.style.left = `${f * 100}%`);
+
+// The cursor through the current bar, gliding with the audio clock while the song plays.
+function BarCursor({ at, start, end }) {
+  const ref = useClockCursor(at, start, end, placeLeft);
+  return <span ref={ref} data-cursor="true" aria-hidden="true" className="rw-bar-cursor" />;
+}
 
 const label = { fontSize: 12.5, fontWeight: 700, color: "var(--rw-meta)", marginBottom: 2 };
 const bigChord = { fontFamily: "var(--rw-font-display)", fontWeight: 800, fontSize: 44, lineHeight: 1, color: "var(--rw-ink)", minWidth: 70 };

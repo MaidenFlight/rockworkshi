@@ -19,10 +19,15 @@ export function noteName(midi) {
   return `${pitchClassName(midi)}${Math.floor(midi / 12) - 1}`;
 }
 
-// Picks where to play each note: wherever the hand has least distance to move from the last one.
+// Where to play each note: as the chart says if it says, otherwise wherever the hand has least
+// distance to move from the last one.
 export function assignBassFrets(notes) {
   let hand = 3;
   return notes.map((note) => {
+    if (note.string && Number.isInteger(note.fret)) {
+      if (note.fret > 0) hand = note.fret;
+      return note;
+    }
     let best = null;
     for (const string of BASS_STRINGS) {
       const fret = note.midi - string.open;

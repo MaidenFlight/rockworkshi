@@ -1,82 +1,95 @@
 "use client";
 
 import LevelSlider from "./LevelSlider";
+import EqGraph from "./EqGraph";
+import Meter from "../player/Meter";
 import { DEFAULT_EFFECTS, EFFECT_PRESETS, REVERB_SIZES } from "@/lib/audio/takeEffects";
-import { chip, eyebrow, hint, smallBtn } from "./styles";
 
 const signedDb = (v) => `${v > 0 ? "+" : ""}${v} dB`;
+
+// What each preset does, in words, read from its own settings so it can't drift from them.
+function describe(s) {
+  const bits = [];
+  if (s.drive) bits.push(`${s.drive}% drive`);
+  if (s.reverb) bits.push(`${REVERB_SIZES.find((r) => r.id === s.size)?.label.toLowerCase()} reverb ${s.reverb}%`);
+  const tilt = s.high - s.low;
+  if (tilt >= 2) bits.push("brighter");
+  else if (tilt <= -2) bits.push("warmer");
+  return bits.join(", ") || "flat";
+}
 
 function sameSettings(a, b) {
   return Object.keys(DEFAULT_EFFECTS).every((k) => a[k] === b[k]);
 }
 
-// EQ, drive, reverb and output level for the student's take. These only shape playback
-// and the downloaded mix: the take itself stays exactly as recorded.
-export default function EffectsRack({ fx, onChange }) {
+// EQ, drive, reverb and output level for the student's take. These only shape playback and the
+// downloaded mix: the take itself stays exactly as recorded.
+export default function EffectsRack({ fx, onChange, getTake, active }) {
   const set = (patch) => onChange({ ...fx, ...patch });
   const off = fx.bypass;
+  const custom = !EFFECT_PRESETS.some((p) => sameSettings({ ...p.settings, bypass: fx.bypass }, fx)) && !sameSettings(DEFAULT_EFFECTS, { ...fx, bypass: false });
 
   return (
-    <div>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
-        <div style={{ ...eyebrow, marginBottom: 0, marginRight: "auto" }}>Effects on your take</div>
-        <button
-          type="button"
-          onClick={() => set({ bypass: !fx.bypass })}
-          aria-pressed={fx.bypass}
-          style={{ ...smallBtn, ...(fx.bypass ? { background: "var(--rw-ink)", color: "#fff", border: "1px solid var(--rw-ink)" } : {}) }}
-        >
+    <div className="rw-fx" data-bypassed={off ? "true" : "false"}>
+      <div className="rw-fx-head">
+        <span className="rw-studio-label">Effects on your take</span>
+        <button type="button" className="rw-switch" onClick={() => set({ bypass: !fx.bypass })} aria-pressed={fx.bypass} title={fx.bypass ? "Turn the effects back on" : "Hear the take without effects"}>
           {fx.bypass ? "Bypassed" : "Bypass"}
         </button>
-        <button type="button" onClick={() => onChange({ ...DEFAULT_EFFECTS })} style={smallBtn}>
+        <button type="button" className="rw-btn rw-btn-small" onClick={() => onChange({ ...DEFAULT_EFFECTS })}>
           Reset effects
         </button>
       </div>
+      <p className="rw-fx-state" role="status">
+        <span className="rw-fx-lamp" aria-hidden="true" />
+        {off ? "Off: you're hearing your take as recorded." : custom ? "On, with your own settings." : "On."}
+      </p>
 
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }} role="group" aria-label="Effect presets">
+      <div className="rw-fx-presets" role="group" aria-label="Effect presets">
         {EFFECT_PRESETS.map((p) => {
-          const active = sameSettings({ ...p.settings, bypass: fx.bypass }, fx);
+          const chosen = sameSettings({ ...p.settings, bypass: fx.bypass }, fx);
           return (
-            <button key={p.id} type="button" onClick={() => onChange({ ...p.settings })} aria-pressed={active} style={chip(active)}>
-              {p.label}
-            </button>
+            <div key={p.id} className="rw-preset" data-chosen={chosen ? "true" : "false"}>
+              <button type="button" onClick={() => onChange({ ...p.settings })} aria-pressed={chosen} aria-describedby={`fx-${p.id}`}>
+                {p.label}
+              </button>
+              <span id={`fx-${p.id}`}>{describe(p.settings)}</span>
+            </div>
           );
         })}
       </div>
 
-      <fieldset disabled={off} style={{ border: 0, padding: 0, margin: 0, display: "grid", gap: 8, opacity: off ? 0.5 : 1 }}>
-        <legend style={{ ...hint, marginBottom: 6 }}>EQ</legend>
-        <LevelSlider label="Low" min={-12} max={12} step={0.5} value={fx.low} onChange={(low) => set({ low })} format={signedDb} />
-        <LevelSlider label="Mid" min={-12} max={12} step={0.5} value={fx.mid} onChange={(mid) => set({ mid })} format={signedDb} />
-        <LevelSlider label="High" min={-12} max={12} step={0.5} value={fx.high} onChange={(high) => set({ high })} format={signedDb} />
-        <LevelSlider label="Drive" value={fx.drive} onChange={(drive) => set({ drive })} />
-        <LevelSlider label="Reverb" value={fx.reverb} onChange={(reverb) => set({ reverb })} />
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", paddingLeft: 82 }} role="group" aria-label="Reverb size">
+      <fieldset disabled={off} className="rw-fx-controls">
+        <legend className="rw-studio-label">EQ</legend>
+        <EqGraph fx={fx} onChange={set} disabled={off} />
+        <LevelSlider label="Low" min={-12} max={12} step={0.5} value={fx.low} onChange={(low) => set({ low })} format={signedDb} dim={off} />
+        <LevelSlider label="Mid" min={-12} max={12} step={0.5} value={fx.mid} onChange={(mid) => set({ mid })} format={signedDb} dim={off} />
+        <LevelSlider label="High" min={-12} max={12} step={0.5} value={fx.high} onChange={(high) => set({ high })} format={signedDb} dim={off} />
+
+        <span className="rw-studio-label" style={{ marginTop: 8 }}>
+          Drive and space
+        </span>
+        <LevelSlider label="Drive" value={fx.drive} onChange={(drive) => set({ drive })} tone="var(--rw-part-guitar)" dim={off} />
+        <LevelSlider label="Reverb" value={fx.reverb} onChange={(reverb) => set({ reverb })} tone="var(--rw-sea-glass)" dim={off} />
+        <div className="rw-fx-sizes" role="group" aria-label="Reverb size">
           {REVERB_SIZES.map((s) => (
-            <button
-              key={s.id}
-              type="button"
-              onClick={() => set({ size: s.id })}
-              aria-pressed={fx.size === s.id}
-              style={{ ...chip(fx.size === s.id), padding: "5px 10px", fontSize: 12 }}
-            >
+            <button key={s.id} type="button" onClick={() => set({ size: s.id })} aria-pressed={fx.size === s.id} title={`Dies away over about ${s.seconds} s`}>
               {s.label}
             </button>
           ))}
+          <span className="rw-studio-hint" style={{ alignSelf: "center" }}>
+            {fx.reverb ? `Dies away over about ${REVERB_SIZES.find((s) => s.id === fx.size)?.seconds} s` : "Reverb is off at 0%"}
+          </span>
         </div>
-        <LevelSlider
-          label="Output"
-          min={-12}
-          max={6}
-          step={0.5}
-          value={fx.output}
-          onChange={(output) => set({ output })}
-          format={signedDb}
-        />
+
+        <span className="rw-studio-label" style={{ marginTop: 8 }}>
+          Output
+        </span>
+        <LevelSlider label="Output" min={-12} max={6} step={0.5} value={fx.output} onChange={(output) => set({ output })} format={signedDb} dim={off}>
+          <Meter getNodes={getTake} active={active} vertical={false} length={56} thickness={5} title="Your take's level after effects" />
+        </LevelSlider>
       </fieldset>
-      <p style={{ ...hint, marginTop: 10 }}>
-        Effects change how your take sounds here and in the downloaded mix. The recording itself stays as you played it.
-      </p>
+      <p className="rw-studio-hint">Effects change how your take sounds here and in the downloaded mix. The recording itself stays as you played it.</p>
     </div>
   );
 }

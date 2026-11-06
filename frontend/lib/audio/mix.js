@@ -8,7 +8,7 @@ export const MIX_MODES = ["full", "solo", "minus"];
 export const SMOOTHING = 0.015;
 
 const CLIP_RANGE = 2; // the clipper's curve covers inputs up to ±2 (+6 dB over full scale)
-const CLIP_KNEE = 0.85; // linear below this, then bends smoothly towards ±1
+export const CLIP_KNEE = 0.85; // linear below this, then bends smoothly towards ±1
 const MAX_HEADROOM = 0.8; // about -2 dB even for songs whose stems sum quietly
 const UNMEASURED_HEADROOM = 0.5; // songs without a measured mixLevel
 
@@ -91,6 +91,8 @@ function softClipCurve(points = 4096) {
 
 // Everything audible connects to `input`:
 //   input -> master volume -> headroom -> soft clipper -> destination
+// `output` is the clipper, for meters to listen to. Below CLIP_KNEE its output is untouched;
+// above it, the clipper is bending peaks.
 // A static clipper rather than a compressor: it adds no delay, so recorded takes stay
 // lined up with what the student heard, and it behaves the same on the phone, which has
 // no compressor node.
@@ -107,5 +109,5 @@ export function createMasterBus(ctx, mixLevel, destination = ctx.destination) {
   master.connect(headroom);
   headroom.connect(clipper);
   clipper.connect(destination);
-  return { input, master };
+  return { input, master, output: clipper };
 }

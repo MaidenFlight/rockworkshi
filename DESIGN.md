@@ -307,6 +307,23 @@ Two consequences bind new work:
 
 Classic runs the **audited** palette, not the values it originally launched with. Switching design must never switch accessibility off.
 
+## The practice console
+
+The member song player (`StemPlayer`) is an Operate surface and runs on its own composition: a **lacquer console** for the transport, the multitrack timeline and the studio (mixer, recorder, effects), around a **paper** practice panel for the chart, because notation reads best black on white. It shipped on 2026-11-05.
+
+- **Console tokens.** `--rw-console` (lacquer), `--rw-console-well` (lanes, meter wells, fader slots), `--rw-console-raised` (strips, headers), `--rw-console-edge`, `--rw-console-text`, `--rw-console-meta` (7.4:1 on the console). All are mixed from the shared tokens, so they switch with the world.
+- **One colour per part**, the same in every lane, mixer strip and chart tab: `--rw-part-vocals` (gold), `--rw-part-guitar`, `--rw-part-keys` (sea glass), `--rw-part-bass`, `--rw-part-drums`, and `--rw-part-take` (flare, red like the Rec lamp). All clear 4.5:1 on the console and all but the take clear 7:1. On paper they appear only as swatches with an edge, never as text.
+- **Meter zones**: `--rw-meter-low` (sea glass), `--rw-meter-mid` (gold), `--rw-meter-high` (flare).
+- **State is never colour alone.** A part's state is a word (Playing, Muted, Solo, Not soloed, Left out) plus a mark (dot, M, S, dash) plus dimming. Toggles carry a lamp. Selected modes carry a bar or fill as well as a colour.
+- **Indicators only show measured data.** Meters read AnalyserNodes in the real signal path (post-fader per part, the master after the soft clipper, the mic before anything). The master's Clip light means the clipper is bending peaks. The EQ curve is the browser's own frequency response of the real filters.
+- **Motion follows the audio clock**, not React renders: the playhead, waveform veil, beat lights, meters, reels and VU needle are written to the DOM on animation frames. All of it honours `prefers-reduced-motion`.
+- **The hardware objects are a deliberate exception** to the one-chrome-object rule, asked for by the owner: the reel-to-reel tape deck around the record key and the console fader caps (dark with a white line, red for the master).
+- **Layout.** The song page is the one route wider than the 1200px grid: 1320px, so the player works in 1272px on a desktop. The transport sticks under the site header on desktop. On a phone it scrolls with the page and a compact bar appears at the bottom once it is out of sight. At 1000px of player width and up, the chart and the studio sit side by side, the studio at `clamp(520px, 42%, 560px)` so all seven mixer strips (five parts, a take, the master) fit without scrolling.
+- **Sizes on the console.** The clock is 44px display numerals; lane names 15px; states, markers and labels 12.5px; hints 13.5px. Nothing on the player is under 11px, and nothing drawn in a graphic is under 10px on screen. Transport and mode controls are 44px tall.
+- **The chart's states.** The current chord sits in a Play now card (label stock, red rule, 44px name, a large diagram); Next is smaller and quieter. In the grid the current bar is outlined in red with its chord filled, the next bar is dashed in lagoon, and the rest recede.
+- **Rendering.** The player re-renders with the song position about 15 times a second, not every frame: constant renders starved the router, so links did nothing mid-song. Cursors and other moving parts read the audio clock directly (`player/clock.js`).
+- **Known gap.** The mixer's M and S keys are 28px square, under the 44px floor, to fit seven strips in the studio column. They clear WCAG's 24px minimum, and mute and solo keys carry gold and sea-glass edges so they read apart before they're pressed.
+
 ## Accessibility floor
 
 Non-negotiable, and verified by measuring rendered pages rather than reading source:

@@ -197,6 +197,20 @@ test("chord charts are checked, and only reach members who can open the song", a
   assert.ok(validateChart({ ...good, parts: { Bass: { notes: [{ time: 1, len: 0, midi: 36 }] } } }).error, "a note needs a length");
   assert.ok(validateChart({ ...good, parts: { Bass: { notes: [{ time: 2, len: 1, midi: 36 }, { time: 1, len: 1, midi: 36 }] } } }).error, "out of order");
   assert.ok(validateChart({ ...good, parts: { Drums: { hits: [{ time: 1, drum: "cowbell" }] } } }).error, "unknown drum");
+  const fingered = validateChart({ ...good, parts: { Bass: { notes: [{ time: 1, len: 1, midi: 43, string: "D", fret: 5, hammer: true }] } } });
+  assert.deepEqual(fingered.chart.parts.Bass.notes[0], { time: 1, len: 1, midi: 43, string: "D", fret: 5, hammer: true });
+  assert.ok(validateChart({ ...good, parts: { Bass: { notes: [{ time: 1, len: 1, midi: 43, string: "A", fret: 5 }] } } }).error, "fret doesn't make the pitch");
+  assert.ok(validateChart({ ...good, parts: { Bass: { notes: [{ time: 1, len: 1, midi: 43, string: "B", fret: 0 }] } } }).error, "no such string");
+  const sheet = {
+    hits: [{ time: 1, drum: "crash" }, { time: 1, drum: "kick" }, { time: 2, drum: "open", accent: true }, { time: 2, drum: "snare", accent: "yes" }],
+    crescendos: [{ time: 2, end: 3 }],
+  };
+  assert.deepEqual(validateChart({ ...good, parts: { Drums: sheet } }).chart.parts.Drums, {
+    draft: false,
+    hits: [{ time: 1, drum: "crash" }, { time: 1, drum: "kick" }, { time: 2, drum: "open", accent: true }, { time: 2, drum: "snare" }],
+    crescendos: [{ time: 2, end: 3 }],
+  });
+  assert.ok(validateChart({ ...good, parts: { Drums: { ...sheet, crescendos: [{ time: 3, end: 2 }] } } }).error, "a crescendo ends after it starts");
 
   await prisma.song.update({ where: { id: songs.one.id }, data: { chart: good } });
   const list = await fetch(`${base}/songs`).then((r) => r.json());

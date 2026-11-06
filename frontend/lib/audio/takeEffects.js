@@ -36,7 +36,7 @@ export const REVERB_SIZES = [
   { id: "large", label: "Big hall", seconds: 2.8 },
 ];
 
-const EQ_BANDS = {
+export const EQ_BANDS = {
   low: { type: "lowshelf", frequency: 150 },
   mid: { type: "peaking", frequency: 1000, Q: 0.8 },
   high: { type: "highshelf", frequency: 4500 },
@@ -47,7 +47,7 @@ const EQ_BANDS = {
 // on the curve's smooth part. No oversampling: it would delay the driven take on Android.
 const DRIVE_RANGE = 4;
 const MAX_DRIVE_GAIN = 12;
-const DRIVE_TONE_HZ = 6500; // takes the fizz (and most aliasing) off the driven signal
+export const DRIVE_TONE_HZ = 6500; // takes the fizz (and most aliasing) off the driven signal
 const SWAP_SECONDS = 0.3; // how long an outgoing reverb is kept while it fades
 
 function driveCurve(points = 4096) {

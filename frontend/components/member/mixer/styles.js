@@ -50,5 +50,13 @@ export function toggleBtn(pressed, tone) {
   };
 }
 
+// Brushed metal lit from above, for the mixer's panel and the tape deck.
+export const metal = {
+  borderRadius: "var(--rw-radius-md)",
+  border: "1px solid var(--rw-line)",
+  background: "linear-gradient(180deg, var(--rw-chrome-hi), color-mix(in srgb, var(--rw-chrome-mid) 45%, var(--rw-chrome-hi)))",
+  boxShadow: "inset 0 1px 0 var(--rw-chrome-hi), 0 1px 2px rgba(22, 18, 28, 0.08)",
+};
+
 export const section = { padding: "18px 22px", borderBottom: "1px solid var(--rw-border)" };
 export const hint = { margin: 0, fontSize: 12.5, color: "var(--rw-meta)", lineHeight: 1.5 };

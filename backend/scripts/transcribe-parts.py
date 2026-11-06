@@ -325,13 +325,16 @@ def report(song, parts):
         print(f"\n{title} by bar")
         for k, (s, i, b) in enumerate(song.bars):
             print(f"{s[:8]:<8} {i + 1:>2} {'/'.join(c['name'] for c in b['chords']):<9} {line(parts[part]['notes'], k)}")
-    print("\nDRUMS by bar (16 steps; K kick, S snare, h hat, B kick and snare)")
+    print("\nDRUMS by bar (16 steps; K kick, S snare, h hat, o half-open hat, c crash, B kick and snare)")
     for k, (s, i, b) in enumerate(song.bars):
         row = ["."] * STEPS_PER_BAR
         for h in in_bar(parts["Drums"]["hits"], k):
             step = min(int(round((h["time"] - t[k]) / (t[k + 1] - t[k]) * STEPS_PER_BAR)), STEPS_PER_BAR - 1)
-            mark = {"kick": "K", "snare": "S", "hat": "h"}[h["drum"]]
-            row[step] = mark if row[step] in (".", "h") else "B"
+            mark = {"kick": "K", "snare": "S", "hat": "h", "open": "o", "crash": "c"}[h["drum"]]
+            if mark in "hoc":
+                row[step] = mark if row[step] == "." else row[step]
+            else:
+                row[step] = mark if row[step] in (".", "h", "o", "c") else "B"
         print(f"{s[:8]:<8} {i + 1:>2} {''.join(row)}")
 
     # Checks that don't depend on the transcription's own method.
@@ -383,6 +386,11 @@ def main():
         "Drums": {"draft": True, "hits": transcribe_drums(load(find_stem(folder, ["drum"])), song)},
         "Vocals": {"draft": True, "notes": transcribe_vocals(load(find_stem(folder, ["vocal"])), song)},
     }
+    # A part that's no longer a draft has been checked or written by a person: keep it.
+    for name, part in (chart.get("parts") or {}).items():
+        if not part.get("draft", True):
+            print(f"Keeping the checked {name} part.")
+            parts[name] = part
     chart["parts"] = parts
     with open(chart_path, "w", encoding="utf-8", newline="") as f:
         json.dump(chart, f, indent=1)

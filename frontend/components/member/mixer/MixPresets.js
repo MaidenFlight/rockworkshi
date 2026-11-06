@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { API_URL } from "@/lib/api";
-import { hint, smallBtn } from "./styles";
+import Icon from "../Icon";
 
 async function request(path, options = {}) {
   const res = await fetch(`${API_URL}${path}`, {
@@ -20,7 +20,7 @@ export default function MixPresets({ songId, getSettings, onApply }) {
   const [presets, setPresets] = useState([]);
   const [selected, setSelected] = useState("");
   const [name, setName] = useState("");
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState(null); // { text, ok }
 
   useEffect(() => {
     request(`/songs/${songId}/mix-presets`)
@@ -38,9 +38,9 @@ export default function MixPresets({ songId, getSettings, onApply }) {
       setPresets((list) => [...list.filter((p) => p.id !== preset.id), preset].sort((a, b) => a.name.localeCompare(b.name)));
       setSelected(preset.id);
       setName("");
-      setMessage(`Saved “${preset.name}”.`);
+      setMessage({ text: `Saved “${preset.name}”.`, ok: true, at: Date.now() });
     } catch (err) {
-      setMessage(err.message);
+      setMessage({ text: err.message, ok: false });
     }
   }
 
@@ -51,9 +51,9 @@ export default function MixPresets({ songId, getSettings, onApply }) {
       await request(`/songs/${songId}/mix-presets/${preset.id}`, { method: "DELETE" });
       setPresets((list) => list.filter((p) => p.id !== preset.id));
       setSelected("");
-      setMessage(`Deleted “${preset.name}”.`);
+      setMessage({ text: `Deleted “${preset.name}”.`, ok: true, at: Date.now() });
     } catch (err) {
-      setMessage(err.message);
+      setMessage({ text: err.message, ok: false });
     }
   }
 
@@ -62,21 +62,16 @@ export default function MixPresets({ songId, getSettings, onApply }) {
     const preset = presets.find((p) => p.id === id);
     if (!preset) return;
     onApply(preset.settings);
-    setMessage(`Using “${preset.name}”.`);
+    setMessage({ text: `Using “${preset.name}”.`, ok: true, at: Date.now() });
   }
 
   return (
-    <div style={{ display: "grid", gap: 10 }}>
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-        <label htmlFor="mix-preset" style={{ fontSize: 13, fontWeight: 700, color: "var(--rw-ink)" }}>
-          My mixes
+    <div className="rw-presets">
+      <div className="rw-presets-row">
+        <label htmlFor="mix-preset" className="rw-studio-label">
+          Saved mixes
         </label>
-        <select
-          id="mix-preset"
-          value={selected}
-          onChange={(e) => apply(e.target.value)}
-          style={{ flex: "1 1 160px", padding: "6px 8px", borderRadius: "var(--rw-radius-sm)", border: "1px solid var(--rw-line)", fontSize: 13 }}
-        >
+        <select id="mix-preset" value={selected} onChange={(e) => apply(e.target.value)} className="rw-field">
           <option value="">{presets.length ? "Choose a saved mix…" : "No saved mixes yet"}</option>
           {presets.map((p) => (
             <option key={p.id} value={p.id}>
@@ -84,26 +79,28 @@ export default function MixPresets({ songId, getSettings, onApply }) {
             </option>
           ))}
         </select>
-        <button type="button" onClick={remove} disabled={!selected} style={smallBtn}>
+        <button type="button" onClick={remove} disabled={!selected} className="rw-btn rw-btn-small">
           Delete
         </button>
       </div>
-      <form onSubmit={save} style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+      <form onSubmit={save} className="rw-presets-row">
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
           maxLength={40}
           placeholder="Name this mix, e.g. Drums up"
           aria-label="Name for this mix"
-          style={{ flex: "1 1 160px", padding: "6px 10px", borderRadius: "var(--rw-radius-sm)", border: "1px solid var(--rw-line)", fontSize: 13 }}
+          className="rw-field"
         />
-        <button type="submit" disabled={!name.trim()} style={smallBtn}>
+        <button type="submit" disabled={!name.trim()} className="rw-btn rw-btn-small">
           Save mix
         </button>
       </form>
       {message && (
-        <p style={hint} role="status">
-          {message}
+        // Keyed by time so the confirmation plays again for every save.
+        <p key={message.at} className={message.ok ? "rw-confirm" : "rw-studio-error"} role="status">
+          {message.ok && <Icon name="check" size={14} />}
+          {message.text}
         </p>
       )}
     </div>

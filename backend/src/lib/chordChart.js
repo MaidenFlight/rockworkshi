@@ -2,9 +2,13 @@
 // Chords, section names and notes only. Lyrics are copyrighted and don't belong here.
 //   { end, sections: [{ name, bars: [{ time, chords: [{ name, time }] }] }], parts? }
 // parts are optional transcriptions, from scripts/transcribe-parts.py:
-//   { Bass: { draft?, notes }, Vocals: { draft?, notes }, Drums: { draft?, hits } }
-//   a note is { time, len, midi } and a hit is { time, drum }
-const DRUMS = ["kick", "snare", "hat"];
+//   { Bass: { draft?, notes }, Vocals: { draft?, notes }, Drums: { draft?, hits, crescendos? } }
+//   a note is { time, len, midi } and a hit is { time, drum, accent? }; a crescendo is { time, end }
+//   bass notes may also say where they're played, { string, fret }, and hammer: true when slurred
+//   from the note before
+// "hat" is a closed hi-hat and "open" a half-open one.
+const DRUMS = ["kick", "snare", "hat", "open", "crash"];
+const BASS_STRINGS = { E: 28, A: 33, D: 38, G: 43 };
 const MAX_SECONDS = 24 * 60 * 60;
 
 function isTime(v) {
@@ -20,7 +24,17 @@ function validateNotes(name, part) {
     if (!ok) return { error: `${name} has a note without a time, length or pitch.` };
     if (note.time < last) return { error: `${name}: the note at ${note.time}s is out of order.` };
     last = note.time;
-    notes.push({ time: note.time, len: note.len, midi: note.midi });
+    const clean = { time: note.time, len: note.len, midi: note.midi };
+    if (name === "Bass" && (note.string !== undefined || note.fret !== undefined)) {
+      const open = BASS_STRINGS[note.string];
+      if (open === undefined || !Number.isInteger(note.fret) || note.fret < 0 || open + note.fret !== note.midi) {
+        return { error: `${name}: the note at ${note.time}s has a string and fret that don't make its pitch.` };
+      }
+      clean.string = note.string;
+      clean.fret = note.fret;
+    }
+    if (note.hammer === true) clean.hammer = true;
+    notes.push(clean);
   }
   return { part: { draft: Boolean(part.draft), notes } };
 }
@@ -33,9 +47,18 @@ function validateHits(name, part) {
     if (!isTime(hit?.time) || !DRUMS.includes(hit?.drum)) return { error: `${name} has a hit without a time or a known drum.` };
     if (hit.time < last) return { error: `${name}: the hit at ${hit.time}s is out of order.` };
     last = hit.time;
-    hits.push({ time: hit.time, drum: hit.drum });
+    hits.push(hit.accent === true ? { time: hit.time, drum: hit.drum, accent: true } : { time: hit.time, drum: hit.drum });
   }
-  return { part: { draft: Boolean(part.draft), hits } };
+  const clean = { draft: Boolean(part.draft), hits };
+  if (part.crescendos !== undefined) {
+    if (!Array.isArray(part.crescendos)) return { error: `${name}: crescendos must be a list.` };
+    clean.crescendos = [];
+    for (const swell of part.crescendos) {
+      if (!isTime(swell?.time) || !isTime(swell?.end) || swell.end <= swell.time) return { error: `${name} has a crescendo that doesn't end after it starts.` };
+      clean.crescendos.push({ time: swell.time, end: swell.end });
+    }
+  }
+  return { part: clean };
 }
 
 function validateParts(input) {
