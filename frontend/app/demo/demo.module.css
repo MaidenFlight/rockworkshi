@@ -1,0 +1,203 @@
+/* The Demo tab (app/demo/page.js). The passcode sits in the site's form panel; the instruments reuse
+   the homepage's photo cards (components/home/InstrumentCards.module.css) as buttons. */
+
+.muted {
+  color: var(--rw-meta);
+}
+
+/* A plain label-stock note, like the practice brief on the song page. */
+.left {
+  margin: 0 0 24px;
+  padding: 12px 16px;
+  background: var(--rw-sand);
+  border-radius: var(--rw-radius-md);
+  font-size: var(--rw-text-sm);
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--rw-ink);
+}
+
+.fieldGap {
+  margin-top: var(--rw-space-4);
+}
+
+.closedTitle {
+  margin: 0 0 8px;
+  font-family: var(--rw-font-display);
+  font-size: var(--rw-text-2xl);
+  font-weight: 800;
+  line-height: 1.05;
+  text-transform: uppercase;
+  color: var(--rw-ink);
+}
+
+.link {
+  font-weight: 700;
+  color: var(--rw-orange-deep);
+}
+
+.title {
+  margin: 0 0 8px;
+  font-family: var(--rw-font-display);
+  font-size: var(--rw-text-3xl);
+  font-weight: 800;
+  line-height: 1.05;
+  text-transform: uppercase;
+  color: var(--rw-ink);
+}
+
+.lead {
+  max-width: 640px;
+  margin: 0 0 24px;
+  font-size: var(--rw-text-md);
+  line-height: 1.6;
+  color: var(--rw-prose);
+}
+
+.error {
+  margin: 0 0 18px;
+  font-size: var(--rw-text-sm);
+  font-weight: 700;
+  color: var(--rw-orange-deep);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 0;
+  font: inherit;
+  text-align: left;
+  color: var(--rw-ink);
+  background: var(--rw-surface);
+  border: 1px solid var(--rw-border);
+  border-radius: var(--rw-radius-md);
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 160ms ease;
+}
+
+.card:disabled {
+  cursor: progress;
+}
+
+.card[aria-current="true"] {
+  border-color: var(--rw-teal);
+}
+
+.photo {
+  position: relative;
+  display: block;
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+  background: var(--rw-ink);
+}
+
+.photo img {
+  object-fit: cover;
+  filter: saturate(0.75);
+  transition: transform 220ms ease, filter 220ms ease;
+}
+
+.caption {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 18px 22px 20px;
+}
+
+.name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--rw-font-display);
+  font-size: var(--rw-text-2xl);
+  font-weight: 800;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.current {
+  padding: 2px 6px;
+  border: 1px solid var(--rw-teal);
+  border-radius: var(--rw-radius-sm);
+  font-family: var(--rw-font-body);
+  font-size: var(--rw-text-2xs);
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  color: var(--rw-teal);
+}
+
+.line {
+  font-size: var(--rw-text-sm);
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--rw-orange-deep);
+}
+
+.card:hover:not(:disabled),
+.card:focus-visible {
+  border-color: var(--rw-orange-deep);
+}
+
+.card:hover:not(:disabled) .line,
+.card:focus-visible .line {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.card:focus-visible {
+  outline: 2px solid var(--rw-teal);
+  outline-offset: 4px;
+}
+
+.back {
+  margin: 24px 0 0;
+}
+
+@media (hover: hover) {
+  .card:hover:not(:disabled) img {
+    transform: scale(1.035);
+    filter: saturate(1);
+  }
+}
+
+@media (max-width: 700px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+  .caption {
+    padding: 14px 16px 16px;
+  }
+  .name {
+    font-size: var(--rw-text-xl);
+  }
+}
+
+@media (max-width: 380px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  /* One a row on a phone: a shorter photo keeps all six within a few swipes. */
+  .photo {
+    aspect-ratio: 2 / 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .photo img {
+    transition: none;
+  }
+  .card:hover img {
+    transform: none;
+  }
+}

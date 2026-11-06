@@ -5,6 +5,7 @@ const express = require("express");
 const prisma = require("../lib/prisma");
 const { requireAuth, requireTeacher, requireAdmin } = require("../middleware/auth");
 const { audit } = require("../lib/audit");
+const { REAL, isDemo } = require("../lib/demoRules");
 const { isTeacher, isGuardian } = require("../lib/roles");
 const { toInstant, isDateString } = require("../lib/zoned");
 const {
@@ -245,7 +246,8 @@ admin.use(requireAdmin);
 admin.get("/", async (req, res) => {
   const search = typeof req.query.search === "string" ? req.query.search.trim() : "";
   const classes = await prisma.class.findMany({
-    where: search ? { title: { contains: search, mode: "insensitive" } } : {},
+    // Not the student demo's made-up classes (lib/demo.js). A class whose teacher has gone stays listed.
+    where: { ...(search ? { title: { contains: search, mode: "insensitive" } } : {}), OR: [{ teacherId: null }, { teacher: REAL }] },
     include: { teacher: { select: { id: true, name: true } }, _count: { select: { enrolments: { where: { status: "enrolled" } } } } },
     orderBy: [{ status: "asc" }, { createdAt: "desc" }],
     take: 200,
@@ -278,7 +280,7 @@ admin.post("/:id/enrolments", async (req, res) => {
     prisma.user.findUnique({ where: { id: userId } }),
   ]);
   if (!cls) return res.status(404).json({ error: "Not found." });
-  if (!student) return res.status(404).json({ error: "Student not found." });
+  if (!student || isDemo(student)) return res.status(404).json({ error: "Student not found." });
   if (cls.status !== "active") return res.status(400).json({ error: "This class has been cancelled." });
   if (cls.teacherId === userId) return res.status(400).json({ error: "The teacher can't enrol in their own class." });
   if (student.role === "guardian") return res.status(400).json({ error: "Only students can be enrolled." });

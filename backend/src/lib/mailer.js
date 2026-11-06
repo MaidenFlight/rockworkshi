@@ -1,5 +1,6 @@
 const nodemailer = require("nodemailer");
 const { INSTRUMENTS } = require("./lessonVideos");
+const { isDemoAddress } = require("./demoRules");
 
 // SMTP mailer (Resend in production, see .env.example).
 // In dev with no SMTP config, mail goes to an Ethereal test inbox and the
@@ -64,6 +65,11 @@ function getTransport() {
 
 // Replies go to the school's inbox unless a notice to the school points them at the sender instead.
 async function sendMail({ to, subject, text, html, replyTo = REPLY_TO }) {
+  // Student demo accounts never get mail (lib/demo.js). The routes refuse first; this is the backstop.
+  if ([].concat(to).some(isDemoAddress)) {
+    console.log(`Not sending "${subject}" to a student demo account.`);
+    return { delivered: false, demo: true };
+  }
   const { transport, kind } = await getTransport();
   const info = await transport.sendMail({
     from: FROM,

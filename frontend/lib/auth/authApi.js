@@ -88,6 +88,42 @@ export async function loginRequest(email, password) {
   return data.user;
 }
 
+// The student demo (backend lib/demo.js): { open, song, instruments }. Open while an admin has set its
+// passcode; instruments are the ones it offers.
+export async function demoStatusRequest() {
+  const res = await fetch(`${API_URL}/auth/demo`, { credentials: "include" });
+  const data = await parseJson(res);
+  if (!res.ok) throw new Error(data?.error || "The demo couldn't be reached. Try again in a moment.");
+  return { open: Boolean(data?.open), song: data?.song ?? null, instruments: data?.instruments ?? [] };
+}
+
+// The Demo tab's first step: throws with the reason when the passcode won't open the demo.
+export async function demoCheckRequest(passcode) {
+  const res = await fetch(`${API_URL}/auth/demo/check`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ passcode }),
+  });
+  if (res.ok) return true;
+  const data = await parseJson(res);
+  throw new Error(data?.error || "That passcode couldn't be checked. Try again in a moment.");
+}
+
+// Signs this browser into a sample student of that instrument, its own. Someone already in a demo
+// needs no passcode, and another instrument swaps their demo for a new one.
+export async function demoRequest({ passcode, instrument }) {
+  const res = await fetch(`${API_URL}/auth/demo`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ passcode, instrument }),
+  });
+  const data = await parseJson(res);
+  if (!res.ok) throw new Error(data?.error || "The demo couldn't start. Try again in a moment.");
+  return data.user;
+}
+
 export async function signupRequest(payload) {
   const res = await fetch(`${API_URL}/auth/signup`, {
     method: "POST",

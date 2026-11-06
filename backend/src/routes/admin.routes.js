@@ -7,6 +7,8 @@ const { ROLES, deleteAssignmentRecordings } = require("../lib/assignments");
 const { canonicalInstrument } = require("../lib/instrumentAccess");
 
 const { audit } = require("../lib/audit");
+const { REAL } = require("../lib/demoRules");
+const { demoStatus, setDemoPasscode, closeDemo } = require("../lib/demo");
 const router = express.Router();
 router.use(requireAdmin);
 
@@ -45,11 +47,11 @@ const STUDENT_CSV_COLUMNS = [
 // The numbers on the admin home page, counted here because the lists themselves are paged.
 router.get("/overview", async (req, res) => {
   const [students, newTrials, messages, lessons, instruments] = await Promise.all([
-    prisma.user.count(),
+    prisma.user.count({ where: REAL }),
     prisma.trialRequest.count({ where: { status: "New" } }),
     prisma.contactMessage.count(),
     prisma.lesson.count(),
-    prisma.user.groupBy({ by: ["instrument"], _count: { _all: true } }),
+    prisma.user.groupBy({ by: ["instrument"], where: REAL, _count: { _all: true } }),
   ]);
 
   const counts = {};
@@ -64,16 +66,40 @@ router.get("/overview", async (req, res) => {
   res.json({ students, newTrials, messages, lessons, breakdown });
 });
 
+// ---------- The student demo: its passcode, and closing it ----------
+// The passcode is shown to no one, admins included: setting a new one is how it's changed (lib/demo.js).
+
+router.get("/demo", async (req, res) => {
+  res.json(await demoStatus());
+});
+
+router.put("/demo", async (req, res) => {
+  const { error } = await setDemoPasscode(req.body?.passcode, req.user);
+  if (error) return res.status(400).json({ error });
+  await audit(req.user, "demo.passcode", "demo", "student-demo");
+  res.json(await demoStatus());
+});
+
+// The passcode stops working and every demo running now ends.
+router.delete("/demo", async (req, res) => {
+  const ended = await closeDemo();
+  await audit(req.user, "demo.close", "demo", "student-demo", { ended });
+  res.json({ ...(await demoStatus()), ended });
+});
+
 router.get("/students", async (req, res) => {
   const search = String(req.query.search || "").trim();
-  const where = search
-    ? {
-        OR: [
-          { email: { contains: search, mode: "insensitive" } },
-          { name: { contains: search, mode: "insensitive" } },
-        ],
-      }
-    : {};
+  const where = {
+    ...REAL,
+    ...(search
+      ? {
+          OR: [
+            { email: { contains: search, mode: "insensitive" } },
+            { name: { contains: search, mode: "insensitive" } },
+          ],
+        }
+      : {}),
+  };
   const { items, pagination } = await findPage(prisma.user, { where, orderBy: [{ createdAt: "desc" }, { id: "asc" }] }, req.query);
   res.json({ students: items.map(toSafeUser), pagination });
 });
@@ -122,7 +148,7 @@ router.delete("/students/:id", async (req, res) => {
 });
 
 router.get("/students/export.csv", async (req, res) => {
-  const users = await prisma.user.findMany({ orderBy: { createdAt: "desc" } });
+  const users = await prisma.user.findMany({ where: REAL, orderBy: { createdAt: "desc" } });
   const rows = [STUDENT_CSV_COLUMNS.join(",")];
   for (const u of users) {
     rows.push(
@@ -145,11 +171,11 @@ const PERSON = { id: true, name: true, email: true, instrument: true, role: true
 router.get("/teaching", async (req, res) => {
   const [teachers, people] = await Promise.all([
     prisma.user.findMany({
-      where: { role: "teacher" },
+      where: { ...REAL, role: "teacher" },
       orderBy: { name: "asc" },
       select: { ...PERSON, myStudents: { select: { student: { select: PERSON } } } },
     }),
-    prisma.user.findMany({ orderBy: { name: "asc" }, select: PERSON }),
+    prisma.user.findMany({ where: REAL, orderBy: { name: "asc" }, select: PERSON }),
   ]);
   res.json({
     teachers: teachers.map(({ myStudents, ...t }) => ({ ...t, students: myStudents.map((l) => l.student) })),

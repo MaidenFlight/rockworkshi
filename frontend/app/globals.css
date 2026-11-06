@@ -123,6 +123,12 @@ summary:focus-visible,
   }
 }
 
+/* The header's links. The row is capped at 1200px, so at 14px a side the visitor's header (with the
+   Demo tab) no longer fit on one line at any width; at 9px it fits with room to spare. */
+.rw-nav-link {
+  padding: 10px 9px;
+}
+
 .rw-nav-link:hover {
   background: var(--rw-nav-hover);
 }
@@ -5405,4 +5411,94 @@ div:has(> .rw-scrub:focus-visible) {
   .rw-preview-slot {
     min-height: 444px;
   }
+}
+
+/* ---------------------------------------------------------------------------------------------
+   The student demo (backend lib/demo.js): the offer under the sign-in form, the label-stock band
+   under the header on every page while a visitor is in a sample student's account, and the chip
+   that keeps it labelled in the header once the band has scrolled away. */
+
+.rw-demo-try {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--rw-border);
+}
+
+.rw-demo-try-title {
+  margin: 0 0 4px;
+  font-family: var(--rw-font-body);
+  font-size: var(--rw-text-base);
+  font-weight: 700;
+  color: var(--rw-ink);
+}
+
+.rw-demo-try-text {
+  margin: 0 0 14px;
+  font-size: var(--rw-text-sm);
+  line-height: 1.55;
+  color: var(--rw-body);
+}
+
+.rw-demo-try-btn {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 16px;
+}
+
+.rw-demo-band {
+  background: var(--rw-sand);
+  border-top: 4px solid var(--rw-flare);
+  border-bottom: 1px solid var(--rw-border);
+}
+
+.rw-demo-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 8px 24px;
+}
+
+.rw-demo-text {
+  flex: 1 1 420px;
+  margin: 0;
+  font-size: var(--rw-text-sm);
+  line-height: 1.5;
+  color: var(--rw-body);
+}
+
+.rw-demo-tag {
+  margin-right: 10px;
+  font-size: var(--rw-text-xs);
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--rw-orange-deep);
+}
+
+.rw-demo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rw-demo-leave {
+  flex: none;
+  min-height: 44px;
+}
+
+.rw-demo-chip {
+  padding: 2px 6px;
+  border: 1px solid var(--rw-orange-deep);
+  border-radius: var(--rw-radius-sm);
+  font-size: var(--rw-text-2xs);
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--rw-orange-deep);
 }

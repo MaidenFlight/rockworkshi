@@ -7,6 +7,8 @@ const passport = require("../config/passport");
 const prisma = require("../lib/prisma");
 const { requireAuth } = require("../middleware/auth");
 const { signMobileToken } = require("../lib/mobileToken");
+const { DEMO_INSTRUMENTS, isDemo, isDemoAddress, refuseDemo } = require("../lib/demoRules");
+const { checkDemoPasscode, demoStatus, startDemo, endDemo } = require("../lib/demo");
 const {
   issueVerification,
   issueReset,
@@ -32,6 +34,16 @@ const loginLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: "Too many failed sign-in attempts. Try again in 15 minutes." },
+});
+
+// Slows guessing the demo passcode. Only failures count, per IP address.
+const demoLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  skipSuccessfulRequests: true,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many wrong passcodes from here. Try again in 15 minutes." },
 });
 
 const SALT_ROUNDS = 12;
@@ -71,6 +83,8 @@ function toSafeUser(user) {
     isAdmin,
     isTeacher,
     isGuardian,
+    // A student demo account (lib/demo.js): the site labels it and offers "Leave demo" instead of signing out.
+    isDemo: isDemo(user),
     emailVerified: Boolean(user.emailVerifiedAt),
     // Someone who has already paid is past onboarding even without a valid instrument: they can't pick
     // one themselves any more (PATCH /me), so the member area shows how to get the school to set it.
@@ -137,7 +151,8 @@ router.post("/signup", async (req, res, next) => {
   const { password } = req.body;
   const profile = collectProfileFields(req.body);
 
-  if (!isEmailValid(email)) {
+  // The demo's addresses can't receive mail, so a real account can't use one.
+  if (!isEmailValid(email) || isDemoAddress(email)) {
     return res.status(400).json({ error: "Enter a valid email address." });
   }
   if (!password || password.length < 8) {
@@ -206,12 +221,83 @@ router.post("/mobile/login", loginLimiter, (req, res, next) => {
   })(req, res, next);
 });
 
+// The Demo tab's first question: is the demo open (an admin has set its passcode), which song it
+// practises, and which instruments it offers.
+router.get("/demo", async (req, res, next) => {
+  try {
+    const { open, song } = await demoStatus();
+    return res.json({ open, song, instruments: DEMO_INSTRUMENTS });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Refusals for a passcode that won't open the demo, or null when it will.
+async function passcodeProblem(passcode) {
+  const access = await checkDemoPasscode(passcode);
+  if (access === "closed") return [403, { error: "The student demo is closed at the moment.", reason: "demo_closed" }];
+  if (access !== "open") return [401, { error: "That isn't the demo passcode. Check it with whoever gave it to you.", reason: "demo_passcode" }];
+  return null;
+}
+
+// The Demo tab's first step: is this the passcode? Nothing is made yet. Wrong guesses count towards
+// the limit, as on POST /demo.
+router.post("/demo/check", demoLimiter, async (req, res, next) => {
+  try {
+    const problem = await passcodeProblem(req.body?.passcode);
+    if (problem) return res.status(problem[0]).json(problem[1]);
+    return res.status(204).end();
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Signs the visitor into a demo student; the cookie and the stored session end when the demo does.
+function signInDemo(req, res, next, user, status) {
+  req.login(user, (err) => {
+    if (err) return next(err);
+    req.session.cookie.expires = user.demoExpiresAt;
+    req.session.save((saveErr) => {
+      if (saveErr) return next(saveErr);
+      return res.status(status).json({ user: toSafeUser(user) });
+    });
+  });
+}
+
+// The Demo tab's second step: with the passcode, a fresh sample student of the chosen instrument, the
+// visitor's own (lib/demo.js). Someone already in a demo needs no passcode: the same instrument carries
+// on with theirs, another one swaps it for a new demo of that instrument.
+router.post("/demo", demoLimiter, async (req, res, next) => {
+  try {
+    const instrument = req.body?.instrument === undefined ? DEMO_INSTRUMENTS[0] : canonicalInstrument(req.body.instrument);
+    if (!DEMO_INSTRUMENTS.includes(instrument)) {
+      const names = `${DEMO_INSTRUMENTS.slice(0, -1).join(", ")} and ${DEMO_INSTRUMENTS.at(-1)}`;
+      return res.status(400).json({ error: `The demo offers ${names} for now.`, reason: "demo_instrument" });
+    }
+    if (isDemo(req.user)) {
+      if (canonicalInstrument(req.user.instrument) === instrument) return res.json({ user: toSafeUser(req.user) });
+      const before = req.user;
+      const user = await startDemo({ instrument });
+      await endDemo(before).catch((e) => console.error("Could not clear a student demo:", e.message));
+      return signInDemo(req, res, next, user, 201);
+    }
+    const problem = await passcodeProblem(req.body?.passcode);
+    if (problem) return res.status(problem[0]).json(problem[1]);
+    return signInDemo(req, res, next, await startDemo({ instrument }), 201);
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.post("/logout", (req, res, next) => {
+  const demo = isDemo(req.user) ? req.user : null;
   req.logout((err) => {
     if (err) return next(err);
-    req.session.destroy((destroyErr) => {
+    req.session.destroy(async (destroyErr) => {
       if (destroyErr) return next(destroyErr);
       res.clearCookie("connect.sid");
+      // Leaving the demo throws it away, so whoever comes next starts from the beginning.
+      if (demo) await endDemo(demo).catch((e) => console.error("Could not clear a student demo:", e.message));
       return res.status(204).end();
     });
   });
@@ -281,7 +367,7 @@ router.post("/verify-email", async (req, res, next) => {
   }
 });
 
-router.post("/resend-verification", requireAuth, async (req, res, next) => {
+router.post("/resend-verification", requireAuth, refuseDemo("email"), async (req, res, next) => {
   try {
     if (req.user.emailVerifiedAt) {
       return res.json({ alreadyVerified: true });
@@ -317,7 +403,7 @@ function passwordProblem(password) {
   return null;
 }
 
-router.post("/change-password", requireAuth, async (req, res, next) => {
+router.post("/change-password", requireAuth, refuseDemo("password"), async (req, res, next) => {
   const { currentPassword, newPassword } = req.body || {};
 
   const problem = passwordProblem(newPassword);
@@ -362,7 +448,8 @@ router.post("/forgot-password", async (req, res, next) => {
 
   sameAnswer();
 
-  if (!user) return;
+  // A demo account has no password, and its address can't receive mail.
+  if (!user || isDemo(user)) return;
   if (!cooledDown(user.resetSentAt)) return;
 
   const { token, data } = issueReset();

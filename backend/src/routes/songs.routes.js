@@ -6,7 +6,8 @@ const { sortTracks } = require("../lib/songTracks");
 const { MAX_PRESETS_PER_SONG, validateName, presentPreset } = require("../lib/mixPresets");
 const { validateSession, validateNotes, presentPractice } = require("../lib/practice");
 const { loadAccess, denialMessage, linkSeconds, isStaff } = require("../lib/termAccess");
-const { NO_INSTRUMENT, scopeFor, partForInstrument, studentPlayback, validateMixer, mixerFits } = require("../lib/instrumentAccess");
+const { NO_INSTRUMENT, scopeFor, partForInstrument, chartFor, studentPlayback, validateMixer, mixerFits } = require("../lib/instrumentAccess");
+const { isDemo, demoSongAudio } = require("../lib/demoRules");
 const { INSTRUMENTS, canonicalInstrument, presentTutorials } = require("../lib/lessonVideos");
 
 const router = express.Router();
@@ -14,7 +15,8 @@ const router = express.Router();
 // Mounted at /songs ahead of the public routes, which own GET /songs itself.
 // requirePaid goes on each route, not router.use, so it doesn't block that public list.
 // Staff get every stem and the whole chart. A student gets their own stem, the backing band and
-// their own chart, and nothing else, whatever they ask for (lib/instrumentAccess.js).
+// their own chart, and nothing else, whatever they ask for (lib/instrumentAccess.js). The student demo
+// gets every stem, with the chart of the student it shows.
 router.get("/:id/tracks", requirePaid, async (req, res) => {
   const song = await prisma.song.findUnique({
     where: { id: req.params.id },
@@ -27,18 +29,46 @@ router.get("/:id/tracks", requirePaid, async (req, res) => {
   if (!song.tracks.length) return res.status(404).json({ error: "This song has no tracks yet." });
   const scope = scopeFor(req.user);
   if (!scope.staff && !scope.instrument) return res.status(403).json({ error: NO_INSTRUMENT, reason: "no_instrument" });
-  if (!isMediaConfigured()) return res.status(503).json({ error: "Song storage is not configured." });
 
   const about = {
     song: { id: song.id, title: song.title, artist: song.artist },
     // The players set their headroom from this. null = not measured yet (see songs:measure).
     mixLevel: song.mixLevel,
   };
-  if (!scope.staff) return res.json({ ...about, ...(await studentPlayback(song, scope.instrument, linkSeconds(access))) });
+  // The student demo gets its chart without the recording when DEMO_SONG_AUDIO=off (lib/demoRules.js).
+  if (isDemo(req.user) && !demoSongAudio()) {
+    const { chart, available } = chartFor(song.chart, scope.instrument);
+    return res.json({
+      ...about,
+      scope: "instrument",
+      instrument: scope.instrument,
+      myPart: partForInstrument(scope.instrument),
+      tracks: [],
+      available: { own: false, backing: false, chart: available },
+      chart,
+      demo: { audio: false },
+    });
+  }
+  if (!isMediaConfigured()) return res.status(503).json({ error: "Song storage is not configured." });
+  if (!scope.allStems) return res.json({ ...about, ...(await studentPlayback(song, scope.instrument, linkSeconds(access))) });
 
   const tracks = await Promise.all(
     sortTracks(song.tracks).map(async (t) => ({ part: t.part, url: await mediaLink(t.storageKey, linkSeconds(access)) }))
   );
+  if (!scope.staff) {
+    // The student demo: every stem and the full mixer, but the instrument and chart of the student it
+    // shows, so the chart is still theirs alone.
+    const { chart, available } = chartFor(song.chart, scope.instrument);
+    return res.json({
+      ...about,
+      scope: "all",
+      instrument: scope.instrument,
+      tracks,
+      myPart: partForInstrument(scope.instrument),
+      available: { chart: available },
+      chart,
+    });
+  }
   res.json({
     ...about,
     scope: "all",

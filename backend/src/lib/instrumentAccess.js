@@ -14,10 +14,14 @@
 //       chart  the song's form and chords, which every part's chart is laid out on and which drive
 //              the bar-by-bar navigation, plus their own instrument's transcription and no other.
 //   - A student with no valid instrument gets neither. The pages send them to the school.
+//   - The student demo (lib/demo.js) hears every stem on its own, like staff (Denny, 2026-11-06): its
+//     visitors came in with a passcode an admin gave them, to try the player. The rest stays a student's:
+//     their own chart, and their own instrument's library and videos.
 // After enrolment a student's instrument is the school's to change (PUT /admin/students/:id/instrument).
 const prisma = require("./prisma");
 const { INSTRUMENTS } = require("./lessonVideos");
 const { isStaff } = require("./termAccess");
+const { isDemo } = require("./demoRules");
 const { validateSettings } = require("./mixPresets");
 const { mediaLink } = require("./media");
 const { WHOLE_SONG, currentMixes } = require("./songMixes");
@@ -53,9 +57,11 @@ function partForInstrument(instrument) {
   return INSTRUMENT_PARTS[canonicalInstrument(instrument)]?.stem || null;
 }
 
-// { staff, instrument }: what a person's player may hold. instrument is null when theirs isn't valid.
+// { staff, instrument, allStems }: what a person's player may hold. instrument is null when theirs isn't
+// valid. allStems is every stem on its own with the full mixer: staff, and the student demo.
 function scopeFor(user) {
-  return { staff: isStaff(user), instrument: canonicalInstrument(user?.instrument) };
+  const staff = isStaff(user);
+  return { staff, instrument: canonicalInstrument(user?.instrument), allStems: staff || isDemo(user) };
 }
 
 // Enrolled means they've paid at some point, or the school has put them in a term or with a teacher.
@@ -112,12 +118,13 @@ async function studentPlayback(song, instrument, linkSeconds) {
   };
 }
 
-// Validates a mixer someone saves (a preset or resume state) against the player they have.
+// Validates a mixer someone saves (a preset or resume state) against the player they have. With every
+// stem (staff, the demo) it's the full mixer.
 // A student's covers only their own part and the backing band: other stems are dropped, mute and solo
 // are off (the three play modes do that job), the focus is always their own part, and it's stamped with
 // their instrument, so it's never applied once the school changes it.
 function validateMixer(input, scope) {
-  if (scope.staff) return validateSettings(input);
+  if (scope.staff || scope.allStems) return validateSettings(input);
   if (!scope.instrument) return { error: NO_INSTRUMENT };
   const own = INSTRUMENT_PARTS[scope.instrument].stem;
   const { error, settings } = validateSettings(input, [own, BACKING]);
@@ -130,9 +137,10 @@ function validateMixer(input, scope) {
 }
 
 // Whether a saved mixer may be restored for this person now. A student's must have been made for the
-// instrument they have today: older ones, for every stem or for another instrument, stay unused.
+// instrument they have today: older ones, for every stem or for another instrument, stay unused. A
+// demo's instrument never changes (another instrument is another demo), so it keeps any it saved.
 function mixerFits(settings, scope) {
-  if (scope.staff) return true;
+  if (scope.staff || scope.allStems) return true;
   return Boolean(settings && scope.instrument && settings.instrument === scope.instrument);
 }
 

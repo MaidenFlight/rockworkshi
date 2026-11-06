@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import {
   fetchCurrentUser,
   loginRequest,
+  demoRequest,
   signupRequest,
   logoutRequest,
   updateProfileRequest,
@@ -47,6 +48,14 @@ export function AuthProvider({ children }) {
     return nextUser;
   }, []);
 
+  // "Try student demo" on the sign-in page (backend lib/demo.js).
+  const startDemo = useCallback(async ({ passcode, instrument }) => {
+    const nextUser = await demoRequest({ passcode, instrument });
+    setUser(nextUser);
+    writeCachedUser(nextUser);
+    return nextUser;
+  }, []);
+
   const signUp = useCallback(async (payload) => {
     const nextUser = await signupRequest(payload);
     setUser(nextUser);
@@ -59,6 +68,13 @@ export function AuthProvider({ children }) {
     setUser(null);
     writeCachedUser(null);
   }, []);
+
+  // Leaving deletes the demo on the server. A full page load back to the Demo tab, so no member page
+  // is left on screen to redirect somewhere else as the session ends.
+  const leaveDemo = useCallback(async () => {
+    await signOut();
+    window.location.assign("/demo?left=1");
+  }, [signOut]);
 
   const updateProfile = useCallback(async (fields) => {
     const nextUser = await updateProfileRequest(fields);
@@ -83,12 +99,14 @@ export function AuthProvider({ children }) {
       hasRole: (role) => hasRole(user, role),
       hasAnyRole: (roles) => hasAnyRole(user, roles),
       signIn,
+      startDemo,
       signUp,
       signOut,
+      leaveDemo,
       updateProfile,
       refresh,
     }),
-    [user, isLoading, signIn, signUp, signOut, updateProfile, refresh]
+    [user, isLoading, signIn, startDemo, signUp, signOut, leaveDemo, updateProfile, refresh]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

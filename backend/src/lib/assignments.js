@@ -29,8 +29,8 @@ const ASSIGNMENT_INCLUDE = {
   submissions: { orderBy: { createdAt: "desc" } },
 };
 
-// Lists only need the newest submission, to show whether feedback is waiting.
-const LIST_INCLUDE = { ...ASSIGNMENT_INCLUDE, submissions: { orderBy: { createdAt: "desc" }, take: 1 } };
+// Lists only need the newest submission, to show whether feedback is waiting, and how many were sent.
+const LIST_INCLUDE = { ...ASSIGNMENT_INCLUDE, submissions: { orderBy: { createdAt: "desc" }, take: 1 }, _count: { select: { submissions: true } } };
 
 // Trims optional text. { value } (null when empty) or { error }.
 function cleanText(value, max) {
@@ -193,6 +193,8 @@ async function presentAssignment(a, { linkSeconds } = {}) {
     teacher: a.teacher ? { id: a.teacher.id, name: a.teacher.name } : null,
     student: a.student || null,
     submissions: await Promise.all((a.submissions || []).map((s) => presentSubmission(s, linkSeconds))),
+    // How many times it was sent. A list carries only the newest submission, so it's counted apart.
+    attempts: a._count?.submissions ?? (a.submissions || []).length,
   };
 }
 

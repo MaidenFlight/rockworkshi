@@ -1,0 +1,177 @@
+/* The month's practice work as a checklist (MonthlyChecklist.js), under the practice panel. The
+   dashboard's grid gap spaces it, so it has no outer margin. */
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.head h2 {
+  margin-bottom: 8px;
+}
+
+.count {
+  font-size: var(--rw-text-sm);
+  font-weight: 700;
+  color: var(--rw-meta);
+  white-space: nowrap;
+}
+
+/* How much of the month has been sent: measured, not decorative. */
+.bar {
+  height: 4px;
+  margin-bottom: 14px;
+  background: var(--rw-border);
+}
+
+.bar span {
+  display: block;
+  height: 100%;
+  background: var(--rw-teal);
+}
+
+.song {
+  margin: 0 0 10px;
+  font-size: var(--rw-text-sm);
+  font-weight: 700;
+  color: var(--rw-body);
+}
+
+.list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  container-type: inline-size;
+}
+
+/* Checkbox, then the task, then its tags; on a narrow list the tags go under the task, lined up with it. */
+.row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px 12px;
+  min-height: 56px;
+  padding: 10px 16px;
+  background: var(--rw-surface);
+  border: 1px solid var(--rw-border);
+  border-radius: var(--rw-radius-md);
+  text-decoration: none;
+  transition: border-color 0.16s ease;
+}
+
+.row:hover,
+.row[aria-current="step"] {
+  border-color: var(--rw-orange-deep);
+}
+
+.row:focus-visible {
+  outline: 2px solid var(--rw-teal);
+  outline-offset: 2px;
+}
+
+/* The checkbox. Its state is also the pill's words, so colour is never the only sign. */
+.box {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--rw-line);
+  border-radius: var(--rw-radius-sm);
+  background: #fff;
+}
+
+.box[data-state="sent"] {
+  border-color: var(--rw-orange-deep);
+}
+
+.box[data-state="sent"]::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  background: var(--rw-orange-deep);
+}
+
+.box[data-state="done"] {
+  border-color: var(--rw-teal);
+  background: var(--rw-teal);
+  color: #fff;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.title {
+  font-size: var(--rw-text-base);
+  font-weight: 700;
+  color: var(--rw-ink);
+}
+
+.meta {
+  font-size: var(--rw-text-sm);
+  color: var(--rw-meta);
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+@container (max-width: 480px) {
+  .tags {
+    grid-column: 2 / -1;
+  }
+}
+
+.today {
+  padding: 2px 6px;
+  border: 1px solid var(--rw-orange-deep);
+  border-radius: var(--rw-radius-sm);
+  background: var(--rw-sand);
+  font-size: var(--rw-text-2xs);
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--rw-orange-deep);
+}
+
+.note {
+  margin: 12px 0 0;
+  font-size: var(--rw-text-sm);
+  line-height: 1.5;
+  color: var(--rw-meta);
+}
+
+.month {
+  margin-top: 16px;
+}
+
+.month summary {
+  min-height: 44px;
+  padding: 10px 0;
+  font-size: var(--rw-text-sm);
+  font-weight: 700;
+  color: var(--rw-body);
+  cursor: pointer;
+}
+
+.month summary:focus-visible {
+  outline: 2px solid var(--rw-teal);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row {
+    transition: none;
+  }
+}

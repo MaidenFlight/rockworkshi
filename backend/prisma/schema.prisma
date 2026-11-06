@@ -60,6 +60,11 @@ model User {
   // it's whoever signs in with ADMIN_EMAIL.
   role String @default("student")
 
+  // Set only on student demo accounts (lib/demo.js): made for one visitor who pressed "Try student
+  // demo", never signed into with a password, kept out of every staff list, and deleted with
+  // everything they own when the visitor leaves or this time passes.
+  demoExpiresAt DateTime?
+
   // Set by the admin. A teacher can only assign to and review students linked here.
   myStudents TeacherStudent[] @relation("TeacherSide")
   myTeachers TeacherStudent[] @relation("StudentSide")
@@ -86,6 +91,8 @@ model User {
   consentsGiven   ConsentRecord[]   @relation("ConsentGiver")
   guardianOf      GuardianLink[]    @relation("GuardianSide")
   guardians       GuardianLink[]    @relation("GuardedSide")
+
+  @@index([demoExpiresAt])
 }
 
 // One student's own state for one song: favourite, private notes, and where they left off.
@@ -439,6 +446,15 @@ model LessonVideo {
   @@unique([lessonId, instrument, level, kind])
   @@unique([songId, instrument, level, kind])
   @@index([lessonId])
+}
+
+// The student demo's passcode (lib/demo.js). An admin sets it and gives it to the people they choose;
+// with no row the demo is closed. Stored as a bcrypt hash, like account passwords. One row, id 1.
+model DemoAccess {
+  id           Int      @id @default(1)
+  passcodeHash String
+  setBy        String?
+  updatedAt    DateTime @updatedAt
 }
 
 // Admin text overrides for public pages, e.g. key "format.hero.title".

@@ -1,12 +1,12 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { API_URL } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import Icon from "@/components/member/Icon";
 import PracticeNext from "@/components/member/PracticeNext";
-import TeacherWork from "@/components/member/TeacherWork";
+import MonthlyChecklist from "@/components/member/MonthlyChecklist";
 import UpcomingClasses from "@/components/member/UpcomingClasses";
 import YourTerm from "@/components/member/YourTerm";
 import { NetworkError, practiceRequest } from "@/lib/practice";
@@ -25,6 +25,8 @@ const why = (err) => (err instanceof NetworkError ? "You're offline. Check your 
 
 export default function MemberDashboard() {
   const { user } = useAuth();
+  // The student demo (backend lib/demo.js) leaves out the lesson videos, which aren't recorded yet.
+  const demo = Boolean(user?.isDemo);
   const [lessons, setLessons] = useState([]);
   // undefined while loading; each one fails on its own so the rest of the page still shows.
   const [library, setLibrary] = useState(undefined);
@@ -42,7 +44,7 @@ export default function MemberDashboard() {
 
   useEffect(() => {
     let cancelled = false;
-    Promise.allSettled([practiceRequest("/library"), practiceRequest("/term"), practiceRequest("/assignments?page=1&pageSize=20")]).then(
+    Promise.allSettled([practiceRequest("/library"), practiceRequest("/term"), practiceRequest("/assignments?page=1&pageSize=100")]).then(
       ([lib, t, work]) => {
         if (cancelled) return;
         setLibrary(lib.status === "fulfilled" ? lib.value : null);
@@ -85,14 +87,13 @@ export default function MemberDashboard() {
             }}
           />
 
-          {/* useSearchParams needs a Suspense boundary in a client page. */}
+          {/* The month's work as a checklist; the task on the panel above is marked Today. The wrapper keeps
+              it right under that panel on phones (globals.css) and hides when there's no work. */}
           <div className="rw-dash-work">
-            <Suspense fallback={null}>
-              <TeacherWork exclude={next?.kind === "assignment" ? next.assignment.id : null} />
-            </Suspense>
+            <MonthlyChecklist assignments={assignments} currentId={next?.kind === "assignment" ? next.assignment.id : null} />
           </div>
 
-          {lessons.length > 0 && (
+          {!demo && lessons.length > 0 && (
             <section aria-labelledby="your-lessons">
               <h2 id="your-lessons" className="rw-dash-h2">
                 Lesson videos

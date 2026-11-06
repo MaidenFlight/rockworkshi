@@ -23,6 +23,7 @@ const NAV = [
   { label: "Pages", href: "/admin/pages" },
   { label: "Resources", href: "/admin/resources" },
   { label: "Media", href: "/admin/media" },
+  { label: "Student demo", href: "/admin/demo" },
 ];
 
 export default function AdminLayout({ children }) {

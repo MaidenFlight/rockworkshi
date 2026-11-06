@@ -16,7 +16,8 @@ async function bearerAuth(req, res, next) {
   // Outside the try: a database failure is a server error, not a signed-out user.
   const user = await prisma.user.findUnique({ where: { id: claims.sub }, include: { roles: true } });
   // A stamp from an older password means the password changed after this token was issued.
-  if (user && claims.pw === passwordStamp(user)) req.user = user;
+  // Student demo accounts are for the website only, so no token is ever accepted for one.
+  if (user && !user.demoExpiresAt && claims.pw === passwordStamp(user)) req.user = user;
   next();
 }
 
