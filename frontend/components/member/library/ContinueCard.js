@@ -34,7 +34,7 @@ export default function ContinueCard({ item }) {
             .join(" · ")}
         </div>
       </div>
-      <Button href={`/member/song/${song.id}`} size="sm">
+      <Button href={`/member/song/${song.id}`}>
         Continue
       </Button>
     </section>
