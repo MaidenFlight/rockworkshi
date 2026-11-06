@@ -12,17 +12,16 @@ export default function History() {
   return (
     <div>
       <EditorialHero eyebrow={<T k="history.hero.eyebrow">About</T>} title={<T k="history.hero.title">History</T>} intro={<T k="history.hero.intro">Four decades of teaching real songs to real people in Honolulu.</T>} />
-      <div style={{ maxWidth: 720, margin: "0 auto", padding: "48px 24px 100px" }}>
-        <div className="rw-timeline" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 20 }}>
+      <div style={{ maxWidth: 1000, margin: "0 auto", padding: "56px 24px 100px" }}>
+        {/* Its own class: .rw-timeline belongs to the song player's console. */}
+        <ol className="rw-history">
           {TIMELINE.map((item) => (
-            <div key={item.year} style={{ borderTop: "2px solid var(--rw-orange)", paddingTop: 14 }}>
-              <div style={{ fontWeight: 700, fontSize: 20, color: "var(--rw-ink)", fontFamily: "var(--font-zilla-slab), serif" }}>
-                {item.year}
-              </div>
-              <p style={{ marginTop: 8, fontSize: 14, lineHeight: 1.55, color: "var(--rw-body)" }}><T k={`history.${item.year}`}>{item.text}</T></p>
-            </div>
+            <li key={item.year} className="rw-history-step">
+              <span className="rw-history-year">{item.year}</span>
+              <p className="rw-history-text"><T k={`history.${item.year}`}>{item.text}</T></p>
+            </li>
           ))}
-        </div>
+        </ol>
       </div>
     </div>
   );

@@ -228,7 +228,7 @@ export default function HomeSilkie() {
       <section className="rw-field rw-field-ask">
         <div className="rw-wave rw-wave-top" aria-hidden="true">
           <svg viewBox="0 0 1440 70" preserveAspectRatio="none">
-            <path d="M0,40 C360,80 1080,0 1440,40 L1440,70 L0,70 Z" fill="var(--rw-cream)" />
+            <path d="M0,40 C360,80 1080,0 1440,40 L1440,70 L0,70 Z" fill="var(--rw-sand)" />
           </svg>
         </div>
         <PrintRepeat color="var(--rw-ink)" opacity={0.07} />
