@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui";
+import TodayList from "@/components/member/TodayList";
 import { formatClock, formatWhen } from "@/lib/practice";
 
 const LABELS = {
@@ -111,6 +112,7 @@ export default function PracticeNext({ next, failed, onRetry }) {
           </Button>
         ) : null}
       </div>
+      {assignment && <TodayList key={assignment.id} assignment={assignment} />}
       {next.waiting && (
         <p className="rw-next-aside">
           {next.waiting.upcoming && next.waiting.unlockShort ? `Your term's first song unlocks ${next.waiting.unlockShort}.` : "This month's term song is being prepared."}

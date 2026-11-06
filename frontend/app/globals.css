@@ -4279,6 +4279,9 @@ div:has(> .rw-scrub:focus-visible) {
   outline-offset: 2px;
 }
 
+.rw-dash-side .rw-st-btn {
+  min-height: 44px;
+}
 .rw-dash-work:empty {
   display: none;
 }
@@ -4719,4 +4722,53 @@ div:has(> .rw-scrub:focus-visible) {
   .rw-su-plan {
     transition: none;
   }
+}
+
+/* ---- Today's steps for the teacher's open work ---- */
+.rw-today {
+  margin: 20px 0 0;
+  padding: 0;
+  border: 0;
+  border-top: 1px solid var(--rw-border);
+  min-width: 0;
+}
+.rw-today-legend {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 14px 0 4px;
+  font-size: var(--rw-text-xs);
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--rw-teal);
+}
+.rw-today-count {
+  letter-spacing: 0;
+  text-transform: none;
+  font-weight: 400;
+  color: var(--rw-meta);
+}
+.rw-today-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  font-size: var(--rw-text-base);
+  color: var(--rw-ink);
+  cursor: pointer;
+}
+.rw-today-step input {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  accent-color: var(--rw-ink);
+}
+.rw-today-step input:focus-visible {
+  outline: 2px solid var(--rw-teal);
+  outline-offset: 2px;
+}
+.rw-today-step:has(input:checked) span {
+  color: var(--rw-meta);
+  text-decoration: line-through;
 }
