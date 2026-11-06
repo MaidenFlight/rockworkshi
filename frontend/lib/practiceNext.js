@@ -14,7 +14,8 @@ export function pickPracticeNext({ library, term, assignments }) {
 
   if (term && term.membership !== "active") return { kind: "renew", expired: term.membership === "expired", isNew, feedback: null };
 
-  const work = (assignments ?? []).find(openWork);
+  // The next in the order the teacher set them, as the month's checklist lists them.
+  const work = (assignments ?? []).filter(openWork).sort((a, b) => a.createdAt.localeCompare(b.createdAt))[0];
   if (work) {
     return {
       kind: "assignment",

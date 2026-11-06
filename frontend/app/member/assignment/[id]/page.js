@@ -65,6 +65,9 @@ export default function AssignmentPage() {
   const item = a.song || a.lesson;
   const status = studentStatus(a);
   const times = hasLoop(a) ? `${formatClock(a.sectionStart)}–${formatClock(a.sectionEnd)}` : "";
+  // Work can be sent again at any time; every send is kept as an attempt, newest first.
+  const sent = a.submissions.length;
+  const teacher = a.teacher?.name?.split(" ")[0] || "Your teacher";
 
   return (
     <div style={{ maxWidth: 800, margin: "0 auto", padding: "40px 24px 100px" }}>
@@ -105,57 +108,62 @@ export default function AssignmentPage() {
         )}
       </section>
 
-      <h2 style={heading}>Send for review</h2>
+      <h2 style={heading}>{sent ? "Send it again" : "Send for review"}</h2>
       <section style={panel}>
-        {a.status === "ready" ? (
-          <p style={{ margin: 0, color: "var(--rw-body)" }}>
-            Sent {formatDate(a.submissions[0]?.createdAt ?? a.createdAt)}.{" "}
-            {demo ? "This is the student demo, so it stays here: no real teacher receives it." : "Your teacher's feedback will show up below."}
+        {a.song && (
+          <p style={{ margin: "0 0 12px", color: "var(--rw-body)", lineHeight: 1.55 }}>
+            To send a recording, open the player, record yourself and choose Send to your teacher. Your teacher hears it with the band.
           </p>
-        ) : (
-          <>
-            {demo ? (
-              <p style={{ margin: "0 0 14px", color: "var(--rw-body)", lineHeight: 1.55 }}>
-                In the student demo nothing reaches a real teacher and recordings aren&apos;t uploaded, but you can mark this ready to see how
-                sending work goes.
-              </p>
-            ) : (
-              a.song && (
-                <p style={{ margin: "0 0 14px", color: "var(--rw-body)", lineHeight: 1.55 }}>
-                  To send a recording, open the player, record yourself and choose Send to your teacher. Your teacher hears it with the band.
-                </p>
-              )
-            )}
-            <Button type="button" onClick={markReady} disabled={sending} size="sm" variant={a.song ? "secondary" : "primary"}>
-              {sending ? "Sending…" : a.song ? "Mark ready without a recording" : "Mark ready for review"}
-            </Button>
-            {sendError && (
-              <p role="alert" style={{ margin: "10px 0 0", color: "var(--rw-orange-deep)", fontSize: 14 }}>
-                {sendError}
-              </p>
-            )}
-            <p style={{ margin: "12px 0 0", fontSize: 13, color: "var(--rw-meta)" }}>Only your teacher can hear your recording or read their feedback.</p>
-          </>
         )}
+        {sent > 0 && (
+          <p style={{ margin: "0 0 14px", color: "var(--rw-body)", lineHeight: 1.55 }}>
+            You&apos;ve sent this {sent === 1 ? "once" : sent === 2 ? "twice" : `${sent} times`}. Send it again whenever you like: every send is kept below, newest
+            first, and your teacher replies to the newest.
+          </p>
+        )}
+        <Button type="button" onClick={markReady} disabled={sending} size="sm" variant={a.song ? "secondary" : "primary"}>
+          {sending ? "Sending…" : a.song ? (sent ? "Send again without a recording" : "Mark ready without a recording") : sent ? "Send again" : "Mark ready for review"}
+        </Button>
+        {sendError && (
+          <p role="alert" style={{ margin: "10px 0 0", color: "var(--rw-orange-deep)", fontSize: 14 }}>
+            {sendError}
+          </p>
+        )}
+        <p style={{ margin: "12px 0 0", fontSize: 13, color: "var(--rw-meta)" }}>
+          {demo
+            ? "In the student demo, what you send stays in the demo: no real teacher gets it, and it's deleted when you leave."
+            : "Only your teacher can hear your recording or read their feedback."}
+        </p>
       </section>
 
-      <h2 style={heading}>Feedback</h2>
+      <h2 style={heading}>Your submissions</h2>
       {a.submissions.length === 0 ? (
         <p style={{ margin: 0, color: "var(--rw-meta)" }}>Nothing sent yet.</p>
       ) : (
-        <div style={{ display: "grid", gap: 10 }}>
-          {a.submissions.map((s) => (
-            <section key={s.id} style={panel}>
-              <div style={{ fontSize: 13, color: "var(--rw-meta)" }}>
-                Sent {formatDate(s.createdAt)}
-                {s.recording ? ` · with a ${formatClock(s.recording.duration)} recording` : ""}
+        <ol style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 10 }}>
+          {a.submissions.map((s, i) => (
+            <li key={s.id} style={panel}>
+              <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: "4px 12px" }}>
+                <strong style={{ color: "var(--rw-ink)" }}>
+                  Attempt {a.submissions.length - i}
+                  {i === 0 && a.submissions.length > 1 ? " · newest" : ""}
+                </strong>
+                <span style={{ fontSize: 13, color: "var(--rw-meta)" }}>
+                  Sent {formatDate(s.createdAt)} · {s.recording ? `${formatClock(s.recording.duration)} recording` : "no recording"}
+                </span>
               </div>
-              {s.recording?.url && <audio controls preload="none" src={s.recording.url} aria-label="Your recording" style={{ width: "100%", marginTop: 10 }} />}
-              <p style={{ margin: "10px 0 0", color: "var(--rw-body)", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{s.feedback || "Waiting for your teacher."}</p>
-              {s.reviewedAt && <div style={{ fontSize: 13, color: "var(--rw-meta)", marginTop: 8 }}>{formatDate(s.reviewedAt)}</div>}
-            </section>
+              {s.recording?.url && <audio controls preload="none" src={s.recording.url} aria-label={`Your recording, attempt ${a.submissions.length - i}`} style={{ width: "100%", marginTop: 10 }} />}
+              <p style={{ margin: "10px 0 0", color: "var(--rw-body)", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
+                {s.feedback || (i === 0 ? "Waiting for your teacher." : "No reply to this one: your teacher replies to the newest.")}
+              </p>
+              {s.reviewedAt && (
+                <div style={{ fontSize: 13, color: "var(--rw-meta)", marginTop: 8 }}>
+                  {teacher} replied {formatDate(s.reviewedAt)}
+                </div>
+              )}
+            </li>
           ))}
-        </div>
+        </ol>
       )}
     </div>
   );

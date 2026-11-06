@@ -62,7 +62,7 @@ export default function AdminDemoPage() {
         <h1 className="rw-st-title">Student demo</h1>
         <p className="rw-st-lead">
           With the passcode, someone can open the Demo tab, choose an instrument and look around the member area as a sample student
-          who plays it. Nothing they do is booked, charged, emailed or sent to a teacher, and each demo is deleted when they leave or
+          who plays it. Nothing they do is booked, charged or emailed, nothing reaches a real teacher, and each demo is deleted when they leave or
           after two hours. Give the passcode only to people you choose.
         </p>
       </div>

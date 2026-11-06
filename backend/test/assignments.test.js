@@ -189,7 +189,7 @@ test("students and teachers only reach their own assignments and feedback", asyn
   const mine = await call("studentX", "GET", "/assignments");
   assert.ok(mine.data.assignments.some((a) => a.id === id && a.teacher.name === "teacherA"));
 
-  // Mark ready for review, once.
+  // Mark ready for review. A second tap moments later is the same send, not a new attempt.
   const submitted = await call("studentX", "POST", `/assignments/${id}/submit`, {});
   assert.equal(submitted.status, 201);
   assert.equal((await call("studentX", "POST", `/assignments/${id}/submit`, {})).status, 409);
@@ -216,6 +216,44 @@ test("students and teachers only reach their own assignments and feedback", asyn
   assert.equal((await call("teacherA", "PUT", feedbackPath, feedback)).status, 404);
   assert.equal((await call("studentX", "POST", `/assignments/${id}/submit`, {})).status, 409);
   await prisma.teacherStudent.create({ data: { teacherId: users.teacherA.id, studentId: users.studentX.id } });
+});
+
+test("work can be sent again at any time, and the teacher's reply to the newest send completes it", async () => {
+  const created = await call("teacherA", "POST", "/teacher/assignments", newAssignment(users.studentX.id));
+  const id = created.data.assignment.id;
+  const sendAgain = async () => {
+    // Older than a double tap, so the next send is a new attempt.
+    await prisma.submission.updateMany({ where: { assignmentId: id }, data: { createdAt: new Date(Date.now() - 60 * 1000) } });
+    return call("studentX", "POST", `/assignments/${id}/submit`, {});
+  };
+
+  const first = await call("studentX", "POST", `/assignments/${id}/submit`, {});
+  assert.equal(first.status, 201);
+  // Again while still waiting for the teacher, as on Lamakū.
+  const second = await sendAgain();
+  assert.equal(second.status, 201, "sent again before any feedback");
+  let seen = (await call("studentX", "GET", `/assignments/${id}`)).data.assignment;
+  assert.equal(seen.status, "ready");
+  assert.equal(seen.submissions.length, 2, "both attempts are kept");
+  assert.equal(seen.submissions[0].id, second.data.submission.id, "newest first");
+  const listed = (await call("studentX", "GET", "/assignments")).data.assignments.find((a) => a.id === id);
+  assert.equal(listed.attempts, 2, "lists count the attempts");
+
+  // A reply to the older attempt doesn't complete the work: the newer one is still waiting.
+  const reply = { feedback: "Better. Send me the next one when it's steady." };
+  assert.equal((await call("teacherA", "PUT", `/teacher/submissions/${first.data.submission.id}/feedback`, reply)).status, 200);
+  assert.equal((await call("studentX", "GET", `/assignments/${id}`)).data.assignment.status, "ready");
+  assert.equal((await call("teacherA", "PUT", `/teacher/submissions/${second.data.submission.id}/feedback`, reply)).status, 200);
+  assert.equal((await call("studentX", "GET", `/assignments/${id}`)).data.assignment.status, "reviewed");
+
+  // And again after the feedback, which puts it back with the teacher.
+  assert.equal((await sendAgain()).status, 201);
+  seen = (await call("studentX", "GET", `/assignments/${id}`)).data.assignment;
+  assert.equal(seen.status, "ready");
+  assert.equal(seen.submissions.length, 3);
+  if (process.env.TEST_R2) {
+    assert.equal((await call("studentX", "POST", `/assignments/${id}/recording-upload`, { size: 9644 })).status, 200, "a take can be uploaded while waiting");
+  }
 });
 
 test("only the admin manages roles and links", async () => {

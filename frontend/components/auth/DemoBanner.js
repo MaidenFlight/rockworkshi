@@ -27,8 +27,8 @@ export default function DemoBanner() {
       <div className="rw-demo-inner">
         <p className="rw-demo-text">
           <strong className="rw-demo-tag">Student demo</strong>
-          You&apos;re exploring a sample {instrument}student&apos;s account. Nothing here is booked, charged, emailed or sent to a
-          teacher, and it all resets when you leave.
+          You&apos;re exploring a sample {instrument}student&apos;s account. Nothing here is booked, charged or emailed, nothing reaches a
+          real teacher, and it all resets when you leave.
         </p>
         <div className="rw-demo-actions">
           <Button href="/demo" variant="secondary" size="sm" className="rw-demo-leave">

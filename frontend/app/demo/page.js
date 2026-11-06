@@ -158,7 +158,7 @@ function Demo() {
           <Button type="submit" aria-disabled={checking || undefined} className={f.submit}>
             {checking ? "Checking…" : "Continue"}
           </Button>
-          <p className={f.small}>Nothing you do in the demo is booked, charged, emailed or sent to a teacher, and it&apos;s all cleared when you leave.</p>
+          <p className={f.small}>Nothing you do in the demo is booked, charged or emailed, nothing reaches a real teacher, and it&apos;s all cleared when you leave.</p>
         </div>
       </form>
     );
@@ -198,7 +198,7 @@ function Chooser({ offered, inDemo, current, song, error, opening, onChoose }) {
       <p className={s.lead}>
         {inDemo
           ? `You're in the demo as a ${current?.toLowerCase()} student. Pick another instrument to see what its students get. This demo is cleared when you do.`
-          : `You'll be Kai, a student about three months in${song ? `, working on ${song.title}` : ""}, with lessons, practice work and a teacher's feedback.`}
+          : `You'll be Kai, a student about three months in${song ? `, working on ${song.title}` : ""}, with practice work and feedback from your teacher and a group lesson coming up.`}
       </p>
       {error && (
         <p role="alert" className={s.error}>

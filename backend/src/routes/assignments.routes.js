@@ -2,7 +2,6 @@ const express = require("express");
 const prisma = require("../lib/prisma");
 const { findPage } = require("../lib/pagination");
 const { requireAuth } = require("../middleware/auth");
-const { refuseDemo } = require("../lib/demoRules");
 const { isR2Configured, signedUploadUrl, headObject, putObject } = require("../lib/r2");
 const {
   RECORDING_TYPE,
@@ -23,6 +22,9 @@ const {
 // The student's side: their own assignments only.
 const router = express.Router();
 router.use(requireAuth);
+
+// A second send of the same thing this soon after the first is a double tap, not a new attempt.
+const DOUBLE_SEND_MS = 10 * 1000;
 
 // Someone else's assignment is a 404, so ids can't be probed.
 async function findMyAssignment(req, id, include = ASSIGNMENT_INCLUDE) {
@@ -65,12 +67,10 @@ async function hasRoomForAnotherTake(assignment, res) {
 const RECORDING_TOO_BIG = `Recordings can be up to ${Math.round(MAX_RECORDING_BYTES / 1024 / 1024)} MB, about 7 minutes.`;
 
 // Step 1 of sending a recording: a link the phone can upload exactly one WAV of this size to.
-router.post("/:id/recording-upload", refuseDemo("recording"), async (req, res) => {
+// Work can be sent again at any time, so this is open whatever the work's status.
+router.post("/:id/recording-upload", async (req, res) => {
   const assignment = await findMyAssignment(req, req.params.id, {});
   if (!assignment) return res.status(404).json({ error: "Not found." });
-  if (assignment.status === "ready") {
-    return res.status(409).json({ error: "This is already waiting for your teacher." });
-  }
 
   const size = Number(req.body?.size);
   if (!Number.isInteger(size) || size <= 44 || size > MAX_RECORDING_BYTES) {
@@ -87,13 +87,9 @@ router.post("/:id/recording-upload", refuseDemo("recording"), async (req, res) =
 
 // The website's step 1. Browsers aren't allowed to upload to the bucket directly (its CORS
 // rules only allow GET), so the WAV comes through here. The result is the same stored object.
-// The demo is refused before the body is read.
-router.put("/:id/recording", refuseDemo("recording"), express.raw({ type: RECORDING_TYPE, limit: MAX_RECORDING_BYTES }), async (req, res) => {
+router.put("/:id/recording", express.raw({ type: RECORDING_TYPE, limit: MAX_RECORDING_BYTES }), async (req, res) => {
   const assignment = await findMyAssignment(req, req.params.id, {});
   if (!assignment) return res.status(404).json({ error: "Not found." });
-  if (assignment.status === "ready") {
-    return res.status(409).json({ error: "This is already waiting for your teacher." });
-  }
   const body = req.body;
   if (!Buffer.isBuffer(body) || body.length <= 44 || body.toString("latin1", 0, 4) !== "RIFF") {
     return res.status(400).json({ error: "That recording isn't a WAV file." });
@@ -106,7 +102,9 @@ router.put("/:id/recording", refuseDemo("recording"), express.raw({ type: RECORD
   res.status(201).json({ key });
 });
 
-// Step 2: mark the assignment ready for review, with the uploaded recording if there is one.
+// Step 2: send the work for review, with the uploaded recording if there is one. It can be sent again
+// at any time, before or after the teacher replies: every send is kept as an attempt, newest first, and
+// the teacher's reply to the newest is what marks the work reviewed (teacher.routes.js).
 router.post("/:id/submit", async (req, res) => {
   const assignment = await findMyAssignment(req, req.params.id, {});
   if (!assignment) return res.status(404).json({ error: "Not found." });
@@ -142,22 +140,22 @@ router.post("/:id/submit", async (req, res) => {
     data.recordingDuration = numberOrNull(recording.duration, 0, 24 * 60 * 60);
   }
 
+  // Two taps on the same send make one attempt: the same take (or no take) moments after the last one.
+  const last = await prisma.submission.findFirst({ where: { assignmentId: assignment.id }, orderBy: { createdAt: "desc" } });
+  if (last && !last.reviewedAt && last.recordingKey === (data.recordingKey ?? null) && Date.now() - last.createdAt.getTime() < DOUBLE_SEND_MS) {
+    return res.status(409).json({ error: "That was just sent. It's waiting for your teacher." });
+  }
+
   let submission;
   try {
     submission = await prisma.$transaction(async (tx) => {
-      // Conditional update so two taps can't both submit.
-      const { count } = await tx.assignment.updateMany({
-        where: { id: assignment.id, status: { not: "ready" } },
-        data: { status: "ready" },
-      });
-      if (count === 0) return null;
+      await tx.assignment.update({ where: { id: assignment.id }, data: { status: "ready" } });
       return tx.submission.create({ data });
     });
   } catch (err) {
     if (err.code === "P2002") return res.status(409).json({ error: "That recording was already sent." });
     throw err;
   }
-  if (!submission) return res.status(409).json({ error: "This is already waiting for your teacher." });
 
   res.status(201).json({ submission: await presentSubmission(submission) });
 });

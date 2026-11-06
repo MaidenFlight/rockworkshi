@@ -143,7 +143,8 @@ function SongPlayAlong() {
       )}
 
       {/* A shut song gets the one explanation below, which covers its tutorials too. */}
-      {!locked && <SongTutorials songId={song.id} user={user} playerId="practice-player" playerBelow={Boolean(tracks?.tracks?.length)} />}
+      {/* Not in the student demo: no video lessons are recorded yet, and the demo is about the player. */}
+      {!locked && !user?.isDemo && <SongTutorials songId={song.id} user={user} playerId="practice-player" playerBelow={Boolean(tracks?.tracks?.length)} />}
 
       {locked ? (
         // The server refuses the stems too; this just explains why instead of a broken player.
@@ -206,8 +207,9 @@ function SongPlayAlong() {
             resume={practice.session}
             onSaveSession={saveSession}
             initialLoop={initialLoop}
+            // A take can be sent any time, waiting for feedback or not: each send is a new attempt.
             onSendTake={
-              assignment && assignment.status !== "ready"
+              assignment
                 ? async (take, onProgress) => {
                     await sendForReview(assignment.id, take, onProgress);
                     router.push(`/member/assignment/${assignment.id}`);

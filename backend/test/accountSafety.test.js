@@ -180,9 +180,7 @@ test("recordings through the API are checked before anything is stored", async (
   const huge = await put(student, Buffer.concat([Buffer.from("RIFF"), Buffer.alloc(40 * 1024 * 1024 + 1)]));
   assert.equal(huge.status, 413);
   assert.match((await huge.json()).error, /40 MB/);
-
-  await prisma.assignment.update({ where: { id: work.id }, data: { status: "ready" } });
-  assert.equal((await put(student, wav)).status, 409, "already waiting for the teacher");
+  // A take waiting for the teacher doesn't stop another: that's stored, so it's in the TEST_R2 test below.
 });
 
 test("a recording through the API can be sent and played back", { skip: !process.env.TEST_R2 }, async () => {
@@ -205,8 +203,25 @@ test("a recording through the API can be sent and played back", { skip: !process
   assert.equal(seen.data.assignment.submissions[0].recording.offset, 12.5);
   assert.ok(seen.data.assignment.submissions[0].recording.url);
 
+  // Another take can go while that one waits for the teacher: each send is a new attempt.
+  const again = await fetch(`${base}/assignments/${work.id}/recording`, {
+    method: "PUT",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "audio/wav" },
+    body: Buffer.concat([Buffer.from("RIFF"), Buffer.alloc(1000)]),
+  });
+  assert.equal(again.status, 201);
+  const { key: second } = await again.json();
+  assert.equal((await call(token, "POST", `/assignments/${work.id}/submit`, { recording: { key: second, offset: 0, duration: 30 } })).status, 201);
+  const both = await call(signMobileToken(teacher), "GET", `/teacher/assignments/${work.id}`);
+  // Newest first: the second take, the first, then setWork's earlier attempt, which had no recording.
+  assert.deepEqual(
+    both.data.assignment.submissions.map((s) => s.recording?.offset ?? null),
+    [0, 12.5, null]
+  );
+
   assert.equal((await call(adminToken(), "DELETE", `/admin/students/${student.id}`)).status, 204);
   assert.equal(await headObject(key), null);
+  assert.equal(await headObject(second), null);
 });
 
 test("the website's speed and loop save with the rest of the session", async () => {

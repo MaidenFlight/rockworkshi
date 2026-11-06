@@ -17,8 +17,6 @@ const MESSAGES = {
   password: "This is the student demo, so it has no password to change.",
   email: "This is the student demo, so it doesn't send email.",
   school: "This is the student demo, so nothing is sent to the school. Leave the demo to contact us for real.",
-  recording:
-    "In the student demo, recordings stay on this device and aren't uploaded or sent. You can still mark the work ready without one.",
 };
 
 function isDemo(user) {
@@ -29,7 +27,7 @@ function isDemoAddress(email) {
   return typeof email === "string" && email.trim().toLowerCase().endsWith(`@${DEMO_DOMAIN}`);
 }
 
-// For anything that would reach past the sandbox: money, email, the school's inbox, storage.
+// For anything that would reach past the sandbox: money, email, the school's inbox.
 // Answers 403 with reason "demo", which the site shows as "nothing was sent".
 function refuseDemo(kind) {
   return (req, res, next) => (isDemo(req.user) ? res.status(403).json({ error: MESSAGES[kind], reason: "demo" }) : next());

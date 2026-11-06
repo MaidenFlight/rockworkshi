@@ -4,18 +4,18 @@
 // instrument. Until a passcode is set, the demo is closed.
 //
 // Each visitor gets a household of their own: Kai, a student about three months in on the instrument
-// they picked, and Noa, the teacher who sets Kai's work. Both are ordinary User rows marked with
-// demoExpiresAt, so every student feature runs on them unchanged: their own part of the song with the
-// band, the chart and chord library for their instrument, the tools. What keeps the demo apart from the
-// school:
+// they picked, and a stand-in for the school's teacher, Brian Albus, who sets Kai's work and teaches
+// Kai's group lesson. Both are ordinary User rows marked with demoExpiresAt, so every student feature
+// runs on them unchanged: their own part of the song with the band, the chart and chord library for
+// their instrument, the tools. What keeps the demo apart from the school:
 //   - no one signs into a demo account with a password (config/passport.js), and it has none to
 //     change or reset;
 //   - staff never see one: admin lists, counts and exports leave them out (REAL), no real teacher is
 //     linked to one, and nothing a demo account does is written to the audit log;
 //   - nothing leaves the sandbox. No payments, no email (lib/mailer.js won't send to DEMO_DOMAIN), no
 //     trial bookings or messages to the school, no recordings uploaded: those routes answer 403 with
-//     reason "demo" and say why (refuseDemo in lib/demoRules.js). Work sent for review reaches only
-//     Noa, who is made up;
+//     reason "demo" and say why (refuseDemo in lib/demoRules.js). Work and takes sent for review reach
+//     only the demo's own stand-in teacher account, which no one signs into, and are deleted with it;
 //   - it's thrown away. Leaving deletes the household, switching instrument swaps it for a new one, and
 //     a sweep deletes any that expired, so every visitor starts from the same place.
 // Shared content (songs, lessons, the chord library) is only read. The demo never adds a term slot:
@@ -25,10 +25,11 @@ const bcrypt = require("bcrypt");
 const prisma = require("./prisma");
 const clock = require("./clock");
 const { DEMO_DOMAIN, isDemo } = require("./demoRules");
-const { localParts, addDays, weekdayOf } = require("./zoned");
+const { localParts, addDays, weekdayOf, toInstant } = require("./zoned");
 const { regenerate } = require("./classes");
 const { validateSession } = require("./practice");
 const { validateMixer, partForInstrument, canonicalInstrument, BACKING } = require("./instrumentAccess");
+const { deleteAssignmentRecordings } = require("./assignments");
 
 const DEMO_MS = 2 * 60 * 60 * 1000;
 // Households at once. Past this the oldest are cleared first, so a script can't fill the database.
@@ -47,7 +48,7 @@ const ACCESS = { id: 1 };
 // Capitals and spaces don't matter, so "Aloha Friday" opens a demo whose passcode is alohafriday.
 const normalise = (passcode) => passcode.toLowerCase().replace(/\s+/g, "");
 
-// The song a demo practises, for the Demo page to name. The first with stems, as in findContent.
+// The song a demo practises, for the Demo page to name. The first with stems, as in findSong.
 async function demoSong() {
   return prisma.song.findFirst({ where: { published: true, tracks: { some: {} } }, orderBy: { order: "asc" }, select: { title: true, artist: true } });
 }
@@ -94,145 +95,93 @@ async function closeDemo() {
 // What's in a new demo
 
 const round = (n) => Math.round(n * 1000) / 1000;
-const list = (items) => (items.length > 1 ? `${items.slice(0, -1).join(", ")} and ${items.at(-1)}` : items[0] || "");
 const fill = (text, values) => text.replace(/\{(\w+)\}/g, (_, key) => values[key] ?? "");
-// [with the lesson's chords named, without]. A plain string reads the same either way.
-const pick = (text, named) => (Array.isArray(text) ? text[named ? 0 : 1] : text);
 
-// The chords taught in the seeded lessons (prisma/seed.js). Any other lesson gets general wording.
-const LESSON_CHORDS = {
-  Riptide: ["Am", "G", "C"],
-  "Three Little Birds": ["A", "D", "E"],
-  Wonderwall: ["Em7", "G", "Dsus4", "A7sus4"],
-};
+// The school's teacher, who teaches the demo's group lesson and sets its practice work. In the demo
+// it's a throwaway account with his name, never his own account.
+const TEACHER = { name: "Brian Albus", email: "brian.albus" };
 
-// What a student of each instrument works on, in their teacher's words. The song's chart fills in
-// {change} (the chorus's first chord change) and {verseTo} (the verse's first new chord); a lesson's
-// chords fill in {chords}, {firstTwo} and {third}.
+// What a student of each instrument works on in "Have You Ever Seen the Rain" (or whichever song the
+// demo practises), in their teacher's words. The chart fills in {change} (the chorus's first chord
+// change) and {verseTo} (the verse's first new chord). The Demo tab offers some of these for now
+// (DEMO_INSTRUMENTS); all are kept ready.
 const STUDENTS = {
   Guitar: {
-    lesson: "Guitar lesson",
-    workshop: ["Barre chords workshop", "Ninety minutes on the F and B♭ barre shapes, for guitarists in their first year. The studio has loaner guitars."],
+    tip: "Keep your strumming hand moving through every change.",
     goals: "Play rhythm guitar in a band by the summer showcase, and learn to take a short solo over a blues.",
     now: "Loop the chorus at 75% speed until {change} feels easy, then try it at full speed. Keep your strumming hand moving through every change, even if a chord buzzes.",
     verse: "Strum the verse along with the band at 90% speed. Down strums on every beat to start, and look ahead to each change so you're there on time.",
     verseFeedback:
       "Much steadier! You're landing {verseTo} on time now, and your strumming hand keeps going through the change, which is exactly right. Try the verse at full speed this week, then we'll start on the chorus.",
-    firstLesson: [
-      "Learn the {chords} shapes from the lesson video, then play along with it. Clean changes first, speed later.",
-      "Learn the chord shapes from the lesson video, then play along with it. Clean changes first, speed later.",
-    ],
-    firstFeedback: [
-      "Your {firstTwo} shapes ring out clearly now. The change into {third} still costs you half a beat, so practise just that move, slowly, ten times before each session. Next up is the strumming pattern.",
-      "Your chord shapes ring out clearly now. The changes still cost you half a beat, so practise them slowly, ten times before each session. Next up is the strumming pattern.",
-    ],
-    secondLesson: [
-      "Work through the {chords} changes from the lesson. Mark it ready when you can play the progression twice through without stopping.",
-      "Work through the chord changes from the lesson. Mark it ready when you can play the progression twice through without stopping.",
-    ],
     notes: "Chorus: watch {change}. Lift early and let the last strum ring.\nVerse is fine at full speed now.",
   },
   Piano: {
-    lesson: "Piano lesson",
-    workshop: ["Chord charts workshop", "Ninety minutes on turning a chord chart into a part: roots in the left hand, shapes in the right, and inversions that keep your hand still."],
+    tip: "Move your left hand to each new root first.",
     goals: "Play keys in a band by the summer showcase, and learn to comp from a chord chart.",
     now: "Loop the chorus at 75% speed with the chords in your right hand and the roots in your left. Get {change} smooth without looking down, then try it at full speed.",
     verse: "Play the verse along with the band at 90% speed: a chord on every beat in your right hand, the root in your left. Keep your hand relaxed so each change is a small move.",
     verseFeedback:
       "Lovely and even. You're finding {verseTo} without a gap now, and your left hand is right on the beat. Try the verse at full speed this week, then we'll start on the chorus.",
-    firstLesson: [
-      "Learn the {chords} chords from the lesson video, then play along with it. Right hand first, then add the left.",
-      "Learn the chords from the lesson video, then play along with it. Right hand first, then add the left.",
-    ],
-    firstFeedback: [
-      "Your {firstTwo} chords sound full now. The move to {third} is still a little late, so practise it slowly without looking at your hands. Next up is a simple rhythm in the right hand.",
-      "Your chords sound full now. The changes are still a little late, so practise them slowly without looking at your hands. Next up is a simple rhythm in the right hand.",
-    ],
-    secondLesson: [
-      "Play the {chords} changes from the lesson with both hands. Mark it ready when you can play the progression twice through without stopping.",
-      "Play the chord changes from the lesson with both hands. Mark it ready when you can play the progression twice through without stopping.",
-    ],
     notes: "Chorus: watch {change}. Move the left hand first.\nVerse is fine at full speed now.",
   },
   Bass: {
-    lesson: "Bass lesson",
-    workshop: ["Locking in with the drums", "Ninety minutes on placing your notes with the kick drum, played along to songs at the studio."],
+    tip: "Lock your roots to the kick drum.",
     goals: "Hold down the low end in a band by the summer showcase, and learn to read bass tab fluently.",
     now: "Loop the chorus at 75% speed and play the root of each chord with the kick drum. Once it's steady, follow the tab for the notes that lead into each change.",
     verse: "Play the verse along with the band at 90% speed: roots only, on every beat, with the kick drum. Count the bars so you change chords with the band.",
     verseFeedback:
       "Great time feel! Your roots sit right on the kick drum now, and you're changing with the band every time. Try the verse at full speed this week, then we'll add the passing notes from the tab.",
-    firstLesson: "Learn the bass line from the lesson video: roots first, then the passing notes.",
-    firstFeedback:
-      "Your roots are solid and in time. The passing notes still rush a little, so play them slowly with the metronome before speeding up. Next up is muting the strings you aren't playing.",
-    secondLesson: "Play the bass line from the lesson along with the video. Mark it ready when you can play it twice through without stopping.",
     notes: "Chorus: lock the roots to the kick drum.\nVerse is fine at full speed now.",
   },
   Drums: {
-    lesson: "Drum lesson",
-    workshop: ["Fills and transitions workshop", "Ninety minutes on one-bar fills that lead a band into the next section, practised along to songs."],
+    tip: "Keep the hi-hat steady and the snare on 2 and 4.",
     goals: "Play a full set with a band by the summer showcase, and keep steady time through every fill.",
     now: "Loop the chorus at 75% speed with the band. Keep the hi-hat in steady eighth notes and the snare on 2 and 4, then add a crash on the first beat of each line.",
     verse: "Play the verse along with the band at 90% speed: hi-hat in eighth notes, snare on 2 and 4, kick on 1 and 3. Keep it simple and steady.",
     verseFeedback:
       "Rock solid! Your backbeat sits right in the pocket now and the hi-hat stays even. Try the verse at full speed this week, then we'll add the fill into the chorus.",
-    firstLesson: "Learn the beat from the lesson video and play along with it. Steady first, fills later.",
-    firstFeedback:
-      "Your beat is steady and the snare lands right on 2 and 4. The fills still rush, so play them with the metronome at half speed first. Next up is the ride cymbal pattern.",
-    secondLesson: "Play the beat from the lesson along with the video, fills included. Mark it ready when you can play it twice through without stopping.",
     notes: "Chorus: don't rush the fill into it.\nVerse is fine at full speed now.",
   },
   Voice: {
-    lesson: "Voice lesson",
-    workshop: ["Harmony singing workshop", "Ninety minutes on finding a harmony line and holding it against the melody, in small groups."],
+    tip: "Take a breath before each line.",
     goals: "Sing lead in a band by the summer showcase, and learn to hold a harmony.",
     now: "Loop the chorus at 75% speed and sing along with the band. Take a breath before each line, and land on the first note of each line instead of sliding up to it.",
     verse: "Sing the verse along with the band at 90% speed, following the melody in the chart. Keep the long notes steady right to the end.",
     verseFeedback:
       "Beautiful tone! Your long notes are steady now and you're in tune at the start of each line. Try the verse at full speed this week, then we'll work on the chorus.",
-    firstLesson: "Learn the melody from the lesson video and sing along with it. Breathe where the lesson does.",
-    firstFeedback:
-      "Your pitch is lovely and secure. A few phrases run out of breath at the end, so mark your breaths in the chart and practise them. Next up is singing it without the guide.",
-    secondLesson: "Sing the melody from the lesson along with the video. Mark it ready when you can sing it twice through without stopping.",
     notes: "Chorus: breathe before each line.\nVerse is fine at full speed now.",
   },
   Ukulele: {
-    lesson: "Ukulele lesson",
-    workshop: ["Strumming patterns workshop", "Ninety minutes on the island strum and three other patterns that fit most songs. The studio has loaner ukuleles."],
+    tip: "Keep the down-down-up strum going through every change.",
     goals: "Play and sing a whole set of songs on ukulele by the summer showcase.",
     now: "Loop the chorus at 75% speed with a down-down-up strum until {change} feels easy, then try it at full speed. Keep your strumming hand moving through every change.",
     verse: "Strum the verse along with the band at 90% speed, one down strum on every beat. Look ahead to each change so you're there on time.",
     verseFeedback:
       "Much steadier! You're landing {verseTo} on time now, and your strum keeps going through the change. Try the verse at full speed this week, then we'll start on the chorus.",
-    firstLesson: [
-      "Learn the {chords} shapes from the lesson video, then play along with it. Clean changes first, speed later.",
-      "Learn the chord shapes from the lesson video, then play along with it. Clean changes first, speed later.",
-    ],
-    firstFeedback: [
-      "Your {firstTwo} shapes ring out clearly now. The change into {third} still costs you half a beat, so practise just that move slowly before each session. Next up is the island strum.",
-      "Your chord shapes ring out clearly now. The changes still cost you half a beat, so practise them slowly before each session. Next up is the island strum.",
-    ],
-    secondLesson: [
-      "Work through the {chords} changes from the lesson. Mark it ready when you can play the progression twice through without stopping.",
-      "Work through the chord changes from the lesson. Mark it ready when you can play the progression twice through without stopping.",
-    ],
     notes: "Chorus: watch {change}. Keep strumming through it.\nVerse is fine at full speed now.",
   },
 };
 
-// The song the demo practises: one with this instrument's own stem if there is one, else any with stems.
-async function findContent(instrument) {
-  const [songs, lessons] = await Promise.all([
-    prisma.song.findMany({
-      where: { published: true },
-      orderBy: { order: "asc" },
-      select: { id: true, title: true, chart: true, tracks: { select: { part: true } } },
-    }),
-    prisma.lesson.findMany({ where: { published: true }, orderBy: { order: "asc" }, select: { id: true, title: true } }),
-  ]);
+// A chart needs this many sections for the month's story: three sent, then today's (monthTasks).
+const MONTH_SECTIONS = 4;
+
+// The song the demo practises: one with this instrument's own stem and a chart long enough for the
+// month, else one with the stem, else any with stems. Songs share an `order`, so the chart decides
+// rather than whichever comes first: a new song without a chart yet won't take the demo over.
+async function findSong(instrument) {
+  const songs = await prisma.song.findMany({
+    where: { published: true },
+    orderBy: { order: "asc" },
+    select: { id: true, title: true, chart: true, tracks: { select: { part: true } } },
+  });
   const own = partForInstrument(instrument);
-  const song = songs.find((s) => s.tracks.some((t) => t.part === own)) || songs.find((s) => s.tracks.length) || null;
-  return { song, lessons };
+  const hasPart = (s) => s.tracks.some((t) => t.part === own);
+  return (
+    songs.find((s) => hasPart(s) && sectionsOf(s.chart).length >= MONTH_SECTIONS) ||
+    songs.find(hasPart) ||
+    songs.find((s) => s.tracks.length) ||
+    null
+  );
 }
 
 // Where a section of the song starts and ends, and its first chord change, read from the chart.
@@ -262,60 +211,93 @@ function songWords(song) {
   };
 }
 
-function lessonWords(lesson) {
-  const chords = LESSON_CHORDS[lesson.title];
-  return { named: Boolean(chords), values: chords ? { chords: list(chords), firstTwo: list(chords.slice(0, 2)), third: chords[2] ?? chords[0] } : {} };
+// Every section in the chart, in order, with where it starts and ends.
+function sectionsOf(chart) {
+  const sections = chart?.sections ?? [];
+  return sections
+    .map((s, i) => ({ name: s.name, start: s.bars?.[0]?.time, end: sections[i + 1]?.bars?.[0]?.time ?? chart.end }))
+    .filter((s) => s.name && Number.isFinite(s.start) && Number.isFinite(s.end) && s.end > s.start)
+    .map((s) => ({ ...s, start: round(s.start), end: round(s.end) }));
 }
 
-// Practice work from the teacher, oldest first: two pieces with feedback, one waiting for it, and one
-// to practise now. Built from whichever song and lessons this school has.
-function teacherWork({ song, lessons }, ago, student) {
-  const work = [];
-  const [first, second] = lessons;
-  const { chorus, verse, values } = songWords(song);
+// The teacher's words for recording one section. The first verse and first chorus have the student's
+// own; the rest say what to listen for, plus a tip for the instrument.
+function sectionTask(section, { firstVerse, firstChorus, last }, student, values) {
+  const name = section.name.toLowerCase();
+  if (firstVerse) return fill(student.verse, values);
+  if (firstChorus) return fill(student.now, values);
+  if (/^intro/i.test(section.name)) return `Record the intro along with the band. Count yourself in and come in right on the first beat. ${student.tip}`;
+  if (last) return `Record ${name} along with the band, right through to the end of the song, and let the last note ring. ${student.tip}`;
+  if (/^verse/i.test(section.name)) return `Record ${name} along with the band at full speed. It's the same as the first verse, so play it with confidence. ${student.tip}`;
+  if (/^chorus/i.test(section.name)) return `Record ${name} along with the band. Same changes as the first chorus: keep the energy up. ${student.tip}`;
+  return `Record ${name} along with the band. ${student.tip}`;
+}
 
-  if (first) {
-    const { named, values: chords } = lessonWords(first);
-    work.push({
-      lessonId: first.id,
-      instruction: fill(pick(student.firstLesson, named), chords),
+// This month's practice work on the song, set at the start of the month: record each section of the
+// chart in order, then the whole song. The first sections have feedback (one was sent twice), the next is
+// waiting for the teacher, and the one after is today's. at(f) is a moment that far through the month so
+// far, so the dates read right on any day of the month. Nothing without a song.
+function monthTasks(song, at, student) {
+  if (!song) return [];
+  const { values } = songWords(song);
+  const sections = sectionsOf(song.chart);
+  const firstVerse = sections.findIndex((s) => /^verse/i.test(s.name));
+  const firstChorus = sections.findIndex((s) => /^chorus/i.test(s.name));
+  const tasks = sections.map((section, i) => ({
+    songId: song.id,
+    section: section.name,
+    sectionStart: section.start,
+    sectionEnd: section.end,
+    instruction: sectionTask(section, { firstVerse: i === firstVerse, firstChorus: i === firstChorus, last: i === sections.length - 1 }, student, values),
+  }));
+  tasks.push({
+    songId: song.id,
+    section: "Whole song",
+    sectionStart: null,
+    sectionEnd: null,
+    instruction: `Put it all together: record the whole song with the band, start to finish, at full speed. ${student.tip}`,
+  });
+
+  // What has happened to each, in the order the student works through them.
+  const done = (feedback, sent, replied) => ({ status: "reviewed", attempts: [{ sent: at(sent), feedback, reviewedAt: at(replied) }] });
+  const history = [
+    done("A clean start, and you came in right on the first beat. Well done.", 0.12, 0.2),
+    {
       status: "reviewed",
-      createdAt: ago(24),
-      sent: ago(19, 5),
-      feedback: fill(pick(student.firstFeedback, named), chords),
-      reviewedAt: ago(18),
-    });
+      attempts: [
+        { sent: at(0.32), feedback: "A good start, but you're rushing where the chords change. Play it at 75% with the metronome on, then send it again.", reviewedAt: at(0.4) },
+        { sent: at(0.55), feedback: fill(student.verseFeedback, values), reviewedAt: at(0.65) },
+      ],
+    },
+    { status: "ready", attempts: [{ sent: at(0.9) }] },
+  ];
+  // The last task (the whole song) always stays open, so a short chart still leaves one for today.
+  return tasks.map((task, i) => ({
+    ...task,
+    createdAt: at(0, i),
+    ...((i < tasks.length - 1 && history[i]) || { status: "assigned", attempts: [] }),
+  }));
+}
+
+// Moves each send to the early evening and each reply to mid-morning (the next morning, if the send was
+// that evening), so the dates read like a real student's. Keeps them in order and never after now; where
+// that can't be done, a moment stays where monthTasks put it.
+function settle(tasks, now) {
+  const SEND = 18 * 60 + 30;
+  const REPLY = 9 * 60 + 15;
+  const events = tasks
+    .flatMap((t) => t.attempts.flatMap((a) => [{ a, key: "sent", minute: SEND }, ...(a.reviewedAt ? [{ a, key: "reviewedAt", minute: REPLY }] : [])]))
+    .sort((x, y) => x.a[x.key] - y.a[y.key]);
+  let floor = 0;
+  for (const e of events) {
+    const raw = e.a[e.key];
+    const date = localParts(raw, ZONE).date;
+    const options = [toInstant(date, e.minute, ZONE), toInstant(addDays(date, 1), e.minute, ZONE)];
+    const nice = options.find((t) => t.getTime() > floor && t <= now);
+    const chosen = nice ?? new Date(Math.min(now.getTime(), Math.max(raw.getTime(), floor + 60 * 1000)));
+    e.a[e.key] = chosen;
+    floor = chosen.getTime();
   }
-  if (song) {
-    work.push({
-      songId: song.id,
-      section: verse ? "Verse" : null,
-      sectionStart: verse?.start ?? null,
-      sectionEnd: verse?.end ?? null,
-      instruction: fill(student.verse, values),
-      status: "reviewed",
-      createdAt: ago(12),
-      sent: ago(6, 3),
-      feedback: fill(student.verseFeedback, values),
-      reviewedAt: ago(5),
-    });
-  }
-  if (second) {
-    const { named, values: chords } = lessonWords(second);
-    work.push({ lessonId: second.id, instruction: fill(pick(student.secondLesson, named), chords), status: "ready", createdAt: ago(8), sent: ago(1, 2) });
-  }
-  if (song) {
-    work.push({
-      songId: song.id,
-      section: chorus ? "Chorus" : null,
-      sectionStart: chorus?.start ?? null,
-      sectionEnd: chorus?.end ?? null,
-      instruction: fill(student.now, values),
-      status: "assigned",
-      createdAt: ago(2),
-    });
-  }
-  return work;
 }
 
 // A fresh household for one visitor, playing `instrument`, signed-in-ready: the student, with roles loaded.
@@ -323,8 +305,7 @@ async function startDemo({ instrument: asked = "Guitar", now = clock.now() } = {
   const instrument = canonicalInstrument(asked) || "Guitar";
   const student = STUDENTS[instrument];
   await sweepDemos(now);
-  const content = await findContent(instrument);
-  const { song } = content;
+  const song = await findSong(instrument);
   const tag = crypto.randomBytes(6).toString("hex");
   const ago = (days, hours = 0) => new Date(now.getTime() - days * DAY - hours * HOUR);
   const demo = { demoExpiresAt: new Date(now.getTime() + DEMO_MS), passwordHash: NO_PASSWORD };
@@ -335,8 +316,8 @@ async function startDemo({ instrument: asked = "Guitar", now = clock.now() } = {
       const teacher = await tx.user.create({
         data: {
           ...demo,
-          email: `noa.kealoha+${tag}@${DEMO_DOMAIN}`,
-          name: "Noa Kealoha",
+          email: `${TEACHER.email}+${tag}@${DEMO_DOMAIN}`,
+          name: TEACHER.name,
           instrument,
           role: "teacher",
           emailVerifiedAt: ago(400),
@@ -391,52 +372,40 @@ async function startDemo({ instrument: asked = "Guitar", now = clock.now() } = {
         data: ["share-practice", "band-matching"].map((purpose) => ({ ...kaiKey, givenById: kai.id, purpose, granted: true, createdAt: ago(90) })),
       });
 
-      // Upcoming lessons: the weekly one at the studio, Tuesdays at 4pm since about three months ago,
-      // and a group workshop on the second Saturday from now. In person, so there's no meeting link.
-      let firstTuesday = addDays(today, -91);
-      while (weekdayOf(firstTuesday) !== 2) firstTuesday = addDays(firstTuesday, -1);
-      let workshopDay = addDays(today, 8);
-      while (weekdayOf(workshopDay) !== 6) workshopDay = addDays(workshopDay, 1);
-      const [workshop, about] = student.workshop;
-      const classes = [
-        {
-          data: {
-            kind: "lesson",
-            title: student.lesson,
-            description: "Weekly one-to-one lesson at the Rock Works studio.",
-            capacity: 1,
-            firstDate: firstTuesday,
-            startMinute: 16 * 60,
-            durationMinutes: 45,
-            repeat: "weekly",
-            repeatUntil: addDays(today, 84),
-            songId: song?.id ?? null,
-            createdAt: ago(92),
-          },
-          enrolled: ago(92),
+      // One lesson coming up: a group lesson at the studio on the coming Saturday (at least two days
+      // away), for the band's instruments. In person, so there's no meeting link.
+      let lessonDay = addDays(today, 2);
+      while (weekdayOf(lessonDay) !== 6) lessonDay = addDays(lessonDay, 1);
+      const lesson = await tx.class.create({
+        data: {
+          teacherId: teacher.id,
+          kind: "group",
+          title: "Group lesson",
+          description: "A small-group lesson at the Rock Works studio: guitar, bass and drums students playing the song together.",
+          level: "Beginner",
+          instruments: ["Guitar", "Bass", "Drums"],
+          capacity: 6,
+          timeZone: ZONE,
+          firstDate: lessonDay,
+          startMinute: 10 * 60 + 30,
+          durationMinutes: 60,
+          repeat: "none",
+          songId: song?.id ?? null,
+          createdAt: ago(10),
         },
-        {
-          data: {
-            kind: "workshop",
-            title: workshop,
-            description: about,
-            capacity: 8,
-            firstDate: workshopDay,
-            startMinute: 10 * 60 + 30,
-            durationMinutes: 90,
-            repeat: "none",
-            createdAt: ago(10),
-          },
-          enrolled: ago(4),
-        },
-      ];
-      for (const { data, enrolled } of classes) {
-        const cls = await tx.class.create({ data: { ...data, teacherId: teacher.id, level: "Beginner", instruments: [instrument], timeZone: ZONE } });
-        await regenerate(tx, cls, now);
-        await tx.classEnrollment.create({ data: { classId: cls.id, userId: kai.id, createdAt: enrolled } });
-      }
+      });
+      await regenerate(tx, lesson, now);
+      await tx.classEnrollment.create({ data: { classId: lesson.id, userId: kai.id, createdAt: ago(4) } });
 
-      for (const { sent, feedback, reviewedAt, ...work } of teacherWork(content, ago, student)) {
+      // The month so far: from midnight on the first, Honolulu, to now. The tasks were set then, in order,
+      // a second apart, so nothing is ever dated after now.
+      const monthStart = toInstant(`${today.slice(0, 8)}01`, 0, ZONE);
+      const span = Math.max(0, now.getTime() - monthStart.getTime());
+      const at = (fraction, seconds = 0) => new Date(monthStart.getTime() + span * fraction + seconds * 1000);
+      const tasks = monthTasks(song, at, student);
+      settle(tasks, now);
+      for (const { attempts, ...work } of tasks) {
+        const newest = attempts.at(-1);
         await tx.assignment.create({
           data: {
             ...work,
@@ -444,16 +413,19 @@ async function startDemo({ instrument: asked = "Guitar", now = clock.now() } = {
             studentId: kai.id,
             instrument,
             level: 2,
-            updatedAt: reviewedAt ?? sent ?? work.createdAt,
-            submissions: sent ? { create: { createdAt: sent, feedback: feedback ?? null, reviewedAt: reviewedAt ?? null } } : undefined,
+            updatedAt: newest?.reviewedAt ?? newest?.sent ?? work.createdAt,
+            submissions: {
+              create: attempts.map((a) => ({ createdAt: a.sent, feedback: a.feedback ?? null, reviewedAt: a.reviewedAt ?? null })),
+            },
           },
         });
       }
 
       if (song) {
-        // Where Kai left off in the song, at the speed the open work asks for, plus a saved mix.
-        const { chorus, values } = songWords(song);
-        const position = chorus ? round(chorus.start + (chorus.end - chorus.start) * 0.4) : 30;
+        // Where Kai left off: the start of today's task (the first not sent yet), which is where the player
+        // opens it. At the speed the work asks for, plus a saved mix.
+        const { values } = songWords(song);
+        const position = tasks.find((t) => t.status === "assigned" && t.sectionStart != null)?.sectionStart ?? 30;
         const { session } = validateSession({ position, speed: 0.75 });
         await tx.songPractice.create({
           data: {
@@ -488,17 +460,20 @@ async function startDemo({ instrument: asked = "Guitar", now = clock.now() } = {
 // ---------------------------------------------------------------------------------------------
 // Throwing demos away
 
-// Deletes demo accounts and everything they own. Only ever demo accounts: that condition is added
-// here rather than trusted to callers. A class outlives its teacher's account on purpose
-// (onDelete SetNull), so a demo teacher's classes are deleted first.
+// Deletes demo accounts and everything they own, recordings included. Only ever demo accounts: that
+// condition is added here rather than trusted to callers. A class outlives its teacher's account on
+// purpose (onDelete SetNull), so a demo teacher's classes are deleted first.
 async function deleteDemoAccounts(where) {
   const doomed = await prisma.user.findMany({ where: { AND: [where, { demoExpiresAt: { not: null } }] }, select: { id: true } });
   if (!doomed.length) return 0;
   const ids = doomed.map((u) => u.id);
+  const work = await prisma.assignment.findMany({ where: { studentId: { in: ids } }, select: { id: true } });
   await prisma.$transaction([
     prisma.class.deleteMany({ where: { teacherId: { in: ids } } }),
     prisma.user.deleteMany({ where: { id: { in: ids }, demoExpiresAt: { not: null } } }),
   ]);
+  // Takes a visitor recorded live in storage under their work; this looks there, sent or not.
+  await deleteAssignmentRecordings(work.map((a) => a.id));
   return ids.length;
 }
 

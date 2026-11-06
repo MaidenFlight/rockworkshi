@@ -138,22 +138,31 @@ test("pressing it again in the same browser carries on with the same demo", asyn
 test("the demo looks like an active student's account", async () => {
   const work = await call(kai, "GET", "/assignments");
   assert.equal(work.status, 200);
-  const statuses = work.data.assignments.map((a) => a.status);
-  assert.ok(statuses.includes("assigned"), "something to practise now");
-  assert.ok(statuses.includes("ready"), "something waiting for the teacher");
-  assert.ok(statuses.includes("reviewed"), "feedback to read");
+  // A month of tasks on the song, set at the start of the month in order: each section, then the whole song.
+  const tasks = [...work.data.assignments].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  assert.ok(tasks.length >= 4, "a month of tasks");
+  assert.ok(tasks.every((a) => a.song && !a.lesson), "only the song: the demo leaves lesson videos out");
+  assert.equal(tasks.at(-1).section, "Whole song");
+  assert.deepEqual(tasks.slice(0, 4).map((a) => a.status), ["reviewed", "reviewed", "ready", "assigned"], "two with feedback, one waiting, then today's");
+  assert.equal(tasks[1].attempts, 2, "one was sent twice");
+  const monthOf = (iso) => new Date(iso).toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "Pacific/Honolulu" });
+  assert.ok(tasks.every((a) => monthOf(a.createdAt) === monthOf(new Date())), "all set this month");
+  assert.ok(tasks.every((a) => a.submissions.every((s) => new Date(s.createdAt) <= new Date())), "nothing dated in the future");
   const reviewed = work.data.assignments.find((a) => a.status === "reviewed");
   assert.ok(reviewed.submissions[0].feedback.length > 20);
-  assert.equal(reviewed.teacher.name, "Noa Kealoha");
+  assert.equal(reviewed.teacher.name, "Brian Albus");
 
   const from = new Date();
   const to = new Date(from.getTime() + 21 * 86400000);
   const calendar = await call(kai, "GET", `/calendar?from=${from.toISOString()}&to=${to.toISOString()}`);
   assert.equal(calendar.status, 200);
   const upcoming = calendar.data.events.filter((e) => e.as === "learning" && e.status === "scheduled");
-  assert.ok(upcoming.filter((e) => e.title === "Guitar lesson").length >= 2, "weekly guitar lessons ahead");
-  assert.ok(upcoming.some((e) => e.title === "Barre chords workshop"));
-  assert.ok(upcoming.every((e) => e.meetingUrl === null), "in person, so no meeting link to follow");
+  assert.equal(upcoming.length, 1, "just one lesson coming up");
+  assert.equal(upcoming[0].title, "Group lesson");
+  assert.equal(upcoming[0].kind, "group");
+  assert.equal(upcoming[0].teacher.name, "Brian Albus");
+  assert.equal(new Date(upcoming[0].startsAt).toLocaleDateString("en-US", { weekday: "long", timeZone: "Pacific/Honolulu" }), "Saturday");
+  assert.equal(upcoming[0].meetingUrl, null, "in person, so no meeting link to follow");
 
   const profile = await call(kai, "GET", "/me/profile");
   assert.equal(profile.status, 200);
@@ -191,17 +200,19 @@ test("payments, password changes, email and messages to the school are refused, 
   assert.equal(await prisma.contactMessage.count({ where: { OR: [{ email }, { email: kai.user.email }] } }), 0, "nothing in Admin → Messages");
 });
 
-test("recordings aren't uploaded, but work can still be sent to the demo's own teacher", async () => {
+test("a demo student can send work and takes to the demo's own teacher, and send them again", async () => {
   const { data } = await call(kai, "GET", "/assignments");
   const open = data.assignments.find((a) => a.status === "assigned");
+  // An upload link where this machine has song storage; the demo isn't refused either way.
   const upload = await call(kai, "POST", `/assignments/${open.id}/recording-upload`, { size: 1000 });
-  assert.equal(upload.status, 403);
-  assert.equal(upload.data.reason, "demo");
-  const put = await fetch(`${base}/assignments/${open.id}/recording`, { method: "PUT", headers: { Cookie: kai.cookie, "Content-Type": "audio/wav" }, body: Buffer.from("RIFF0000WAVE") });
-  assert.equal(put.status, 403);
+  assert.ok([200, 503].includes(upload.status), `upload link: ${upload.status}`);
 
   const sent = await call(kai, "POST", `/assignments/${open.id}/submit`, {});
   assert.equal(sent.status, 201);
+  await prisma.submission.updateMany({ where: { assignmentId: open.id }, data: { createdAt: new Date(Date.now() - 60 * 1000) } });
+  const again = await call(kai, "POST", `/assignments/${open.id}/submit`, {});
+  assert.equal(again.status, 201, "sent again while waiting");
+  assert.equal((await call(kai, "GET", `/assignments/${open.id}`)).data.assignment.submissions.length, 2);
   const link = await prisma.teacherStudent.findFirst({ where: { studentId: kai.user.id }, include: { teacher: true } });
   assert.ok(link.teacher.demoExpiresAt, "the only teacher who could read it is the demo's own");
 });
@@ -320,7 +331,7 @@ test("a demo that has run out is signed out, then swept away with its classes", 
   assert.ok(removed >= 2);
   assert.equal((await demoUsers()).length, before - removed);
   assert.equal(await prisma.user.count({ where: { id: stale.user.id } }), 0);
-  assert.equal(await prisma.class.count({ where: { teacherId: null, title: "Barre chords workshop", createdAt: { gte: new Date(Date.now() - 86400000 * 11) } } }), 0, "no class left behind without its teacher");
+  assert.equal(await prisma.class.count({ where: { teacherId: null, title: "Group lesson", createdAt: { gte: new Date(Date.now() - 86400000 * 11) } } }), 0, "no class left behind without its teacher");
 });
 
 test("building a demo only reads the school's songs and lessons, and never adds a term slot", async () => {
@@ -347,9 +358,9 @@ test("every instrument gets its own student: their lessons, their part and their
         prisma.songPractice.findMany({ where: { userId: user.id } }),
         prisma.instrumentSkill.findMany({ where: { userId: user.id } }),
       ]);
-      assert.ok(work.length >= 2, `${instrument}: practice work`);
+      assert.ok(work.length >= 2 && work.every((a) => a.songId), `${instrument}: a month of practice work on the song`);
       assert.ok(work.every((a) => a.instrument === instrument));
-      assert.ok(classes.some((c) => c.title === STUDENTS[instrument].lesson && c.instruments.includes(instrument)));
+      assert.deepEqual(classes.map((c) => c.title), ["Group lesson"], `${instrument}: one group lesson`);
       assert.deepEqual(skills.map((s) => s.instrument), [instrument]);
       const words = [
         ...work.flatMap((a) => [a.instruction, ...a.submissions.map((s) => s.feedback)]),
@@ -383,6 +394,22 @@ test("someone in a demo can switch instrument without the passcode, and the old 
   const work = await call(drums, "GET", "/assignments");
   assert.ok(work.data.assignments.every((a) => a.instrument === "Drums"));
   await call(drums, "POST", "/auth/logout");
+});
+
+test("leaving the demo deletes the takes recorded in it", { skip: !process.env.TEST_R2 }, async () => {
+  const { headObject } = require("../src/lib/r2");
+  const visitor = await tryDemo();
+  const open = (await call(visitor, "GET", "/assignments")).data.assignments.find((a) => a.status === "assigned");
+  const wav = Buffer.alloc(44 + 9600);
+  wav.write("RIFF", 0);
+  wav.write("WAVE", 8);
+  const put = await fetch(`${base}/assignments/${open.id}/recording`, { method: "PUT", headers: { Cookie: visitor.cookie, "Content-Type": "audio/wav" }, body: wav });
+  assert.equal(put.status, 201);
+  const { key } = await put.json();
+  assert.equal((await call(visitor, "POST", `/assignments/${open.id}/submit`, { recording: { key, offset: 0, duration: 0.1 } })).status, 201);
+  assert.ok(await headObject(key), "stored while the demo runs");
+  assert.equal((await call(visitor, "POST", "/auth/logout")).status, 204);
+  assert.equal(await headObject(key), null, "gone with the demo");
 });
 
 test("changing the passcode keeps demos running; closing the demo ends them all", async () => {
