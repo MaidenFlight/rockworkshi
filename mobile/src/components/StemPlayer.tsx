@@ -32,7 +32,9 @@ import type { Session } from "@/lib/library";
 // Same design as the website's player (frontend/components/member/StemPlayer.js):
 // every stem always plays in sync and modes only change which are audible.
 
-export type Track = { part: string; url: string };
+// role and makeup only come in a student's bundle: "own" is their stem, "backing" one mix of every
+// other part, turned down when it was mixed and put back up by makeup (a plain stem is 1).
+export type Track = { part: string; url: string; role?: "own" | "backing"; makeup?: number };
 type Take = { buffer: AudioBuffer; songTime: number }; // songTime = song position of the take's first sample
 type Loop = { start: number; end: number | null }; // only repeats once end is set
 
@@ -73,6 +75,10 @@ type Props = {
   resume?: Session | null;
   // Called now and then while practising, and on pause, leave and backgrounding.
   onSaveSession?: (session: Session) => Promise<unknown>;
+  // From the API: "instrument" is a student's player, with their own stem and a backing band,
+  // played in three modes named for their instrument. Staff get "all": every stem and the full mixer.
+  scope?: "all" | "instrument";
+  instrument?: string | null;
 };
 
 export function StemPlayer({
@@ -84,8 +90,28 @@ export function StemPlayer({
   mixLevel = null,
   resume = null,
   onSaveSession,
+  scope = "all",
+  instrument = null,
 }: Props) {
   const parts = useMemo(() => tracks.map((t) => t.part), [tracks]);
+  // The same rules as the website's student player (frontend/components/member/StemPlayer.js).
+  const studentOf = scope === "instrument" && instrument ? instrument : null;
+  const student = studentOf !== null;
+  const ownPart = student ? (tracks.find((t) => t.role === "own")?.part ?? null) : null;
+  const hasBacking = student && tracks.some((t) => t.role === "backing");
+  // Turns each track back up by what it was turned down by when it was mixed (1 for a plain stem).
+  const makeup = useMemo(() => Object.fromEntries(tracks.map((t) => [t.part, t.makeup ?? 1])), [tracks]);
+  const noun = studentOf?.toLowerCase() ?? "";
+  // A student's three modes: the whole song, everything but their part, and their part alone.
+  // A mode the song can't play yet (no stem for their instrument, or no backing band) is off, and says why.
+  const studentModes: { id: Mode; label: string; ready: boolean }[] | null = studentOf
+    ? [
+        { id: "full", label: "Whole song", ready: hasBacking },
+        { id: "minus", label: `Without ${noun}`, ready: hasBacking && Boolean(ownPart) },
+        { id: "solo", label: `${studentOf} only`, ready: Boolean(ownPart) },
+      ]
+    : null;
+  const modeReady = (id: Mode) => !studentModes || studentModes.some((m) => m.id === id && m.ready);
   const saved = resume?.mixer;
   const startLoop: Loop | null = initialLoop ?? resume?.loop ?? null;
   const startPosition = initialLoop?.start ?? resume?.position ?? 0;
@@ -96,9 +122,19 @@ export function StemPlayer({
   const [playing, setPlaying] = useState(false);
   const [position, setPosition] = useState(startPosition);
   const [duration, setDuration] = useState(0);
-  const [mode, setMode] = useState<Mode>(saved && MIX_MODES.includes(saved.mode) ? saved.mode : "full");
-  const [focus, setFocus] = useState(
-    saved?.focus && parts.includes(saved.focus) ? saved.focus : myPart && parts.includes(myPart) ? myPart : parts[0]
+  const [mode, setMode] = useState<Mode>(() => {
+    const wanted = saved && MIX_MODES.includes(saved.mode) ? saved.mode : "full";
+    return modeReady(wanted) ? wanted : (MIX_MODES.find(modeReady) ?? "full");
+  });
+  // A student's focus is always their own part: the modes only ever add or take away the band.
+  const [focus, setFocus] = useState(() =>
+    student
+      ? (ownPart ?? parts[0])
+      : saved?.focus && parts.includes(saved.focus)
+        ? saved.focus
+        : myPart && parts.includes(myPart)
+          ? myPart
+          : parts[0]
   );
   const [barWidth, setBarWidth] = useState(1);
   const [speed, setSpeed] = useState(startSpeed);
@@ -265,11 +301,11 @@ export function StemPlayer({
     const levels = stemLevels(mix, mode, focus, parts);
     for (const part of parts) {
       const gain = gainsRef.current[part];
-      if (gain) rampTo(ctx, gain.gain, levels[part].gain);
+      if (gain) rampTo(ctx, gain.gain, levels[part].gain * makeup[part]);
     }
     rampTo(ctx, takeGainRef.current.gain, takeLevel(mix));
     rampTo(ctx, busRef.current.master.gain, percentToGain(mix.master));
-  }, [mix, mode, focus, parts]);
+  }, [mix, mode, focus, parts, makeup]);
 
   useEffect(() => {
     fxRef.current?.apply(fx);
@@ -535,22 +571,52 @@ export function StemPlayer({
 
   function applyPreset(preset: PresetSettings) {
     setMix(mixFromSettings(preset, parts));
-    if (MIX_MODES.includes(preset.mode)) setMode(preset.mode);
-    if (preset.focus && parts.includes(preset.focus)) setFocus(preset.focus);
+    if (MIX_MODES.includes(preset.mode) && modeReady(preset.mode)) setMode(preset.mode);
+    if (!student && preset.focus && parts.includes(preset.focus)) setFocus(preset.focus);
     if (preset.effects) setFx({ ...DEFAULT_EFFECTS, ...preset.effects });
   }
   const progress = duration ? position / duration : 0;
 
+  // Why a student's mode is off, when one is: said once, under the modes.
+  const modeNote = !student
+    ? null
+    : !ownPart
+      ? `This recording has no separate ${noun} track, so it plays as the whole song.`
+      : !hasBacking
+        ? `The backing band for this song is still being prepared, so for now you can play your ${noun} on its own.`
+        : null;
+
+  // A student's mixer: their part against the backing band, with no mute or solo (see MixerPanel).
+  const balance = studentOf
+    ? {
+        labels: { ...(ownPart ? { [ownPart]: `Your ${noun}` } : {}), Backing: "Backing band" },
+        silenced: { ...(ownPart ? { [ownPart]: mode === "minus" } : {}), Backing: mode === "solo" },
+        hint: !ownPart
+          ? `This recording has no separate ${noun} track, so the backing band is the whole song.`
+          : !hasBacking
+            ? null // the mode note already says the band is still being prepared
+            : mode === "minus"
+              ? `“Without ${noun}” is on, so your ${noun} is silent and its fader is off. Choose Whole song to hear it again.`
+              : mode === "solo"
+                ? `“${studentOf} only” is on, so the backing band is silent and its fader is off. Choose Whole song to bring it back.`
+                : `Balance your ${noun} against the band. The balance stays when you switch modes.`,
+      }
+    : undefined;
+
   return (
     <View style={styles.panel}>
+      {studentOf && <Text style={[styles.meta, styles.instrument]}>Your instrument: {studentOf}</Text>}
       <Text style={styles.heading}>Play</Text>
       <View style={styles.row}>
-        {MODES.map((m) => (
-          <Chip key={m.id} label={m.label} active={mode === m.id} onPress={() => setMode(m.id)} />
-        ))}
+        {studentModes
+          ? studentModes.map((m) => (
+              <Chip key={m.id} label={m.label} active={mode === m.id} onPress={() => setMode(m.id)} disabled={!m.ready} />
+            ))
+          : MODES.map((m) => <Chip key={m.id} label={m.label} active={mode === m.id} onPress={() => setMode(m.id)} />)}
       </View>
+      {modeNote && <Text style={[styles.meta, styles.gapTop]}>{modeNote}</Text>}
 
-      {mode !== "full" && (
+      {!student && mode !== "full" && (
         <>
           <Text style={[styles.heading, styles.gapTop]}>{mode === "solo" ? "Only this part" : "Leave out"}</Text>
           <View style={styles.row}>
@@ -570,6 +636,7 @@ export function StemPlayer({
           onChange={setMix}
           takeLabel={take ? "Your take" : null}
           onReset={() => setMix(defaultMix(parts))}
+          balance={balance}
         />
       </View>
 
@@ -802,6 +869,7 @@ const styles = StyleSheet.create({
   nudgeRow: { marginBottom: 12 },
   nudgeValue: { flex: 1, textAlign: "center", color: colors.body, fontVariant: ["tabular-nums"] },
   meta: { color: colors.meta, fontSize: 13, lineHeight: 19 },
+  instrument: { marginBottom: 10 },
   error: { color: colors.flareInk, marginTop: 8 },
   disabled: { opacity: 0.5 },
 });

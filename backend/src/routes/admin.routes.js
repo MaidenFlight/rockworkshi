@@ -2,8 +2,9 @@ const express = require("express");
 const prisma = require("../lib/prisma");
 const { findPage } = require("../lib/pagination");
 const { requireAdmin } = require("../middleware/auth");
-const { validateSlot } = require("../lib/lessonVideos");
+const { validateSlot, INSTRUMENTS } = require("../lib/lessonVideos");
 const { ROLES, deleteAssignmentRecordings } = require("../lib/assignments");
+const { canonicalInstrument } = require("../lib/instrumentAccess");
 
 const { audit } = require("../lib/audit");
 const router = express.Router();
@@ -75,6 +76,30 @@ router.get("/students", async (req, res) => {
     : {};
   const { items, pagination } = await findPage(prisma.user, { where, orderBy: [{ createdAt: "desc" }, { id: "asc" }] }, req.query);
   res.json({ students: items.map(toSafeUser), pagination });
+});
+
+// The instrument a student studies decides which part of every song they get (lib/instrumentAccess.js),
+// so after signup only the school changes it. Their saved mixers were for the old instrument: resume
+// states lose theirs here, and presets are ignored for as long as they don't match (mixerFits).
+router.put("/students/:id/instrument", async (req, res) => {
+  const value = req.body?.instrument;
+  const instrument = value === null || value === "" ? null : canonicalInstrument(value);
+  if (instrument === null && value !== null && value !== "") {
+    return res.status(400).json({ error: `instrument must be one of: ${INSTRUMENTS.join(", ")}, or empty.` });
+  }
+  const user = await prisma.user.findUnique({ where: { id: req.params.id }, select: { id: true, instrument: true } });
+  if (!user) return res.status(404).json({ error: "Not found." });
+
+  const sessions = await prisma.songPractice.findMany({ where: { userId: user.id }, select: { songId: true, session: true } });
+  const withMixer = sessions.filter((p) => p.session?.mixer);
+  const [updated] = await prisma.$transaction([
+    prisma.user.update({ where: { id: user.id }, data: { instrument } }),
+    ...withMixer.map(({ songId, session: { mixer, ...rest } }) =>
+      prisma.songPractice.update({ where: { userId_songId: { userId: user.id, songId } }, data: { session: rest } })
+    ),
+  ]);
+  await audit(req.user, "instrument.set", "user", user.id, { from: user.instrument, to: instrument });
+  res.json({ student: toSafeUser(updated) });
 });
 
 router.patch("/students/:id/status", async (req, res) => {

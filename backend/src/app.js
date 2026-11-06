@@ -17,6 +17,7 @@ const termRoutes = require("./routes/terms.routes");
 const classRoutes = require("./routes/classes.routes");
 const peopleRoutes = require("./routes/people.routes");
 const { router: billingRoutes, stripeWebhook } = require("./routes/billing.routes");
+const { mediaDir, localMediaRouter } = require("./lib/media");
 
 const app = express();
 
@@ -74,6 +75,8 @@ const { bearerAuth } = require("./middleware/auth");
 app.use(bearerAuth);
 
 app.get("/health", (req, res) => res.json({ ok: true }));
+// Development and tests only: song audio from MEDIA_DIR, behind signed, expiring links (lib/media.js).
+if (mediaDir()) app.use("/media", localMediaRouter());
 app.use("/auth", authRoutes);
 // Before /admin so the terms router handles its own paths.
 app.use("/admin/terms", termRoutes.admin);

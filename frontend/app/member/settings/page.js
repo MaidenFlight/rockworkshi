@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { changePassword } from "@/lib/auth/authApi";
+import { instruments } from "@/lib/content";
+import { practiceRequest } from "@/lib/practice";
 import {
   cancelSubscription,
   fetchSubscription,
@@ -12,7 +14,6 @@ import {
 export default function AccountSettings() {
   const { user, updateProfile } = useAuth();
   const [name, setName] = useState(user?.name || "");
-  const [instrument, setInstrument] = useState(user?.instrument || "");
   const [phone, setPhone] = useState(user?.phone || "");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -24,7 +25,7 @@ export default function AccountSettings() {
     setSuccess(false);
     setSubmitting(true);
     try {
-      await updateProfile({ name, instrument, phone });
+      await updateProfile({ name, phone });
       setSuccess(true);
     } catch (err) {
       setError(err.message || "Could not save your changes.");
@@ -42,10 +43,6 @@ export default function AccountSettings() {
         <label style={fieldLabelStyle}>
           Full name
           <input value={name} onChange={(e) => setName(e.target.value)} style={inputStyle} placeholder="Your name" />
-        </label>
-        <label style={{ ...fieldLabelStyle, marginTop: 16 }}>
-          Instrument
-          <input value={instrument} onChange={(e) => setInstrument(e.target.value)} style={inputStyle} placeholder="Guitar, piano, drums…" />
         </label>
         <label style={{ ...fieldLabelStyle, marginTop: 16 }}>
           Phone
@@ -72,6 +69,7 @@ export default function AccountSettings() {
         </button>
       </form>
 
+      <InstrumentSection instrument={user?.instrument} />
       <ChangePasswordForm />
       <MembershipSection />
     </div>
@@ -209,6 +207,67 @@ function MembershipSection() {
           )}
         </>
       )}
+    </section>
+  );
+}
+
+// The instrument decides which part of every song a member gets, so after signup the school sets it.
+// A member can ask for a change here; the request lands in Admin → Messages.
+function InstrumentSection({ instrument }) {
+  const current = instruments.find((i) => i.name.toLowerCase() === (instrument || "").trim().toLowerCase())?.name || null;
+  const choices = instruments.map((i) => i.name).filter((n) => n !== current);
+  const [wanted, setWanted] = useState(choices[0]);
+  const [note, setNote] = useState("");
+  const [state, setState] = useState({ sending: false, sent: false, error: "" });
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setState({ sending: true, sent: false, error: "" });
+    try {
+      await practiceRequest("/me/instrument-request", { method: "POST", body: JSON.stringify({ instrument: wanted, note }) });
+      setState({ sending: false, sent: true, error: "" });
+      setNote("");
+    } catch (err) {
+      setState({ sending: false, sent: false, error: err.message || "Could not send your request." });
+    }
+  }
+
+  return (
+    <section id="instrument" style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: 14, padding: 28, marginTop: 24, scrollMarginTop: 96 }}>
+      <h2 style={{ fontWeight: 600, fontSize: 20, color: "var(--rw-ink)", margin: "0 0 4px" }}>Your instrument</h2>
+      <p style={{ margin: "0 0 4px", fontSize: 15, color: "var(--rw-ink)", fontWeight: 700 }}>{current || "Not set yet"}</p>
+      <p style={{ margin: "0 0 18px", fontSize: 13.5, color: "var(--rw-meta)", lineHeight: 1.5 }}>
+        Every song opens with the part, chart and lessons for this instrument. The school sets it, so ask here to change it.
+      </p>
+      <form onSubmit={handleSubmit}>
+        <label style={fieldLabelStyle}>
+          {current ? "Change to" : "Set it to"}
+          <select value={wanted} onChange={(e) => setWanted(e.target.value)} style={inputStyle}>
+            {choices.map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label style={{ ...fieldLabelStyle, marginTop: 16 }}>
+          Anything the school should know (optional)
+          <textarea value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} rows={3} style={{ ...inputStyle, resize: "vertical" }} />
+        </label>
+        {state.error && (
+          <p role="alert" style={{ margin: "14px 2px 0", fontSize: 13.5, color: "var(--rw-orange-deep)" }}>
+            {state.error}
+          </p>
+        )}
+        {state.sent && (
+          <p role="status" style={{ margin: "14px 2px 0", fontSize: 13.5, color: "var(--rw-teal)", fontWeight: 700 }}>
+            Sent. The school will be in touch, and your songs switch over once they change it.
+          </p>
+        )}
+        <button type="submit" disabled={state.sending} className="rw-cta" style={ctaButtonStyle}>
+          {state.sending ? "Sending…" : "Ask the school"}
+        </button>
+      </form>
     </section>
   );
 }

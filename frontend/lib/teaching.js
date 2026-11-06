@@ -77,10 +77,11 @@ export async function sendForReview(assignmentId, take, onProgress) {
   });
 }
 
-// Which stem belongs to an instrument. Mirrors PART_FOR_INSTRUMENT in backend/src/lib/songTracks.js.
+// Which stem belongs to an instrument. Mirrors INSTRUMENT_PARTS in backend/src/lib/instrumentAccess.js.
+// Ukulele has its own stem only where one was uploaded; the guitar never stands in for it.
 const PART_FOR_INSTRUMENT = {
   Guitar: "Guitar",
-  Ukulele: "Guitar",
+  Ukulele: "Ukulele",
   Piano: "Keys",
   Bass: "Bass",
   Drums: "Drums",

@@ -17,6 +17,7 @@ const { GRANTABLE, rolesOf, setRoles } = require("../lib/roles");
 const { createToken, hashToken } = require("../lib/emailTokens");
 const { guardianInviteEmail } = require("../lib/mailer");
 const { INSTRUMENTS } = require("../lib/lessonVideos");
+const { canonicalInstrument } = require("../lib/instrumentAccess");
 const { isTimeZone } = require("../lib/zoned");
 
 const PURPOSES = ["profile", "share-practice", "band-matching"];
@@ -134,6 +135,37 @@ me.delete("/profile", async (req, res) => {
     prisma.instrumentSkill.updateMany({ where: { userId }, data: { selfLevel: null } }),
   ]);
   res.json({ ok: true });
+});
+
+// A student asks the school to change the instrument they study. Changing it is a staff action
+// (PUT /admin/students/:id/instrument), so this only leaves a note in Admin → Messages. No email.
+// The instruments listed in PUT /me/profile are the student's own description and never change it.
+const INSTRUMENT_REQUEST = "Instrument change";
+const REQUEST_GAP_MS = 10 * 60 * 1000;
+
+me.post("/instrument-request", async (req, res) => {
+  const wanted = canonicalInstrument(req.body?.instrument);
+  if (!wanted) return res.status(400).json({ error: `Choose one of: ${INSTRUMENTS.join(", ")}.` });
+  const current = canonicalInstrument(req.user.instrument);
+  if (wanted === current) return res.status(400).json({ error: `${wanted} is already your instrument.` });
+  const recent = await prisma.contactMessage.count({
+    where: { email: req.user.email, reason: INSTRUMENT_REQUEST, createdAt: { gt: new Date(Date.now() - REQUEST_GAP_MS) } },
+  });
+  if (recent) return res.status(429).json({ error: "We've got your request. The school will be in touch." });
+  const note = text(req.body?.note, 500);
+  const name = req.user.name || req.user.email;
+  await prisma.contactMessage.create({
+    data: {
+      name,
+      email: req.user.email,
+      phone: req.user.phone || null,
+      reason: INSTRUMENT_REQUEST,
+      instrument: wanted,
+      message: `${name} asks to change their instrument from ${current || "none set"} to ${wanted}.${note ? `\n\n${note}` : ""}`,
+    },
+  });
+  await audit(req.user, "instrument.request", "user", req.user.id, { from: current, to: wanted });
+  res.status(201).json({ ok: true });
 });
 
 me.post("/consents", async (req, res) => {

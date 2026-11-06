@@ -34,13 +34,14 @@ function cleanEffects(fx) {
   return { value: out };
 }
 
-// Returns { settings } or { error }.
-function validateSettings(input) {
+// Returns { settings } or { error }. `parts` are the tracks the person's player has: every stem for
+// staff, or a student's own stem and their backing band (see validateMixer in lib/instrumentAccess.js).
+function validateSettings(input, parts = PARTS) {
   if (!input || typeof input !== "object") return { error: "settings is required." };
 
   const stems = {};
   for (const [part, s] of Object.entries(input.stems || {})) {
-    if (!PARTS.includes(part)) continue;
+    if (!parts.includes(part)) continue;
     const volume = inRange(s?.volume, 0, 100);
     if (volume === null) return { error: `${part} volume must be 0 to 100.` };
     stems[part] = { volume, muted: s.muted === true, soloed: s.soloed === true };
@@ -51,7 +52,7 @@ function validateSettings(input) {
   if (master === null || take === null) return { error: "master and take volume must be 0 to 100." };
 
   const mode = MODES.includes(input.mode) ? input.mode : "full";
-  const focus = PARTS.includes(input.focus) ? input.focus : null;
+  const focus = parts.includes(input.focus) ? input.focus : null;
 
   const effects = cleanEffects(input.effects);
   if (effects.error) return { error: effects.error };

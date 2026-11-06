@@ -16,8 +16,9 @@ function seconds(v) {
 //   position  seconds into the song
 //   speed     one of SPEEDS
 //   loop      null or { start, end } (end null while only the start is marked)
-//   mixer     mode, focus, volumes, mute/solo and take effects, as in a mix preset
-function validateSession(input) {
+//   mixer     mode, focus, volumes, mute/solo and take effects, as in a mix preset, checked by
+//             checkMixer against the player this person has (validateMixer in lib/instrumentAccess.js)
+function validateSession(input, checkMixer = validateSettings) {
   if (!input || typeof input !== "object") return { error: "session is required." };
   const session = {};
 
@@ -42,7 +43,7 @@ function validateSession(input) {
     }
   }
   if (input.mixer !== undefined) {
-    const { error, settings } = validateSettings(input.mixer);
+    const { error, settings } = checkMixer(input.mixer);
     if (error) return { error: `mixer: ${error}` };
     session.mixer = settings;
   }
@@ -57,26 +58,35 @@ function validateNotes(notes) {
   return { notes: text || null };
 }
 
-function presentPractice(p) {
+// keepMixer(mixer) says whether the saved mixer still fits the person's player; one that doesn't is
+// left out, so the player opens with its defaults instead of someone else's instrument.
+function presentPractice(p, keepMixer = () => true) {
+  let session = p?.session ?? null;
+  if (session?.mixer && !keepMixer(session.mixer)) {
+    const { mixer, ...rest } = session;
+    session = Object.keys(rest).length ? rest : null;
+  }
   return {
     favorite: p?.favorite ?? false,
     notes: p?.notes ?? null,
     lastOpenedAt: p?.lastOpenedAt ?? null,
-    session: p?.session ?? null,
+    session,
   };
 }
 
 // One row of the library list. The note text and resume state stay out of the list.
-function presentLibrarySong(song) {
+// myPart limits the stems listed to a student's own (lib/instrumentAccess.js); staff see them all.
+function presentLibrarySong(song, myPart = undefined) {
   const p = song.practice?.[0];
-  const parts = sortTracks(song.tracks).map((t) => t.part);
+  const all = sortTracks(song.tracks).map((t) => t.part);
+  const parts = myPart === undefined ? all : all.filter((part) => part === myPart);
   return {
     id: song.id,
     title: song.title,
     artist: song.artist,
     level: song.level,
     parts,
-    hasTracks: parts.length > 0,
+    hasTracks: all.length > 0,
     favorite: p?.favorite ?? false,
     hasNotes: Boolean(p?.notes),
     lastOpenedAt: p?.lastOpenedAt ?? null,

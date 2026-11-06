@@ -12,7 +12,7 @@ const { signMobileToken } = require("../src/lib/mobileToken");
 const app = require("../src/app");
 const prisma = require("../src/lib/prisma");
 const clock = require("../src/lib/clock");
-const { isR2Configured } = require("../src/lib/r2");
+const { isMediaConfigured } = require("../src/lib/media");
 
 let server;
 let base;
@@ -44,13 +44,20 @@ async function call(who, method, path, body) {
 
 const tracks = (who, song) => call(who, "GET", `/songs/${songs[song].id}/tracks`);
 
+// How long a song link lasts, in seconds. R2 links say so; local ones (MEDIA_DIR) carry their expiry time.
+function lifetime(url) {
+  const r2 = /X-Amz-Expires=(d+)/.exec(url);
+  if (r2) return Number(r2[1]);
+  return Math.round((Number(new URL(url).searchParams.get("exp")) - Date.now() / 1000) / 60) * 60;
+}
+
 before(async () => {
   server = app.listen(0);
   await new Promise((resolve) => server.once("listening", resolve));
   base = `http://localhost:${server.address().port}`;
 
   const make = (name, data = {}) =>
-    prisma.user.create({ data: { email: `${RUN}-${name}@example.test`, passwordHash: "!", name, paidAt: new Date(), ...data } });
+    prisma.user.create({ data: { email: `${RUN}-${name}@example.test`, passwordHash: "!", name, instrument: "Drums", paidAt: new Date(), ...data } });
   users.admin = await make("admin");
   users.teacher = await make("teacher", { role: "teacher" });
   users.a1 = await make("a1"); // group A
@@ -118,7 +125,7 @@ after(async () => {
   server.close();
 });
 
-test("a month opens exactly at its unlock time, by server clock", { skip: !isR2Configured() }, async () => {
+test("a month opens exactly at its unlock time, by server clock", { skip: !isMediaConfigured() }, async () => {
   at(T1, -1);
   const early = await tracks("a1", "x");
   assert.equal(early.status, 403);
@@ -128,10 +135,10 @@ test("a month opens exactly at its unlock time, by server clock", { skip: !isR2C
   at(T1, 1);
   const open = await tracks("a1", "x");
   assert.equal(open.status, 200);
-  assert.match(open.data.tracks[0].url, /X-Amz-Expires=600/, "term links last 10 minutes, not an hour");
+  assert.equal(lifetime(open.data.tracks[0].url), 600, "term links last 10 minutes, not an hour");
 });
 
-test("unpublished and unassigned months stay closed after their date", { skip: !isR2Configured() }, async () => {
+test("unpublished and unassigned months stay closed after their date", { skip: !isMediaConfigured() }, async () => {
   at(T1, 1000);
   // Straight in the database, as if it was never published: a2 hasn't reached it yet.
   await prisma.termSlot.update({ where: { groupId_month: { groupId: groupA.id, month: 1 } }, data: { published: false } });
@@ -149,7 +156,7 @@ test("unpublished and unassigned months stay closed after their date", { skip: !
   assert.equal(late.currentMonth, 3);
 });
 
-test("earlier months stay open, later ones show only a date", { skip: !isR2Configured() }, async () => {
+test("earlier months stay open, later ones show only a date", { skip: !isMediaConfigured() }, async () => {
   at(T2, -1);
   assert.equal((await tracks("a1", "y")).status, 403, "month 2 not yet");
   const before = (await call("a1", "GET", "/term")).data.term;
@@ -169,14 +176,14 @@ test("earlier months stay open, later ones show only a date", { skip: !isR2Confi
   assert.equal(after.slots[0].song.id, songs.x.id);
 });
 
-test("groups don't share unlocks; other entitlements and plain songs still work", { skip: !isR2Configured() }, async () => {
+test("groups don't share unlocks; other entitlements and plain songs still work", { skip: !isMediaConfigured() }, async () => {
   at(T2, 1);
   const b = await tracks("b1", "x");
   assert.equal(b.status, 403, "group B's month 3 hasn't opened");
   assert.equal(b.data.reason, "locked");
   assert.equal((await tracks("loner", "x")).data.reason, "not_in_term");
   assert.equal((await tracks("loner", "free")).status, 200, "songs in no term keep the old rule");
-  assert.match((await tracks("loner", "free")).data.tracks[0].url, /X-Amz-Expires=3600/);
+  assert.equal(lifetime((await tracks("loner", "free")).data.tracks[0].url), 3600);
 
   // A teacher's assignment is its own entitlement, even where a slot opens later.
   await prisma.teacherStudent.createMany({
@@ -300,7 +307,7 @@ test("paying for a term plan doesn't put anyone in a group", async () => {
   assert.equal(await prisma.termEnrollment.count({ where: { userId: buyer.id } }), 0);
 });
 
-test("a song a student has reached stays theirs", { skip: !isR2Configured() }, async () => {
+test("a song a student has reached stays theirs", { skip: !isMediaConfigured() }, async () => {
   at(T2, 1); // month 1 open, month 2 open for group A
 
   // Removed from the term without ever loading anything: staff removal records what was open.

@@ -134,7 +134,13 @@ const SONG_KEYS = {
   "Am/G": { left: [43], right: [60, 64, 69] },
 };
 
-// { frets, base } for guitar or { left, right } MIDI notes for keys, or null if we have no shape for it.
-export function songChordShape(name, keys = false) {
-  return (keys ? SONG_KEYS : SONG_GUITAR)[name] || null;
+// The ukulele has no song sheet of its own, so its shapes are the chord library's. A chord the library
+// doesn't have (a slash chord, say) gets no diagram rather than a borrowed one.
+const SONG_UKULELE = Object.fromEntries(chordLibrary.Ukulele.flatMap((g) => g.chords).map((c) => [c.name, { frets: c.frets, base: c.base }]));
+
+// voicing is "guitar", "keys" or "ukulele" (true still means keys). Returns { frets, base } for the
+// fretted instruments or { left, right } MIDI notes for keys, or null if we have no shape for it.
+export function songChordShape(name, voicing = "guitar") {
+  const kind = voicing === true ? "keys" : voicing || "guitar";
+  return ({ guitar: SONG_GUITAR, keys: SONG_KEYS, ukulele: SONG_UKULELE }[kind] || {})[name] || null;
 }

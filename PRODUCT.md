@@ -112,6 +112,14 @@ reached it in their term, or whose teacher assigned it, plus staff. Members who 
 in a term don't get term songs, including "Have You Ever Seen the Rain" once a term
 uses it. Songs in no term stay open to every paying member.
 
+**Each student practises only their own instrument** (enforced by the API in
+`backend/src/lib/instrumentAccess.js`; details in `docs/instrument-access.md`). Of a song they're
+entitled to under the rules above, a student gets their own stem plus one pre-mixed backing band of the
+other parts, the song's chords and form plus their own instrument's chart, and their own instrument's
+lesson videos. They play it three ways: the whole song, without their instrument, or their instrument
+alone. Staff keep every part. The instrument is the one the school has on file: chosen at signup, and
+after enrolment changed only by the admin (a student asks from Account settings).
+
 ## Capabilities and Constraints
 
 - **Six instruments, and the six names are load-bearing strings**: Guitar, Piano,
