@@ -142,7 +142,7 @@ function SongPlayAlong() {
       )}
 
       {/* A shut song gets the one explanation below, which covers its tutorials too. */}
-      {!locked && <SongTutorials songId={song.id} user={user} playerId="practice-player" playerBelow={Boolean(tracks)} />}
+      {!locked && <SongTutorials songId={song.id} user={user} playerId="practice-player" playerBelow={Boolean(tracks?.tracks?.length)} />}
 
       {locked ? (
         // The server refuses the stems too; this just explains why instead of a broken player.
