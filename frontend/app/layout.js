@@ -60,7 +60,7 @@ export default async function RootLayout({ children }) {
         />
         <AuthProvider>
           <SiteTextProvider initialText={siteText}>
-          <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", overflowX: "hidden" }}>
+          <div className="rw-page" style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
             <a href="#main" className="rw-skip">
               Skip to content
             </a>

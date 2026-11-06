@@ -1,26 +1,37 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useState } from "react";
+import Pagination from "@/components/Pagination";
+import { useAuth } from "@/contexts/AuthContext";
 import { API_URL } from "@/lib/api";
+import { usePagedList, usePageParam } from "@/lib/paging";
 
-export default function AdminStudents() {
-  const [students, setStudents] = useState([]);
+export default function AdminStudentsPage() {
+  // useSearchParams needs a Suspense boundary in a client page.
+  return (
+    <Suspense fallback={<p style={{ color: "var(--rw-meta)" }}>Loading…</p>}>
+      <AdminStudents />
+    </Suspense>
+  );
+}
+
+function AdminStudents() {
+  const { user } = useAuth();
+  const [page, setPage] = usePageParam();
   const [search, setSearch] = useState("");
+  const [applied, setApplied] = useState("");
   const [openId, setOpenId] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [removeError, setRemoveError] = useState("");
+  const { items, pagination, loading, error, reload: load } = usePagedList("/admin/students", "students", {
+    page,
+    params: { search: applied },
+  });
+  const students = items ?? [];
 
-  async function load() {
-    setLoading(true);
-    const res = await fetch(`${API_URL}/admin/students?search=${encodeURIComponent(search)}`, { credentials: "include" });
-    const data = await res.json();
-    setStudents(data.students || []);
-    setLoading(false);
+  function runSearch() {
+    setApplied(search);
+    setPage(1);
   }
-
-  useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   async function setStatus(id, status) {
     await fetch(`${API_URL}/admin/students/${id}/status`, {
@@ -32,9 +43,24 @@ export default function AdminStudents() {
     load();
   }
 
-  async function remove(id) {
-    await fetch(`${API_URL}/admin/students/${id}`, { method: "DELETE", credentials: "include" });
-    load();
+  async function remove(student) {
+    const who = student.name || student.email;
+    const warning = student.role === "teacher"
+      ? `Permanently delete ${who}'s teacher account? Their students keep their work and feedback. This can't be undone.`
+      : `Permanently delete ${who}'s account, practice work and recordings? This can't be undone.`;
+    if (!window.confirm(warning)) return;
+    setRemoveError("");
+    try {
+      const res = await fetch(`${API_URL}/admin/students/${student.id}`, { method: "DELETE", credentials: "include" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Request failed (${res.status})`);
+      }
+      setOpenId(null);
+      load();
+    } catch (err) {
+      setRemoveError(`${who} wasn't removed: ${err.message}`);
+    }
   }
 
   return (
@@ -50,20 +76,34 @@ export default function AdminStudents() {
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && load()}
+          onKeyDown={(e) => e.key === "Enter" && runSearch()}
           placeholder="Search by name or email"
           style={{ flex: 1, padding: "9px 12px", borderRadius: 8, border: "1px solid var(--rw-line)", fontSize: 13.5 }}
         />
-        <button onClick={load} style={smallBtn}>
+        <button onClick={runSearch} style={smallBtn}>
           Search
         </button>
       </div>
 
+      {removeError && (
+        <p role="alert" style={{ color: "var(--rw-orange-deep)", fontSize: 13.5 }}>
+          {removeError}
+        </p>
+      )}
+      {error && (
+        <p role="alert" style={{ color: "var(--rw-orange-deep)", fontSize: 13.5 }}>
+          {error}{" "}
+          <button onClick={load} style={smallBtn}>
+            Retry
+          </button>
+        </p>
+      )}
       {loading ? (
         <p style={{ color: "var(--rw-meta)" }}>Loading…</p>
       ) : students.length === 0 ? (
-        <p style={{ color: "var(--rw-meta)" }}>No students found.</p>
+        !error && <p style={{ color: "var(--rw-meta)" }}>No students found.</p>
       ) : (
+        <>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {students.map((s) => (
             <div key={s.id} style={{ border: "1px solid var(--rw-border)", borderRadius: 10, background: "var(--rw-surface)" }}>
@@ -120,15 +160,19 @@ export default function AdminStudents() {
                     <button onClick={() => setStatus(s.id, s.status === "active" ? "paused" : "active")} style={smallBtn}>
                       {s.status === "active" ? "Pause" : "Reactivate"}
                     </button>
-                    <button onClick={() => remove(s.id)} style={{ ...smallBtn, color: "var(--rw-orange-deep)" }}>
-                      Remove
-                    </button>
+                    {s.id !== user?.id && (
+                      <button onClick={() => remove(s)} style={{ ...smallBtn, color: "var(--rw-orange-deep)" }}>
+                        Remove
+                      </button>
+                    )}
                   </div>
                 </div>
               )}
             </div>
           ))}
         </div>
+        <Pagination pagination={pagination} onChange={setPage} label="Student pages" />
+        </>
       )}
     </div>
   );

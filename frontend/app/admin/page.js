@@ -5,37 +5,25 @@ import { API_URL } from "@/lib/api";
 
 export default function AdminOverview() {
   const [stats, setStats] = useState(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    async function load() {
-      const [students, trials, messages, lessons] = await Promise.all([
-        fetch(`${API_URL}/admin/students`, { credentials: "include" }).then((r) => r.json()),
-        fetch(`${API_URL}/admin/trials`, { credentials: "include" }).then((r) => r.json()),
-        fetch(`${API_URL}/admin/messages`, { credentials: "include" }).then((r) => r.json()),
-        fetch(`${API_URL}/admin/lessons`, { credentials: "include" }).then((r) => r.json()),
-      ]);
-
-      const instrumentCounts = {};
-      for (const s of students.students || []) {
-        const key = s.instrument || "Unspecified";
-        instrumentCounts[key] = (instrumentCounts[key] || 0) + 1;
-      }
-      const total = (students.students || []).length || 1;
-      const breakdown = Object.entries(instrumentCounts)
-        .sort((a, b) => b[1] - a[1])
-        .map(([name, count]) => ({ name, count, pct: Math.round((count / total) * 100) }));
-
-      setStats({
-        students: (students.students || []).length,
-        newTrials: (trials.trials || []).filter((t) => t.status === "New").length,
-        messages: (messages.messages || []).length,
-        lessons: (lessons.lessons || []).length,
-        breakdown,
-      });
-    }
-    load();
+    fetch(`${API_URL}/admin/overview`, { credentials: "include" })
+      .then(async (res) => {
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+        setStats(data);
+      })
+      .catch((err) => setError(err instanceof TypeError ? "The overview couldn't load. Check your connection and try again." : err.message));
   }, []);
 
+  if (error) {
+    return (
+      <p role="alert" style={{ color: "var(--rw-orange-deep)" }}>
+        {error}
+      </p>
+    );
+  }
   if (!stats) return <p style={{ color: "var(--rw-meta)" }}>Loading…</p>;
 
   const cards = [

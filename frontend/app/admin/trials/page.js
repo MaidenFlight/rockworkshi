@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense } from "react";
+import Pagination from "@/components/Pagination";
 import { API_URL } from "@/lib/api";
+import { usePagedList, usePageParam } from "@/lib/paging";
 
 const STATUS_COLORS = {
   New: { bg: "var(--rw-orange-tint)", fg: "var(--rw-orange-deep)" },
@@ -11,21 +13,19 @@ const STATUS_COLORS = {
   Closed: { bg: "var(--rw-border)", fg: "var(--rw-body)" },
 };
 
-export default function AdminTrials() {
-  const [trials, setTrials] = useState([]);
-  const [loading, setLoading] = useState(true);
+export default function AdminTrialsPage() {
+  // useSearchParams needs a Suspense boundary in a client page.
+  return (
+    <Suspense fallback={<p style={{ color: "var(--rw-meta)" }}>Loading…</p>}>
+      <AdminTrials />
+    </Suspense>
+  );
+}
 
-  async function load() {
-    setLoading(true);
-    const res = await fetch(`${API_URL}/admin/trials`, { credentials: "include" });
-    const data = await res.json();
-    setTrials(data.trials || []);
-    setLoading(false);
-  }
-
-  useEffect(() => {
-    load();
-  }, []);
+function AdminTrials() {
+  const [page, setPage] = usePageParam();
+  const { items, pagination, loading, error, reload: load } = usePagedList("/admin/trials", "trials", { page });
+  const trials = items ?? [];
 
   async function cycle(id) {
     await fetch(`${API_URL}/admin/trials/${id}/cycle-status`, { method: "POST", credentials: "include" });
@@ -35,11 +35,17 @@ export default function AdminTrials() {
   return (
     <div>
       <h1 style={{ fontWeight: 600, fontSize: 24, color: "var(--rw-ink)", marginBottom: 20 }}>Trial Requests</h1>
+      {error && (
+        <p role="alert" style={{ color: "var(--rw-orange-deep)", fontSize: 13.5 }}>
+          {error}
+        </p>
+      )}
       {loading ? (
         <p style={{ color: "var(--rw-meta)" }}>Loading…</p>
       ) : trials.length === 0 ? (
-        <p style={{ color: "var(--rw-meta)" }}>No trial requests yet.</p>
+        !error && <p style={{ color: "var(--rw-meta)" }}>No trial requests yet.</p>
       ) : (
+        <>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {trials.map((t) => {
             const color = STATUS_COLORS[t.status] || STATUS_COLORS.New;
@@ -81,6 +87,8 @@ export default function AdminTrials() {
             );
           })}
         </div>
+        <Pagination pagination={pagination} onChange={setPage} label="Trial request pages" />
+        </>
       )}
     </div>
   );

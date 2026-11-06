@@ -72,6 +72,8 @@ function isExpired(expiresAt) {
 }
 
 module.exports = {
+  createToken,
+  hashToken,
   issueVerification,
   issueReset,
   tokenMatches,

@@ -10,6 +10,7 @@ passport.use(
       try {
         const user = await prisma.user.findUnique({
           where: { email: email.trim().toLowerCase() },
+          include: { roles: true },
         });
         if (!user || !user.passwordHash) {
           return done(null, false, { message: "Incorrect email or password." });
@@ -32,7 +33,7 @@ passport.serializeUser((user, done) => {
 
 passport.deserializeUser(async (id, done) => {
   try {
-    const user = await prisma.user.findUnique({ where: { id } });
+    const user = await prisma.user.findUnique({ where: { id }, include: { roles: true } });
     done(null, user || false);
   } catch (err) {
     done(err);

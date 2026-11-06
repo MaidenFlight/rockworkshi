@@ -1,8 +1,11 @@
 const express = require("express");
 const prisma = require("../lib/prisma");
+const { findPage } = require("../lib/pagination");
 const { requireAdmin } = require("../middleware/auth");
 const { validateSlot } = require("../lib/lessonVideos");
+const { ROLES, deleteAssignmentRecordings } = require("../lib/assignments");
 
+const { audit } = require("../lib/audit");
 const router = express.Router();
 router.use(requireAdmin);
 
@@ -15,7 +18,7 @@ function pick(obj, keys) {
 }
 
 function toSafeUser(user) {
-  const { passwordHash, ...safe } = user;
+  const { passwordHash, verificationTokenHash, resetTokenHash, ...safe } = user;
   return safe;
 }
 
@@ -38,15 +41,40 @@ const STUDENT_CSV_COLUMNS = [
   "createdAt",
 ];
 
+// The numbers on the admin home page, counted here because the lists themselves are paged.
+router.get("/overview", async (req, res) => {
+  const [students, newTrials, messages, lessons, instruments] = await Promise.all([
+    prisma.user.count(),
+    prisma.trialRequest.count({ where: { status: "New" } }),
+    prisma.contactMessage.count(),
+    prisma.lesson.count(),
+    prisma.user.groupBy({ by: ["instrument"], _count: { _all: true } }),
+  ]);
+
+  const counts = {};
+  for (const row of instruments) {
+    const name = row.instrument || "Unspecified";
+    counts[name] = (counts[name] || 0) + row._count._all;
+  }
+  const breakdown = Object.entries(counts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([name, count]) => ({ name, count, pct: Math.round((count / (students || 1)) * 100) }));
+
+  res.json({ students, newTrials, messages, lessons, breakdown });
+});
+
 router.get("/students", async (req, res) => {
-  const search = (req.query.search || "").trim().toLowerCase();
-  const users = await prisma.user.findMany({ orderBy: { createdAt: "desc" } });
-  const filtered = search
-    ? users.filter(
-        (u) => u.email.toLowerCase().includes(search) || (u.name || "").toLowerCase().includes(search)
-      )
-    : users;
-  res.json({ students: filtered.map(toSafeUser) });
+  const search = String(req.query.search || "").trim();
+  const where = search
+    ? {
+        OR: [
+          { email: { contains: search, mode: "insensitive" } },
+          { name: { contains: search, mode: "insensitive" } },
+        ],
+      }
+    : {};
+  const { items, pagination } = await findPage(prisma.user, { where, orderBy: [{ createdAt: "desc" }, { id: "asc" }] }, req.query);
+  res.json({ students: items.map(toSafeUser), pagination });
 });
 
 router.patch("/students/:id/status", async (req, res) => {
@@ -57,7 +85,14 @@ router.patch("/students/:id/status", async (req, res) => {
 });
 
 router.delete("/students/:id", async (req, res) => {
-  await prisma.user.delete({ where: { id: req.params.id } });
+  if (req.params.id === req.user.id) return res.status(400).json({ error: "You can't remove your own account." });
+  const user = await prisma.user.findUnique({ where: { id: req.params.id }, select: { id: true } });
+  if (!user) return res.status(404).json({ error: "Not found." });
+  // A student's work goes with them (cascade), recordings included. Work a teacher set
+  // stays with the students who did it, with no teacher attached.
+  const assignments = await prisma.assignment.findMany({ where: { studentId: user.id }, select: { id: true } });
+  await prisma.user.delete({ where: { id: user.id } });
+  await deleteAssignmentRecordings(assignments.map((a) => a.id));
   res.status(204).end();
 });
 
@@ -78,13 +113,79 @@ router.get("/students/export.csv", async (req, res) => {
   res.send(rows.join("\n"));
 });
 
+// ---------- Teaching: teacher accounts and their students ----------
+
+const PERSON = { id: true, name: true, email: true, instrument: true, role: true };
+
+router.get("/teaching", async (req, res) => {
+  const [teachers, people] = await Promise.all([
+    prisma.user.findMany({
+      where: { role: "teacher" },
+      orderBy: { name: "asc" },
+      select: { ...PERSON, myStudents: { select: { student: { select: PERSON } } } },
+    }),
+    prisma.user.findMany({ orderBy: { name: "asc" }, select: PERSON }),
+  ]);
+  res.json({
+    teachers: teachers.map(({ myStudents, ...t }) => ({ ...t, students: myStudents.map((l) => l.student) })),
+    people,
+  });
+});
+
+router.patch("/students/:id/role", async (req, res) => {
+  const { role } = req.body || {};
+  if (!ROLES.includes(role)) return res.status(400).json({ error: `role must be one of: ${ROLES.join(", ")}.` });
+
+  const user = await prisma.user.findUnique({ where: { id: req.params.id } });
+  if (!user) return res.status(404).json({ error: "Not found." });
+
+  // Someone who stops teaching loses their students. Their assignments stay as history.
+  // The teacher role in UserRole follows, so both ways of granting it agree.
+  const [updated] = await prisma.$transaction([
+    prisma.user.update({ where: { id: user.id }, data: { role } }),
+    ...(role === "teacher"
+      ? [prisma.userRole.upsert({ where: { userId_role: { userId: user.id, role: "teacher" } }, create: { userId: user.id, role: "teacher", grantedBy: req.user.id }, update: {} })]
+      : [prisma.teacherStudent.deleteMany({ where: { teacherId: user.id } }), prisma.userRole.deleteMany({ where: { userId: user.id, role: "teacher" } })]),
+  ]);
+  await audit(req.user, "role.set", "user", user.id, { role });
+  res.json({ student: toSafeUser(updated) });
+});
+
+router.post("/teaching/links", async (req, res) => {
+  const { teacherId, studentId } = req.body || {};
+  if (typeof teacherId !== "string" || typeof studentId !== "string") {
+    return res.status(400).json({ error: "teacherId and studentId are required." });
+  }
+  if (teacherId === studentId) return res.status(400).json({ error: "A teacher can't be their own student." });
+
+  const [teacher, student] = await Promise.all([
+    prisma.user.findUnique({ where: { id: teacherId } }),
+    prisma.user.findUnique({ where: { id: studentId } }),
+  ]);
+  if (!teacher || teacher.role !== "teacher") return res.status(400).json({ error: "That account isn't a teacher." });
+  if (!student) return res.status(404).json({ error: "Student not found." });
+
+  await prisma.teacherStudent.upsert({
+    where: { teacherId_studentId: { teacherId, studentId } },
+    create: { teacherId, studentId },
+    update: {},
+  });
+  res.status(201).json({ ok: true });
+});
+
+router.delete("/teaching/links/:teacherId/:studentId", async (req, res) => {
+  const { teacherId, studentId } = req.params;
+  await prisma.teacherStudent.deleteMany({ where: { teacherId, studentId } });
+  res.status(204).end();
+});
+
 // ---------- Trial requests ----------
 
 const TRIAL_STATUS_CYCLE = ["New", "Contacted", "Trial Scheduled", "Enrolled", "Closed"];
 
 router.get("/trials", async (req, res) => {
-  const trials = await prisma.trialRequest.findMany({ orderBy: { createdAt: "desc" } });
-  res.json({ trials });
+  const { items, pagination } = await findPage(prisma.trialRequest, { orderBy: [{ createdAt: "desc" }, { id: "asc" }] }, req.query);
+  res.json({ trials: items, pagination });
 });
 
 router.post("/trials/:id/cycle-status", async (req, res) => {
@@ -99,8 +200,8 @@ router.post("/trials/:id/cycle-status", async (req, res) => {
 // ---------- Contact messages ----------
 
 router.get("/messages", async (req, res) => {
-  const messages = await prisma.contactMessage.findMany({ orderBy: { createdAt: "desc" } });
-  res.json({ messages });
+  const { items, pagination } = await findPage(prisma.contactMessage, { orderBy: [{ createdAt: "desc" }, { id: "asc" }] }, req.query);
+  res.json({ messages: items, pagination });
 });
 
 // ---------- Site text ----------

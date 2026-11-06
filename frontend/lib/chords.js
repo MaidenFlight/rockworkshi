@@ -114,3 +114,27 @@ export const chordLibrary = {
     },
   ],
 };
+
+// Shapes for a song's chart. Slash chords and the barre F are as on the song's chord sheet.
+const SONG_GUITAR = {
+  C: { frets: [-1, 3, 2, 0, 1, 0], base: 1 },
+  G: { frets: [3, 2, 0, 0, 0, 3], base: 1 },
+  F: { frets: [1, 3, 3, 2, 1, 1], base: 1 },
+  Am: { frets: [-1, 0, 2, 2, 1, 0], base: 1 },
+  "C/B": { frets: [-1, 2, 0, 0, 1, 0], base: 1 },
+  "Am/G": { frets: [3, -1, 2, 2, 1, 0], base: 1 },
+};
+// Close together so the right hand barely moves between chords, with the bass note in the left.
+const SONG_KEYS = {
+  C: { left: [48], right: [60, 64, 67] },
+  G: { left: [43], right: [59, 62, 67] },
+  F: { left: [41], right: [60, 65, 69] },
+  Am: { left: [45], right: [60, 64, 69] },
+  "C/B": { left: [47], right: [60, 64, 67] },
+  "Am/G": { left: [43], right: [60, 64, 69] },
+};
+
+// { frets, base } for guitar or { left, right } MIDI notes for keys, or null if we have no shape for it.
+export function songChordShape(name, keys = false) {
+  return (keys ? SONG_KEYS : SONG_GUITAR)[name] || null;
+}

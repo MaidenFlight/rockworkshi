@@ -101,6 +101,29 @@
   --rw-nav-panel: #221d2b;
   --rw-nav-panel-fg: rgba(238, 240, 236, 0.86);
   --rw-nav-shadow: 0 18px 40px -20px rgba(0, 0, 0, 0.7);
+
+  /* ---- The practice console: the song player is lacquer, like a band ---- */
+  --rw-console: var(--rw-ink);
+  --rw-console-well: var(--rw-ink-deep); /* lanes, meter wells, fader slots */
+  --rw-console-raised: color-mix(in srgb, var(--rw-cream) 7%, var(--rw-ink)); /* strips and headers */
+  --rw-console-edge: color-mix(in srgb, var(--rw-cream) 16%, var(--rw-ink));
+  --rw-console-text: var(--rw-cream);
+  --rw-console-meta: color-mix(in srgb, var(--rw-cream) 66%, var(--rw-ink)); /* 7.4:1 on the console */
+
+  /* ---- One colour per part, the same in every lane, strip and chart tab. On the console all
+     clear 4.5:1 and all but the take clear 7:1. ---- */
+  --rw-part-vocals: var(--rw-gold);
+  --rw-part-guitar: #ff8f4a;
+  --rw-part-keys: var(--rw-sea-glass);
+  --rw-part-bass: #8fb2ff;
+  --rw-part-drums: #c6e86f;
+  --rw-part-take: var(--rw-flare); /* your own recording, red like the Rec lamp */
+  --rw-part-other: var(--rw-chrome-mid);
+
+  /* ---- Meter zones: safe, getting hot, at the top ---- */
+  --rw-meter-low: var(--rw-sea-glass);
+  --rw-meter-mid: var(--rw-gold);
+  --rw-meter-high: var(--rw-flare);
 }
 
 [data-world="classic"] {

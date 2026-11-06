@@ -1,9 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { API_URL } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
+import TeacherWork from "@/components/member/TeacherWork";
+import UpcomingClasses from "@/components/member/UpcomingClasses";
+import YourTerm from "@/components/member/YourTerm";
+import { practiceRequest } from "@/lib/practice";
 
 const TOOLS = [
   { name: "Guitar Tuner", emoji: "\u{1F3B8}", href: "/tools/tuner" },
@@ -22,12 +26,17 @@ const ACHIEVEMENTS = [
 export default function MemberDashboard() {
   const { user } = useAuth();
   const [lessons, setLessons] = useState([]);
+  const [library, setLibrary] = useState(null);
 
   useEffect(() => {
     fetch(`${API_URL}/lessons`, { credentials: "include" })
       .then((res) => res.json())
       .then((data) => setLessons(data.lessons || []))
       .catch(() => setLessons([]));
+    // The library page handles offline and retry; here the card just shows less.
+    practiceRequest("/library")
+      .then(setLibrary)
+      .catch(() => setLibrary(null));
   }, []);
 
   const stats = user?.practiceStats || { weeklyMinutes: 0, weeklyGoal: 90, streak: 0 };
@@ -38,10 +47,19 @@ export default function MemberDashboard() {
 
   return (
     <div style={{ maxWidth: 1100, margin: "0 auto", padding: "48px 24px 100px" }}>
-      <h1 style={{ fontWeight: 600, fontSize: 30, color: "var(--rw-ink)", marginBottom: 4 }}>
+      <h1 style={{ fontWeight: 800, textTransform: "uppercase", fontSize: 34, lineHeight: 1.05, color: "var(--rw-ink)", marginBottom: 4 }}>
         Welcome back{user?.name ? `, ${user.name}` : ""}
       </h1>
-      <p style={{ color: "var(--rw-body)", marginBottom: 36 }}>Pick up where you left off, or grab a practice tool.</p>
+      <p style={{ color: "var(--rw-body)", marginBottom: 24 }}>Pick up where you left off, or grab a practice tool.</p>
+
+      <UpcomingClasses />
+
+      <YourTerm continueItem={library?.continue ?? null} />
+
+      {/* useSearchParams needs a Suspense boundary in a client page. */}
+      <Suspense fallback={null}>
+        <TeacherWork />
+      </Suspense>
 
       <div className="rw-cols-5" style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 14, marginBottom: 44 }}>
         {TOOLS.map((tool) => (
@@ -57,7 +75,7 @@ export default function MemberDashboard() {
               padding: "24px 12px",
               background: "var(--rw-surface)",
               border: "1px solid var(--rw-border)",
-              borderRadius: 14,
+              borderRadius: "var(--rw-radius-md)",
               textDecoration: "none",
             }}
           >
@@ -69,36 +87,59 @@ export default function MemberDashboard() {
 
       <div className="rw-featured-grid" style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 32 }}>
         <div>
-          <h2 style={{ fontWeight: 600, fontSize: 20, color: "var(--rw-ink)", marginBottom: 16 }}>Your lessons</h2>
+          <h2 style={{ fontWeight: 800, textTransform: "uppercase", fontSize: 24, color: "var(--rw-ink)", marginBottom: 16 }}>Your lessons</h2>
           <div className="rw-cols-2" style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 16 }}>
-            {lessons.map((lesson) => (
-              <Link
-                key={lesson.id}
-                href={`/member/lesson/${lesson.id}`}
-                className="rw-card"
-                style={{
-                  display: "block",
-                  padding: 18,
-                  background: "var(--rw-surface)",
-                  border: "1px solid var(--rw-border)",
-                  borderRadius: 14,
-                  textDecoration: "none",
-                }}
-              >
-                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--rw-teal)", marginBottom: 6 }}>
-                  {lesson.difficulty} &middot; {lesson.key}
-                </div>
+            {lessons.map((lesson) => {
+              // Lesson videos aren't all ready, and a lesson without one has nothing to open yet.
+              const ready = Boolean(lesson.videoUrl || lesson.playthroughVideoUrl);
+              const card = { display: "block", padding: 18, background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)", textDecoration: "none" };
+              const inside = (
+                <>
                 <div style={{ fontWeight: 700, fontSize: 17, color: "var(--rw-ink)" }}>{lesson.title}</div>
-                <div style={{ fontSize: 13.5, color: "var(--rw-meta)" }}>{lesson.artist}</div>
-                <div style={{ fontSize: 12.5, color: "var(--rw-body)", marginTop: 8 }}>{lesson.estTime}</div>
-              </Link>
-            ))}
+                <div style={{ fontSize: 13.5, color: "var(--rw-meta)" }}>{[lesson.artist, lesson.difficulty, lesson.key].filter(Boolean).join(" · ")}</div>
+                <div style={{ fontSize: 12.5, color: "var(--rw-body)", marginTop: 8 }}>
+                  {lesson.locked ? "Unlocks with your term" : ready ? lesson.estTime : "Coming soon"}
+                </div>
+                </>
+              );
+              return ready || lesson.locked ? (
+                <Link key={lesson.id} href={`/member/lesson/${lesson.id}`} className="rw-card" style={card}>
+                  {inside}
+                </Link>
+              ) : (
+                <div key={lesson.id} style={card}>
+                  {inside}
+                </div>
+              );
+            })}
             {lessons.length === 0 && <p style={{ color: "var(--rw-meta)" }}>No lessons assigned yet.</p>}
+          </div>
+
+          <div style={{ marginTop: 36, display: "grid", gap: 14 }}>
+            <Link
+              href="/member/library"
+              className="rw-card"
+              style={{
+                display: "block",
+                padding: 18,
+                background: "var(--rw-surface)",
+                border: "1px solid var(--rw-border)",
+                borderRadius: "var(--rw-radius-md)",
+                textDecoration: "none",
+              }}
+            >
+              <div style={{ fontWeight: 700, fontSize: 17, color: "var(--rw-ink)" }}>Practice library</div>
+              <div style={{ fontSize: 13.5, color: "var(--rw-meta)" }}>
+                {library
+                  ? `${library.songs.filter((s) => s.hasTracks).length} ready to play · more coming soon · ${library.songs.filter((s) => s.favorite).length} favourites`
+                  : "Search, filter and pick up where you left off."}
+              </div>
+            </Link>
           </div>
         </div>
 
         <div>
-          <div style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: 14, padding: 24, textAlign: "center", marginBottom: 20 }}>
+          <div style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)", padding: 24, textAlign: "center", marginBottom: 20 }}>
             <svg viewBox="0 0 110 110" width={110} height={110}>
               <circle cx={55} cy={55} r={ringR} fill="none" stroke="var(--rw-rule)" strokeWidth={9} />
               <circle
@@ -123,8 +164,8 @@ export default function MemberDashboard() {
             <p style={{ margin: 0, fontSize: 12.5, color: "var(--rw-meta)" }}>{stats.streak || 0}-day streak</p>
           </div>
 
-          <div style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: 14, padding: 20 }}>
-            <div style={{ fontWeight: 700, fontSize: 13, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--rw-teal)", marginBottom: 12 }}>
+          <div style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)", padding: 20 }}>
+            <div style={{ fontWeight: 700, fontSize: 15, color: "var(--rw-ink)", marginBottom: 12 }}>
               Achievements
             </div>
             <div style={{ display: "flex", gap: 14 }}>

@@ -1,8 +1,11 @@
+const { rolesOf } = require("../lib/roles");
 const express = require("express");
 const bcrypt = require("bcrypt");
+const rateLimit = require("express-rate-limit").default;
 const passport = require("../config/passport");
 const prisma = require("../lib/prisma");
 const { requireAuth } = require("../middleware/auth");
+const { signMobileToken } = require("../lib/mobileToken");
 const {
   issueVerification,
   issueReset,
@@ -19,6 +22,16 @@ const {
 } = require("../lib/mailer");
 
 const router = express.Router();
+
+// Slows password guessing. Only failures count, per IP address, across the website and the app.
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 20,
+  skipSuccessfulRequests: true,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many failed sign-in attempts. Try again in 15 minutes." },
+});
 
 const SALT_ROUNDS = 12;
 
@@ -42,18 +55,25 @@ async function sendVerificationLink(req, user, token) {
   }
 }
 
-const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || "").trim().toLowerCase();
-
 function toSafeUser(user) {
   if (!user) return null;
-  const { passwordHash, verificationTokenHash, resetTokenHash, ...safe } = user;
-  const isAdmin = Boolean(ADMIN_EMAIL) && user.email === ADMIN_EMAIL;
+  const { passwordHash, verificationTokenHash, resetTokenHash, roles: grants, ...safe } = user;
+  const roles = rolesOf(user);
+  const isAdmin = roles.includes("admin");
+  const isTeacher = roles.includes("teacher");
+  const isGuardian = roles.includes("guardian");
+  // A guardian who isn't also a student follows their child; they don't enrol or pay.
+  const guardianOnly = user.role === "guardian";
   return {
     ...safe,
+    roles,
     isAdmin,
+    isTeacher,
+    isGuardian,
     emailVerified: Boolean(user.emailVerifiedAt),
-    profileComplete: Boolean(user.instrument),
-    paymentComplete: isAdmin || Boolean(user.paidAt),
+    profileComplete: guardianOnly || Boolean(user.instrument),
+    // Teachers are staff and don't buy a membership (see requirePaid).
+    paymentComplete: guardianOnly || isAdmin || isTeacher || Boolean(user.paidAt),
   };
 }
 
@@ -65,7 +85,8 @@ function nextStepFor(user) {
   if (!safe.emailVerified) return "/verify-email";
   if (!safe.profileComplete) return "/onboarding";
   if (!safe.paymentComplete) return "/onboarding/payment";
-  return "/member";
+  if (safe.isTeacher) return "/teacher";
+  return safe.role === "guardian" ? "/family" : "/member";
 }
 
 function isEmailValid(email) {
@@ -86,10 +107,13 @@ const PROFILE_STRING_FIELDS = [
   "plan",
 ];
 
+// Long enough for any real name, address or phone number; longer is not one.
+const MAX_PROFILE_FIELD = 200;
+
 function collectProfileFields(body) {
   const data = {};
   for (const key of PROFILE_STRING_FIELDS) {
-    if (typeof body[key] === "string") data[key] = body[key].trim();
+    if (typeof body[key] === "string") data[key] = body[key].trim().slice(0, MAX_PROFILE_FIELD);
   }
   if (typeof body.isMinor === "boolean") data.isMinor = body.isMinor;
   return data;
@@ -139,7 +163,7 @@ router.post("/signup", async (req, res, next) => {
   }
 });
 
-router.post("/login", (req, res, next) => {
+router.post("/login", loginLimiter, (req, res, next) => {
   passport.authenticate("local", (err, user, info) => {
     if (err) return next(err);
     if (!user) {
@@ -149,6 +173,18 @@ router.post("/login", (req, res, next) => {
       if (loginErr) return next(loginErr);
       return res.json({ user: toSafeUser(user) });
     });
+  })(req, res, next);
+});
+
+// Same check as /login, but returns a token instead of starting a session.
+router.post("/mobile/login", loginLimiter, (req, res, next) => {
+  passport.authenticate("local", { session: false }, (err, user, info) => {
+    if (err) return next(err);
+    if (!user) {
+      return res.status(401).json({ error: info?.message || "Invalid credentials." });
+    }
+    const token = signMobileToken(user);
+    return res.json({ token, user: toSafeUser(user) });
   })(req, res, next);
 });
 

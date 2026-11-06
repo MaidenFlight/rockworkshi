@@ -36,7 +36,7 @@ export default function SongLibrary() {
     if (levelFilter && s.level !== levelFilter) return false;
     if (query && !`${s.title} ${s.artist}`.toLowerCase().includes(query.toLowerCase())) return false;
     return true;
-  });
+  }).sort((a, b) => Number(b.hasTracks) - Number(a.hasTracks)); // what's ready first, coming soon after
 
   const openSong = songs?.find((s) => s.id === openId);
 
@@ -106,6 +106,11 @@ export default function SongLibrary() {
                   ))}
                 </div>
                 <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+                  {openSong.hasTracks && (
+                    <Link href={`/member/song/${openSong.id}`} style={{ padding: "13px 28px", borderRadius: "var(--rw-radius-sm)", background: "var(--rw-ink)", color: "#fff", fontWeight: 700, fontSize: 15, textDecoration: "none" }}>
+                      Play along &rarr;
+                    </Link>
+                  )}
                   <Link href="/signup" style={{ padding: "13px 28px", borderRadius: "var(--rw-radius-sm)", background: "var(--rw-orange)", color: "#fff", fontWeight: 700, fontSize: 15, textDecoration: "none" }}>
                     <T k="cta.join.arrow">Join the member area &rarr;</T>
                   </Link>
@@ -157,20 +162,29 @@ export default function SongLibrary() {
               {filtered.map((s) => (
                 <div
                   key={s.id}
-                  onClick={() => setOpenId(s.id)}
-                  className="dash-song"
-                  style={{ display: "flex", alignItems: "center", gap: 16, padding: "16px 20px", borderBottom: "1px solid var(--rw-border)", cursor: "pointer" }}
+                  onClick={s.hasTracks ? () => setOpenId(s.id) : undefined}
+                  className={s.hasTracks ? "dash-song" : undefined}
+                  style={{ display: "flex", alignItems: "center", gap: 16, padding: "16px 20px", borderBottom: "1px solid var(--rw-border)", cursor: s.hasTracks ? "pointer" : "default" }}
                 >
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 600, fontSize: 17, color: "var(--rw-ink)" }}>{s.title}</div>
+                    <div style={{ fontWeight: 600, fontSize: 17, color: s.hasTracks ? "var(--rw-ink)" : "var(--rw-meta)" }}>{s.title}</div>
                     <div style={{ fontSize: 13.5, color: "var(--rw-meta)" }}>
                       {s.artist} {s.instrument ? `· ${s.instrument}` : ""}
                     </div>
                   </div>
+                  {s.hasTracks && (
+                    <span style={{ flexShrink: 0, fontSize: 12, fontWeight: 700, color: "var(--rw-orange-deep)", background: "var(--rw-orange-tint)", padding: "3px 8px", borderRadius: "var(--rw-radius-sm)" }}>
+                      Play along
+                    </span>
+                  )}
                   {s.level && (
                     <span style={{ flexShrink: 0, fontSize: 12, fontWeight: 700, color: "var(--rw-teal)" }}>{s.level}</span>
                   )}
-                  <span style={{ flexShrink: 0, fontSize: 13, fontWeight: 700, color: "var(--rw-orange-deep)" }}>View &rarr;</span>
+                  {s.hasTracks ? (
+                    <span style={{ flexShrink: 0, fontSize: 13, fontWeight: 700, color: "var(--rw-orange-deep)" }}>View &rarr;</span>
+                  ) : (
+                    <span style={{ flexShrink: 0, fontSize: 13, fontWeight: 700, color: "var(--rw-meta)" }}>Coming soon</span>
+                  )}
                 </div>
               ))}
             </div>

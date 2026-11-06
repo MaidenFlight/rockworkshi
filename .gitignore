@@ -16,3 +16,7 @@ Thumbs.db
 frontend/.impeccable/
 skills-lock.json
 interview-prep/
+
+# Song stems are commercial recordings; they live in R2, not in git.
+Music/
+.vscode/

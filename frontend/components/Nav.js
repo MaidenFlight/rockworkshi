@@ -8,17 +8,17 @@ import { primaryNav } from "@/lib/content";
 import RockWorksIcon from "@/components/RockWorksIcon";
 import ProfileMenu from "@/components/auth/ProfileMenu";
 import { useAuth } from "@/contexts/AuthContext";
-import { ROLES } from "@/lib/auth/roles";
+import { dashboardFor } from "@/lib/auth/enrolment";
 import { firstNameOf, initialsOf } from "@/lib/auth/displayName";
 
 export default function Nav() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, isAuthenticated, role, signOut } = useAuth();
+  const { user, isAuthenticated, signOut } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileExpanded, setMobileExpanded] = useState(null);
 
-  const dashboardHref = role === ROLES.ADMINISTRATOR ? "/admin" : "/member";
+  const dashboardHref = dashboardFor(user);
 
   const isActive = (item) =>
     item.href ? (item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)) : item.menu?.some((sub) => pathname.startsWith(sub.href));

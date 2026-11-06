@@ -71,6 +71,47 @@ tuition is the route to the band, not the product beside it.
   format, how-it-works, teachers, alumni, events, on-stage, programs, song
   library, FAQ, contact, trial, and the legal set).
 
+## Term Structure (teaching)
+
+Agreed structure for song-a-month teaching. Teaching enrolment is **separate from
+billing**: buying the Term plan pays for member access and never puts anyone in a
+group; staff enrol students by hand under Admin → Terms.
+
+- Students are enrolled in a shared **three-month term group** (name, start and end
+  date). Unlocks follow the group's schedule, not each student's signup date.
+- Each term has **three monthly slots**, each with an explicit unlock date and time,
+  an optional song (and optional lesson), and a draft/published status. Staff don't
+  have to choose all three songs up front.
+- A slot's song reaches the group's students only when **its unlock time has passed
+  (server time) and staff have published it**. If the date arrives first, students
+  see "Your next song is being prepared". Future months show a date, never a title.
+- **Once a student has reached a song, they keep it.** Decided by the owner on
+  2026-11-01: "once they pass the song, yes they should have access." A month that has
+  opened for a student stays open for them after the term ends, after they leave or
+  change group, and even if staff later change or unpublish that month (recorded as a
+  `TermGrant`). The paid-membership check still applies.
+- Scheduling and display use **Pacific/Honolulu**; the database stores UTC instants.
+- First term: month 1 is "Have You Ever Seen the Rain" (Creedence Clearwater
+  Revival), set with the "Use … for month 1" action (a lookup, not a fixed id).
+  Months 2 and 3 start unassigned.
+- Publishing is blocked until a slot has a song that is visible in the song library;
+  other problems (no stems yet, unpublished lesson, unlock date outside the term)
+  show as warnings.
+
+**Access rules** (enforced by the API in `backend/src/lib/termAccess.js`, for song
+stems, lesson videos, the library and assignments alike). A song or lesson becomes
+*term content* once any slot points at it. Term content is open to staff (admin and
+teachers), to a paying student whose group's slot for it is published and unlocked,
+and to a student whose linked teacher has assigned it. Content in no slot keeps the
+old rule: every paying member. Song titles in the public catalogue stay public.
+Signed links for term songs last 10 minutes instead of an hour.
+
+**Who can open a term song** (decided by the owner on 2026-11-01: "as long as they
+are a paying student and have already covered the song"): a paying student who has
+reached it in their term, or whose teacher assigned it, plus staff. Members who aren't
+in a term don't get term songs, including "Have You Ever Seen the Rain" once a term
+uses it. Songs in no term stay open to every paying member.
+
 ## Capabilities and Constraints
 
 - **Six instruments, and the six names are load-bearing strings**: Guitar, Piano,
