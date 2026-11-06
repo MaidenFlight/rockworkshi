@@ -5,7 +5,8 @@ const { isR2Configured, signedUrl } = require("../lib/r2");
 const { partForInstrument, sortTracks } = require("../lib/songTracks");
 const { MAX_PRESETS_PER_SONG, validateSettings, validateName, presentPreset } = require("../lib/mixPresets");
 const { validateSession, validateNotes, presentPractice } = require("../lib/practice");
-const { loadAccess, denialMessage, linkSeconds } = require("../lib/termAccess");
+const { loadAccess, denialMessage, linkSeconds, isStaff } = require("../lib/termAccess");
+const { INSTRUMENTS, canonicalInstrument, presentTutorials } = require("../lib/lessonVideos");
 
 const router = express.Router();
 
@@ -36,6 +37,36 @@ router.get("/:id/tracks", requirePaid, async (req, res) => {
     // Served here, behind the same checks as the stems. null until a chart is added.
     chart: song.chart,
   });
+});
+
+// The song's video tutorials, behind the same checks as its stems. A student only ever gets their
+// own instrument's published videos; asking for another is refused, not quietly answered. Staff
+// can look at any instrument's, as that instrument's students see them.
+router.get("/:id/tutorials", requirePaid, async (req, res) => {
+  const song = await findPlayableSong(req.params.id);
+  if (!song) return res.status(404).json({ error: "Not found." });
+  const access = (await loadAccess(req.user)).song(song.id);
+  if (!access.allowed) return res.status(403).json({ error: denialMessage(access.reason), reason: access.reason });
+
+  const own = canonicalInstrument(req.user.instrument);
+  let instrument = own;
+  if (req.query.instrument !== undefined) {
+    const asked = canonicalInstrument(req.query.instrument);
+    if (!isStaff(req.user)) {
+      if (!asked || asked !== own) {
+        return res.status(403).json({ error: "You can only see the video tutorials for your own instrument.", reason: "instrument" });
+      }
+    } else if (!asked) {
+      return res.status(400).json({ error: `instrument must be one of: ${INSTRUMENTS.join(", ")}.` });
+    }
+    instrument = asked;
+  }
+
+  // Only this instrument's published rows are read, so no other instrument's ids or links can leak.
+  const videos = instrument
+    ? await prisma.lessonVideo.findMany({ where: { songId: song.id, instrument, published: true } })
+    : [];
+  res.json(presentTutorials(videos, instrument));
 });
 
 // ---------- Mix presets: each student's own, per song ----------

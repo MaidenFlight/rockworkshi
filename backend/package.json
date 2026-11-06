@@ -13,7 +13,8 @@
     "mail:check": "node scripts/mail-check.js",
     "songs:upload": "node scripts/upload-song.js",
     "songs:measure": "node scripts/measure-songs.js",
-    "songs:chart": "node scripts/set-chart.js"
+    "songs:chart": "node scripts/set-chart.js",
+    "fixtures:tutorials": "node scripts/tutorial-fixtures.js"
   },
   "keywords": [],
   "author": "",

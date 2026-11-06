@@ -295,6 +295,7 @@ model Song {
   updatedAt  DateTime @updatedAt
 
   tracks      SongTrack[]
+  videos      LessonVideo[]
   assignments Assignment[]
   mixPresets  MixPreset[]
   practice    SongPractice[]
@@ -385,11 +386,15 @@ model Lesson {
   termGrants  TermGrant[]
 }
 
-// One video per (lesson, instrument, level, kind). Most slots start empty.
+// One video per (lesson or song, instrument, level, kind). Most slots start empty.
+// A row belongs to exactly one lesson or one song (a CHECK in the migration enforces it).
+// A song's videos are its tutorials, shown above the practice player.
 model LessonVideo {
-  id       String @id @default(uuid())
-  lessonId String
-  lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  id       String  @id @default(uuid())
+  lessonId String?
+  lesson   Lesson? @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  songId   String?
+  song     Song?   @relation(fields: [songId], references: [id], onDelete: Cascade)
 
   // must match User.instrument (see INSTRUMENTS in lib/lessonVideos.js)
   instrument String
@@ -410,6 +415,7 @@ model LessonVideo {
   updatedAt DateTime @updatedAt
 
   @@unique([lessonId, instrument, level, kind])
+  @@unique([songId, instrument, level, kind])
   @@index([lessonId])
 }
 

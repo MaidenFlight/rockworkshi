@@ -263,46 +263,52 @@ contentCrud(
   { orderBy: { order: "asc" } }
 );
 
-// ---------- Lesson videos ----------
-// Videos are addressed by slot (lesson, instrument, level, kind). PUT upserts;
-// an empty videoId deletes the slot.
+// ---------- Lesson and song videos ----------
+// Videos are addressed by slot (lesson or song, instrument, level, kind). PUT upserts;
+// an empty videoId deletes the slot. A song's videos are its tutorials on the song page.
 
-router.get("/lessons/:lessonId/videos", async (req, res) => {
-  const lesson = await prisma.lesson.findUnique({ where: { id: req.params.lessonId } });
-  if (!lesson) return res.status(404).json({ error: "Not found." });
-  const videos = await prisma.lessonVideo.findMany({
-    where: { lessonId: lesson.id },
-    orderBy: [{ level: "asc" }, { instrument: "asc" }, { kind: "asc" }],
+function videoSlots(path, model, ownerKey) {
+  router.get(`/${path}/:ownerId/videos`, async (req, res) => {
+    const owner = await model.findUnique({ where: { id: req.params.ownerId } });
+    if (!owner) return res.status(404).json({ error: "Not found." });
+    const videos = await prisma.lessonVideo.findMany({
+      where: { [ownerKey]: owner.id },
+      orderBy: [{ level: "asc" }, { instrument: "asc" }, { kind: "asc" }],
+    });
+    res.json({ videos });
   });
-  res.json({ videos });
-});
 
-router.put("/lessons/:lessonId/videos", async (req, res) => {
-  const lesson = await prisma.lesson.findUnique({ where: { id: req.params.lessonId } });
-  if (!lesson) return res.status(404).json({ error: "Not found." });
+  router.put(`/${path}/:ownerId/videos`, async (req, res) => {
+    const owner = await model.findUnique({ where: { id: req.params.ownerId } });
+    if (!owner) return res.status(404).json({ error: "Not found." });
 
-  const { error, slot } = validateSlot(req.body);
-  if (error) return res.status(400).json({ error });
+    const { error, slot } = validateSlot(req.body);
+    if (error) return res.status(400).json({ error });
 
+    const { provider, ...key } = slot;
+    const identity = { [ownerKey]: owner.id, ...key };
 
-  const { provider, ...key } = slot;
-  const identity = { lessonId: lesson.id, ...key };
+    const videoId = (req.body.videoId || "").trim();
+    if (!videoId) {
+      // deleteMany so clearing an empty slot doesn't throw
+      await prisma.lessonVideo.deleteMany({ where: identity });
+      return res.json({ video: null });
+    }
 
-  const videoId = (req.body.videoId || "").trim();
-  if (!videoId) {
-    // deleteMany so clearing an empty slot doesn't throw
-    await prisma.lessonVideo.deleteMany({ where: identity });
-    return res.json({ video: null });
-  }
-
-  const published = req.body.published === undefined ? true : !!req.body.published;
-  const video = await prisma.lessonVideo.upsert({
-    where: { lessonId_instrument_level_kind: identity },
-    create: { ...identity, provider, videoId, published },
-    update: { provider, videoId, published },
+    // A new slot is published unless told otherwise; changing an existing slot's id leaves its
+    // published state alone, so a draft stays hidden from students until it's published on purpose.
+    const published = req.body.published === undefined ? undefined : !!req.body.published;
+    const video = await prisma.lessonVideo.upsert({
+      where: { [`${ownerKey}_instrument_level_kind`]: identity },
+      create: { ...identity, provider, videoId, published: published ?? true },
+      update: { provider, videoId, ...(published === undefined ? {} : { published }) },
+    });
+    res.json({ video });
   });
-  res.json({ video });
-});
+}
+
+videoSlots("lessons", prisma.lesson, "lessonId");
+videoSlots("songs", prisma.song, "songId");
 
 // ---------- Pages / Resources / Media ----------
 
