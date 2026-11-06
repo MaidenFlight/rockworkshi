@@ -216,6 +216,8 @@ Ten steps and no eleventh: 11 · 12.5 · 13.5 · 15 · 16.5 · 18.5 · 22 · 26 
 | Price figure | `.rw-price-figure` | 44 → 68px |
 | Record lead | `.rw-record-lead` | 25 → 38px |
 | Empty-state lead | `.rw-empty-lead` | 28 → 44px |
+| Metronome tempo | `.tempoValue` (metronome module) | 88 → 136px |
+| Metronome focus tempo | `.console[data-size="focus"] .tempoValue` | 120 → 280px |
 
 **The list drifted once already, which is the thing to watch.** It was written naming four roles and the stylesheet reached ten without the sentence changing — every addition individually defensible, none of them checked against the rule that was supposed to bound them. That is precisely the quiet widening the exception exists to prevent, so adding a fluid role means adding a row here in the same commit.
 
@@ -337,6 +339,21 @@ Non-negotiable, and verified by measuring rendered pages rather than reading sou
 - The skip link is the first focusable element on every page.
 
 Headless browsers report no window focus, so `:focus` never matches and focus states read as broken. Enable CDP focus emulation before concluding a focus style is missing.
+
+## The metronome
+
+`/tools/metronome` is an Operate surface built like the song player: a **lacquer console** (the instrument) beside **paper settings**, quieter than the console. It shipped on 2026-11-06. Its styles are a CSS module (`components/metronome/metronome.module.css`), so none of its names can collide with `globals.css`; the engine and rhythm maths live outside React in `lib/metronome/`.
+
+- **The console** holds what a beginner needs first: a state lamp with the bar and elapsed time, the tempo, the beat cells, the counting line and Start/Tap. Everything else sits in three tabs (Metronome, Training, Presets), and advanced rhythm (swing, polyrhythms) is a closed disclosure at the foot of the first.
+- **The tempo is the input.** The big numeral is typed into directly, with the note it counts drawn beside it (♩ =, ♩. =, ♪ =) and a plain caption ("quarter notes per minute"). It checks itself on Enter or blur and says what it did with a number out of range. ±1 and ±5 keys and a slider sit underneath; precise entry never depends on dragging.
+- **Beat cells carry the accent as a shape.** Each cell has the tag's top rule: thick and gold for Strong, thin for Normal, none for Silent, which also goes dashed and shows the sound-off mark. Every cell says its level in words. The cell sounding now fills flare with ink type; during the count-in it fills gold; in a silent bar with the lights left on it is only outlined in sea glass, because nothing is sounding. Groups in odd meters get a bracket with their size underneath.
+- **Choices are square tiles**, like a sewn tag: the checked one turns label stock with a flare band across the top. Classic, being rounded, swaps the band for a 2px orange border on the orange tint.
+- **Notation is drawn** (`NoteValue`), never typed: the music symbols in fonts differ on every device.
+- **Motion follows the audio clock.** Beat lights, the counting line and the polyrhythm cycle are written to the DOM on animation frames from the engine's snapshot of what is audible now, allowing for output latency. React renders only when settings change, and once a bar or a second for the readouts. Under reduced motion the cycle view's sweeping line is hidden and lights change without transition; the lit beat stays.
+- **Phone.** Below 560px the console runs edge to edge like a band so the beat cells get the width. While its transport is out of sight, a compact bar (Start/Stop, tempo, a beat strip, Tap) stays at the foot of the screen.
+- **Focus view** is a native `<dialog>` filling the screen: the same console at stage size, closed with Esc or Exit focus, returning focus to the Focus key.
+- **Sizes.** The tempo numeral is fluid (see the table above); beat numbers 32px (44px in focus view); transport keys 60px tall (84px in focus view); every control is at least 44px. The state lamp follows the 0.22em label rule.
+- **Classic.** The lit cell takes light type there: Classic's darker red puts ink at 3.3:1 against 4.8:1 for light type.
 
 ## Known state, not prescription
 
