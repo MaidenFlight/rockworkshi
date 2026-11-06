@@ -170,7 +170,7 @@ function Demo() {
         title={<>Student demo</>}
         lead={
           <>
-            See the member area the way a student does: {song ? `their part of ${song.title} with the band, ` : "their part of a song with the band, "}
+            Try the member area as a sample student: {song ? `${song.title} with every instrument on its own track, ` : "a song with every instrument on its own track, "}
             the chart and chord library for their instrument, and the practice tools.
           </>
         }

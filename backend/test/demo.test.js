@@ -231,9 +231,10 @@ test("a demo student can use the student features on their own data", async () =
   }
 });
 
-test("the demo plays the student's own part like a member, or just the chart with DEMO_SONG_AUDIO=off", async () => {
+test("the demo plays every stem with its student's own chart, or just the chart with DEMO_SONG_AUDIO=off", async () => {
   const song = await demoSong(kai.user);
   if (!song) return;
+  const stems = (await prisma.songTrack.findMany({ where: { songId: song.id }, select: { part: true } })).map((t) => t.part);
   const before = process.env.DEMO_SONG_AUDIO;
   try {
     delete process.env.DEMO_SONG_AUDIO;
@@ -241,9 +242,13 @@ test("the demo plays the student's own part like a member, or just the chart wit
     // 503 only where this machine has no song storage set up; the demo answers like any member either way.
     assert.ok([200, 503].includes(loud.status));
     if (loud.status === 200) {
-      assert.equal(loud.data.scope, "instrument");
+      assert.equal(loud.data.scope, "all", "the full mixer");
+      assert.deepEqual(loud.data.tracks.map((t) => t.part).sort(), [...stems].sort(), "every stem on its own");
+      assert.ok(loud.data.tracks.every((t) => t.url));
+      assert.equal(loud.data.instrument, "Guitar");
+      assert.equal(loud.data.myPart, "Guitar");
+      assert.equal(loud.data.chart?.parts, undefined, "a guitar student's chart: the chords, no other part's transcription");
       assert.equal(loud.data.demo, undefined);
-      assert.ok(loud.data.tracks.every((t) => ["Guitar", "Backing"].includes(t.part)), "only their own part and the band");
     }
 
     process.env.DEMO_SONG_AUDIO = "off";
@@ -257,6 +262,32 @@ test("the demo plays the student's own part like a member, or just the chart wit
     if (before === undefined) delete process.env.DEMO_SONG_AUDIO;
     else process.env.DEMO_SONG_AUDIO = before;
   }
+});
+
+test("the demo's saved mix covers every stem, and a visitor can save one for any part", async () => {
+  const song = await demoSong(kai.user);
+  if (!song) return;
+  const stems = (await prisma.songTrack.findMany({ where: { songId: song.id }, select: { part: true } })).map((t) => t.part);
+  if (!stems.includes("Guitar")) return;
+  const { data } = await call(kai, "GET", `/songs/${song.id}/mix-presets`);
+  const seeded = data.presets.find((p) => p.name === "Guitar up front");
+  assert.ok(seeded, "the demo comes with a saved mix");
+  assert.deepEqual(Object.keys(seeded.settings.stems).sort(), [...stems].sort());
+  assert.equal(seeded.settings.stems.Guitar.volume, 100);
+
+  const other = stems.find((p) => p !== "Guitar");
+  if (!other) return;
+  const settings = {
+    stems: Object.fromEntries(stems.map((p) => [p, { volume: 80, muted: p === "Guitar", soloed: false }])),
+    master: 90,
+    take: 80,
+    mode: "solo",
+    focus: other,
+  };
+  const saved = await call(kai, "PUT", `/songs/${song.id}/mix-presets`, { name: `Just the ${other}`, settings });
+  assert.equal(saved.status, 201);
+  assert.equal(saved.data.preset.settings.focus, other, "any part, not only their own");
+  assert.equal(saved.data.preset.settings.stems.Guitar.muted, true, "mute and solo stay, as on the full mixer");
 });
 
 test("no one signs into a demo account with a password, or takes a reset or a phone token for one", async () => {

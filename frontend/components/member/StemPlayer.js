@@ -156,7 +156,8 @@ function toWav(buffer) {
 // (role "own") and one backing band of every other part (role "backing", with a `makeup` gain that
 // undoes the turn-down it was mixed with). It plays in three modes named for their instrument, with
 // two faders instead of a strip per part. available says which of their stem, backing band and chart
-// the song has. Staff get scope "all": every stem, with the full mixer.
+// the song has. Staff get scope "all": every stem, with the full mixer. So does the student demo, which
+// also names its instrument: that shows "Your instrument" and keeps the chart to that student's.
 export default function StemPlayer({
   tracks,
   myPart,
@@ -1428,7 +1429,7 @@ export default function StemPlayer({
   return (
     <PlayClock.Provider value={clock}>
     <div className="rw-player" data-review={review ? "true" : undefined} data-view={view}>
-      {student && (
+      {instrument && (
         <p className="rw-player-instrument" style={{ "--lane": partColor(myPart) }}>
           <span aria-hidden="true" className="rw-part-swatch" />
           Your instrument: <strong>{instrument}</strong>
@@ -1512,7 +1513,7 @@ export default function StemPlayer({
               chart={chart}
               position={position}
               myPart={myPart}
-              instrument={student ? instrument : null}
+              instrument={instrument || null}
               partAvailable={available?.chart ?? true}
               loop={loop}
               disabled={!ready || recording}

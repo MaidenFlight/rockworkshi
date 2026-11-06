@@ -28,7 +28,7 @@ const { DEMO_DOMAIN, isDemo } = require("./demoRules");
 const { localParts, addDays, weekdayOf, toInstant } = require("./zoned");
 const { regenerate } = require("./classes");
 const { validateSession } = require("./practice");
-const { validateMixer, partForInstrument, canonicalInstrument, BACKING } = require("./instrumentAccess");
+const { validateMixer, partForInstrument, canonicalInstrument } = require("./instrumentAccess");
 const { deleteAssignmentRecordings } = require("./assignments");
 
 const DEMO_MS = 2 * 60 * 60 * 1000;
@@ -439,11 +439,14 @@ async function startDemo({ instrument: asked = "Guitar", now = clock.now() } = {
             createdAt: ago(40),
           },
         });
+        // A saved mix for the demo's full mixer (it hears every stem: scopeFor in lib/instrumentAccess.js):
+        // their own part up front and the rest of the band a little back.
         const own = partForInstrument(instrument);
         if (song.tracks.some((t) => t.part === own)) {
+          const stems = Object.fromEntries(song.tracks.map((t) => [t.part, { volume: t.part === own ? 100 : 65 }]));
           const { settings } = validateMixer(
-            { stems: { [own]: { volume: 100 }, [BACKING]: { volume: 65 } }, master: 90, take: 80, mode: "full", focus: own },
-            { staff: false, instrument }
+            { stems, master: 90, take: 80, mode: "full", focus: own },
+            { staff: false, instrument, allStems: true }
           );
           if (settings) await tx.mixPreset.create({ data: { ...kaiKey, songId: song.id, name: `${instrument} up front`, settings } });
         }
