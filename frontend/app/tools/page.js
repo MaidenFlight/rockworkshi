@@ -12,7 +12,7 @@ import { nextEnrolmentStep } from "@/lib/auth/enrolment";
 const TOOLS = [
   { key: "tuner", title: "Tuner", desc: "Mic-based tuning plus plucked reference tones.", icon: "tuner", free: true },
   { key: "metronome", title: "Metronome", desc: "Any tempo and meter, with accents, subdivisions and speed-building practice.", icon: "metronome", free: true },
-  { key: "chords", title: "Chord Library", desc: "Real fingerings for guitar, ukulele, bass, and piano.", icon: "chords" },
+  { key: "chords", title: "Chord Library", desc: "Every chord, scale and groove for the instrument you study, linked to our songs.", icon: "chords" },
   { key: "piano", title: "Piano", desc: "A two-octave, polyphonic on-screen keyboard.", icon: "keys" },
   { key: "rhythm", title: "Rhythm Trainer", desc: "Read a rhythm, hear it, tap it back. Every note graded early, late or on time.", icon: "drum" },
 ];
