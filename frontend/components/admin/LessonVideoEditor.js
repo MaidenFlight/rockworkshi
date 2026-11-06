@@ -20,7 +20,9 @@ function slotKey(instrument, kind) {
   return `${instrument}|${kind}`;
 }
 
-export default function LessonVideoEditor({ lesson, onClose }) {
+// Edits a lesson's video slots, or a song's (its tutorials on the song page) when given that
+// song as `lesson` and its path, e.g. /admin/songs/:id/videos.
+export default function LessonVideoEditor({ lesson, path = `/admin/lessons/${lesson.id}/videos`, onClose }) {
   const [videos, setVideos] = useState([]);
   const [level, setLevel] = useState(1);
   const [draft, setDraft] = useState({});
@@ -31,7 +33,7 @@ export default function LessonVideoEditor({ lesson, onClose }) {
   async function load() {
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/admin/lessons/${lesson.id}/videos`, {
+      const res = await fetch(`${API_URL}${path}`, {
         credentials: "include",
       });
       const data = await res.json();
@@ -73,7 +75,7 @@ export default function LessonVideoEditor({ lesson, onClose }) {
       for (const [key, value] of changed) {
         const [instrument, kind] = key.split("|");
         const videoId = value.trim();
-        const res = await fetch(`${API_URL}/admin/lessons/${lesson.id}/videos`, {
+        const res = await fetch(`${API_URL}${path}`, {
           method: "PUT",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
@@ -172,6 +174,7 @@ export default function LessonVideoEditor({ lesson, onClose }) {
                         {value.trim() && (
                           <div style={{ fontSize: 11, color: "var(--rw-meta)", marginTop: 3 }}>
                             {providerFor(value) === "bunny" ? "Bunny id" : "Direct URL"}
+                            {saved[slotKey(inst.name, k.key)]?.published === false ? " · Draft, hidden from students" : ""}
                           </div>
                         )}
                       </td>

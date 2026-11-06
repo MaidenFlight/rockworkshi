@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import StemPlayer from "@/components/member/StemPlayer";
 import FavoriteButton from "@/components/member/library/FavoriteButton";
 import PracticeNotes from "@/components/member/library/PracticeNotes";
+import SongTutorials from "@/components/member/SongTutorials";
 import { NetworkError, practiceRequest } from "@/lib/practice";
 import { hasLoop, sendForReview } from "@/lib/teaching";
 
@@ -93,6 +94,7 @@ function SongPlayAlong() {
   }
 
   const { song, practice, tracks, assignment } = page;
+  const locked = page.access && !page.access.allowed;
   const backHref = assignment ? `/member/assignment/${assignment.id}` : "/member/library";
   const initialLoop = assignment && hasLoop(assignment) ? { start: assignment.sectionStart, end: assignment.sectionEnd } : null;
   // Resume state only goes back to the server when something changed, and at most every few seconds.
@@ -139,7 +141,10 @@ function SongPlayAlong() {
         </div>
       )}
 
-      {page.access && !page.access.allowed ? (
+      {/* A shut song gets the one explanation below, which covers its tutorials too. */}
+      {!locked && <SongTutorials songId={song.id} user={user} playerId="practice-player" playerBelow={Boolean(tracks)} />}
+
+      {locked ? (
         // The server refuses the stems too; this just explains why instead of a broken player.
         <div role="status" style={{ padding: 20, background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)", lineHeight: 1.55 }}>
           <strong style={{ color: "var(--rw-ink)" }}>{page.access.message}</strong>
@@ -168,7 +173,8 @@ function SongPlayAlong() {
           <div style={{ marginTop: 6, color: "var(--rw-body)", fontSize: 14 }}>Check back soon, or pick another song from your library.</div>
         </div>
       ) : tracks ? (
-        <>
+        // The tutorials' "Go to practice player" lands here, clear of the sticky header.
+        <section id="practice-player" tabIndex={-1} aria-label="Practice player" style={{ scrollMarginTop: 96, outline: "none" }}>
           {practice.session?.position && !initialLoop ? (
             <p style={{ margin: "0 0 12px", fontSize: 13.5, color: "var(--rw-meta)", lineHeight: 1.55 }}>
               Opened where you left off. Press Play when you&apos;re ready.
@@ -196,7 +202,7 @@ function SongPlayAlong() {
                 : null
             }
           />
-        </>
+        </section>
       ) : (
         <div style={{ padding: 20, background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)" }}>
           {page.tracksOffline ? (
