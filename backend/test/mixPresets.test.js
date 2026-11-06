@@ -1,5 +1,6 @@
-// Mix presets belong to one student and one song. Runs against the dev database in .env
-// with throwaway @example.test accounts.
+// Mix presets belong to one person and one song. A student's only cover their own part and the
+// backing band (lib/instrumentAccess.js); staff keep every stem. Runs against the dev database in
+// .env with throwaway @example.test accounts.
 require("dotenv").config({ quiet: true });
 
 const { test, before, after } = require("node:test");
@@ -38,6 +39,8 @@ const settings = {
     Drums: { volume: 100, muted: false, soloed: true },
     Bass: { volume: 100, muted: false, soloed: true },
     Cowbell: { volume: 100, muted: false, soloed: false },
+    Guitar: { volume: 80, muted: true, soloed: false },
+    Backing: { volume: 65, muted: false, soloed: true },
   },
   effects: { bypass: false, low: 1, mid: 2, high: -1, drive: 35, reverb: 10, size: "small", output: -2 },
 };
@@ -46,11 +49,13 @@ before(async () => {
   server = app.listen(0);
   await new Promise((resolve) => server.once("listening", resolve));
   base = `http://localhost:${server.address().port}`;
-  for (const name of ["a", "b", "unpaid"]) {
+  for (const name of ["a", "b", "unpaid", "teacher", "nobody"]) {
     users[name] = await prisma.user.create({
       data: {
         email: `${RUN}-${name}@example.test`,
         passwordHash: "!no-login",
+        instrument: name === "nobody" ? null : "Guitar",
+        ...(name === "teacher" ? { role: "teacher" } : {}),
         ...(name === "unpaid" ? {} : { paidAt: new Date() }),
       },
     });
@@ -74,8 +79,13 @@ test("presets are saved per student and song, and cleaned on the way in", async 
   const saved = await call("a", "PUT", path, { name: "  Drums & bass ", settings });
   assert.equal(saved.status, 201);
   assert.equal(saved.data.preset.name, "Drums & bass");
-  assert.deepEqual(Object.keys(saved.data.preset.settings.stems).sort(), ["Bass", "Drums", "Vocals"], "unknown parts dropped");
-  assert.equal(saved.data.preset.settings.effects.size, "small");
+  const kept = saved.data.preset.settings;
+  assert.deepEqual(Object.keys(kept.stems).sort(), ["Backing", "Guitar"], "only their own part and the backing band");
+  assert.deepEqual(kept.stems.Guitar, { volume: 80, muted: false, soloed: false }, "no mute or solo: the play modes do that");
+  assert.deepEqual(kept.stems.Backing, { volume: 65, muted: false, soloed: false });
+  assert.equal(kept.focus, "Guitar");
+  assert.equal(kept.instrument, "Guitar", "stamped with the instrument it was made for");
+  assert.equal(kept.effects.size, "small");
 
   // Same name replaces rather than duplicates.
   const replaced = await call("a", "PUT", path, { name: "Drums & bass", settings: { ...settings, master: 50 } });
@@ -88,6 +98,15 @@ test("presets are saved per student and song, and cleaned on the way in", async 
   assert.equal((await call("b", "GET", path)).data.presets.length, 0);
   assert.equal((await call("b", "DELETE", `${path}/${mine.data.presets[0].id}`)).status, 404);
   assert.equal((await call("a", "DELETE", `${path}/${mine.data.presets[0].id}`)).status, 204);
+});
+
+test("staff presets keep every stem, whatever their own instrument", async () => {
+  const path = `/songs/${song.id}/mix-presets`;
+  const saved = await call("teacher", "PUT", path, { name: "Whole band", settings });
+  assert.equal(saved.status, 201);
+  assert.deepEqual(Object.keys(saved.data.preset.settings.stems).sort(), ["Bass", "Drums", "Guitar", "Vocals"], "unknown parts dropped");
+  assert.equal(saved.data.preset.settings.stems.Drums.soloed, true);
+  assert.equal((await call("teacher", "GET", path)).data.presets.length, 1);
 });
 
 test("bad preset input is refused", async () => {
@@ -105,6 +124,7 @@ test("bad preset input is refused", async () => {
     400
   );
   assert.equal((await call("a", "PUT", "/songs/not-a-song/mix-presets", { name: "x", settings })).status, 404);
+  assert.equal((await call("nobody", "PUT", path, { name: "x", settings })).status, 400, "no instrument, nothing to mix");
 });
 
 test("a student keeps at most 20 presets per song", async () => {

@@ -13,7 +13,9 @@
     "mail:check": "node scripts/mail-check.js",
     "songs:upload": "node scripts/upload-song.js",
     "songs:measure": "node scripts/measure-songs.js",
-    "songs:chart": "node scripts/set-chart.js"
+    "songs:chart": "node scripts/set-chart.js",
+    "songs:backing": "node scripts/make-backing.js",
+    "seed:fixtures": "node scripts/seed-instrument-fixtures.js"
   },
   "keywords": [],
   "author": "",

@@ -50,6 +50,19 @@ export default function LessonDetail() {
         </div>
         <h1 style={{ fontWeight: 600, fontSize: 30, color: "var(--rw-ink)", margin: "6px 0 2px" }}>{lesson.title}</h1>
         <p style={{ color: "var(--rw-meta)", margin: 0 }}>{lesson.artist}</p>
+        {/* The server only sends videos for this instrument (the student's own, set by the school). */}
+        {lesson.instrument ? (
+          <p style={{ color: "var(--rw-body)", margin: "8px 0 0", fontSize: 14 }}>
+            Videos for your instrument: <strong style={{ color: "var(--rw-ink)" }}>{lesson.instrument}</strong>
+          </p>
+        ) : (
+          <p role="status" style={{ color: "var(--rw-body)", margin: "8px 0 0", fontSize: 14 }}>
+            Your account doesn&apos;t have an instrument yet, so there are no lesson videos to show.{" "}
+            <Link href="/member/settings#instrument" style={{ color: "var(--rw-orange-deep)" }}>
+              Ask the school to set it
+            </Link>
+          </p>
+        )}
       </div>
 
       <VideoPlayer lesson={lesson} />

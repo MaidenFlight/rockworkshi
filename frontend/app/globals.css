@@ -2470,6 +2470,25 @@ main:focus {
   border-radius: var(--rw-radius-sm);
   font-size: 13.5px;
 }
+/* Why a student's play mode is off: information, not a warning, so it stays in the console's own edge. */
+.rw-tl-note-quiet {
+  margin: 0;
+  padding: 8px 12px;
+  border-color: var(--rw-console-edge);
+  color: var(--rw-console-meta);
+}
+/* A student's player names their instrument once, above the transport, in their part's colour. */
+.rw-player-instrument {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 14px;
+  color: var(--rw-body);
+}
+.rw-player-instrument strong {
+  color: var(--rw-ink);
+}
 .rw-tl-body {
   display: flex;
   border: 1px solid var(--rw-console-edge);
@@ -2811,6 +2830,30 @@ div:has(> .rw-scrub:focus-visible) {
   border-color: var(--rw-ink);
   color: var(--rw-cream);
 }
+/* A student's one view, in place of the tabs: a label, not a control. */
+.rw-part-own {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  margin: 0;
+  padding: 0 14px;
+  border: 1px solid var(--rw-line);
+  border-radius: var(--rw-radius-sm);
+  color: var(--rw-ink);
+  font-size: 13.5px;
+  font-weight: 700;
+}
+/* Their part isn't written out yet: said plainly, with nothing borrowed from another part. */
+.rw-part-missing {
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--rw-line);
+  border-radius: var(--rw-radius-sm);
+  color: var(--rw-prose);
+  font-size: 14px;
+  line-height: 1.55;
+}
 .rw-help-modes {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -2989,6 +3032,18 @@ div:has(> .rw-scrub:focus-visible) {
 .rw-fader-strip[data-on="true"] .rw-fader-lamp {
   background: var(--lane);
   box-shadow: 0 0 6px var(--lane);
+}
+/* Switched off by a play mode: dimmed and inert, with the reason written under the strips. */
+.rw-fader-strip[data-disabled="true"] .rw-fader-body,
+.rw-fader-strip[data-disabled="true"] .rw-fader-value {
+  opacity: 0.4;
+}
+.rw-fader-strip[data-disabled="true"] .rw-fader-input {
+  cursor: not-allowed;
+}
+/* A student's two strips have room to be wider than a seven-strip console's. */
+.rw-mixer[data-balance="true"] .rw-strip:not(.rw-strip-master) {
+  max-width: 128px;
 }
 .rw-fader-body {
   display: flex;

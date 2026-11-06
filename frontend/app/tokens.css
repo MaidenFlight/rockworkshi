@@ -117,7 +117,10 @@
   --rw-part-keys: var(--rw-sea-glass);
   --rw-part-bass: #8fb2ff;
   --rw-part-drums: #c6e86f;
+  --rw-part-ukulele: #f5a3c7;
   --rw-part-take: var(--rw-flare); /* your own recording, red like the Rec lamp */
+  /* A student's backing band (every part but theirs, mixed): neutral, so their own part's colour leads. */
+  --rw-part-backing: var(--rw-console-meta);
   --rw-part-other: var(--rw-chrome-mid);
 
   /* ---- Meter zones: safe, getting hot, at the top ---- */

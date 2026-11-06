@@ -25,7 +25,13 @@ export async function practiceRequest(path, { keepalive = false, ...options } = 
     throw new NetworkError();
   }
   const data = res.status === 204 ? {} : await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+  if (!res.ok) {
+    const err = new Error(data.error || `Request failed (${res.status})`);
+    // e.g. reason "no_instrument", so a page can say what to do rather than just "failed".
+    err.status = res.status;
+    err.reason = data.reason ?? null;
+    throw err;
+  }
   return data;
 }
 

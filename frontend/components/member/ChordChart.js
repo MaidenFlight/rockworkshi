@@ -18,6 +18,12 @@ const MODE_KEY = "rw-chord-mode";
 const PART_KEY = "rw-chart-part";
 const CHORD_PARTS = ["Guitar", "Keys"];
 const NOTE_PARTS = ["Bass", "Drums", "Vocals"];
+// The one view a student of each instrument gets: the chords voiced for their instrument, or their own
+// transcription. Mirrors INSTRUMENT_PARTS in backend/src/lib/instrumentAccess.js, which sends nothing else.
+const STUDENT_VIEW = { Guitar: "Guitar", Piano: "Keys", Ukulele: "Ukulele", Bass: "Bass", Drums: "Drums", Voice: "Vocals" };
+const VIEW_NAME = { Guitar: "Guitar chords", Keys: "Piano chords", Ukulele: "Ukulele chords", Bass: "Bass tab", Drums: "Drum part", Vocals: "Vocal melody" };
+const MISSING_NAME = { Bass: "bass", Drums: "drum", Vocals: "vocal" };
+const voicingOf = (part) => (part === "Keys" ? "keys" : part === "Ukulele" ? "ukulele" : "guitar");
 
 function saved(key, allowed, fallback) {
   try {
@@ -36,10 +42,11 @@ function remember(key, value) {
   }
 }
 
-function Diagram({ name, keys }) {
-  const shape = songChordShape(name, keys);
+// voicing is "guitar", "keys" or "ukulele". A chord with no shape for the instrument draws nothing.
+function Diagram({ name, voicing }) {
+  const shape = songChordShape(name, voicing);
   if (!shape) return null;
-  return keys ? <KeyboardDiagram left={shape.left} right={shape.right} /> : <ChordDiagram frets={shape.frets} base={shape.base} />;
+  return voicing === "keys" ? <KeyboardDiagram left={shape.left} right={shape.right} /> : <ChordDiagram frets={shape.frets} base={shape.base} />;
 }
 
 // Follows the song by position, so it stays right at any speed and through a loop.
@@ -47,7 +54,9 @@ function Diagram({ name, keys }) {
 // coach is a line of advice on what to try next, from the player. ephemeral leaves the visitor's
 // remembered part and help level alone (the homepage preview); titleAs sets the heading level.
 // endLabel names what comes after the last section, for a chart that's an excerpt.
-export default function ChordChart({ chart, position, myPart = null, loop = null, disabled = false, onSeek, onLoopSection, coach = null, ephemeral = false, titleAs: Title = "h2", endLabel = null }) {
+// instrument (a student's) shows only that instrument's view, with no tabs for the other parts;
+// partAvailable false says their transcription isn't written yet, rather than showing another.
+export default function ChordChart({ chart, position, myPart = null, instrument = null, partAvailable = true, loop = null, disabled = false, onSeek, onLoopSection, coach = null, ephemeral = false, titleAs: Title = "h2", endLabel = null }) {
   // The player hands down new functions on every frame. Steady ones let the bars skip redrawing.
   const handlers = useRef({ onSeek, onLoopSection });
   useEffect(() => {
@@ -56,12 +65,15 @@ export default function ChordChart({ chart, position, myPart = null, loop = null
   const seekTo = useCallback((t) => handlers.current.onSeek(t), []);
   const loopRange = useCallback((start, end) => handlers.current.onLoopSection(start, end), []);
 
+  const studentView = instrument ? STUDENT_VIEW[instrument] : null;
   const available = useMemo(() => [...CHORD_PARTS, ...NOTE_PARTS.filter((p) => chart.parts?.[p])], [chart]);
-  // What was picked last, or else the part this student plays.
-  const [part, setPart] = useState(() => {
+  // What was picked last, or else the part this person plays. A student never picks: theirs is fixed.
+  const [chosen, setPart] = useState(() => {
     const fallback = available.includes(myPart) ? myPart : "Guitar";
     return ephemeral ? fallback : saved(PART_KEY, available, fallback);
   });
+  const part = studentView || chosen;
+  const missing = Boolean(studentView) && NOTE_PARTS.includes(part) && (!partAvailable || !chart.parts?.[part]);
   const [mode, setMode] = useState(() => (ephemeral ? "guide" : saved(MODE_KEY, MODES.map((m) => m.id), "guide")));
   const [peeked, setPeeked] = useState(null); // the chord being peeked at; hides again once the song moves on
 
@@ -102,7 +114,8 @@ export default function ChordChart({ chart, position, myPart = null, loop = null
     if (!ephemeral) remember(PART_KEY, id);
   }
 
-  const keys = part === "Keys";
+  const voicing = voicingOf(part);
+  const keys = voicing === "keys";
 
   const peeking = peeked !== null && peeked === current;
   const help = MODES.find((m) => m.id === mode).help;
@@ -115,24 +128,39 @@ export default function ChordChart({ chart, position, myPart = null, loop = null
     <div className="rw-play-along" data-mode={mode}>
       <div className="rw-pa-head">
         <Title className="rw-pa-title">Play along</Title>
-        <div role="group" aria-label="Show the part for" className="rw-part-tabs">
-          {available.map((p) => (
-            <button key={p} type="button" onClick={() => choosePart(p)} aria-pressed={part === p} className="rw-part-tab" style={{ "--lane": partColor(p) }}>
-              <span aria-hidden="true" className="rw-part-swatch" />
-              {p}
-            </button>
-          ))}
-        </div>
+        {studentView ? (
+          <p className="rw-part-own" style={{ "--lane": partColor(studentView) }}>
+            <span aria-hidden="true" className="rw-part-swatch" />
+            {VIEW_NAME[studentView]}
+          </p>
+        ) : (
+          <div role="group" aria-label="Show the part for" className="rw-part-tabs">
+            {available.map((p) => (
+              <button key={p} type="button" onClick={() => choosePart(p)} aria-pressed={part === p} className="rw-part-tab" style={{ "--lane": partColor(p) }}>
+                <span aria-hidden="true" className="rw-part-swatch" />
+                {p}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
-      <div role="group" aria-label="How much help" className="rw-help-modes">
-        {MODES.map((m) => (
-          <button key={m.id} type="button" onClick={() => chooseMode(m.id)} aria-pressed={mode === m.id} className="rw-help-mode">
-            <Icon name={m.icon} size={16} />
-            {m.label}
-          </button>
-        ))}
-      </div>
-      <p className="rw-help-text">{help}</p>
+      {missing ? (
+        <p className="rw-part-missing" role="status">
+          {`The ${MISSING_NAME[part]} part for this song isn't written out yet. Play along by ear for now: it will appear here once it's ready.`}
+        </p>
+      ) : (
+        <>
+          <div role="group" aria-label="How much help" className="rw-help-modes">
+            {MODES.map((m) => (
+              <button key={m.id} type="button" onClick={() => chooseMode(m.id)} aria-pressed={mode === m.id} className="rw-help-mode">
+                <Icon name={m.icon} size={16} />
+                {m.label}
+              </button>
+            ))}
+          </div>
+          <p className="rw-help-text">{help}</p>
+        </>
+      )}
       <div className="rw-now-next" data-now-next="true">
         <span>
           <span className="rw-nn-label">Now</span>
@@ -155,7 +183,7 @@ export default function ChordChart({ chart, position, myPart = null, loop = null
         </p>
       )}
 
-      {NOTE_PARTS.includes(part) && (
+      {NOTE_PARTS.includes(part) && !missing && (
         <PartChart chart={chart} part={part} position={position} mode={mode} loop={loop} disabled={disabled} onSeek={seekTo} onLoopSection={loopRange} />
       )}
 
@@ -180,7 +208,7 @@ export default function ChordChart({ chart, position, myPart = null, loop = null
             </div>
             {now && (
               <div className="rw-chord-shape">
-                <Diagram name={now.name} keys={keys} />
+                <Diagram name={now.name} voicing={voicing} />
               </div>
             )}
           </div>
@@ -191,7 +219,7 @@ export default function ChordChart({ chart, position, myPart = null, loop = null
             </div>
             {next && (
               <div className="rw-chord-shape">
-                <Diagram name={next.name} keys={keys} />
+                <Diagram name={next.name} voicing={voicing} />
               </div>
             )}
           </div>
@@ -204,7 +232,7 @@ export default function ChordChart({ chart, position, myPart = null, loop = null
             <div style={label}>{now ? `${section.name} · bar ${now.b + 1} of ${section.bars.length}` : "Get ready"}</div>
             <div style={bigChord}>{peeking ? now.name : "?"}</div>
           </div>
-          {peeking && <Diagram name={now.name} keys={keys} />}
+          {peeking && <Diagram name={now.name} voicing={voicing} />}
           <button onClick={() => setPeeked(current)} disabled={!now || peeking} style={btn}>
             Peek at this chord
           </button>
@@ -231,11 +259,14 @@ export default function ChordChart({ chart, position, myPart = null, loop = null
               <div key={name} style={{ textAlign: "center", fontWeight: 700, fontSize: 14, color: "var(--rw-ink)" }}>
                 {name}
                 <div>
-                  <Diagram name={name} keys={keys} />
+                  <Diagram name={name} voicing={voicing} />
                 </div>
               </div>
             ))}
           </div>
+          {names.some((name) => !songChordShape(name, voicing)) && (
+            <p style={{ ...hint, margin: "8px 0 0" }}>{`A chord without a diagram has no ${voicing === "keys" ? "piano" : voicing} shape here yet.`}</p>
+          )}
         </div>
       )}
     </div>

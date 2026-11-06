@@ -17,6 +17,7 @@ import { createStretchVoice } from "@/lib/audio/stretch";
 import { DEFAULT_EFFECTS, createTakeEffects } from "@/lib/audio/takeEffects";
 import ChordChart from "./ChordChart";
 import MixerPanel from "./mixer/MixerPanel";
+import PartBalance from "./mixer/PartBalance";
 import EffectsRack from "./mixer/EffectsRack";
 import MixPresets from "./mixer/MixPresets";
 import RecordPanel from "./player/RecordPanel";
@@ -151,6 +152,11 @@ function toWav(buffer) {
 // over the saved loop and position.
 // onSendTake({ blob, offset, duration }, onProgress) offers sending a take to a teacher.
 // chart is the song's chord chart, if it has one.
+// scope "instrument" is a student's player (see /songs/:id/tracks): tracks are their own stem
+// (role "own") and one backing band of every other part (role "backing", with a `makeup` gain that
+// undoes the turn-down it was mixed with). It plays in three modes named for their instrument, with
+// two faders instead of a strip per part. available says which of their stem, backing band and chart
+// the song has. Staff get scope "all": every stem, with the full mixer.
 export default function StemPlayer({
   tracks,
   myPart,
@@ -164,8 +170,26 @@ export default function StemPlayer({
   initialLoop = null,
   onSendTake = null,
   chart = null,
+  scope = "all",
+  instrument = null,
+  available = null,
 }) {
   const parts = useMemo(() => tracks.map((t) => t.part), [tracks]);
+  const student = scope === "instrument" && Boolean(instrument);
+  const ownPart = student ? (tracks.find((t) => t.role === "own")?.part ?? null) : null;
+  const hasBacking = student && tracks.some((t) => t.role === "backing");
+  // Turns each track back up by what it was turned down by when it was mixed (1 for a plain stem).
+  const makeup = useMemo(() => Object.fromEntries(tracks.map((t) => [t.part, t.makeup ?? 1])), [tracks]);
+  const noun = student ? instrument.toLowerCase() : "";
+  // A student's three modes: the whole song, everything but their part, and their part alone.
+  // A mode the song can't play yet (no stem for their instrument, or no backing band) is off, and says why.
+  const studentModes = student
+    ? [
+        { id: "full", label: "Whole song", ready: hasBacking },
+        { id: "minus", label: `Without ${noun}`, ready: hasBacking && Boolean(ownPart) },
+        { id: "solo", label: `${instrument} only`, ready: Boolean(ownPart) },
+      ]
+    : null;
   const reviewUrl = review?.url;
   const reviewTime = review?.songTime ?? 0;
   const saved = resume?.mixer;
@@ -178,9 +202,15 @@ export default function StemPlayer({
   const [playing, setPlaying] = useState(false);
   const [position, setPosition] = useState(startPosition);
   const [duration, setDuration] = useState(0);
-  const [mode, setMode] = useState(MIX_MODES.includes(saved?.mode) ? saved.mode : "full");
-  const [focus, setFocus] = useState(
-    parts.includes(saved?.focus) ? saved.focus : parts.includes(myPart) ? myPart : parts[0]
+  const [mode, setMode] = useState(() => {
+    const wanted = MIX_MODES.includes(saved?.mode) ? saved.mode : "full";
+    if (!studentModes) return wanted;
+    const ready = (id) => studentModes.find((m) => m.id === id).ready;
+    return ready(wanted) ? wanted : (["full", "solo", "minus"].find(ready) ?? "full");
+  });
+  // A student's focus is always their own part: the modes only ever add or take away the band.
+  const [focus, setFocus] = useState(() =>
+    student ? (ownPart ?? parts[0]) : parts.includes(saved?.focus) ? saved.focus : parts.includes(myPart) ? myPart : parts[0]
   );
 
   const [recording, setRecording] = useState(false);
@@ -512,11 +542,11 @@ export default function StemPlayer({
     const levels = stemLevels(mix, mode, focus, parts);
     for (const part of parts) {
       const gain = gainsRef.current[part];
-      if (gain) rampTo(ctx, gain.gain, levels[part].gain);
+      if (gain) rampTo(ctx, gain.gain, levels[part].gain * makeup[part]);
     }
     rampTo(ctx, takeGainRef.current.gain, takeLevel(mix));
     rampTo(ctx, busRef.current.master.gain, percentToGain(mix.master));
-  }, [mix, mode, focus, parts]);
+  }, [mix, mode, focus, parts, makeup]);
 
   useEffect(() => {
     fxRef.current?.apply(fx);
@@ -1038,7 +1068,7 @@ export default function StemPlayer({
       for (const part of parts) {
         if (!levels[part].audible) continue;
         const gain = offline.createGain();
-        gain.gain.value = levels[part].gain;
+        gain.gain.value = levels[part].gain * makeup[part];
         gain.connect(bus.input);
         const src = offline.createBufferSource();
         src.buffer = buffersRef.current[part];
@@ -1105,7 +1135,7 @@ export default function StemPlayer({
   const lanes = useMemo(() => {
     const list = parts.map((p) => ({
       id: p,
-      label: p === myPart ? `${p} (${partLabel})` : p,
+      label: student ? (p === ownPart ? `Your ${noun}` : "Backing band") : p === myPart ? `${p} (${partLabel})` : p,
       color: partColor(p),
       state: states[p],
       peaks: peaks[p] ?? null,
@@ -1113,7 +1143,7 @@ export default function StemPlayer({
     }));
     if (take) list.push({ id: "take", label: takeLabel, color: partColor("take"), state: mix.takeMuted ? "muted" : "playing", peaks: takePeaks, offset: takeStart, getMeter: getTake });
     return list;
-  }, [parts, myPart, partLabel, states, peaks, partMeters, take, takeLabel, mix.takeMuted, takePeaks, takeStart, getTake]);
+  }, [parts, student, ownPart, noun, myPart, partLabel, states, peaks, partMeters, take, takeLabel, mix.takeMuted, takePeaks, takeStart, getTake]);
 
   if (status === "error") {
     return <div style={panel}>The tracks couldn&apos;t be loaded. Refresh the page to try again.</div>;
@@ -1131,15 +1161,26 @@ export default function StemPlayer({
     }));
   }
 
-  const heldBack = parts.some((p) => mix.stems[p]?.soloed || mix.stems[p]?.muted);
+  // Students have no mute or solo (the server keeps them off), so nothing can be held back unseen.
+  const heldBack = !student && parts.some((p) => mix.stems[p]?.soloed || mix.stems[p]?.muted);
   const playingParts = parts.filter((p) => levels[p].audible);
 
   function applyPreset(s) {
     setMix(mixFromSettings(s, parts));
-    if (MIX_MODES.includes(s.mode)) setMode(s.mode);
-    if (parts.includes(s.focus)) setFocus(s.focus);
+    const modeReady = !studentModes || studentModes.some((m) => m.id === s.mode && m.ready);
+    if (MIX_MODES.includes(s.mode) && modeReady) setMode(s.mode);
+    if (!student && parts.includes(s.focus)) setFocus(s.focus);
     if (s.effects) setFx({ ...DEFAULT_EFFECTS, ...s.effects });
   }
+
+  // Why a student's mode is off, when one is: said once, beside the modes.
+  const modeNote = !student
+    ? null
+    : !ownPart
+      ? `This recording has no separate ${noun} track, so it plays as the whole song.`
+      : !hasBacking
+        ? `The backing band for this song is still being prepared, so for now you can play your ${noun} on its own.`
+        : null;
 
   // Where the song is, by the chart: section, and bar within it.
   let where = null;
@@ -1171,17 +1212,35 @@ export default function StemPlayer({
 
   const bandHeader = (
     <div className="rw-tl-header">
-      <div role="group" aria-label="Band" className="rw-tp-group">
-        <span className="rw-tp-label">Band</span>
-        <span className="rw-seg">
-          {MODES.map((m) => (
-            <button key={m.id} type="button" onClick={() => (m.id === "full" ? playAllParts() : setMode(m.id))} aria-pressed={mode === m.id}>
-              {m.label}
-            </button>
-          ))}
-        </span>
-      </div>
-      {mode !== "full" && (
+      {student ? (
+        <div role="group" aria-label="What plays" className="rw-tp-group">
+          <span className="rw-tp-label">Play</span>
+          <span className="rw-seg">
+            {studentModes.map((m) => (
+              <button key={m.id} type="button" onClick={() => setMode(m.id)} aria-pressed={mode === m.id} disabled={!m.ready}>
+                {m.label}
+              </button>
+            ))}
+          </span>
+        </div>
+      ) : (
+        <div role="group" aria-label="Band" className="rw-tp-group">
+          <span className="rw-tp-label">Band</span>
+          <span className="rw-seg">
+            {MODES.map((m) => (
+              <button key={m.id} type="button" onClick={() => (m.id === "full" ? playAllParts() : setMode(m.id))} aria-pressed={mode === m.id}>
+                {m.label}
+              </button>
+            ))}
+          </span>
+        </div>
+      )}
+      {modeNote && (
+        <p role="note" className="rw-tl-note rw-tl-note-quiet">
+          {modeNote}
+        </p>
+      )}
+      {!student && mode !== "full" && (
         <div role="group" aria-label={mode === "solo" ? "Only this part" : "Leave out"} className="rw-tp-group">
           <span className="rw-tp-label">{mode === "solo" ? "Only" : "Leave out"}</span>
           {parts.map((p) => (
@@ -1255,22 +1314,39 @@ export default function StemPlayer({
     label: "Mixer",
     content: (
       <>
-        <MixerPanel
-          parts={parts}
-          mix={mix}
-          levels={levels}
-          states={states}
-          onChange={setMix}
-          takeLabel={takeLabel}
-          onReset={() => setMix(defaultMix(parts))}
-          meters={partMeters}
-          getMaster={getMaster}
-          getTake={getTake}
-          active={playing}
-        />
+        {student ? (
+          <PartBalance
+            instrument={instrument}
+            ownPart={ownPart}
+            mix={mix}
+            mode={mode}
+            levels={levels}
+            onChange={setMix}
+            takeLabel={takeLabel}
+            onReset={() => setMix(defaultMix(parts))}
+            meters={partMeters}
+            getMaster={getMaster}
+            getTake={getTake}
+            active={playing}
+          />
+        ) : (
+          <MixerPanel
+            parts={parts}
+            mix={mix}
+            levels={levels}
+            states={states}
+            onChange={setMix}
+            takeLabel={takeLabel}
+            onReset={() => setMix(defaultMix(parts))}
+            meters={partMeters}
+            getMaster={getMaster}
+            getTake={getTake}
+            active={playing}
+          />
+        )}
         {songId && !review && (
           <div className="rw-studio-block">
-            <MixPresets songId={songId} getSettings={() => ({ mode, focus, ...mix, effects: fx })} onApply={applyPreset} />
+            <MixPresets songId={songId} getSettings={() => ({ mode, focus, ...mix, effects: fx })} onApply={applyPreset} example={student ? "Quiet band" : undefined} />
           </div>
         )}
       </>
@@ -1352,6 +1428,12 @@ export default function StemPlayer({
   return (
     <PlayClock.Provider value={clock}>
     <div className="rw-player" data-review={review ? "true" : undefined} data-view={view}>
+      {student && (
+        <p className="rw-player-instrument" style={{ "--lane": partColor(myPart) }}>
+          <span aria-hidden="true" className="rw-part-swatch" />
+          Your instrument: <strong>{instrument}</strong>
+        </p>
+      )}
       {intro && simple && (
         <section className="rw-intro" aria-labelledby="player-intro">
           <h2 id="player-intro" className="rw-intro-title">
@@ -1362,7 +1444,11 @@ export default function StemPlayer({
             <li>Too fast? Pick a lower Speed.</li>
             <li>To repeat a tricky part, drag across its bars on the Loop strip{chart ? ", or press Loop beside a section in the chart" : ""}.</li>
           </ol>
-          <p className="rw-intro-more">Studio, beside View, opens each part&apos;s lane, the mixer and the recorder.</p>
+          <p className="rw-intro-more">
+            {student
+              ? `Play, beside the timeline, switches between the whole song, the band without your ${noun}, and your ${noun} alone. Studio, beside View, balances your ${noun} against the band and opens the recorder.`
+              : "Studio, beside View, opens each part's lane, the mixer and the recorder."}
+          </p>
           <button type="button" className="rw-btn rw-intro-ok" onClick={dismissIntro}>
             Got it
           </button>
@@ -1422,7 +1508,18 @@ export default function StemPlayer({
       <div className="rw-player-cols" data-chart={chart && !review && !simple ? "true" : "false"}>
         {chart && !review && (
           <section className="rw-practice" aria-label="Play along">
-            <ChordChart chart={chart} position={position} myPart={myPart} loop={loop} disabled={!ready || recording} onSeek={seek} onLoopSection={loopSection} coach={coach} />
+            <ChordChart
+              chart={chart}
+              position={position}
+              myPart={myPart}
+              instrument={student ? instrument : null}
+              partAvailable={available?.chart ?? true}
+              loop={loop}
+              disabled={!ready || recording}
+              onSeek={seek}
+              onLoopSection={loopSection}
+              coach={coach}
+            />
           </section>
         )}
         {/* Hidden rather than removed, so a recording or mic check keeps its panel. */}

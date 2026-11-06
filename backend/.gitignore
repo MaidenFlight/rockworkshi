@@ -5,3 +5,6 @@ node_modules
 .env
 .env.*
 !.env.example
+# Local song audio for development (MEDIA_DIR) and the fixture account list with its password.
+.media/
+.local/

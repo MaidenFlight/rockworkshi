@@ -4,7 +4,8 @@ import { memo, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { drawPeaks } from "@/lib/audio/peaks";
 import Meter from "./Meter";
 
-const PARTS = ["Vocals", "Guitar", "Keys", "Bass", "Drums"];
+// "Backing" is a student's backing band: every part but theirs, mixed into one track.
+const PARTS = ["Vocals", "Guitar", "Keys", "Bass", "Drums", "Ukulele", "Backing"];
 const STRIP_H = 18; // the loop strip
 const SECTIONS_H = 22;
 const TIMES_H = 16;

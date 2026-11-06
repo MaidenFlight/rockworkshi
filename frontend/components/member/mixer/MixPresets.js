@@ -16,7 +16,8 @@ async function request(path, options = {}) {
 }
 
 // Named mixes saved to the student's account for this song, so they follow them to the phone.
-export default function MixPresets({ songId, getSettings, onApply }) {
+// example is the sample name in the empty name field.
+export default function MixPresets({ songId, getSettings, onApply, example = "Drums up" }) {
   const [presets, setPresets] = useState([]);
   const [selected, setSelected] = useState("");
   const [name, setName] = useState("");
@@ -88,7 +89,7 @@ export default function MixPresets({ songId, getSettings, onApply }) {
           value={name}
           onChange={(e) => setName(e.target.value)}
           maxLength={40}
-          placeholder="Name this mix, e.g. Drums up"
+          placeholder={`Name this mix, e.g. ${example}`}
           aria-label="Name for this mix"
           className="rw-console-input"
         />

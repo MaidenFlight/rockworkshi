@@ -2,16 +2,18 @@
 // Usage: npm run songs:upload -- <folder> --title "Song" --artist "Artist" [--level Beginner] [--dry-run]
 //
 // Stems are matched to parts by file name ("(Bass Only)", "Isolated Guitars", ...).
-// Files that aren't a single stem, like the full mix, are skipped.
-// Writes to whichever database DATABASE_URL points at.
+// Files that aren't a single stem, like the full mix, are skipped. Then makes the mixes students
+// play along with (see songs:backing). Needs ffmpeg.
+// Writes to whichever database DATABASE_URL points at, and to MEDIA_DIR instead of R2 when that's set.
 require("dotenv").config({ quiet: true });
 const fs = require("fs");
 const path = require("path");
 const { parseArgs } = require("util");
 const prisma = require("../src/lib/prisma");
-const { isR2Configured, putObject } = require("../src/lib/r2");
+const { isMediaConfigured, putMedia } = require("../src/lib/media");
 const { partFromFileName, storageKeyFor, PARTS } = require("../src/lib/songTracks");
 const { measureMixLevel } = require("../src/lib/mixLevel");
+const { renderMixes, saveMixes } = require("../src/lib/songMixes");
 
 const { values, positionals } = parseArgs({
   allowPositionals: true,
@@ -63,7 +65,7 @@ async function main() {
     return;
   }
   // Check before touching the database so a missing key doesn't leave a half-made song.
-  if (!isR2Configured()) {
+  if (!isMediaConfigured()) {
     throw new Error("R2 is not configured. Set R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY and R2_BUCKET in .env.");
   }
 
@@ -82,7 +84,7 @@ async function main() {
   for (const s of stems) {
     const storageKey = storageKeyFor(song.id, s.part);
     process.stdout.write(`  uploading ${s.part}… `);
-    await putObject(storageKey, fs.readFileSync(s.fullPath), "audio/mpeg");
+    await putMedia(storageKey, fs.readFileSync(s.fullPath), "audio/mpeg");
     await prisma.songTrack.upsert({
       where: { songId_part: { songId: song.id, part: s.part } },
       update: { storageKey },
@@ -95,6 +97,18 @@ async function main() {
   const mixLevel = await measureMixLevel(stems.map((s) => s.fullPath));
   await prisma.song.update({ where: { id: song.id }, data: { mixLevel } });
   console.log(mixLevel);
+
+  // Students only ever get their own stem and one of these mixes, so without them the song plays
+  // for staff alone. Every stem of the song, including ones uploaded before, goes into them.
+  process.stdout.write("  mixing the backing bands… ");
+  const withTracks = await prisma.song.findUnique({ where: { id: song.id }, include: { tracks: true } });
+  const missing = withTracks.tracks.filter((t) => !stems.some((s) => s.part === t.part)).map((t) => t.part);
+  if (missing.length) {
+    console.log(`skipped: ${missing.join(", ")} came from an earlier upload. Run npm run songs:backing -- --song ${song.id}`);
+  } else {
+    await saveMixes(withTracks, await renderMixes(stems.map((s) => ({ part: s.part, input: s.fullPath }))));
+    console.log("done");
+  }
 
   console.log(`\nUploaded ${stems.length} tracks. Test with GET /songs/${song.id}/tracks`);
 }
