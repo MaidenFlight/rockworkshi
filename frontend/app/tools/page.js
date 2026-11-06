@@ -11,7 +11,7 @@ import { nextEnrolmentStep } from "@/lib/auth/enrolment";
 // The tuner and metronome are open to everyone; the rest come with membership.
 const TOOLS = [
   { key: "tuner", title: "Tuner", desc: "Mic-based tuning plus plucked reference tones.", icon: "tuner", free: true },
-  { key: "metronome", title: "Metronome", desc: "A steady click at any tempo, with tap tempo.", icon: "metronome", free: true },
+  { key: "metronome", title: "Metronome", desc: "Any tempo and meter, with accents, subdivisions and speed-building practice.", icon: "metronome", free: true },
   { key: "chords", title: "Chord Library", desc: "Real fingerings for guitar, ukulele, bass, and piano.", icon: "chords" },
   { key: "piano", title: "Piano", desc: "A two-octave, polyphonic on-screen keyboard.", icon: "keys" },
   { key: "rhythm", title: "Rhythm Trainer", desc: "Clap or play along with a count-in and highlighted beats.", icon: "drum" },

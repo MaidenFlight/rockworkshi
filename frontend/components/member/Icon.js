@@ -26,6 +26,11 @@ const PATHS = {
   drum: <path d="M4 9c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 9v7c0 1.7 3.6 3 8 3s8-1.3 8-3V9M8 2l4 6.5M16 2l-4 6.5" />,
   library: <path d="M4 4h4.5v16H4zM10 4h4.5v16H10zM15.6 5l3.9-1 3 15.5-3.9 1z" />,
   "sound-off": <path d="M3.5 9h4l5-4v14l-5-4h-4zM16 9.5l5 5M21 9.5l-5 5" />,
+  // The metronome.
+  "sound-on": <path d="M3.5 9h4l5-4v14l-5-4h-4zM16 9a4.2 4.2 0 0 1 0 6M18.6 6.4a7.8 7.8 0 0 1 0 11.2" />,
+  expand: <path d="M4 9.5V4h5.5M14.5 4H20v5.5M20 14.5V20h-5.5M9.5 20H4v-5.5" />,
+  collapse: <path d="M9.5 4v5.5H4M20 9.5h-5.5V4M14.5 20v-5.5H20M4 14.5h5.5V20" />,
+  link: <path d="M10.5 13.5a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1.2 1.2M13.5 10.5a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1.2-1.2" />,
 };
 
 export default function Icon({ name, size = 16 }) {
