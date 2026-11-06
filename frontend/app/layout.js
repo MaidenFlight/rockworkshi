@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SiteTextProvider } from "@/contexts/SiteTextContext";
 import SiteTextBar from "@/components/SiteTextBar";
+import DemoBanner from "@/components/auth/DemoBanner";
 import { getSiteText } from "@/lib/siteText";
 
 // Fonts are self-hosted so the build doesn't need to reach Google Fonts.
@@ -65,6 +66,7 @@ export default async function RootLayout({ children }) {
               Skip to content
             </a>
             <Nav />
+            <DemoBanner />
             {/* tabIndex -1 so the skip link actually moves focus here */}
             <main id="main" tabIndex={-1} style={{ flex: 1 }}>
               {children}

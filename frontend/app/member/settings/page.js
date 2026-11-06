@@ -273,6 +273,8 @@ function InstrumentSection({ instrument }) {
 }
 
 function ChangePasswordForm() {
+  // A student demo account has no password (backend lib/demo.js), so the form is shown but switched off.
+  const demo = Boolean(useAuth().user?.isDemo);
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -315,7 +317,7 @@ function ChangePasswordForm() {
     >
       <h2 style={{ fontWeight: 600, fontSize: 20, color: "var(--rw-ink)", margin: "0 0 4px" }}>Change password</h2>
       <p style={{ margin: "0 0 18px", fontSize: 13.5, color: "var(--rw-meta)" }}>
-        You&apos;ll stay signed in here. Any other devices will be signed out.
+        {demo ? "The student demo has no password, so changing it is switched off here." : "You'll stay signed in here. Any other devices will be signed out."}
       </p>
 
       <label style={fieldLabelStyle}>
@@ -325,6 +327,7 @@ function ChangePasswordForm() {
           value={current}
           onChange={(e) => setCurrent(e.target.value)}
           style={inputStyle}
+          disabled={demo}
           autoComplete="current-password"
         />
       </label>
@@ -335,6 +338,7 @@ function ChangePasswordForm() {
           value={next}
           onChange={(e) => setNext(e.target.value)}
           style={inputStyle}
+          disabled={demo}
           placeholder="At least 8 characters"
           autoComplete="new-password"
         />
@@ -346,6 +350,7 @@ function ChangePasswordForm() {
           value={confirm}
           onChange={(e) => setConfirm(e.target.value)}
           style={inputStyle}
+          disabled={demo}
           autoComplete="new-password"
         />
       </label>
@@ -361,7 +366,7 @@ function ChangePasswordForm() {
         </p>
       )}
 
-      <button type="submit" disabled={submitting} className="rw-cta" style={ctaButtonStyle}>
+      <button type="submit" disabled={submitting || demo} className="rw-cta" style={{ ...ctaButtonStyle, ...(demo ? { opacity: 0.5, cursor: "not-allowed" } : {}) }}>
         {submitting ? "Changing…" : "Change password"}
       </button>
     </form>

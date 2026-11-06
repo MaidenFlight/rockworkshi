@@ -25,7 +25,7 @@ const memberNav = [
 export default function Nav() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, isAuthenticated, signOut } = useAuth();
+  const { user, isAuthenticated, signOut, leaveDemo } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileExpanded, setMobileExpanded] = useState(null);
   const [openGroup, setOpenGroup] = useState(null); // the desktop menu opened by click or keyboard
@@ -89,6 +89,7 @@ export default function Nav() {
 
   async function handleMobileSignOut() {
     leaveDrawer();
+    if (user?.isDemo) return leaveDemo();
     await signOut();
     router.push("/");
   }
@@ -223,6 +224,15 @@ export default function Nav() {
               </>
             ) : (
               <>
+                {/* The student demo, for people the school gave its passcode to (app/demo). */}
+                <Link
+                  href="/demo"
+                  className="rw-nav-link"
+                  aria-current={matches("/demo") ? "page" : undefined}
+                  style={matches("/demo") ? activeNavLinkStyle : navLinkStyle}
+                >
+                  Demo
+                </Link>
                 <Link href="/signin" className="rw-nav-link" style={navLinkStyle}>
                   Sign In
                 </Link>
@@ -356,6 +366,7 @@ export default function Nav() {
                       {initialsOf(user)}
                     </span>
                     <span style={{ fontWeight: 700, fontSize: 16, color: "var(--rw-ink)" }}>{firstNameOf(user)}</span>
+                    {user?.isDemo && <span className="rw-demo-chip">Student demo</span>}
                   </div>
                   <div style={{ display: "flex", flexDirection: "column" }}>
                     {!isStudent && (
@@ -379,12 +390,20 @@ export default function Nav() {
                       onClick={handleMobileSignOut}
                       style={{ ...mobileMenuLinkStyle, textAlign: "left", background: "transparent", border: "none", cursor: "pointer", color: "var(--rw-orange-deep)", fontFamily: "inherit" }}
                     >
-                      Sign Out
+                      {user?.isDemo ? "Leave demo" : "Sign Out"}
                     </button>
                   </div>
                 </div>
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 20, padding: "0 8px" }}>
+                  <Link
+                    href="/demo"
+                    onClick={leaveDrawer}
+                    aria-current={matches("/demo") ? "page" : undefined}
+                    style={{ textAlign: "center", padding: 12, borderRadius: 8, border: "1px solid var(--rw-line)", fontWeight: 600, fontSize: 15, color: "var(--rw-prose)", textDecoration: "none" }}
+                  >
+                    Demo
+                  </Link>
                   <Link
                     href="/signin"
                     onClick={leaveDrawer}
@@ -426,8 +445,8 @@ function Chevron({ open = false }) {
   );
 }
 
+// Padding lives in .rw-nav-link (globals.css), sized so the visitor's header fits on one line.
 const navLinkStyle = {
-  padding: "10px 14px",
   borderRadius: 8,
   fontSize: 14.5,
   fontWeight: 600,

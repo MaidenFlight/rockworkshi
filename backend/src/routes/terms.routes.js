@@ -1,6 +1,7 @@
 const express = require("express");
 const prisma = require("../lib/prisma");
 const clock = require("../lib/clock");
+const { REAL } = require("../lib/demoRules");
 const { requireAuth, requireAdmin } = require("../middleware/auth");
 const { isStaff, grantOpenSlots, loadAccess } = require("../lib/termAccess");
 const { fromLocal } = require("../lib/honolulu");
@@ -188,7 +189,7 @@ admin.post("/:id/members", async (req, res) => {
     return res.status(400).json({ error: "userIds must be a list of student ids." });
   }
   if (!(await prisma.termGroup.findUnique({ where: { id: req.params.id } }))) return res.status(404).json({ error: "Not found." });
-  const found = await prisma.user.count({ where: { id: { in: ids } } });
+  const found = await prisma.user.count({ where: { ...REAL, id: { in: ids } } });
   if (found !== new Set(ids).size) return res.status(400).json({ error: "Some of those students don't exist." });
   await prisma.termEnrollment.createMany({
     data: ids.map((userId) => ({ userId, groupId: req.params.id })),

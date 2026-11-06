@@ -15,7 +15,7 @@ const MENU_ITEMS = [
 const TEACHER_ITEM = { label: "Teaching", href: "/teacher" };
 
 export default function ProfileMenu() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, leaveDemo } = useAuth();
   const [open, setOpen] = useState(false);
   const rootRef = useRef(null);
   const triggerRef = useRef(null);
@@ -42,6 +42,7 @@ export default function ProfileMenu() {
 
   async function handleSignOut() {
     setOpen(false);
+    if (user?.isDemo) return leaveDemo();
     await signOut();
     router.push("/");
   }
@@ -54,7 +55,7 @@ export default function ProfileMenu() {
         className="rw-menu-trigger"
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label={`Account menu for ${firstNameOf(user)}`}
+        aria-label={`Account menu for ${firstNameOf(user)}${user?.isDemo ? ", student demo" : ""}`}
         onClick={() => setOpen((o) => !o)}
         style={triggerStyle}
       >
@@ -62,6 +63,8 @@ export default function ProfileMenu() {
           {initialsOf(user)}
         </span>
         <span style={{ fontWeight: 700, fontSize: 14, color: "var(--rw-ink)" }}>{firstNameOf(user)}</span>
+        {/* The header stays in view, so the demo stays labelled after its band has scrolled away. */}
+        {user?.isDemo && <span className="rw-demo-chip">Student demo</span>}
         <span aria-hidden="true" style={{ display: "inline-flex", color: "var(--rw-prose)" }}>
           <svg viewBox="0 0 12 12" width={10} height={10} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="butt" style={{ opacity: 0.75, transform: open ? "rotate(180deg)" : undefined }}>
             <path d="M2 4.5l4 4 4-4" />
@@ -87,7 +90,7 @@ export default function ProfileMenu() {
             onClick={handleSignOut}
             style={{ ...menuItemStyle, width: "100%", textAlign: "left", background: "transparent", border: "none", cursor: "pointer", color: "var(--rw-orange-deep)" }}
           >
-            Sign Out
+            {user?.isDemo ? "Leave demo" : "Sign Out"}
           </button>
         </div>
       )}

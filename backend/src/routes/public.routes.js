@@ -2,6 +2,7 @@ const express = require("express");
 const rateLimit = require("express-rate-limit").default;
 const prisma = require("../lib/prisma");
 const { trialRequestEmails } = require("../lib/mailer");
+const { refuseDemo } = require("../lib/demoRules");
 
 const router = express.Router();
 
@@ -55,7 +56,8 @@ function clean(value, max) {
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-router.post("/trial", trialLimiter, async (req, res) => {
+// Someone looking around the student demo books nothing and messages no one (lib/demo.js).
+router.post("/trial", refuseDemo("school"), trialLimiter, async (req, res) => {
   const b = req.body || {};
   // The form has a field people never see. Anything in it came from a bot: thank it and keep nothing.
   if (clean(b.website, 200)) return res.status(201).json({ trial: {} });
@@ -88,7 +90,7 @@ router.post("/trial", trialLimiter, async (req, res) => {
   trialRequestEmails(trial).catch((err) => console.error("Could not send trial request emails:", err.message));
 });
 
-router.post("/contact", async (req, res) => {
+router.post("/contact", refuseDemo("school"), async (req, res) => {
   const b = req.body || {};
   const name = clean(b.name, 120);
   const email = clean(b.email, 254);

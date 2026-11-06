@@ -6,7 +6,8 @@ const { sortTracks } = require("../lib/songTracks");
 const { MAX_PRESETS_PER_SONG, validateName, presentPreset } = require("../lib/mixPresets");
 const { validateSession, validateNotes, presentPractice } = require("../lib/practice");
 const { loadAccess, denialMessage, linkSeconds, isStaff } = require("../lib/termAccess");
-const { NO_INSTRUMENT, scopeFor, partForInstrument, studentPlayback, validateMixer, mixerFits } = require("../lib/instrumentAccess");
+const { NO_INSTRUMENT, scopeFor, partForInstrument, chartFor, studentPlayback, validateMixer, mixerFits } = require("../lib/instrumentAccess");
+const { isDemo, demoSongAudio } = require("../lib/demoRules");
 const { INSTRUMENTS, canonicalInstrument, presentTutorials } = require("../lib/lessonVideos");
 
 const router = express.Router();
@@ -27,13 +28,27 @@ router.get("/:id/tracks", requirePaid, async (req, res) => {
   if (!song.tracks.length) return res.status(404).json({ error: "This song has no tracks yet." });
   const scope = scopeFor(req.user);
   if (!scope.staff && !scope.instrument) return res.status(403).json({ error: NO_INSTRUMENT, reason: "no_instrument" });
-  if (!isMediaConfigured()) return res.status(503).json({ error: "Song storage is not configured." });
 
   const about = {
     song: { id: song.id, title: song.title, artist: song.artist },
     // The players set their headroom from this. null = not measured yet (see songs:measure).
     mixLevel: song.mixLevel,
   };
+  // The student demo gets its chart without the recording, unless DEMO_SONG_AUDIO=on (lib/demo.js).
+  if (isDemo(req.user) && !demoSongAudio()) {
+    const { chart, available } = chartFor(song.chart, scope.instrument);
+    return res.json({
+      ...about,
+      scope: "instrument",
+      instrument: scope.instrument,
+      myPart: partForInstrument(scope.instrument),
+      tracks: [],
+      available: { own: false, backing: false, chart: available },
+      chart,
+      demo: { audio: false },
+    });
+  }
+  if (!isMediaConfigured()) return res.status(503).json({ error: "Song storage is not configured." });
   if (!scope.staff) return res.json({ ...about, ...(await studentPlayback(song, scope.instrument, linkSeconds(access))) });
 
   const tracks = await Promise.all(

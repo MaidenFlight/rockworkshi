@@ -12,6 +12,7 @@ const bcrypt = require("bcrypt");
 const rateLimit = require("express-rate-limit").default;
 const prisma = require("../lib/prisma");
 const { requireAuth, requireTeacher, requireAdmin, requireGuardian } = require("../middleware/auth");
+const { REAL, refuseDemo } = require("../lib/demoRules");
 const { audit } = require("../lib/audit");
 const { GRANTABLE, rolesOf, setRoles } = require("../lib/roles");
 const { createToken, hashToken } = require("../lib/emailTokens");
@@ -143,7 +144,7 @@ me.delete("/profile", async (req, res) => {
 const INSTRUMENT_REQUEST = "Instrument change";
 const REQUEST_GAP_MS = 10 * 60 * 1000;
 
-me.post("/instrument-request", async (req, res) => {
+me.post("/instrument-request", refuseDemo("school"), async (req, res) => {
   const wanted = canonicalInstrument(req.body?.instrument);
   if (!wanted) return res.status(400).json({ error: `Choose one of: ${INSTRUMENTS.join(", ")}.` });
   const current = canonicalInstrument(req.user.instrument);
@@ -271,7 +272,7 @@ admin.get("/people", async (req, res) => {
   const search = typeof req.query.search === "string" ? req.query.search.trim() : "";
   const role = typeof req.query.role === "string" ? req.query.role : "";
   const people = await prisma.user.findMany({
-    where: search ? { OR: [{ name: { contains: search, mode: "insensitive" } }, { email: { contains: search, mode: "insensitive" } }] } : {},
+    where: { ...REAL, ...(search ? { OR: [{ name: { contains: search, mode: "insensitive" } }, { email: { contains: search, mode: "insensitive" } }] } : {}) },
     include: { roles: true },
     orderBy: { name: "asc" },
     take: 200,

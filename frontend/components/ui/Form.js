@@ -88,15 +88,19 @@ export async function postForm(path, body, { timeoutMs = 15000 } = {}) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
+      // With the session, so someone in the student demo is told nothing was sent rather than booking for real.
+      credentials: "include",
       signal: controller.signal,
     });
     if (res.ok) return { ok: true };
     let message = "";
+    let reason = "";
     try {
-      message = (await res.json()).error || "";
+      ({ error: message = "", reason = "" } = await res.json());
     } catch {
       // An HTML error page from a proxy; the status says enough.
     }
+    if (res.status === 403 && reason === "demo") return { ok: false, kind: "demo", message };
     if (res.status === 400) return { ok: false, kind: "invalid", message };
     if (res.status === 429) return { ok: false, kind: "busy", message };
     return { ok: false, kind: "server", message };
@@ -121,6 +125,9 @@ export function SendAlert({ result }) {
   } else if (result.kind === "busy") {
     title = "That was a lot of sends at once.";
     body = <>Wait a few minutes and try again. Your answers are still here.</>;
+  } else if (result.kind === "demo") {
+    title = "Nothing was sent.";
+    body = result.message;
   } else if (result.kind === "offline") {
     title = "It didn’t send.";
     body = <>We couldn’t connect, so nothing reached the school. Check your connection and press send again. Your answers are still here.</>;

@@ -2,6 +2,7 @@ const express = require("express");
 const prisma = require("../lib/prisma");
 const { findPage } = require("../lib/pagination");
 const { requireAuth } = require("../middleware/auth");
+const { refuseDemo } = require("../lib/demoRules");
 const { isR2Configured, signedUploadUrl, headObject, putObject } = require("../lib/r2");
 const {
   RECORDING_TYPE,
@@ -64,7 +65,7 @@ async function hasRoomForAnotherTake(assignment, res) {
 const RECORDING_TOO_BIG = `Recordings can be up to ${Math.round(MAX_RECORDING_BYTES / 1024 / 1024)} MB, about 7 minutes.`;
 
 // Step 1 of sending a recording: a link the phone can upload exactly one WAV of this size to.
-router.post("/:id/recording-upload", async (req, res) => {
+router.post("/:id/recording-upload", refuseDemo("recording"), async (req, res) => {
   const assignment = await findMyAssignment(req, req.params.id, {});
   if (!assignment) return res.status(404).json({ error: "Not found." });
   if (assignment.status === "ready") {
@@ -86,7 +87,8 @@ router.post("/:id/recording-upload", async (req, res) => {
 
 // The website's step 1. Browsers aren't allowed to upload to the bucket directly (its CORS
 // rules only allow GET), so the WAV comes through here. The result is the same stored object.
-router.put("/:id/recording", express.raw({ type: RECORDING_TYPE, limit: MAX_RECORDING_BYTES }), async (req, res) => {
+// The demo is refused before the body is read.
+router.put("/:id/recording", refuseDemo("recording"), express.raw({ type: RECORDING_TYPE, limit: MAX_RECORDING_BYTES }), async (req, res) => {
   const assignment = await findMyAssignment(req, req.params.id, {});
   if (!assignment) return res.status(404).json({ error: "Not found." });
   if (assignment.status === "ready") {

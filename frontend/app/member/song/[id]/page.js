@@ -6,6 +6,7 @@ import Link from "next/link";
 import Icon from "@/components/member/Icon";
 import { useAuth } from "@/contexts/AuthContext";
 import StemPlayer from "@/components/member/StemPlayer";
+import ChordChart from "@/components/member/ChordChart";
 import FavoriteButton from "@/components/member/library/FavoriteButton";
 import PracticeNotes from "@/components/member/library/PracticeNotes";
 import SongTutorials from "@/components/member/SongTutorials";
@@ -166,6 +167,18 @@ function SongPlayAlong() {
             </Link>
           </div>
         </div>
+      ) : tracks?.demo?.audio === false ? (
+        // The student demo gets the chart without the recording (backend lib/demo.js).
+        <section id="practice-player" tabIndex={-1} aria-label="Practice player" style={{ scrollMarginTop: 96, outline: "none" }}>
+          <div role="status" style={{ ...statusBox, marginBottom: 16 }}>
+            <strong style={{ color: "var(--rw-ink)" }}>The student demo plays this song without sound.</strong>
+            <div style={{ marginTop: 6, color: "var(--rw-body)", fontSize: 14 }}>
+              Its practice tracks are a recording licensed for enrolled students only. Below is the chart{" "}
+              {tracks.instrument ? `a ${tracks.instrument.toLowerCase()} student` : "a student"} plays from: choose any bar to see its chords.
+            </div>
+          </div>
+          {tracks.chart && <SilentChart tracks={tracks} start={initialLoop?.start ?? practice.session?.position ?? 0} />}
+        </section>
       ) : tracks && !tracks.tracks.length ? (
         // A student's part and backing band aren't ready yet. Nothing else is sent in their place.
         <div role="status" style={statusBox}>
@@ -222,6 +235,26 @@ function SongPlayAlong() {
         {user?.id && <PracticeNotes key={song.id} songId={song.id} userId={user.id} initialNotes={practice.notes} />}
       </div>
     </div>
+  );
+}
+
+// The chart from the player, standing still: at the practice work's section, or where the student left
+// off. Choosing a bar moves the Play now and Next cards to it.
+function SilentChart({ tracks, start }) {
+  const [at, setAt] = useState(start);
+  return (
+    <section className="rw-practice" aria-label="Play along">
+      <ChordChart
+        chart={tracks.chart}
+        position={at}
+        myPart={tracks.myPart}
+        instrument={tracks.instrument}
+        partAvailable={tracks.available?.chart ?? true}
+        onSeek={setAt}
+        onLoopSection={(start) => setAt(start)}
+        ephemeral
+      />
+    </section>
   );
 }
 

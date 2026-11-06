@@ -5,12 +5,15 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import Icon from "@/components/member/Icon";
 import { Button } from "@/components/ui";
+import { useAuth } from "@/contexts/AuthContext";
 import { assignmentTitle, formatClock, formatDate, hasLoop, sendForReview, studentStatus, teacherRequest } from "@/lib/teaching";
 import { pill } from "@/lib/terms";
 
 // The student's view of one piece of practice work: what to do, sending it for review, and feedback.
 export default function AssignmentPage() {
   const { id } = useParams();
+  // In the student demo (backend lib/demo.js) the teacher is made up and recordings aren't uploaded.
+  const demo = Boolean(useAuth().user?.isDemo);
   // undefined = loading, null = failed (see error)
   const [assignment, setAssignment] = useState(undefined);
   const [error, setError] = useState("");
@@ -106,14 +109,22 @@ export default function AssignmentPage() {
       <section style={panel}>
         {a.status === "ready" ? (
           <p style={{ margin: 0, color: "var(--rw-body)" }}>
-            Sent {formatDate(a.submissions[0]?.createdAt ?? a.createdAt)}. Your teacher&apos;s feedback will show up below.
+            Sent {formatDate(a.submissions[0]?.createdAt ?? a.createdAt)}.{" "}
+            {demo ? "This is the student demo, so it stays here: no real teacher receives it." : "Your teacher's feedback will show up below."}
           </p>
         ) : (
           <>
-            {a.song && (
+            {demo ? (
               <p style={{ margin: "0 0 14px", color: "var(--rw-body)", lineHeight: 1.55 }}>
-                To send a recording, open the player, record yourself and choose Send to your teacher. Your teacher hears it with the band.
+                In the student demo nothing reaches a real teacher and recordings aren&apos;t uploaded, but you can mark this ready to see how
+                sending work goes.
               </p>
+            ) : (
+              a.song && (
+                <p style={{ margin: "0 0 14px", color: "var(--rw-body)", lineHeight: 1.55 }}>
+                  To send a recording, open the player, record yourself and choose Send to your teacher. Your teacher hears it with the band.
+                </p>
+              )
             )}
             <Button type="button" onClick={markReady} disabled={sending} size="sm" variant={a.song ? "secondary" : "primary"}>
               {sending ? "Sending…" : a.song ? "Mark ready without a recording" : "Mark ready for review"}

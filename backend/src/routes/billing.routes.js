@@ -1,6 +1,7 @@
 const express = require("express");
 const prisma = require("../lib/prisma");
 const { requireAuth } = require("../middleware/auth");
+const { refuseDemo } = require("../lib/demoRules");
 const { summaryFor, planFor, formatUsd } = require("../lib/plans");
 const { stripe, stripeEnabled, stripeIsLiveMode, WEBHOOK_SECRET } = require("../lib/stripe");
 
@@ -70,7 +71,7 @@ async function recordPayment({
 }
 
 // Plan comes from the user record and price from plans.js, never from the request.
-router.post("/checkout-session", requireAuth, async (req, res, next) => {
+router.post("/checkout-session", requireAuth, refuseDemo("payment"), async (req, res, next) => {
   if (!stripeEnabled()) {
     return res.status(503).json({ error: "Card payments aren't set up yet." });
   }
@@ -115,7 +116,7 @@ router.post("/checkout-session", requireAuth, async (req, res, next) => {
 
 // Called when the browser returns from Stripe, so the user doesn't have to wait
 // for the webhook. Re-fetches the session from Stripe instead of trusting the URL.
-router.post("/confirm", requireAuth, async (req, res, next) => {
+router.post("/confirm", requireAuth, refuseDemo("payment"), async (req, res, next) => {
   if (!stripeEnabled()) {
     return res.status(503).json({ error: "Card payments aren't set up yet." });
   }
@@ -191,7 +192,7 @@ router.get("/subscription", requireAuth, async (req, res, next) => {
 });
 
 // Cancels at the end of the paid period, not immediately.
-router.post("/cancel", requireAuth, async (req, res, next) => {
+router.post("/cancel", requireAuth, refuseDemo("payment"), async (req, res, next) => {
   if (!stripeEnabled() || !req.user.stripeSubscriptionId) {
     return res.status(400).json({ error: "There's no active membership to cancel." });
   }
@@ -206,7 +207,7 @@ router.post("/cancel", requireAuth, async (req, res, next) => {
   }
 });
 
-router.post("/resume", requireAuth, async (req, res, next) => {
+router.post("/resume", requireAuth, refuseDemo("payment"), async (req, res, next) => {
   if (!stripeEnabled() || !req.user.stripeSubscriptionId) {
     return res.status(400).json({ error: "There's no membership to resume." });
   }
@@ -309,7 +310,7 @@ async function stripeWebhook(req, res) {
 }
 
 // Dev-only stand-in for Stripe so the signup flow works without keys.
-router.post("/demo-pay", requireAuth, async (req, res, next) => {
+router.post("/demo-pay", requireAuth, refuseDemo("payment"), async (req, res, next) => {
   if (!DEMO_CHECKOUT_ENABLED) {
     return res.status(403).json({ error: "Demo checkout is disabled." });
   }
