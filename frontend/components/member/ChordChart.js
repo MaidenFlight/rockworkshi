@@ -46,8 +46,9 @@ function Diagram({ name, keys }) {
 // A chart here has times from the API: see backend/src/lib/chordChart.js.
 // coach is a line of advice on what to try next, from the player. ephemeral leaves the visitor's
 // remembered part and help level alone (the homepage preview); titleAs sets the heading level.
-// endLabel names what comes after the last section, for a chart that's an excerpt.
-export default function ChordChart({ chart, position, myPart = null, loop = null, disabled = false, onSeek, onLoopSection, coach = null, ephemeral = false, titleAs: Title = "h2", endLabel = null }) {
+// endLabel names what comes after the last section, for a chart that's an excerpt. compact shows only
+// the chord to play now and the next one (the homepage preview's small view).
+export default function ChordChart({ chart, position, myPart = null, loop = null, disabled = false, onSeek, onLoopSection, coach = null, ephemeral = false, titleAs: Title = "h2", endLabel = null, compact = false }) {
   // The player hands down new functions on every frame. Steady ones let the bars skip redrawing.
   const handlers = useRef({ onSeek, onLoopSection });
   useEffect(() => {
@@ -111,6 +112,16 @@ export default function ChordChart({ chart, position, myPart = null, loop = null
   const nextSection = now ? chart.sections[now.s + 1] : chart.sections[0];
   const barsLeft = now ? section.bars.length - now.b - 1 : 0;
 
+  // The small view always shows the cards, whatever part or help level is picked; those choices
+  // are kept for when the full chart comes back.
+  if (compact) {
+    return (
+      <div className="rw-play-along rw-play-along-compact">
+        <ChordNow now={now} next={next} beat={beat} keys={keys} />
+      </div>
+    );
+  }
+
   return (
     <div className="rw-play-along" data-mode={mode}>
       <div className="rw-pa-head">
@@ -166,37 +177,7 @@ export default function ChordChart({ chart, position, myPart = null, loop = null
         </p>
       )}
 
-      {!NOTE_PARTS.includes(part) && mode === "guide" && (
-        <div data-testid="chord-now" className="rw-chord-now">
-          <div className="rw-chord-card" data-role="now">
-            <div>
-              <div className="rw-chord-label">{now ? "Play now" : "Get ready"}</div>
-              <div className="rw-chord-name">{now ? now.name : "–"}</div>
-              <div aria-hidden="true" className="rw-beat-dots">
-                {[0, 1, 2, 3].map((i) => (
-                  <span key={i} data-on={i === beat ? "true" : undefined} />
-                ))}
-              </div>
-            </div>
-            {now && (
-              <div className="rw-chord-shape">
-                <Diagram name={now.name} keys={keys} />
-              </div>
-            )}
-          </div>
-          <div className="rw-chord-card" data-role="next" style={{ opacity: next ? undefined : 0.4 }}>
-            <div>
-              <div className="rw-chord-label">Next</div>
-              <div className="rw-chord-name">{next ? next.name : "–"}</div>
-            </div>
-            {next && (
-              <div className="rw-chord-shape">
-                <Diagram name={next.name} keys={keys} />
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      {!NOTE_PARTS.includes(part) && mode === "guide" && <ChordNow now={now} next={next} beat={beat} keys={keys} />}
 
       {NOTE_PARTS.includes(part) ? null : mode === "solo" ? (
         <div data-testid="chord-solo" style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
@@ -238,6 +219,41 @@ export default function ChordChart({ chart, position, myPart = null, loop = null
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// The chord to play now, large, with its beat, and the next change beside it.
+function ChordNow({ now, next, beat, keys }) {
+  return (
+    <div data-testid="chord-now" className="rw-chord-now">
+      <div className="rw-chord-card" data-role="now">
+        <div>
+          <div className="rw-chord-label">{now ? "Play now" : "Get ready"}</div>
+          <div className="rw-chord-name">{now ? now.name : "–"}</div>
+          <div aria-hidden="true" className="rw-beat-dots">
+            {[0, 1, 2, 3].map((i) => (
+              <span key={i} data-on={i === beat ? "true" : undefined} />
+            ))}
+          </div>
+        </div>
+        {now && (
+          <div className="rw-chord-shape">
+            <Diagram name={now.name} keys={keys} />
+          </div>
+        )}
+      </div>
+      <div className="rw-chord-card" data-role="next" style={{ opacity: next ? undefined : 0.4 }}>
+        <div>
+          <div className="rw-chord-label">Next</div>
+          <div className="rw-chord-name">{next ? next.name : "–"}</div>
+        </div>
+        {next && (
+          <div className="rw-chord-shape">
+            <Diagram name={next.name} keys={keys} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

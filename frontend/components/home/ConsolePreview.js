@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import ChordChart from "@/components/member/ChordChart";
 import Icon from "@/components/member/Icon";
 import Timeline, { partColor } from "@/components/member/player/Timeline";
@@ -10,6 +10,8 @@ import preview from "@/lib/preview/rain-chorus.json";
 // The member area's player on the homepage, silent. The real timeline lanes and chord chart, driven
 // by a timer instead of the audio engine, over eight bars of one song. Nothing is loaded or played:
 // the lanes are loudness outlines measured from the stems by scripts/make-home-preview.py.
+// It opens small (the transport, speed and the chord cards) and "Explore the player" opens the band
+// and the full chart in place. The button sits above everything it reveals, so it never moves.
 
 const MODES = [
   { id: "full", label: "Whole song" },
@@ -51,6 +53,10 @@ export default function ConsolePreview() {
   const [mode, setMode] = useState("full");
   const [focus, setFocus] = useState("Guitar");
   const [loop, setLoop] = useState(null); // { start, end }
+  const [expanded, setExpanded] = useState(false);
+  const ids = useId();
+  const bandId = `${ids}band`;
+  const chartId = `${ids}chart`;
   // With reduced motion the song steps a bar at a time instead of gliding.
   const [still, setStill] = useState(prefersStill);
   // The timer: where it was last started from, when, and how it runs. Read only outside render.
@@ -150,6 +156,13 @@ export default function ConsolePreview() {
     setLoop(null);
   }
 
+  // Closing the full player also stops it, so the small view always starts from a known place.
+  // Speed, loop and the band choices are kept for next time.
+  function toggleExpanded() {
+    if (expanded && playing) pause();
+    setExpanded(!expanded);
+  }
+
   function stepBar(direction) {
     const t = positionNow();
     const i = barIndexAt(t);
@@ -177,7 +190,7 @@ export default function ConsolePreview() {
 
   return (
     <PlayClock.Provider value={clockValue}>
-      <div ref={root} className="rw-player rw-preview-player">
+      <div ref={root} className="rw-player rw-preview-player" data-expanded={expanded ? "true" : "false"}>
         <div className="rw-transport rw-preview-transport">
           <div className="rw-tp-row">
             <div role="group" aria-label="Transport" className="rw-tp-keys">
@@ -219,69 +232,88 @@ export default function ConsolePreview() {
             </span>
           </div>
 
-          <div className="rw-tp-row rw-tp-practice">
-            <div role="group" aria-label="Speed" className="rw-tp-group">
-              <span className="rw-tp-label">Speed</span>
-              <span className="rw-seg">
-                {SPEEDS.map((s) => (
-                  <button key={s} type="button" onClick={() => changeSpeed(s)} aria-pressed={speed === s}>
-                    {Math.round(s * 100)}%
-                  </button>
-                ))}
-              </span>
-            </div>
-            {loop && (
-              <div className="rw-tp-group rw-tp-loop">
-                <Icon name="loop" size={15} />
-                <span>{loopBars[0] === loopBars[1] ? `Repeating bar ${loopBars[0]}` : `Repeating bars ${loopBars[0]} to ${loopBars[1]}`}</span>
-                <button type="button" className="rw-tp-x" onClick={clearLoop} aria-label="Clear the loop">
-                  <Icon name="x" size={14} />
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <Timeline
-          duration={duration}
-          chart={chart}
-          lanes={lanes}
-          loop={loop}
-          snap={snap}
-          onLoop={loopRange}
-          getPosition={positionNow}
-          playing={live}
-          position={position}
-          onSeek={seek}
-          disabled={false}
-          header={
-            <div className="rw-tl-header">
-              <div role="group" aria-label="Band" className="rw-tp-group">
-                <span className="rw-tp-label">Band</span>
+          <div className="rw-preview-practice">
+            <div className="rw-tp-row rw-tp-practice">
+              <div role="group" aria-label="Speed" className="rw-tp-group">
+                <span className="rw-tp-label">Speed</span>
                 <span className="rw-seg">
-                  {MODES.map((m) => (
-                    <button key={m.id} type="button" onClick={() => setMode(m.id)} aria-pressed={mode === m.id}>
-                      {m.label}
+                  {SPEEDS.map((s) => (
+                    <button key={s} type="button" onClick={() => changeSpeed(s)} aria-pressed={speed === s}>
+                      {Math.round(s * 100)}%
                     </button>
                   ))}
                 </span>
               </div>
-              {mode !== "full" && (
-                <div role="group" aria-label={mode === "solo" ? "Only this part" : "Leave out"} className="rw-tp-group">
-                  <span className="rw-tp-label">{mode === "solo" ? "Only" : "Leave out"}</span>
-                  {PARTS.map((p) => (
-                    <button key={p} type="button" onClick={() => setFocus(p)} aria-pressed={focus === p} className="rw-focus-chip" style={{ "--lane": partColor(p) }}>
-                      {p}
-                    </button>
-                  ))}
+              {loop && (
+                <div className="rw-tp-group rw-tp-loop">
+                  <Icon name="loop" size={15} />
+                  <span>{loopBars[0] === loopBars[1] ? `Repeating bar ${loopBars[0]}` : `Repeating bars ${loopBars[0]} to ${loopBars[1]}`}</span>
+                  <button type="button" className="rw-tp-x" onClick={clearLoop} aria-label="Clear the loop">
+                    <Icon name="x" size={14} />
+                  </button>
                 </div>
               )}
             </div>
-          }
-          footer={null}
-        />
+            {/* Beside the speed row, not inside it: on a phone that row scrolls sideways, and the
+                button would scroll out of sight with it. */}
+            <button
+              type="button"
+              className="rw-preview-toggle"
+              onClick={toggleExpanded}
+              aria-expanded={expanded}
+              aria-controls={`${bandId} ${chartId}`}
+            >
+              {expanded ? "Collapse player" : "Explore the player"}
+              <Icon name="chevron-down" size={16} />
+            </button>
+          </div>
+        </div>
 
-        <section className="rw-practice" aria-label="Play along">
+        {/* Kept in the page while closed, so aria-controls always points at something. */}
+        <div id={bandId} hidden={!expanded}>
+          {expanded && (
+            <Timeline
+              duration={duration}
+              chart={chart}
+              lanes={lanes}
+              loop={loop}
+              snap={snap}
+              onLoop={loopRange}
+              getPosition={positionNow}
+              playing={live}
+              position={position}
+              onSeek={seek}
+              disabled={false}
+              header={
+                <div className="rw-tl-header">
+                  <div role="group" aria-label="Band" className="rw-tp-group">
+                    <span className="rw-tp-label">Band</span>
+                    <span className="rw-seg">
+                      {MODES.map((m) => (
+                        <button key={m.id} type="button" onClick={() => setMode(m.id)} aria-pressed={mode === m.id}>
+                          {m.label}
+                        </button>
+                      ))}
+                    </span>
+                  </div>
+                  {mode !== "full" && (
+                    <div role="group" aria-label={mode === "solo" ? "Only this part" : "Leave out"} className="rw-tp-group">
+                      <span className="rw-tp-label">{mode === "solo" ? "Only" : "Leave out"}</span>
+                      {PARTS.map((p) => (
+                        <button key={p} type="button" onClick={() => setFocus(p)} aria-pressed={focus === p} className="rw-focus-chip" style={{ "--lane": partColor(p) }}>
+                          {p}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              }
+              footer={null}
+            />
+          )}
+        </div>
+
+        <section id={chartId} className="rw-practice" aria-label="Play along">
           <ChordChart
             chart={chart}
             position={position}
@@ -292,6 +324,7 @@ export default function ConsolePreview() {
             ephemeral
             titleAs="h4"
             endLabel="Back to bar 1"
+            compact={!expanded}
           />
         </section>
       </div>

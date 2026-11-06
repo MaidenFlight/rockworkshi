@@ -158,6 +158,10 @@ uses it. Songs in no term stay open to every paying member.
 - **Brian Albus runs Rock Works and is, so far, its only teacher.** Confirmed by the
   user on 2026-11-05 ("the main guy of rock works and so far the only teacher").
   `/teachers` lists him alone. His instruments, bio and photo are not on hand yet.
+- **Who Rock Works is for** (user, 2026-11-06): in-person classes happen at the
+  school in Honolulu, for students already signed up with it; anyone else uses
+  the member area purely online, from anywhere. Rock Works runs no lessons inside
+  other schools or at after-school sites.
 - **The site is still in testing**, with the goal of being fully live by the start
   of 2027 (user, 2026-11-05). Trial requests are told to expect contact within the
   next month or two. Update both when the school launches.
@@ -170,6 +174,9 @@ Future work must not repeat any of it as fact, and must not invent more:**
 - The statistics band — **96%** of families, **9 in 10** students still playing
   after five years — and its attribution to a "Rock Works Family Survey, 2026".
   No such survey is confirmed to exist.
+- A "School Program" of lessons run inside partner schools during the school day,
+  and an "After-School Program" of lessons at after-school care sites. Neither
+  exists, and both were removed from the site on 2026-11-06.
 - The three teacher profiles that were on `/teachers`: Kalani Akana, Maya Reyes and
   Ben Torres. Gone from the seed; the live database keeps them until they're
   deleted in Admin.

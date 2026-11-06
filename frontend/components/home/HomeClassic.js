@@ -1,9 +1,9 @@
 // Homepage for the Classic theme.
 
 import Link from "next/link";
-import { instruments, audiences, songLevels } from "@/lib/content";
+import InstrumentCards from "@/components/home/InstrumentCards";
+import { audiences, songLevels } from "@/lib/content";
 import RockWorksIcon from "@/components/RockWorksIcon";
-import InstrumentIcon from "@/components/InstrumentIcon";
 import { Section, Container, SectionHead, Eyebrow, Button } from "@/components/ui";
 import T from "@/components/T";
 
@@ -163,48 +163,8 @@ export default function HomeClassic() {
       </section>
 
       <Section>
-        <SectionHead title={<T k="home.instruments.title">Choose your instrument</T>} eyebrow={<T k="home.instruments.eyebrow">Pick your sound</T>} />
-        <p
-          style={{
-            maxWidth: 620,
-            margin: "18px 0 26px",
-            fontSize: "var(--rw-text-md)",
-            lineHeight: 1.6,
-            color: "var(--rw-prose)",
-          }}
-        >
-          <T k="home.instruments.lead">
-            Lesson videos in the member area are organised by instrument. Pick yours and we&apos;ll carry it
-            into signup.
-          </T>
-        </p>
-        <div
-          className="rw-cols-6"
-          style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", border: "1px solid var(--rw-rule)", borderRadius: 14, overflow: "hidden" }}
-        >
-          {instruments.map((inst, i) => (
-            <Link
-              key={inst.name}
-              href={`/signup?instrument=${encodeURIComponent(inst.name)}`}
-              className="rw-instr"
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: 11,
-                padding: "30px 12px",
-                background: "var(--rw-surface)",
-                borderRight: i < instruments.length - 1 ? "1px solid #eee2d3" : "none",
-                textDecoration: "none",
-              }}
-            >
-              <span style={{ color: "var(--rw-ink)", display: "flex" }}>
-                <InstrumentIcon name={inst.name} />
-              </span>
-              <span style={{ fontWeight: 700, fontSize: 14.5, color: "var(--rw-ink)" }}>{inst.name}</span>
-            </Link>
-          ))}
-        </div>
+        <SectionHead title={<T k="home.instruments.title">Choose your instrument</T>} />
+        <InstrumentCards />
       </Section>
 
       {/* WHO IT'S FOR, the page's one asymmetric section. */}
@@ -267,8 +227,8 @@ export default function HomeClassic() {
           </h2>
           <p style={{ margin: "0 auto 30px", maxWidth: 520, fontSize: 17.5, lineHeight: 1.55, color: "rgba(255,245,236,0.82)" }}>
             <T k="home.classic.ask.lead">
-              Membership opens every lesson video, the song library and the practice tools &mdash; the part
-              of learning that happens between lessons.
+              Membership opens every lesson video, the song library and the practice tools &mdash; between
+              lessons at the school, or entirely online from anywhere.
             </T>
           </p>
           <div style={{ display: "flex", gap: 22, flexWrap: "wrap", alignItems: "center", justifyContent: "center" }}>
@@ -282,8 +242,8 @@ export default function HomeClassic() {
           </p>
           <p style={{ margin: "10px auto 0", maxWidth: 520, fontSize: 14.5, lineHeight: 1.6, color: "rgba(255,245,236,0.74)" }}>
             <T k="home.classic.ask.note">
-              Lessons at the school are arranged with us, not booked here &mdash; the trial is where that
-              starts.
+              Lessons at the school in Honolulu are arranged with us, not booked here &mdash; the trial is
+              where that starts.
             </T>
           </p>
         </Container>
