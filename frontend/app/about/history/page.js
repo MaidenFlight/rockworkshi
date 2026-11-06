@@ -11,7 +11,7 @@ const TIMELINE = [
 export default function History() {
   return (
     <div>
-      <EditorialHero eyebrow={<T k="history.hero.eyebrow">About</T>} title={<T k="history.hero.title">History</T>} intro={<T k="history.hero.intro">Four decades of teaching real songs to real people in Honolulu.</T>} />
+      <EditorialHero title={<T k="history.hero.title">History</T>} intro={<T k="history.hero.intro">Four decades of teaching real songs to real people in Honolulu.</T>} />
       <div style={{ maxWidth: 1000, margin: "0 auto", padding: "56px 24px 100px" }}>
         {/* Its own class: .rw-timeline belongs to the song player's console. */}
         <ol className="rw-history">

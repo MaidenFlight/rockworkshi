@@ -245,7 +245,8 @@ const PartGrid = memo(function PartGrid({ chart, bars, part, range, currentBar, 
                 onClick={() => onLoopSection(section.bars[0].time, end)}
                 disabled={disabled}
                 aria-label={`Loop ${section.name}`}
-                style={{ border: 0, background: "transparent", padding: "2px 4px", fontSize: 12.5, fontWeight: 700, color: "var(--rw-orange-deep)", cursor: "pointer" }}
+                // 44px to touch, with the margin taking it back so the section rows don't grow.
+                style={{ minHeight: 44, minWidth: 44, margin: "-10px 0", border: 0, background: "transparent", padding: "0 6px", fontSize: 12.5, fontWeight: 700, color: "var(--rw-orange-deep)", cursor: "pointer" }}
               >
                 Loop
               </button>

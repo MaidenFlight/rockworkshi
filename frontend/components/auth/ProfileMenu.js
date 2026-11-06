@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { dashboardFor } from "@/lib/auth/enrolment";
 import { firstNameOf, initialsOf } from "@/lib/auth/displayName";
 
 const MENU_ITEMS = [
@@ -61,14 +62,19 @@ export default function ProfileMenu() {
           {initialsOf(user)}
         </span>
         <span style={{ fontWeight: 700, fontSize: 14, color: "var(--rw-ink)" }}>{firstNameOf(user)}</span>
-        <span aria-hidden="true" style={{ fontSize: 9, opacity: 0.7, color: "var(--rw-prose)" }}>
-          &#9662;
+        <span aria-hidden="true" style={{ display: "inline-flex", color: "var(--rw-prose)" }}>
+          <svg viewBox="0 0 12 12" width={10} height={10} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="butt" style={{ opacity: 0.75, transform: open ? "rotate(180deg)" : undefined }}>
+            <path d="M2 4.5l4 4 4-4" />
+          </svg>
         </span>
       </button>
 
       {open && (
         <div role="menu" aria-label="Account menu" style={menuStyle}>
-          {(user?.role === "teacher" ? [TEACHER_ITEM, ...MENU_ITEMS] : MENU_ITEMS).map((item) => (
+          {/* A student's dashboard is Practice in the header, so it isn't listed again here. */}
+          {(user?.role === "teacher" ? [TEACHER_ITEM, ...MENU_ITEMS] : MENU_ITEMS)
+            .filter((item) => item.href !== "/member" || dashboardFor(user) !== "/member")
+            .map((item) => (
             <Link key={item.href} href={item.href} role="menuitem" className="rw-menu-item" onClick={() => setOpen(false)} style={menuItemStyle}>
               {item.label}
             </Link>

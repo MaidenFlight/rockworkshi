@@ -126,7 +126,6 @@ function PaymentContent() {
   if (confirming) {
     return (
       <div style={cardStyle}>
-        <div style={{ fontSize: 44, marginBottom: 10 }}>🎸</div>
         <h2 style={headingStyle}>Confirming your payment…</h2>
         <p style={{ margin: 0, fontSize: 15.5, color: "var(--rw-body-cool)" }}>
           One moment — don&apos;t close this page.
@@ -138,8 +137,7 @@ function PaymentContent() {
   if (done) {
     return (
       <div style={cardStyle}>
-        <div style={{ fontSize: 44, marginBottom: 10 }}>🌺</div>
-        <h2 style={headingStyle}>You&apos;re enrolled!</h2>
+        <h2 style={headingStyle}>Your membership is active</h2>
         <p style={{ margin: 0, fontSize: 15.5, color: "var(--rw-body-cool)" }}>Taking you to your dashboard…</p>
       </div>
     );
@@ -269,7 +267,7 @@ export default function OnboardingPayment() {
   return (
     <ProtectedRoute requireEnrolment={false}>
       <div>
-        <PageHero mark={<RockWorksIcon size={40} color="var(--rw-gold)" />} eyebrow="Last step" title={<>Confirm your enrolment</>} compact />
+        <PageHero mark={<RockWorksIcon size={40} color="var(--rw-gold)" />} title={<>Confirm your enrolment</>} compact />
 
         <div style={{ maxWidth: 520, margin: "0 auto", padding: "40px 24px 80px" }}>
           {/* PaymentContent reads the query string Stripe redirects back with. */}
@@ -318,5 +316,4 @@ const cardStyle = {
   borderRadius: "var(--rw-radius-md)",
   padding: "48px 36px",
   textAlign: "center",
-  boxShadow: "0 24px 50px -30px color-mix(in srgb, var(--rw-ink-deep) 40%, transparent)",
 };

@@ -1,10 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { destinationFor } from "@/lib/auth/enrolment";
 import { INSTRUMENT_NAMES, EXPERIENCE_OPTIONS, LEVEL_OPTIONS, PLANS, STEP_LABELS } from "@/lib/auth/signupOptions";
+
+const LAST_STEP = STEP_LABELS.length;
+// Never kept in the draft: anything a shared or borrowed browser shouldn't hold on to.
+const SECRET_FIELDS = ["password", "confirmPassword"];
 
 function isEmailValid(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((email || "").trim());
@@ -13,67 +18,115 @@ function isEmailValid(email) {
 function validateStep(step, form, mode) {
   const errs = {};
   if (step === 1) {
-    if (!form.studentName.trim()) errs.studentName = "Student name is required.";
+    if (!form.studentName.trim()) errs.studentName = "Enter the student's name.";
     if (mode === "signup") {
-      if (!form.studentEmail.trim()) errs.studentEmail = "Email is required.";
-      else if (!isEmailValid(form.studentEmail)) errs.studentEmail = "Enter a valid email address.";
-      if (!form.password || form.password.length < 8) errs.password = "Password must be at least 8 characters.";
-      else if (form.password !== form.confirmPassword) errs.confirmPassword = "Passwords don't match.";
+      if (!form.studentEmail.trim()) errs.studentEmail = "Enter an email address.";
+      else if (!isEmailValid(form.studentEmail)) errs.studentEmail = "That email address doesn't look complete.";
+      if (!form.password || form.password.length < 8) errs.password = "Use at least 8 characters.";
+      else if (form.password !== form.confirmPassword) errs.confirmPassword = "The passwords don't match.";
     }
     if (form.isMinor) {
-      if (!form.sponsorName.trim()) errs.sponsorName = "Sponsor name is required.";
-      if (!form.sponsorEmail.trim()) errs.sponsorEmail = "Sponsor email is required.";
-      else if (!isEmailValid(form.sponsorEmail)) errs.sponsorEmail = "Enter a valid email address.";
+      if (!form.sponsorName.trim()) errs.sponsorName = "Enter the adult sponsor's name.";
+      if (!form.sponsorEmail.trim()) errs.sponsorEmail = "Enter the sponsor's email address.";
+      else if (!isEmailValid(form.sponsorEmail)) errs.sponsorEmail = "That email address doesn't look complete.";
     }
   }
   return errs;
+}
+
+// The answers so far, kept for this tab only so a refresh or a look at another page doesn't
+// lose them. Passwords are never written. Storage can be missing, so every access is guarded.
+// Onboarding drafts belong to the signed-in account, so a shared computer never hands one
+// person's answers to the next.
+const draftKey = (mode, userId) => (mode === "onboarding" ? `rw-signup-draft:onboarding:${userId ?? "unknown"}` : "rw-signup-draft:signup");
+function readDraft(key) {
+  if (typeof window === "undefined") return null;
+  try {
+    return JSON.parse(window.sessionStorage.getItem(key) || "null");
+  } catch {
+    return null;
+  }
+}
+function writeDraft(key, step, form) {
+  try {
+    const safe = Object.fromEntries(Object.entries(form).filter(([k]) => !SECRET_FIELDS.includes(k)));
+    window.sessionStorage.setItem(key, JSON.stringify({ step, form: safe }));
+  } catch {
+    // Only a convenience.
+  }
+}
+function clearDraft(key) {
+  try {
+    window.sessionStorage.removeItem(key);
+  } catch {
+    // Nothing to clear.
+  }
 }
 
 // `instrument` is the canonical name a homepage tile deep-linked in with, or null.
 export default function SignupWizard({ mode, instrument = null }) {
   const { user, signUp, updateProfile } = useAuth();
   const router = useRouter();
-  const [step, setStep] = useState(1);
-  const [form, setForm] = useState({
+  const key = draftKey(mode, user?.id);
+  const [draft] = useState(() => readDraft(key));
+  // A draft can come back on step 2 or 3, but signup's step 1 then needs the password again.
+  const [step, setStep] = useState(() => (draft?.step && !(mode === "signup" && draft.step > 1) ? draft.step : 1));
+  const [form, setForm] = useState(() => ({
     studentName: mode === "onboarding" ? user?.name || "" : "",
     studentAge: "",
     studentPhone: "",
     studentEmail: mode === "onboarding" ? user?.email || "" : "",
-    password: "",
-    confirmPassword: "",
     isMinor: false,
     sponsorName: "",
     sponsorEmail: "",
     instrument: instrument || INSTRUMENT_NAMES[0],
     musicExperience: EXPERIENCE_OPTIONS[0],
     instrumentLevel: LEVEL_OPTIONS[0],
-    instructionType: "individual",
-    coStudentName: "",
     plan: PLANS[0].name,
-  });
+    ...draft?.form,
+    // A deep link's instrument wins over an older draft, and the signed-in email over anything.
+    ...(instrument ? { instrument } : {}),
+    ...(mode === "onboarding" && user?.email ? { studentEmail: user.email } : {}),
+    password: "",
+    confirmPassword: "",
+  }));
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [nextHref, setNextHref] = useState(null);
+  const heading = useRef(null);
+  const moved = useRef(false);
+
+  useEffect(() => {
+    if (!success) writeDraft(key, step, form);
+  }, [key, step, form, success]);
+
+  // A new step moves focus to its heading, so keyboard and screen reader users land on it.
+  useEffect(() => {
+    if (moved.current) heading.current?.focus();
+  }, [step]);
 
   function set(key, value) {
     setForm((f) => ({ ...f, [key]: value }));
     if (errors[key]) setErrors((e) => ({ ...e, [key]: undefined }));
   }
 
+  function goTo(n) {
+    moved.current = true;
+    setStep(n);
+  }
+
   function next() {
     const errs = validateStep(step, form, mode);
     if (Object.keys(errs).length) {
       setErrors(errs);
+      // After the error text renders, put the cursor in the first field to fix.
+      requestAnimationFrame(() => document.getElementById(`su-${Object.keys(errs)[0]}`)?.focus());
       return;
     }
     setErrors({});
-    setStep((s) => Math.min(s + 1, 4));
-  }
-
-  function back() {
-    setStep((s) => Math.max(s - 1, 1));
+    goTo(Math.min(step + 1, LAST_STEP));
   }
 
   async function submit() {
@@ -88,8 +141,6 @@ export default function SignupWizard({ mode, instrument = null }) {
       instrument: form.instrument,
       experience: form.musicExperience,
       level: form.instrumentLevel,
-      instructionType: form.instructionType,
-      coStudentName: form.coStudentName,
       plan: form.plan,
     };
 
@@ -101,6 +152,7 @@ export default function SignupWizard({ mode, instrument = null }) {
       } else {
         nextUser = await updateProfile(profile);
       }
+      clearDraft(key);
       // Answers are in, checkout is normally what's left.
       const dest = destinationFor(nextUser);
       setNextHref(dest);
@@ -112,124 +164,158 @@ export default function SignupWizard({ mode, instrument = null }) {
     }
   }
 
+  function onSubmit(e) {
+    e.preventDefault();
+    if (step < LAST_STEP) next();
+    else if (!submitting) submit();
+  }
+
   if (success) {
     return (
-      <div style={cardStyle}>
-        <div style={{ fontSize: 44, marginBottom: 10 }}>🌺</div>
-        <h2 style={{ fontFamily: "var(--font-zilla-slab), serif", fontWeight: 600, fontSize: 26, margin: "0 0 10px", color: "var(--rw-ink)" }}>
-          {mode === "signup" ? "You're signed up!" : "You're all set!"}
-        </h2>
-        <p style={{ margin: 0, fontSize: 15.5, color: "var(--rw-body-cool)" }}>
+      <div className="rw-su-card" role="status" style={{ textAlign: "center", padding: "48px 32px" }}>
+        <h2 className="rw-su-title">{mode === "signup" ? "Your account is made" : "You're all set"}</h2>
+        <p style={{ margin: 0, fontSize: "var(--rw-text-base)", color: "var(--rw-body-cool)" }}>
           {nextHref === "/verify-email"
-            ? "Check your inbox to confirm your email…"
+            ? "Next, confirm your email. Taking you there…"
             : nextHref === "/onboarding/payment"
-            ? "Taking you to checkout…"
-            : "Taking you to your dashboard…"}
+              ? "Taking you to checkout…"
+              : "Taking you to your dashboard…"}
         </p>
       </div>
     );
   }
 
+  const field = (key) => ({
+    id: `su-${key}`,
+    value: form[key],
+    onChange: (e) => set(key, e.target.value),
+    "aria-invalid": errors[key] ? true : undefined,
+    "aria-describedby": errors[key] ? `su-${key}-error` : undefined,
+    className: "rw-su-input",
+  });
+  const error = (key) =>
+    errors[key] ? (
+      <span id={`su-${key}-error`} className="rw-su-error">
+        {errors[key]}
+      </span>
+    ) : null;
+
   return (
     <div>
-      <div style={{ display: "flex", gap: 8, marginBottom: 24 }}>
+      <ol className="rw-su-steps" aria-label="Sign-up steps">
         {STEP_LABELS.map((label, i) => {
           const n = i + 1;
-          const active = n <= step;
           return (
-            <div key={label} style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
-              <div style={{ height: 5, borderRadius: "var(--rw-radius-pill)", background: active ? "var(--rw-orange)" : "var(--rw-border)" }} />
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: active ? "var(--rw-orange-deep)" : "var(--rw-meta)" }}>
-                {label}
-              </div>
-            </div>
+            <li key={label} data-state={n < step ? "done" : n === step ? "current" : "todo"} aria-current={n === step ? "step" : undefined}>
+              <span className="rw-su-step-n">{n < step ? "✓" : n}</span>
+              {mode === "onboarding" && n === 1 ? "Student" : label}
+            </li>
           );
         })}
-      </div>
+      </ol>
 
-      <div style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)", padding: 32, boxShadow: "0 24px 50px -34px color-mix(in srgb, var(--rw-ink-deep) 35%, transparent)" }}>
+      <form className="rw-su-card" onSubmit={onSubmit} noValidate>
+        <p className="rw-su-count">
+          Step {step} of {LAST_STEP}
+        </p>
         {step === 1 && (
-          <div>
-            <h3 style={stepTitleStyle}>Student &amp; sponsor info</h3>
+          <fieldset className="rw-su-fieldset">
+            <legend>
+              <h2 ref={heading} tabIndex={-1} className="rw-su-title">
+                {mode === "signup" ? "Student and login" : "About the student"}
+              </h2>
+            </legend>
             {instrument && (
-              <p style={carriedInstrumentStyle}>
-                Your instrument is set to <b style={{ fontWeight: 700 }}>{instrument}</b>{" "}
-                &mdash; you can change it at the Experience step.
+              <p className="rw-su-carried">
+                Your instrument is set to <b>{instrument}</b>. You can change it on the next step.
               </p>
             )}
-            <label style={fieldLabelStyle}>
-              Student name <span style={{ color: "var(--rw-orange-deep)" }}>*</span>
-              <input value={form.studentName} onChange={(e) => set("studentName", e.target.value)} style={inputStyle} placeholder="Full name" />
-              {errors.studentName && <span style={errStyle}>{errors.studentName}</span>}
+            <label className="rw-su-label" htmlFor="su-studentName">
+              <span>
+                Student name <Req />
+              </span>
+              <input {...field("studentName")} autoComplete="name" />
+              {error("studentName")}
             </label>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-              <label style={fieldLabelStyle}>
-                Age
-                <input value={form.studentAge} onChange={(e) => set("studentAge", e.target.value)} style={inputStyle} placeholder="e.g. 11" />
+            <div className="rw-su-pair">
+              <label className="rw-su-label" htmlFor="su-studentAge">
+                <span>Age</span>
+                <input {...field("studentAge")} inputMode="numeric" placeholder="e.g. 11" />
               </label>
-              <label style={fieldLabelStyle}>
-                Phone
-                <input value={form.studentPhone} onChange={(e) => set("studentPhone", e.target.value)} style={inputStyle} placeholder="(808) 555-0000" />
+              <label className="rw-su-label" htmlFor="su-studentPhone">
+                <span>Phone</span>
+                <input {...field("studentPhone")} type="tel" autoComplete="tel" placeholder="(808) 555-0000" />
               </label>
             </div>
 
             {mode === "signup" ? (
               <>
-                <label style={fieldLabelStyle}>
-                  Email <span style={{ color: "var(--rw-orange-deep)" }}>*</span>
-                  <input type="email" value={form.studentEmail} onChange={(e) => set("studentEmail", e.target.value)} style={inputStyle} placeholder="you@email.com" />
-                  {errors.studentEmail && <span style={errStyle}>{errors.studentEmail}</span>}
+                <label className="rw-su-label" htmlFor="su-studentEmail">
+                  <span>
+                    Email <Req />
+                  </span>
+                  <input {...field("studentEmail")} type="email" autoComplete="email" placeholder="you@email.com" />
+                  {error("studentEmail")}
                 </label>
-                <div style={{ marginTop: 8, padding: "16px 0 4px", borderTop: "1px dashed var(--rw-border)" }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: "var(--rw-meta)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 12 }}>
-                    Create your login
-                  </div>
-                  <label style={fieldLabelStyle}>
-                    Password <span style={{ color: "var(--rw-orange-deep)" }}>*</span>
-                    <input type="password" value={form.password} onChange={(e) => set("password", e.target.value)} style={inputStyle} placeholder="At least 8 characters" />
-                    {errors.password && <span style={errStyle}>{errors.password}</span>}
+                <div className="rw-su-group">
+                  <label className="rw-su-label" htmlFor="su-password">
+                    <span>
+                      Password <Req />
+                    </span>
+                    <input {...field("password")} type="password" autoComplete="new-password" placeholder="At least 8 characters" />
+                    {error("password")}
                   </label>
-                  <label style={{ ...fieldLabelStyle, marginTop: 14 }}>
-                    Confirm password <span style={{ color: "var(--rw-orange-deep)" }}>*</span>
-                    <input type="password" value={form.confirmPassword} onChange={(e) => set("confirmPassword", e.target.value)} style={inputStyle} placeholder="Re-enter your password" />
-                    {errors.confirmPassword && <span style={errStyle}>{errors.confirmPassword}</span>}
+                  <label className="rw-su-label" htmlFor="su-confirmPassword">
+                    <span>
+                      Confirm password <Req />
+                    </span>
+                    <input {...field("confirmPassword")} type="password" autoComplete="new-password" />
+                    {error("confirmPassword")}
                   </label>
                 </div>
               </>
             ) : (
-              <label style={fieldLabelStyle}>
-                Email
-                <input value={form.studentEmail} disabled style={{ ...inputStyle, color: "color-mix(in srgb, var(--rw-meta) 68%, var(--rw-cream))", background: "color-mix(in srgb, var(--rw-cream) 90%, var(--rw-ink))" }} />
+              <label className="rw-su-label" htmlFor="su-studentEmail">
+                <span>Email</span>
+                <input {...field("studentEmail")} disabled />
               </label>
             )}
 
-            <label style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 16, fontSize: 15, color: "var(--rw-ink)", cursor: "pointer" }}>
-              <input type="checkbox" checked={form.isMinor} onChange={(e) => set("isMinor", e.target.checked)} style={{ width: 18, height: 18, accentColor: "var(--rw-orange)" }} />
-              Student is a minor (needs an adult sponsor)
+            <label className="rw-su-check">
+              <input type="checkbox" checked={form.isMinor} onChange={(e) => set("isMinor", e.target.checked)} />
+              The student is under 18 and has an adult sponsor
             </label>
             {form.isMinor && (
-              <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px dashed var(--rw-border)" }}>
-                <label style={fieldLabelStyle}>
-                  Adult sponsor name <span style={{ color: "var(--rw-orange-deep)" }}>*</span>
-                  <input value={form.sponsorName} onChange={(e) => set("sponsorName", e.target.value)} style={inputStyle} />
-                  {errors.sponsorName && <span style={errStyle}>{errors.sponsorName}</span>}
+              <div className="rw-su-group">
+                <label className="rw-su-label" htmlFor="su-sponsorName">
+                  <span>
+                    Adult sponsor name <Req />
+                  </span>
+                  <input {...field("sponsorName")} autoComplete="off" />
+                  {error("sponsorName")}
                 </label>
-                <label style={{ ...fieldLabelStyle, marginTop: 14 }}>
-                  Sponsor email <span style={{ color: "var(--rw-orange-deep)" }}>*</span>
-                  <input value={form.sponsorEmail} onChange={(e) => set("sponsorEmail", e.target.value)} style={inputStyle} />
-                  {errors.sponsorEmail && <span style={errStyle}>{errors.sponsorEmail}</span>}
+                <label className="rw-su-label" htmlFor="su-sponsorEmail">
+                  <span>
+                    Sponsor email <Req />
+                  </span>
+                  <input {...field("sponsorEmail")} type="email" autoComplete="off" />
+                  {error("sponsorEmail")}
                 </label>
               </div>
             )}
-          </div>
+          </fieldset>
         )}
 
         {step === 2 && (
-          <div>
-            <h3 style={stepTitleStyle}>Experience &amp; instrument</h3>
-            <label style={fieldLabelStyle}>
-              Instrument of choice
-              <select value={form.instrument} onChange={(e) => set("instrument", e.target.value)} style={inputStyle}>
+          <fieldset className="rw-su-fieldset">
+            <legend>
+              <h2 ref={heading} tabIndex={-1} className="rw-su-title">
+                Instrument and experience
+              </h2>
+            </legend>
+            <label className="rw-su-label" htmlFor="su-instrument">
+              <span>Instrument</span>
+              <select {...field("instrument")}>
                 {INSTRUMENT_NAMES.map((n) => (
                   <option key={n} value={n}>
                     {n}
@@ -237,9 +323,9 @@ export default function SignupWizard({ mode, instrument = null }) {
                 ))}
               </select>
             </label>
-            <label style={fieldLabelStyle}>
-              Music experience
-              <select value={form.musicExperience} onChange={(e) => set("musicExperience", e.target.value)} style={inputStyle}>
+            <label className="rw-su-label" htmlFor="su-musicExperience">
+              <span>Music experience</span>
+              <select {...field("musicExperience")}>
                 {EXPERIENCE_OPTIONS.map((n) => (
                   <option key={n} value={n}>
                     {n}
@@ -247,9 +333,9 @@ export default function SignupWizard({ mode, instrument = null }) {
                 ))}
               </select>
             </label>
-            <label style={fieldLabelStyle}>
-              Instrument experience level
-              <select value={form.instrumentLevel} onChange={(e) => set("instrumentLevel", e.target.value)} style={inputStyle}>
+            <label className="rw-su-label" htmlFor="su-instrumentLevel">
+              <span>Level on this instrument</span>
+              <select {...field("instrumentLevel")}>
                 {LEVEL_OPTIONS.map((n) => (
                   <option key={n} value={n}>
                     {n}
@@ -257,176 +343,65 @@ export default function SignupWizard({ mode, instrument = null }) {
                 ))}
               </select>
             </label>
-          </div>
+          </fieldset>
         )}
 
         {step === 3 && (
-          <div>
-            <h3 style={stepTitleStyle}>Instruction choice</h3>
-            <div onClick={() => set("instructionType", "individual")} style={choiceCardStyle(form.instructionType === "individual")}>
-              <div style={{ fontWeight: 700, fontSize: 16.5, color: "var(--rw-ink)" }}>One-on-one</div>
-              <div style={{ fontSize: 14, color: "var(--rw-body)", marginTop: 3 }}>Individual lessons built around you.</div>
+          <fieldset className="rw-su-fieldset">
+            <legend>
+              <h2 ref={heading} tabIndex={-1} className="rw-su-title">
+                Choose a membership plan
+              </h2>
+            </legend>
+            <div className="rw-su-plans">
+              {PLANS.map((p) => (
+                <label key={p.key} className="rw-su-plan">
+                  <input type="radio" name="plan" value={p.name} checked={form.plan === p.name} onChange={() => set("plan", p.name)} />
+                  <span className="rw-su-plan-mark" aria-hidden="true" />
+                  <span style={{ flex: 1, minWidth: 0 }}>
+                    <span className="rw-su-plan-name">{p.name}</span>
+                    <span className="rw-su-plan-sub">{p.sub}</span>
+                  </span>
+                  <span className="rw-su-plan-price">{p.price}</span>
+                </label>
+              ))}
             </div>
-            <div onClick={() => set("instructionType", "band")} style={choiceCardStyle(form.instructionType === "band")}>
-              <div style={{ fontWeight: 700, fontSize: 16.5, color: "var(--rw-ink)" }}>Rock Band</div>
-              <div style={{ fontSize: 14, color: "var(--rw-body)", marginTop: 3 }}>Two or more signing up together.</div>
-            </div>
-            <label style={fieldLabelStyle}>
-              Signing up with a friend or sibling? Their name
-              <input value={form.coStudentName} onChange={(e) => set("coStudentName", e.target.value)} style={inputStyle} placeholder="Optional — unlocks the 2+ rate" />
-            </label>
-          </div>
-        )}
-
-        {step === 4 && (
-          <div>
-            <h3 style={stepTitleStyle}>Plan &amp; review</h3>
-            {PLANS.map((p) => (
-              <div key={p.key} onClick={() => set("plan", p.name)} style={planCardStyle(form.plan === p.name)}>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: 16, color: "var(--rw-ink)" }}>{p.name}</div>
-                  <div style={{ fontSize: 13.5, color: "var(--rw-meta)", marginTop: 2 }}>{p.sub}</div>
-                </div>
-                <div style={{ fontFamily: "var(--font-zilla-slab), serif", fontWeight: 600, fontSize: 24, color: "var(--rw-orange)" }}>{p.price}</div>
-              </div>
-            ))}
-            <p style={{ margin: "16px 0 0", fontSize: 13.5, lineHeight: 1.55, color: "var(--rw-meta)" }}>
-              You&apos;ll see your total on the next step before anything is confirmed.
+            <p className="rw-su-note">
+              Membership opens the member area online: the song library, lesson videos and practice tools. It doesn&apos;t book
+              lessons or place anyone in a class. Lessons at the school are arranged with us; <Link href="/trial">ask about a trial</Link>.
             </p>
-          </div>
+            <p className="rw-su-note">You&apos;ll see the total on the next page before anything is charged.</p>
+          </fieldset>
         )}
 
         {submitError && (
-          <p role="alert" style={{ margin: "16px 2px 0", fontSize: 13.5, color: "var(--rw-orange-deep)" }}>
+          <p role="alert" className="rw-su-error" style={{ marginTop: 16 }}>
             {submitError}
           </p>
         )}
 
-        <div style={{ display: "flex", gap: 12, justifyContent: "space-between", marginTop: 26 }}>
+        <div className="rw-su-actions">
           {step > 1 ? (
-            <button type="button" onClick={back} style={backBtnStyle}>
-              &larr; Back
+            <button type="button" onClick={() => goTo(step - 1)} className="rw-su-back">
+              ← Back
             </button>
           ) : (
             <span />
           )}
-          {step < 4 ? (
-            <button type="button" onClick={next} className="rw-cta" style={ctaButtonStyle}>
-              Continue &rarr;
-            </button>
-          ) : (
-            <button type="button" onClick={submit} disabled={submitting} className="rw-cta" style={ctaButtonStyle}>
-              {submitting ? "Submitting…" : mode === "signup" ? "Submit Sign-Up 🌺" : "Finish setup 🌺"}
-            </button>
-          )}
+          <button type="submit" disabled={submitting} className="rw-cta rw-su-next">
+            {step < LAST_STEP ? "Continue →" : submitting ? (mode === "signup" ? "Creating your account…" : "Saving…") : mode === "signup" ? "Create my account" : "Finish setup"}
+          </button>
         </div>
-      </div>
+      </form>
     </div>
   );
 }
 
-const cardStyle = {
-  background: "var(--rw-surface)",
-  border: "1px solid var(--rw-border)",
-  borderRadius: "var(--rw-radius-md)",
-  padding: "48px 36px",
-  textAlign: "center",
-  boxShadow: "0 24px 50px -30px color-mix(in srgb, var(--rw-ink-deep) 40%, transparent)",
-};
-
-const stepTitleStyle = {
-  fontFamily: "var(--font-zilla-slab), serif",
-  fontWeight: 600,
-  fontSize: 24,
-  margin: "0 0 20px",
-  color: "var(--rw-ink)",
-};
-
-const carriedInstrumentStyle = {
-  margin: "0 0 4px",
-  padding: "11px 14px",
-  borderRadius: "var(--rw-radius-field)",
-  background: "var(--rw-sand)",
-  fontSize: "var(--rw-text-sm)",
-  lineHeight: 1.5,
-  color: "var(--rw-prose)",
-  fontWeight: 500,
-};
-
-const fieldLabelStyle = {
-  display: "flex",
-  flexDirection: "column",
-  gap: 6,
-  fontSize: 13.5,
-  fontWeight: 700,
-  color: "var(--rw-prose)",
-  marginTop: 14,
-};
-
-const inputStyle = {
-  padding: "12px 14px",
-  borderRadius: "var(--rw-radius-field)",
-  border: "1px solid var(--rw-line)",
-  fontSize: 15,
-  fontFamily: "inherit",
-  color: "var(--rw-ink)",
-};
-
-const errStyle = {
-  display: "block",
-  marginTop: 4,
-  fontSize: 13,
-  color: "var(--rw-orange-deep)",
-  fontWeight: 500,
-};
-
-function choiceCardStyle(active) {
-  return {
-    padding: "16px 18px",
-    borderRadius: "var(--rw-radius-md)",
-    border: active ? "2px solid var(--rw-orange)" : "1px solid var(--rw-line)",
-    background: active ? "var(--rw-orange-tint)" : "var(--rw-surface)",
-    cursor: "pointer",
-    marginBottom: 12,
-  };
+function Req() {
+  return (
+    <span className="rw-su-req">
+      <span aria-hidden="true">*</span>
+      <span className="rw-sr-only">(required)</span>
+    </span>
+  );
 }
-
-function planCardStyle(active) {
-  return {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: "16px 18px",
-    borderRadius: "var(--rw-radius-md)",
-    border: active ? "2px solid var(--rw-orange)" : "1px solid var(--rw-line)",
-    background: active ? "var(--rw-orange-tint)" : "var(--rw-surface)",
-    cursor: "pointer",
-    marginBottom: 12,
-  };
-}
-
-const backBtnStyle = {
-  padding: "13px 22px",
-  borderRadius: "var(--rw-radius-sm)",
-  fontWeight: 700,
-  fontSize: 14.5,
-  color: "var(--rw-prose)",
-  background: "transparent",
-  border: "1px solid var(--rw-line)",
-  cursor: "pointer",
-};
-
-const ctaButtonStyle = {
-  display: "inline-flex",
-  alignItems: "center",
-  gap: 8,
-  padding: "13px 30px",
-  borderRadius: "var(--rw-radius-sm)",
-  fontWeight: 800,
-  fontSize: 15,
-  color: "#fff",
-  border: "none",
-  cursor: "pointer",
-  background: "linear-gradient(135deg,var(--rw-orange),var(--rw-orange-deep))",
-  boxShadow: "0 14px 28px -12px color-mix(in srgb, var(--rw-orange) 60%, transparent)",
-};

@@ -19,4 +19,4 @@ export const PLANS = [
   { key: "term", name: "Term", sub: "Paid up front — works out at $45 a month", price: "$135/term" },
 ];
 
-export const STEP_LABELS = ["Student & Login", "Experience", "Instruction", "Plan"];
+export const STEP_LABELS = ["Student & login", "Instrument", "Plan"];

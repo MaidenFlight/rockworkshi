@@ -4,180 +4,158 @@ import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { API_URL } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
+import Icon from "@/components/member/Icon";
+import PracticeNext from "@/components/member/PracticeNext";
 import TeacherWork from "@/components/member/TeacherWork";
 import UpcomingClasses from "@/components/member/UpcomingClasses";
 import YourTerm from "@/components/member/YourTerm";
-import { practiceRequest } from "@/lib/practice";
+import { NetworkError, practiceRequest } from "@/lib/practice";
+import { openableCount, pickPracticeNext } from "@/lib/practiceNext";
 
 const TOOLS = [
-  { name: "Guitar Tuner", emoji: "\u{1F3B8}", href: "/tools/tuner" },
-  { name: "Metronome", emoji: "⏱️", href: "/tools/metronome" },
-  { name: "Chord Library", emoji: "\u{1F4D6}", href: "/tools/chords" },
-  { name: "Piano Notes", emoji: "\u{1F3B9}", href: "/tools/piano" },
-  { name: "Rhythm Trainer", emoji: "\u{1F941}", href: "/tools/rhythm" },
+  { name: "Tuner", icon: "tuner", href: "/tools/tuner" },
+  { name: "Metronome", icon: "metronome", href: "/tools/metronome" },
+  { name: "Chord library", icon: "chords", href: "/tools/chords" },
+  { name: "Piano notes", icon: "keys", href: "/tools/piano" },
+  { name: "Rhythm trainer", icon: "drum", href: "/tools/rhythm" },
 ];
 
-const ACHIEVEMENTS = [
-  { emoji: "\u{1F3B5}", name: "First Song" },
-  { emoji: "\u{1F525}", name: "7-Day Streak" },
-  { emoji: "\u{1F3A4}", name: "Stage Ready" },
-];
+// What a request that failed should say, offline or not.
+const why = (err) => (err instanceof NetworkError ? "You're offline. Check your connection and try again." : err.message);
 
 export default function MemberDashboard() {
   const { user } = useAuth();
   const [lessons, setLessons] = useState([]);
-  const [library, setLibrary] = useState(null);
+  // undefined while loading; each one fails on its own so the rest of the page still shows.
+  const [library, setLibrary] = useState(undefined);
+  const [term, setTerm] = useState(undefined);
+  const [assignments, setAssignments] = useState(undefined);
+  const [failure, setFailure] = useState("");
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     fetch(`${API_URL}/lessons`, { credentials: "include" })
       .then((res) => res.json())
       .then((data) => setLessons(data.lessons || []))
       .catch(() => setLessons([]));
-    // The library page handles offline and retry; here the card just shows less.
-    practiceRequest("/library")
-      .then(setLibrary)
-      .catch(() => setLibrary(null));
   }, []);
 
-  const stats = user?.practiceStats || { weeklyMinutes: 0, weeklyGoal: 90, streak: 0 };
-  const wkPct = Math.min(100, Math.round((stats.weeklyMinutes / (stats.weeklyGoal || 1)) * 100));
-  const ringR = 46;
-  const ringC = 2 * Math.PI * ringR;
-  const ringOffset = ringC * (1 - wkPct / 100);
+  useEffect(() => {
+    let cancelled = false;
+    Promise.allSettled([practiceRequest("/library"), practiceRequest("/term"), practiceRequest("/assignments?page=1&pageSize=20")]).then(
+      ([lib, t, work]) => {
+        if (cancelled) return;
+        setLibrary(lib.status === "fulfilled" ? lib.value : null);
+        setTerm(t.status === "fulfilled" ? t.value : null);
+        setAssignments(work.status === "fulfilled" ? work.value.assignments : []);
+        setFailure(lib.status === "rejected" ? why(lib.reason) : "");
+      }
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [attempt]);
+
+  const loaded = library !== undefined && term !== undefined && assignments !== undefined;
+  const picked = loaded ? pickPracticeNext({ library, term, assignments }) : null;
+  // Teacher work, a term song or a renewal can still be shown without the library. Anything else
+  // ("pick up where you left off", "your first song", "nothing yet") would be a guess, so say it failed.
+  const failed = picked && failure && !["assignment", "term", "renew"].includes(picked.kind) ? failure : "";
+  const next = failed ? null : picked;
+  const ready = openableCount(library);
+  const favourites = (library?.songs ?? []).filter((s) => s.favorite).length;
+  const firstName = user?.name?.split(" ")[0];
 
   return (
-    <div style={{ maxWidth: 1100, margin: "0 auto", padding: "48px 24px 100px" }}>
-      <h1 style={{ fontWeight: 800, textTransform: "uppercase", fontSize: 34, lineHeight: 1.05, color: "var(--rw-ink)", marginBottom: 4 }}>
-        Welcome back{user?.name ? `, ${user.name}` : ""}
+    <div style={{ maxWidth: 1200, margin: "0 auto", padding: "40px 24px 100px" }}>
+      <h1 className="rw-dash-title">
+        {next?.isNew ? "Welcome" : "Welcome back"}
+        {firstName ? `, ${firstName}` : ""}
       </h1>
-      <p style={{ color: "var(--rw-body)", marginBottom: 24 }}>Pick up where you left off, or grab a practice tool.</p>
 
-      <UpcomingClasses />
-
-      <YourTerm continueItem={library?.continue ?? null} />
-
-      {/* useSearchParams needs a Suspense boundary in a client page. */}
-      <Suspense fallback={null}>
-        <TeacherWork />
-      </Suspense>
-
-      <div className="rw-cols-5" style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 14, marginBottom: 44 }}>
-        {TOOLS.map((tool) => (
-          <Link
-            key={tool.name}
-            href={tool.href}
-            className="rw-card"
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: 10,
-              padding: "24px 12px",
-              background: "var(--rw-surface)",
-              border: "1px solid var(--rw-border)",
-              borderRadius: "var(--rw-radius-md)",
-              textDecoration: "none",
+      <div className="rw-dash">
+        <div className="rw-dash-main">
+          <PracticeNext
+            next={next}
+            failed={failed}
+            onRetry={() => {
+              setFailure("");
+              setLibrary(undefined);
+              setAttempt((n) => n + 1);
             }}
-          >
-            <span style={{ fontSize: 30 }}>{tool.emoji}</span>
-            <span style={{ fontWeight: 700, fontSize: 13.5, color: "var(--rw-ink)", textAlign: "center" }}>{tool.name}</span>
-          </Link>
-        ))}
-      </div>
+          />
 
-      <div className="rw-featured-grid" style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 32 }}>
-        <div>
-          <h2 style={{ fontWeight: 800, textTransform: "uppercase", fontSize: 24, color: "var(--rw-ink)", marginBottom: 16 }}>Your lessons</h2>
-          <div className="rw-cols-2" style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 16 }}>
-            {lessons.map((lesson) => {
-              // Lesson videos aren't all ready, and a lesson without one has nothing to open yet.
-              const ready = Boolean(lesson.videoUrl || lesson.playthroughVideoUrl);
-              const card = { display: "block", padding: 18, background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)", textDecoration: "none" };
-              const inside = (
-                <>
-                <div style={{ fontWeight: 700, fontSize: 17, color: "var(--rw-ink)" }}>{lesson.title}</div>
-                <div style={{ fontSize: 13.5, color: "var(--rw-meta)" }}>{[lesson.artist, lesson.difficulty, lesson.key].filter(Boolean).join(" · ")}</div>
-                <div style={{ fontSize: 12.5, color: "var(--rw-body)", marginTop: 8 }}>
-                  {lesson.locked ? "Unlocks with your term" : ready ? lesson.estTime : "Coming soon"}
-                </div>
-                </>
-              );
-              return ready || lesson.locked ? (
-                <Link key={lesson.id} href={`/member/lesson/${lesson.id}`} className="rw-card" style={card}>
-                  {inside}
+          {/* useSearchParams needs a Suspense boundary in a client page. */}
+          <div className="rw-dash-work">
+            <Suspense fallback={null}>
+              <TeacherWork exclude={next?.kind === "assignment" ? next.assignment.id : null} />
+            </Suspense>
+          </div>
+
+          {lessons.length > 0 && (
+            <section aria-labelledby="your-lessons">
+              <h2 id="your-lessons" className="rw-dash-h2">
+                Lesson videos
+              </h2>
+              <ul className="rw-dash-list">
+                {lessons.map((lesson) => {
+                  // Lesson videos aren't all ready, and a lesson without one has nothing to open yet.
+                  const hasVideo = Boolean(lesson.videoUrl || lesson.playthroughVideoUrl);
+                  const status = lesson.locked ? "Unlocks with your term" : hasVideo ? lesson.estTime : "Coming soon";
+                  const inside = (
+                    <>
+                      <span style={{ flex: 1, minWidth: 0 }}>
+                        <span className="rw-dash-row-title">{lesson.title}</span>
+                        <span className="rw-dash-row-meta">{[lesson.artist, lesson.difficulty, lesson.key].filter(Boolean).join(" · ")}</span>
+                      </span>
+                      <span className="rw-dash-row-status">{status}</span>
+                    </>
+                  );
+                  return (
+                    <li key={lesson.id}>
+                      {hasVideo || lesson.locked ? (
+                        <Link href={`/member/lesson/${lesson.id}`} className="rw-dash-row" data-link="true">
+                          {inside}
+                        </Link>
+                      ) : (
+                        <div className="rw-dash-row">{inside}</div>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          )}
+        </div>
+
+        <aside className="rw-dash-side" aria-label="Your week and your tools">
+          <UpcomingClasses />
+          <YourTerm data={term} />
+          <nav className="rw-st-card" aria-labelledby="practice-room">
+            <h2 id="practice-room">Practice room</h2>
+            <ul className="rw-dash-tools">
+              <li>
+                <Link href="/member/library">
+                  <Icon name="library" size={20} />
+                  <span style={{ flex: 1 }}>Practice library</span>
+                  {library && (
+                    <span className="rw-dash-row-meta">
+                      {ready} to play{favourites ? ` · ${favourites} starred` : ""}
+                    </span>
+                  )}
                 </Link>
-              ) : (
-                <div key={lesson.id} style={card}>
-                  {inside}
-                </div>
-              );
-            })}
-            {lessons.length === 0 && <p style={{ color: "var(--rw-meta)" }}>No lessons assigned yet.</p>}
-          </div>
-
-          <div style={{ marginTop: 36, display: "grid", gap: 14 }}>
-            <Link
-              href="/member/library"
-              className="rw-card"
-              style={{
-                display: "block",
-                padding: 18,
-                background: "var(--rw-surface)",
-                border: "1px solid var(--rw-border)",
-                borderRadius: "var(--rw-radius-md)",
-                textDecoration: "none",
-              }}
-            >
-              <div style={{ fontWeight: 700, fontSize: 17, color: "var(--rw-ink)" }}>Practice library</div>
-              <div style={{ fontSize: 13.5, color: "var(--rw-meta)" }}>
-                {library
-                  ? `${library.songs.filter((s) => s.hasTracks).length} ready to play · more coming soon · ${library.songs.filter((s) => s.favorite).length} favourites`
-                  : "Search, filter and pick up where you left off."}
-              </div>
-            </Link>
-          </div>
-        </div>
-
-        <div>
-          <div style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)", padding: 24, textAlign: "center", marginBottom: 20 }}>
-            <svg viewBox="0 0 110 110" width={110} height={110}>
-              <circle cx={55} cy={55} r={ringR} fill="none" stroke="var(--rw-rule)" strokeWidth={9} />
-              <circle
-                cx={55}
-                cy={55}
-                r={ringR}
-                fill="none"
-                stroke="var(--rw-orange)"
-                strokeWidth={9}
-                strokeDasharray={ringC}
-                strokeDashoffset={ringOffset}
-                strokeLinecap="round"
-                transform="rotate(-90 55 55)"
-              />
-              <text x={55} y={60} textAnchor="middle" fontSize={20} fontWeight={700} fill="var(--rw-ink)">
-                {wkPct}%
-              </text>
-            </svg>
-            <p style={{ margin: "10px 0 2px", fontSize: 13.5, color: "var(--rw-prose)" }}>
-              {stats.weeklyMinutes} / {stats.weeklyGoal} min this week
-            </p>
-            <p style={{ margin: 0, fontSize: 12.5, color: "var(--rw-meta)" }}>{stats.streak || 0}-day streak</p>
-          </div>
-
-          <div style={{ background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)", padding: 20 }}>
-            <div style={{ fontWeight: 700, fontSize: 15, color: "var(--rw-ink)", marginBottom: 12 }}>
-              Achievements
-            </div>
-            <div style={{ display: "flex", gap: 14 }}>
-              {ACHIEVEMENTS.map((a) => (
-                <div key={a.name} style={{ textAlign: "center", flex: 1 }}>
-                  <div style={{ fontSize: 24 }}>{a.emoji}</div>
-                  <div style={{ fontSize: 11, color: "var(--rw-body)", marginTop: 4 }}>{a.name}</div>
-                </div>
+              </li>
+              {TOOLS.map((tool) => (
+                <li key={tool.href}>
+                  <Link href={tool.href}>
+                    <Icon name={tool.icon} size={20} />
+                    <span>{tool.name}</span>
+                  </Link>
+                </li>
               ))}
-            </div>
-          </div>
-        </div>
+            </ul>
+          </nav>
+        </aside>
       </div>
     </div>
   );

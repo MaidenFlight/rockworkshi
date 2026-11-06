@@ -6,7 +6,6 @@ export default function LegalPage({ title, lastUpdated, intro, children }) {
     <div>
       <PageHero
         compact
-        eyebrow="Legal"
         title={title}
         mark={<RockWorksIcon size={36} color="var(--rw-gold)" />}
       >

@@ -80,7 +80,6 @@ export default function BookATrial() {
   return (
     <div>
       <PageHero
-        eyebrow={<T k="trial.hero.eyebrow">First lesson&apos;s on us</T>}
         title={<T k="trial.hero.title">Book a Trial</T>}
         lead={<T k="trial.hero.lead">One free lesson on the instrument you pick. Tell us who&apos;s playing and how to reach you, and the school will get in touch to find a time.</T>}
       />

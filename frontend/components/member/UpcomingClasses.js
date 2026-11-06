@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { icsHref } from "@/lib/ics";
 import { api, kindLabel, when } from "@/lib/studio";
 
 const DAYS_AHEAD = 21;
@@ -35,11 +36,23 @@ export default function UpcomingClasses() {
               <span className="rw-st-chip" data-tone="warn">
                 On the waitlist
               </span>
-            ) : e.meetingUrl ? (
-              <a href={e.meetingUrl} target="_blank" rel="noreferrer" className="rw-st-btn" data-size="small">
-                Join the meeting
-              </a>
-            ) : null}
+            ) : (
+              <span style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {e.meetingUrl && (
+                  <a href={e.meetingUrl} target="_blank" rel="noreferrer" className="rw-st-btn">
+                    Join the meeting
+                  </a>
+                )}
+                <a
+                  href={icsHref(e, { kindLabel: kindLabel(e.kind) })}
+                  download={`rock-works-${e.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.ics`}
+                  className="rw-st-btn"
+                  aria-label={`Add ${e.title}, ${when(e.startsAt)}, to your calendar`}
+                >
+                  Add to calendar
+                </a>
+              </span>
+            )}
           </li>
         ))}
       </ul>

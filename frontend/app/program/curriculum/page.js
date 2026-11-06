@@ -7,7 +7,6 @@ export default function Curriculum() {
   return (
     <div>
       <EditorialHero
-        eyebrow={<T k="curriculum.hero.eyebrow">Program</T>}
         title={<T k="curriculum.hero.title">Curriculum</T>}
         intro={<T k="curriculum.hero.intro">One song a month, taught in five levels, across a ten-year path.</T>}
       />

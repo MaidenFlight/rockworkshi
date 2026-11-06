@@ -12,22 +12,18 @@ import { PageHero } from "@/components/ui";
 // Copy for each outcome the API can redirect back with.
 const OUTCOMES = {
   success: {
-    emoji: "🌺",
     title: "Email confirmed",
     body: "Thanks! Your address is verified — let's finish setting up your account.",
   },
   already: {
-    emoji: "👍",
     title: "Already confirmed",
     body: "This address was verified earlier. You're good to go.",
   },
   expired: {
-    emoji: "⏳",
     title: "That link expired",
     body: "Verification links last 24 hours. Sign in and request a fresh one.",
   },
   invalid: {
-    emoji: "🤔",
     title: "That link didn't work",
     body: "It may have already been used, or been cut short by your email app. Request a new one below.",
   },
@@ -63,6 +59,22 @@ function VerifyEmailContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
+  // Waiting here while the link is opened in another tab or the mail app: check again whenever
+  // this tab comes back into view, so it moves on without a manual refresh.
+  const waiting = !token && Boolean(user) && !user.emailVerified;
+  useEffect(() => {
+    if (!waiting) return;
+    const recheck = () => {
+      if (document.visibilityState === "visible") refresh();
+    };
+    window.addEventListener("focus", recheck);
+    document.addEventListener("visibilitychange", recheck);
+    return () => {
+      window.removeEventListener("focus", recheck);
+      document.removeEventListener("visibilitychange", recheck);
+    };
+  }, [waiting, refresh]);
+
   // Once verified, move on to whatever is still outstanding.
   useEffect(() => {
     if (!isLoading && user?.emailVerified) {
@@ -85,7 +97,6 @@ function VerifyEmailContent() {
   if (token && !status) {
     return (
       <div style={cardStyle}>
-        <div style={{ fontSize: 44, marginBottom: 10 }}>📬</div>
         <h2 style={titleStyle}>Confirming your email…</h2>
       </div>
     );
@@ -95,7 +106,6 @@ function VerifyEmailContent() {
   if (outcome) {
     return (
       <div style={cardStyle}>
-        <div style={{ fontSize: 44, marginBottom: 10 }}>{outcome.emoji}</div>
         <h2 style={titleStyle}>{outcome.title}</h2>
         <p style={{ margin: "0 0 22px", fontSize: 15.5, lineHeight: 1.55, color: "var(--rw-body-cool)" }}>
           {outcome.body}
@@ -114,7 +124,6 @@ function VerifyEmailContent() {
   // Otherwise this is the "we've sent you an email" holding step.
   return (
     <div style={cardStyle}>
-      <div style={{ fontSize: 44, marginBottom: 10 }}>📬</div>
       <h2 style={titleStyle}>Check your inbox</h2>
       <p style={{ margin: "0 0 8px", fontSize: 15.5, lineHeight: 1.55, color: "var(--rw-body-cool)" }}>
         We sent a confirmation link to{" "}
@@ -158,7 +167,7 @@ function VerifyEmailContent() {
 export default function VerifyEmail() {
   return (
     <div>
-      <PageHero mark={<RockWorksIcon size={40} color="var(--rw-gold)" />} eyebrow="One quick thing" title={<>Confirm your email</>} compact />
+      <PageHero mark={<RockWorksIcon size={40} color="var(--rw-gold)" />} title={<>Confirm your email</>} compact />
 
       <div style={{ maxWidth: 520, margin: "0 auto", padding: "40px 24px 80px" }}>
         <Suspense fallback={null}>
@@ -172,10 +181,9 @@ export default function VerifyEmail() {
 const cardStyle = {
   background: "var(--rw-surface)",
   border: "1px solid var(--rw-border)",
-  borderRadius: 24,
+  borderRadius: "var(--rw-radius-md)",
   padding: "44px 32px",
   textAlign: "center",
-  boxShadow: "0 24px 50px -30px rgba(90,40,70,0.4)",
 };
 
 const titleStyle = {

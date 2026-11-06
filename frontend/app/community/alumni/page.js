@@ -6,7 +6,6 @@ export default function Alumni() {
   return (
     <div>
       <EditorialHero
-        eyebrow={<T k="alumni.hero.eyebrow">Community</T>}
         title={<T k="alumni.hero.title">Alumni</T>}
         intro={<T k="alumni.hero.intro">Rock Works students go on to keep playing — in bands, on stages, and for life.</T>}
       />

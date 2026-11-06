@@ -44,8 +44,10 @@ function Diagram({ name, keys }) {
 
 // Follows the song by position, so it stays right at any speed and through a loop.
 // A chart here has times from the API: see backend/src/lib/chordChart.js.
-// coach is a line of advice on what to try next, from the player.
-export default function ChordChart({ chart, position, myPart = null, loop = null, disabled = false, onSeek, onLoopSection, coach = null }) {
+// coach is a line of advice on what to try next, from the player. ephemeral leaves the visitor's
+// remembered part and help level alone (the homepage preview); titleAs sets the heading level.
+// endLabel names what comes after the last section, for a chart that's an excerpt.
+export default function ChordChart({ chart, position, myPart = null, loop = null, disabled = false, onSeek, onLoopSection, coach = null, ephemeral = false, titleAs: Title = "h2", endLabel = null }) {
   // The player hands down new functions on every frame. Steady ones let the bars skip redrawing.
   const handlers = useRef({ onSeek, onLoopSection });
   useEffect(() => {
@@ -56,8 +58,11 @@ export default function ChordChart({ chart, position, myPart = null, loop = null
 
   const available = useMemo(() => [...CHORD_PARTS, ...NOTE_PARTS.filter((p) => chart.parts?.[p])], [chart]);
   // What was picked last, or else the part this student plays.
-  const [part, setPart] = useState(() => saved(PART_KEY, available, available.includes(myPart) ? myPart : "Guitar"));
-  const [mode, setMode] = useState(() => saved(MODE_KEY, MODES.map((m) => m.id), "guide"));
+  const [part, setPart] = useState(() => {
+    const fallback = available.includes(myPart) ? myPart : "Guitar";
+    return ephemeral ? fallback : saved(PART_KEY, available, fallback);
+  });
+  const [mode, setMode] = useState(() => (ephemeral ? "guide" : saved(MODE_KEY, MODES.map((m) => m.id), "guide")));
   const [peeked, setPeeked] = useState(null); // the chord being peeked at; hides again once the song moves on
 
   // Every chord in order, with the section and bar it belongs to.
@@ -88,13 +93,13 @@ export default function ChordChart({ chart, position, myPart = null, loop = null
   function chooseMode(id) {
     setMode(id);
     setPeeked(null);
-    remember(MODE_KEY, id);
+    if (!ephemeral) remember(MODE_KEY, id);
   }
 
   function choosePart(id) {
     setPart(id);
     setPeeked(null);
-    remember(PART_KEY, id);
+    if (!ephemeral) remember(PART_KEY, id);
   }
 
   const keys = part === "Keys";
@@ -109,7 +114,7 @@ export default function ChordChart({ chart, position, myPart = null, loop = null
   return (
     <div className="rw-play-along" data-mode={mode}>
       <div className="rw-pa-head">
-        <h2 className="rw-pa-title">Play along</h2>
+        <Title className="rw-pa-title">Play along</Title>
         <div role="group" aria-label="Show the part for" className="rw-part-tabs">
           {available.map((p) => (
             <button key={p} type="button" onClick={() => choosePart(p)} aria-pressed={part === p} className="rw-part-tab" style={{ "--lane": partColor(p) }}>
@@ -135,7 +140,13 @@ export default function ChordChart({ chart, position, myPart = null, loop = null
         </span>
         <span>
           <span className="rw-nn-label">Next</span>
-          {nextSection ? (now ? `${nextSection.name} in ${barsLeft + 1} bar${barsLeft ? "s" : ""}` : nextSection.name) : "The end of the song"}
+          {nextSection
+            ? now
+              ? `${nextSection.name} in ${barsLeft + 1} bar${barsLeft ? "s" : ""}`
+              : nextSection.name
+            : endLabel && now
+              ? `${endLabel} in ${barsLeft + 1} bar${barsLeft ? "s" : ""}`
+              : "The end of the song"}
         </span>
       </div>
       {coach && (
@@ -265,7 +276,8 @@ const ChartGrid = memo(function ChartGrid({ chart, currentTime, cursor, loopStar
                 onClick={() => onLoopSection(section.bars[0].time, end)}
                 disabled={disabled}
                 aria-label={`Loop ${section.name}`}
-                style={{ border: 0, background: "transparent", padding: "2px 4px", fontSize: 12.5, fontWeight: 700, color: "var(--rw-orange-deep)", cursor: "pointer" }}
+                // 44px to touch, with the margin taking it back so the section rows don't grow.
+                style={{ minHeight: 44, minWidth: 44, margin: "-10px 0", border: 0, background: "transparent", padding: "0 6px", fontSize: 12.5, fontWeight: 700, color: "var(--rw-orange-deep)", cursor: "pointer" }}
               >
                 Loop
               </button>

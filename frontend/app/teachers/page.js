@@ -17,7 +17,7 @@ export default function Teachers() {
 
   return (
     <div>
-      <PageHero eyebrow={<T k="teachers.hero.eyebrow">Meet the school</T>} title={<T k="teachers.hero.title">Teachers</T>} />
+      <PageHero title={<T k="teachers.hero.title">Teachers</T>} />
 
       <div style={{ maxWidth: 1000, margin: "0 auto", padding: "36px 24px 100px" }}>
         {teachers === undefined && <p style={{ color: "var(--rw-meta)" }}>Loading…</p>}

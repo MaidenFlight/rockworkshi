@@ -26,7 +26,7 @@ export default function Footer() {
             <RockWorksIcon size={28} color="var(--rw-gold)" />
             <div style={{ display: "flex", flexDirection: "column", lineHeight: 1 }}>
               <span style={{ fontFamily: "var(--font-zilla-slab), serif", fontWeight: 600, fontSize: 18, color: "#fff" }}>Rock Works</span>
-              <span style={{ fontWeight: 700, fontSize: 8.5, letterSpacing: "0.26em", textTransform: "uppercase", color: "var(--rw-sea-glass)", marginTop: 3 }}>
+              <span style={{ fontWeight: 700, fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase", color: "var(--rw-sea-glass)", marginTop: 3 }}>
                 School of Music
               </span>
             </div>

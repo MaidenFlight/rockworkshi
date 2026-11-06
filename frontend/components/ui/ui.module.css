@@ -147,23 +147,17 @@
   margin-bottom: var(--rw-space-4);
 }
 
-.heroEyebrow {
-  display: block;
-  font-size: var(--rw-text-xs);
-  font-weight: 700;
-  letter-spacing: var(--rw-track-eyebrow);
-  text-transform: uppercase;
-  color: var(--rw-gold);
-  margin-bottom: 16px;
-}
-
-.heroEyebrow::before {
-  content: "";
+.heroRule {
   display: block;
   width: 62px;
   height: 6px;
+  margin-bottom: 22px;
   background: var(--rw-flare);
-  margin-bottom: 16px;
+}
+
+.heroBare .heroInner {
+  padding-top: 48px;
+  padding-bottom: 44px;
 }
 
 .heroLead {
@@ -333,14 +327,8 @@
   justify-content: center;
 }
 
-:global([data-world="classic"]) .heroEyebrow {
-  display: inline-block;
-  letter-spacing: 0.16em;
-  margin-bottom: 14px;
-}
-
-:global([data-world="classic"]) .heroEyebrow::before {
-  content: none;
+:global([data-world="classic"]) .heroRule {
+  display: none;
 }
 
 :global([data-world="classic"]) .heroLead {
