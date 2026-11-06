@@ -31,9 +31,15 @@ export default function FavoriteButton({ songId, title, favorite, onChange, onEr
       aria-label={`Favourite ${title}`}
       title={favorite ? "Remove from favourites" : "Add to favourites"}
       style={{
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+        minWidth: 44,
+        minHeight: 44,
         border: 0,
         background: "transparent",
-        padding: 4,
+        padding: 0,
         lineHeight: 1,
         fontSize: size,
         cursor: busy ? "default" : "pointer",

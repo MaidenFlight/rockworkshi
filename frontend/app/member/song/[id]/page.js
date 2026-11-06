@@ -103,7 +103,7 @@ function SongPlayAlong() {
 
   return (
     <div style={{ maxWidth: 1320, margin: "0 auto", padding: "40px 24px 100px" }}>
-      <Link href={backHref} style={{ fontSize: 13.5, color: "var(--rw-meta)", textDecoration: "none" }}>
+      <Link href={backHref} className="rw-back">
         <Icon name="arrow-left" size={14} /> {assignment ? "Practice work" : "Practice library"}
       </Link>
       <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginTop: 10, marginBottom: 22 }}>

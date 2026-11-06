@@ -63,6 +63,17 @@ function remember(key, on) {
   }
 }
 
+// The view chosen last time, or Simple on a phone-sized screen and on a first visit to a song.
+function firstView(beenHereBefore) {
+  try {
+    const stored = window.localStorage.getItem("rw-player-view");
+    if (stored === "simple" || stored === "studio") return stored;
+  } catch {
+    // No storage: fall through to the default.
+  }
+  return beenHereBefore && window.innerWidth >= 1000 ? "studio" : "simple";
+}
+
 // The upload limit in the API (MAX_RECORDING_BYTES).
 const MAX_RECORDING_BYTES = 40 * 1024 * 1024;
 
@@ -187,6 +198,11 @@ export default function StemPlayer({
   const [sendError, setSendError] = useState("");
   const [countIn, setCountIn] = useState(() => remembered("rw-count-in"));
   const [metronome, setMetronome] = useState(() => remembered("rw-metronome"));
+  // Simple leaves the part lanes and the studio (mixer, recorder, effects) out until asked for.
+  // Reviewing or recording for a teacher needs the studio, so those always open in it.
+  const [view, setView] = useState(() => (review || onSendTake ? "studio" : firstView(Boolean(resume))));
+  const [intro, setIntro] = useState(() => !review && !remembered("rw-player-intro"));
+  const simple = view === "simple";
   const [mix, setMix] = useState(() => (saved ? mixFromSettings(saved, parts) : defaultMix(parts)));
   const [fx, setFx] = useState(saved?.effects ? { ...DEFAULT_EFFECTS, ...saved.effects } : DEFAULT_EFFECTS);
   const [peaks, setPeaks] = useState({}); // part -> waveform outline, worked out after loading
@@ -785,6 +801,20 @@ export default function StemPlayer({
     if (metronome) stopClicks(ctxRef.current?.currentTime ?? 0);
   }
 
+  function chooseView(next) {
+    setView(next);
+    try {
+      window.localStorage.setItem("rw-player-view", next);
+    } catch {
+      // Only a convenience: it just won't be remembered.
+    }
+  }
+
+  function dismissIntro() {
+    setIntro(false);
+    remember("rw-player-intro", true);
+  }
+
   function loopSection(start, end) {
     updateLoop({ start, end });
     seek(start);
@@ -1183,6 +1213,19 @@ export default function StemPlayer({
           )}
         </div>
       )}
+      {!review && (
+        <div role="group" aria-label="Player view" className="rw-tp-group rw-tl-view">
+          <span className="rw-tp-label">View</span>
+          <span className="rw-seg">
+            <button type="button" onClick={() => chooseView("simple")} aria-pressed={simple}>
+              Simple
+            </button>
+            <button type="button" onClick={() => chooseView("studio")} aria-pressed={!simple} title="Part lanes, mixer, recorder and effects">
+              Studio
+            </button>
+          </span>
+        </div>
+      )}
       {heldBack && (
         <div role="status" className="rw-tl-note">
           <span>
@@ -1307,7 +1350,23 @@ export default function StemPlayer({
 
   return (
     <PlayClock.Provider value={clock}>
-    <div className="rw-player" data-review={review ? "true" : undefined}>
+    <div className="rw-player" data-review={review ? "true" : undefined} data-view={view}>
+      {intro && simple && (
+        <section className="rw-intro" aria-labelledby="player-intro">
+          <h2 id="player-intro" className="rw-intro-title">
+            New to the player?
+          </h2>
+          <ol className="rw-intro-steps">
+            <li>Press Play, or Space, and follow along. {chart ? "The chart shows the chord to play now." : ""}</li>
+            <li>Too fast? Pick a lower Speed.</li>
+            <li>To repeat a tricky part, drag across its bars on the Loop strip{chart ? ", or press Loop beside a section in the chart" : ""}.</li>
+          </ol>
+          <p className="rw-intro-more">Studio, beside View, opens each part&apos;s lane, the mixer and the recorder.</p>
+          <button type="button" className="rw-btn rw-intro-ok" onClick={dismissIntro}>
+            Got it
+          </button>
+        </section>
+      )}
       <Transport
         ready={ready}
         loadedCount={loadedCount}
@@ -1341,7 +1400,7 @@ export default function StemPlayer({
       <Timeline
         duration={duration}
         chart={chart}
-        lanes={lanes}
+        lanes={simple ? [] : lanes}
         loop={loop}
         snap={{ start: (t) => (chart ? barStartAt(t) : t), end: (t) => (chart ? barEndAt(t) : t) }}
         onLoop={loopSection}
@@ -1359,13 +1418,14 @@ export default function StemPlayer({
         }
       />
 
-      <div className="rw-player-cols" data-chart={chart && !review ? "true" : "false"}>
+      <div className="rw-player-cols" data-chart={chart && !review && !simple ? "true" : "false"}>
         {chart && !review && (
           <section className="rw-practice" aria-label="Play along">
             <ChordChart chart={chart} position={position} myPart={myPart} loop={loop} disabled={!ready || recording} onSeek={seek} onLoopSection={loopSection} coach={coach} />
           </section>
         )}
-        <aside className="rw-studio" aria-label="Studio">
+        {/* Hidden rather than removed, so a recording or mic check keeps its panel. */}
+        <aside className="rw-studio" aria-label="Studio" hidden={simple}>
           <StudioTabs tabs={studioTabs} />
         </aside>
       </div>

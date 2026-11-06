@@ -99,7 +99,7 @@ function PracticeLibrary() {
 
   return (
     <div style={{ maxWidth: 1000, margin: "0 auto", padding: "40px 24px 100px" }}>
-      <Link href="/member" style={{ fontSize: 13.5, color: "var(--rw-meta)", textDecoration: "none" }}>
+      <Link href="/member" className="rw-back">
         <Icon name="arrow-left" size={14} /> Dashboard
       </Link>
       <h1 style={{ fontWeight: 800, textTransform: "uppercase", fontSize: 30, color: "var(--rw-ink)", margin: "10px 0 4px" }}>Practice library</h1>

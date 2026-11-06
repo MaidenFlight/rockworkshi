@@ -41,7 +41,7 @@ export default function LessonDetail() {
 
   return (
     <div style={{ maxWidth: 1000, margin: "0 auto", padding: "40px 24px 100px" }}>
-      <Link href="/member" style={{ fontSize: 13.5, color: "var(--rw-meta)", textDecoration: "none" }}>
+      <Link href="/member" className="rw-back">
         &larr; Back to lessons
       </Link>
       <div style={{ marginTop: 10, marginBottom: 22 }}>

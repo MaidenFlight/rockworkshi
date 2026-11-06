@@ -2693,6 +2693,7 @@ div:has(> .rw-scrub:focus-visible) {
   color: var(--rw-console-meta);
 }
 .rw-shortcuts summary {
+  padding: 13px 0;
   cursor: pointer;
   font-weight: 700;
 }
@@ -4301,4 +4302,90 @@ div:has(> .rw-scrub:focus-visible) {
     flex: 1 1 100%;
     justify-content: center;
   }
+}
+
+/* ---- Player: Simple view, the first-visit note and larger touch keys ---- */
+.rw-tl-view {
+  margin-left: auto;
+}
+.rw-tl-loopkeys .rw-btn-small {
+  min-height: 44px;
+}
+.rw-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 20px;
+  align-items: start;
+  margin-bottom: 12px;
+  padding: 16px 20px;
+  background: var(--rw-sand);
+  border: 1px solid var(--rw-border);
+  border-top: 4px solid var(--rw-flare);
+  color: var(--rw-prose);
+}
+.rw-intro-title {
+  grid-column: 1;
+  margin: 0 0 6px;
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: var(--rw-text-xl);
+  text-transform: uppercase;
+  color: var(--rw-ink);
+}
+.rw-intro-steps {
+  grid-column: 1;
+  margin: 0;
+  padding-left: 20px;
+  font-size: var(--rw-text-base);
+  line-height: 1.6;
+}
+.rw-intro-more {
+  grid-column: 1;
+  margin: 6px 0 0;
+  font-size: var(--rw-text-sm);
+  color: var(--rw-body);
+}
+.rw-intro-ok {
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  align-self: center;
+  min-height: 44px;
+  padding: 0 20px;
+  border: 1px solid var(--rw-ink);
+  background: var(--rw-ink);
+  color: var(--rw-cream);
+  font-weight: 700;
+}
+@media (max-width: 560px) {
+  .rw-intro {
+    grid-template-columns: 1fr;
+  }
+  .rw-intro-ok {
+    grid-column: 1;
+    grid-row: auto;
+    margin-top: 10px;
+    width: 100%;
+  }
+  .rw-tl-view {
+    margin-left: 0;
+  }
+}
+
+/* The link back from a member page: small type, a full-size target. */
+.rw-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  margin-top: -12px;
+  font-size: var(--rw-text-sm);
+  color: var(--rw-meta);
+  text-decoration: none;
+}
+.rw-back:hover {
+  color: var(--rw-ink);
+}
+.rw-back:focus-visible {
+  outline: 2px solid var(--rw-teal);
+  outline-offset: 2px;
 }

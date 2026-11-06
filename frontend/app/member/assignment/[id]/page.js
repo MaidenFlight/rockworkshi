@@ -65,7 +65,7 @@ export default function AssignmentPage() {
 
   return (
     <div style={{ maxWidth: 800, margin: "0 auto", padding: "40px 24px 100px" }}>
-      <Link href="/member" style={{ fontSize: 13.5, color: "var(--rw-meta)", textDecoration: "none" }}>
+      <Link href="/member" className="rw-back">
         <Icon name="arrow-left" size={14} /> Dashboard
       </Link>
 
