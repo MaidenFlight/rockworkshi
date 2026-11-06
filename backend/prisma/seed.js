@@ -80,7 +80,12 @@ async function main() {
   }
   await prisma.lessonVideo.createMany({ data: videos, skipDuplicates: true });
 
-  // Teachers are not seeded; add real ones through the admin.
+  // The school's one teacher so far (2026-11-05). Teacher has no unique key, so look before adding.
+  if (!(await prisma.teacher.findFirst({ where: { name: "Brian Albus" } }))) {
+    await prisma.teacher.create({
+      data: { name: "Brian Albus", bio: "Brian runs Rock Works School of Music and is, for now, its only teacher.", order: 0 },
+    });
+  }
 
   await prisma.faq.createMany({
     data: [
