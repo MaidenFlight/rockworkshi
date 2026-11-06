@@ -1240,7 +1240,7 @@ export default function StemPlayer({
           id: "take",
           label: "The take",
           content: (
-            <div className="rw-record">
+            <div className="rw-recorder">
               <label className="rw-nudge">
                 <span className="rw-nudge-head">
                   <span>Line up the take</span>

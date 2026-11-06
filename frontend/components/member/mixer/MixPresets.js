@@ -71,7 +71,7 @@ export default function MixPresets({ songId, getSettings, onApply }) {
         <label htmlFor="mix-preset" className="rw-studio-label">
           Saved mixes
         </label>
-        <select id="mix-preset" value={selected} onChange={(e) => apply(e.target.value)} className="rw-field">
+        <select id="mix-preset" value={selected} onChange={(e) => apply(e.target.value)} className="rw-console-input">
           <option value="">{presets.length ? "Choose a saved mix…" : "No saved mixes yet"}</option>
           {presets.map((p) => (
             <option key={p.id} value={p.id}>
@@ -90,7 +90,7 @@ export default function MixPresets({ songId, getSettings, onApply }) {
           maxLength={40}
           placeholder="Name this mix, e.g. Drums up"
           aria-label="Name for this mix"
-          className="rw-field"
+          className="rw-console-input"
         />
         <button type="submit" disabled={!name.trim()} className="rw-btn rw-btn-small">
           Save mix

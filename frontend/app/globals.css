@@ -257,6 +257,15 @@ summary:focus-visible,
   transform: scaleY(-1);
 }
 
+/* Inside a field the wave sits over the motif repeat. The band a top wave is cut from loses its
+   bottom edge, which would otherwise show as a hairline across the join. */
+.rw-field .rw-wave {
+  z-index: 1;
+}
+section:has(+ .rw-field-ask) {
+  border-bottom-color: transparent;
+}
+
 /* ---- The ways in ---- */
 .rw-split {
   display: grid;
@@ -678,8 +687,9 @@ main:focus {
   color: var(--rw-ink);
 }
 
+/* The closing field opens straight on its wave, cut from the label stock above it. */
 .rw-field-ask {
-  padding-top: 46px;
+  padding-top: 0;
 }
 
 .rw-repeat {
@@ -2069,7 +2079,7 @@ main:focus {
   border-color: var(--rw-gold);
   color: var(--rw-ink);
 }
-.rw-field {
+.rw-console-input {
   flex: 1 1 160px;
   min-height: 36px;
   padding: 0 10px;
@@ -3064,7 +3074,7 @@ div:has(> .rw-scrub:focus-visible) {
 }
 
 /* ---- Recorder ---- */
-.rw-record {
+.rw-recorder {
   display: grid;
   gap: 14px;
 }
@@ -4077,4 +4087,54 @@ div:has(> .rw-scrub:focus-visible) {
 .rw-st-dl dd {
   margin: 0;
   color: var(--rw-prose);
+}
+
+/* ---- History: the school's dates, in the How-it-works path idiom ---- */
+.rw-history {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.rw-history-step {
+  padding: 26px 24px 30px 0;
+  border-top: 5px solid var(--rw-ink);
+}
+.rw-history-step + .rw-history-step {
+  padding-left: 24px;
+}
+.rw-history-year {
+  display: block;
+  margin-bottom: 12px;
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: var(--rw-text-4xl);
+  line-height: 0.9;
+  letter-spacing: var(--rw-track-poster);
+  font-variant-numeric: tabular-nums;
+  color: var(--rw-orange-deep);
+}
+.rw-history-text {
+  margin: 0;
+  font-size: var(--rw-text-base);
+  line-height: 1.6;
+  color: var(--rw-prose);
+}
+@media (max-width: 860px) {
+  .rw-history {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .rw-history-step:nth-child(odd) {
+    padding-left: 0;
+  }
+}
+@media (max-width: 560px) {
+  .rw-history {
+    grid-template-columns: 1fr;
+  }
+  .rw-history-step,
+  .rw-history-step + .rw-history-step {
+    padding: 20px 0 24px;
+  }
 }
