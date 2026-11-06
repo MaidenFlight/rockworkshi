@@ -12,6 +12,7 @@ const songsRoutes = require("./routes/songs.routes");
 const teacherRoutes = require("./routes/teacher.routes");
 const assignmentsRoutes = require("./routes/assignments.routes");
 const libraryRoutes = require("./routes/library.routes");
+const chordLibraryRoutes = require("./routes/chordLibrary.routes");
 const termRoutes = require("./routes/terms.routes");
 const classRoutes = require("./routes/classes.routes");
 const peopleRoutes = require("./routes/people.routes");
@@ -90,6 +91,7 @@ app.use("/family", peopleRoutes.family);
 app.use("/calendar", classRoutes.calendar);
 app.use("/assignments", assignmentsRoutes);
 app.use("/library", libraryRoutes);
+app.use("/chord-library", chordLibraryRoutes);
 app.use("/term", termRoutes.student);
 app.use("/", publicRoutes);
 
