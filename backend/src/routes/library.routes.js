@@ -26,10 +26,11 @@ router.get("/", requirePaid, async (req, res) => {
   });
 
   const access = await loadAccess(req.user);
-  const locked = (song) => !access.song(song.id).allowed;
+  const verdicts = new Map(songs.map((song) => [song.id, access.song(song.id)]));
+  const locked = (song) => !verdicts.get(song.id).allowed;
   // Why it's shut, so the page never promises a term unlock to someone outside that term:
   // "locked" (later in their term), "preparing" (date passed, not published) or "not_in_term".
-  const lockReason = (song) => access.song(song.id).reason ?? null;
+  const lockReason = (song) => verdicts.get(song.id).reason ?? null;
 
   // Most recently opened song the student can still open and play, with where they left off in it.
   let latest = null;

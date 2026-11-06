@@ -31,6 +31,7 @@ export default function Nav() {
   const [openGroup, setOpenGroup] = useState(null); // the desktop menu opened by click or keyboard
   const burger = useRef(null);
   const drawer = useRef(null);
+  const leaving = useRef(false); // closed by following a link: focus belongs to the new page
 
   const dashboardHref = dashboardFor(user);
   // A student signed in is here to practise, so the header leads with that and folds the
@@ -66,7 +67,8 @@ export default function Nav() {
     return () => {
       document.body.style.overflow = "";
       document.removeEventListener("keydown", onKeyDown);
-      returnTo?.focus();
+      if (!leaving.current) returnTo?.focus();
+      leaving.current = false;
     };
   }, [mobileOpen]);
 
@@ -80,8 +82,13 @@ export default function Nav() {
     if (!e.currentTarget.contains(e.relatedTarget)) setOpenGroup(null);
   }
 
-  async function handleMobileSignOut() {
+  function leaveDrawer() {
+    leaving.current = true;
     setMobileOpen(false);
+  }
+
+  async function handleMobileSignOut() {
+    leaveDrawer();
     await signOut();
     router.push("/");
   }
@@ -307,7 +314,7 @@ export default function Nav() {
                             <Link
                               key={sub.href}
                               href={sub.href}
-                              onClick={() => setMobileOpen(false)}
+                              onClick={leaveDrawer}
                               style={{ display: "block", padding: "11px 14px", fontSize: 14.5, fontWeight: 600, color: "var(--rw-prose)", textDecoration: "none", borderLeft: "2px solid var(--rw-rule)" }}
                             >
                               {sub.label}
@@ -319,7 +326,7 @@ export default function Nav() {
                   ) : (
                     <Link
                       href={item.href}
-                      onClick={() => setMobileOpen(false)}
+                      onClick={leaveDrawer}
                       style={{ display: "block", padding: "15px 8px", fontSize: 16, fontWeight: 700, color: "var(--rw-ink)", textDecoration: "none" }}
                     >
                       {item.label}
@@ -353,18 +360,18 @@ export default function Nav() {
                   <div style={{ display: "flex", flexDirection: "column" }}>
                     {!isStudent && (
                       <>
-                        <Link href={dashboardHref} onClick={() => setMobileOpen(false)} style={mobileMenuLinkStyle}>
+                        <Link href={dashboardHref} onClick={leaveDrawer} style={mobileMenuLinkStyle}>
                           Dashboard
                         </Link>
-                        <Link href="/member" onClick={() => setMobileOpen(false)} style={mobileMenuLinkStyle}>
+                        <Link href="/member" onClick={leaveDrawer} style={mobileMenuLinkStyle}>
                           Student Dashboard
                         </Link>
                       </>
                     )}
-                    <Link href="/member/profile" onClick={() => setMobileOpen(false)} style={mobileMenuLinkStyle}>
+                    <Link href="/member/profile" onClick={leaveDrawer} style={mobileMenuLinkStyle}>
                       My Profile
                     </Link>
-                    <Link href="/member/settings" onClick={() => setMobileOpen(false)} style={mobileMenuLinkStyle}>
+                    <Link href="/member/settings" onClick={leaveDrawer} style={mobileMenuLinkStyle}>
                       Account Settings
                     </Link>
                     <button
@@ -380,21 +387,21 @@ export default function Nav() {
                 <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 20, padding: "0 8px" }}>
                   <Link
                     href="/signin"
-                    onClick={() => setMobileOpen(false)}
+                    onClick={leaveDrawer}
                     style={{ textAlign: "center", padding: 12, borderRadius: 8, border: "1px solid var(--rw-line)", fontWeight: 600, fontSize: 15, color: "var(--rw-prose)", textDecoration: "none" }}
                   >
                     Sign In
                   </Link>
                   <Link
                     href="/signup"
-                    onClick={() => setMobileOpen(false)}
+                    onClick={leaveDrawer}
                     style={{ textAlign: "center", padding: 12, borderRadius: 8, border: "1px solid var(--rw-line)", fontWeight: 600, fontSize: 15, color: "var(--rw-prose)", textDecoration: "none" }}
                   >
                     Sign Up
                   </Link>
                   <Link
                     href="/trial"
-                    onClick={() => setMobileOpen(false)}
+                    onClick={leaveDrawer}
                     style={{ textAlign: "center", padding: 13, borderRadius: 8, background: "var(--rw-orange)", color: "#fff", fontWeight: 700, fontSize: 15, textDecoration: "none" }}
                   >
                     Book a Trial

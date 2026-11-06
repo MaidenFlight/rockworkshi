@@ -202,7 +202,8 @@ export default function StemPlayer({
   // Reviewing or recording for a teacher needs the studio, so those always open in it.
   const [view, setView] = useState(() => (review || onSendTake ? "studio" : firstView(Boolean(resume))));
   const [intro, setIntro] = useState(() => !review && !remembered("rw-player-intro"));
-  const simple = view === "simple";
+  // Simple is built around the chart; a song without one keeps its lanes and studio.
+  const simple = view === "simple" && Boolean(chart);
   const [mix, setMix] = useState(() => (saved ? mixFromSettings(saved, parts) : defaultMix(parts)));
   const [fx, setFx] = useState(saved?.effects ? { ...DEFAULT_EFFECTS, ...saved.effects } : DEFAULT_EFFECTS);
   const [peaks, setPeaks] = useState({}); // part -> waveform outline, worked out after loading
@@ -1213,7 +1214,7 @@ export default function StemPlayer({
           )}
         </div>
       )}
-      {!review && (
+      {!review && chart && (
         <div role="group" aria-label="Player view" className="rw-tp-group rw-tl-view">
           <span className="rw-tp-label">View</span>
           <span className="rw-seg">

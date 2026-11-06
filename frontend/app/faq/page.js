@@ -39,11 +39,10 @@ export default function FAQ() {
                   <path d={open ? "M5 12h14" : "M5 12h14M12 5v14"} />
                 </svg>
               </button>
-              {open && (
-                <p id={`faq-${f.id}`} style={{ margin: "0 0 18px", fontSize: "var(--rw-text-base)", color: "var(--rw-body)", lineHeight: 1.6, maxWidth: "65ch" }}>
-                  {f.answer}
-                </p>
-              )}
+              {/* Kept in the page while closed, so aria-controls always points at something. */}
+              <p id={`faq-${f.id}`} hidden={!open} style={{ margin: "0 0 18px", fontSize: "var(--rw-text-base)", color: "var(--rw-body)", lineHeight: 1.6, maxWidth: "65ch" }}>
+                {f.answer}
+              </p>
             </div>
           );
         })}

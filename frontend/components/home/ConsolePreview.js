@@ -55,6 +55,16 @@ export default function ConsolePreview() {
   const [still, setStill] = useState(prefersStill);
   // The timer: where it was last started from, when, and how it runs. Read only outside render.
   const run = useRef({ from: 0, at: 0, playing: false, speed: 1, loop: null, still });
+  // Off screen nothing is redrawn; the timer keeps time, so it picks up where the song has got to.
+  const root = useRef(null);
+  const [visible, setVisible] = useState(true);
+  const live = playing && visible;
+
+  useEffect(() => {
+    const watch = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting));
+    watch.observe(root.current);
+    return () => watch.disconnect();
+  }, []);
 
   useEffect(() => {
     let query;
@@ -83,12 +93,12 @@ export default function ConsolePreview() {
     return r.still && r.playing ? barStartAt(t) : t;
   }, []);
 
-  // While playing, re-render a few times a second so the chart and the clock keep up.
+  // While playing in view, re-render a few times a second so the chart and the clock keep up.
   useEffect(() => {
-    if (!playing) return;
+    if (!live) return;
     const id = setInterval(() => setPosition(positionNow()), RENDER_EVERY_MS);
     return () => clearInterval(id);
-  }, [playing, positionNow]);
+  }, [live, positionNow]);
 
   const restart = useCallback((from) => {
     run.current.from = from;
@@ -159,7 +169,7 @@ export default function ConsolePreview() {
       })),
     [mode, focus]
   );
-  const clockValue = useMemo(() => ({ getPosition: positionNow, playing }), [positionNow, playing]);
+  const clockValue = useMemo(() => ({ getPosition: positionNow, playing: live }), [positionNow, live]);
   const snap = useMemo(() => ({ start: barStartAt, end: barEndAt }), []);
 
   const bar = barIndexAt(position) + 1;
@@ -167,7 +177,7 @@ export default function ConsolePreview() {
 
   return (
     <PlayClock.Provider value={clockValue}>
-      <div className="rw-player rw-preview-player">
+      <div ref={root} className="rw-player rw-preview-player">
         <div className="rw-transport rw-preview-transport">
           <div className="rw-tp-row">
             <div role="group" aria-label="Transport" className="rw-tp-keys">
@@ -240,7 +250,7 @@ export default function ConsolePreview() {
           snap={snap}
           onLoop={loopRange}
           getPosition={positionNow}
-          playing={playing}
+          playing={live}
           position={position}
           onSeek={seek}
           disabled={false}

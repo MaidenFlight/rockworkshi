@@ -36,26 +36,28 @@ function validateStep(step, form, mode) {
 
 // The answers so far, kept for this tab only so a refresh or a look at another page doesn't
 // lose them. Passwords are never written. Storage can be missing, so every access is guarded.
-const draftKey = (mode) => `rw-signup-draft:${mode}`;
-function readDraft(mode) {
+// Onboarding drafts belong to the signed-in account, so a shared computer never hands one
+// person's answers to the next.
+const draftKey = (mode, userId) => (mode === "onboarding" ? `rw-signup-draft:onboarding:${userId ?? "unknown"}` : "rw-signup-draft:signup");
+function readDraft(key) {
   if (typeof window === "undefined") return null;
   try {
-    return JSON.parse(window.sessionStorage.getItem(draftKey(mode)) || "null");
+    return JSON.parse(window.sessionStorage.getItem(key) || "null");
   } catch {
     return null;
   }
 }
-function writeDraft(mode, step, form) {
+function writeDraft(key, step, form) {
   try {
     const safe = Object.fromEntries(Object.entries(form).filter(([k]) => !SECRET_FIELDS.includes(k)));
-    window.sessionStorage.setItem(draftKey(mode), JSON.stringify({ step, form: safe }));
+    window.sessionStorage.setItem(key, JSON.stringify({ step, form: safe }));
   } catch {
     // Only a convenience.
   }
 }
-function clearDraft(mode) {
+function clearDraft(key) {
   try {
-    window.sessionStorage.removeItem(draftKey(mode));
+    window.sessionStorage.removeItem(key);
   } catch {
     // Nothing to clear.
   }
@@ -65,7 +67,8 @@ function clearDraft(mode) {
 export default function SignupWizard({ mode, instrument = null }) {
   const { user, signUp, updateProfile } = useAuth();
   const router = useRouter();
-  const [draft] = useState(() => readDraft(mode));
+  const key = draftKey(mode, user?.id);
+  const [draft] = useState(() => readDraft(key));
   // A draft can come back on step 2 or 3, but signup's step 1 then needs the password again.
   const [step, setStep] = useState(() => (draft?.step && !(mode === "signup" && draft.step > 1) ? draft.step : 1));
   const [form, setForm] = useState(() => ({
@@ -96,8 +99,8 @@ export default function SignupWizard({ mode, instrument = null }) {
   const moved = useRef(false);
 
   useEffect(() => {
-    if (!success) writeDraft(mode, step, form);
-  }, [mode, step, form, success]);
+    if (!success) writeDraft(key, step, form);
+  }, [key, step, form, success]);
 
   // A new step moves focus to its heading, so keyboard and screen reader users land on it.
   useEffect(() => {
@@ -149,7 +152,7 @@ export default function SignupWizard({ mode, instrument = null }) {
       } else {
         nextUser = await updateProfile(profile);
       }
-      clearDraft(mode);
+      clearDraft(key);
       // Answers are in, checkout is normally what's left.
       const dest = destinationFor(nextUser);
       setNextHref(dest);

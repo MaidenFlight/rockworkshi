@@ -25,7 +25,8 @@ export function icsFor(event, { kindLabel } = {}) {
     `DTEND:${stamp(event.endsAt ?? event.startsAt)}`,
     `SUMMARY:${escape(event.title)}`,
     `DESCRIPTION:${escape([about, event.meetingUrl ? `Join: ${event.meetingUrl}` : null].filter(Boolean).join("\n"))}`,
-    ...(event.meetingUrl ? [`URL:${escape(event.meetingUrl)}`] : []),
+    // A URI value isn't text: escaping its commas or semicolons would change the link.
+    ...(event.meetingUrl ? [`URL:${String(event.meetingUrl).replace(/[\r\n]/g, "")}`] : []),
     "END:VEVENT",
     "END:VCALENDAR",
   ];

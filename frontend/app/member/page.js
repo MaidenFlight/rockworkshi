@@ -48,8 +48,7 @@ export default function MemberDashboard() {
         setLibrary(lib.status === "fulfilled" ? lib.value : null);
         setTerm(t.status === "fulfilled" ? t.value : null);
         setAssignments(work.status === "fulfilled" ? work.value.assignments : []);
-        // Only worth a message when there's nothing to pick from at all.
-        setFailure(lib.status === "rejected" && t.status === "rejected" ? why(lib.reason) : "");
+        setFailure(lib.status === "rejected" ? why(lib.reason) : "");
       }
     );
     return () => {
@@ -58,7 +57,11 @@ export default function MemberDashboard() {
   }, [attempt]);
 
   const loaded = library !== undefined && term !== undefined && assignments !== undefined;
-  const next = loaded && !failure ? pickPracticeNext({ library, term, assignments }) : null;
+  const picked = loaded ? pickPracticeNext({ library, term, assignments }) : null;
+  // Teacher work, a term song or a renewal can still be shown without the library. Anything else
+  // ("pick up where you left off", "your first song", "nothing yet") would be a guess, so say it failed.
+  const failed = picked && failure && !["assignment", "term", "renew"].includes(picked.kind) ? failure : "";
+  const next = failed ? null : picked;
   const ready = openableCount(library);
   const favourites = (library?.songs ?? []).filter((s) => s.favorite).length;
   const firstName = user?.name?.split(" ")[0];
@@ -74,7 +77,7 @@ export default function MemberDashboard() {
         <div className="rw-dash-main">
           <PracticeNext
             next={next}
-            failed={failure}
+            failed={failed}
             onRetry={() => {
               setFailure("");
               setLibrary(undefined);
