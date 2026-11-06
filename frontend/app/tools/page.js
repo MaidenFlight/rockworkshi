@@ -14,7 +14,7 @@ const TOOLS = [
   { key: "metronome", title: "Metronome", desc: "A steady click at any tempo, with tap tempo.", icon: "metronome", free: true },
   { key: "chords", title: "Chord Library", desc: "Real fingerings for guitar, ukulele, bass, and piano.", icon: "chords" },
   { key: "piano", title: "Piano", desc: "A two-octave, polyphonic on-screen keyboard.", icon: "keys" },
-  { key: "rhythm", title: "Rhythm Trainer", desc: "Clap or play along with a count-in and highlighted beats.", icon: "drum" },
+  { key: "rhythm", title: "Rhythm Trainer", desc: "Read a rhythm, hear it, tap it back. Every note graded early, late or on time.", icon: "drum" },
 ];
 
 export default function ToolsHub() {
