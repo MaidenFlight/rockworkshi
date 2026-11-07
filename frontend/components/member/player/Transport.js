@@ -57,6 +57,7 @@ export default function Transport({
   trainer = null,
   onStartTrainer = null,
   onStopTrainer = null,
+  onFocus = null,
 }) {
   const bar = useRef(null);
   const trainerId = useId();
@@ -170,6 +171,13 @@ export default function Transport({
             <span className="rw-rec-dot" aria-hidden="true" />
             Recording <span style={{ fontVariantNumeric: "tabular-nums" }}>{clock(recordTime)}</span>
           </div>
+        )}
+
+        {onFocus && (
+          <button type="button" className="rw-btn rw-tp-focus" onClick={onFocus} title="The chart, play and record at full-screen size, for playing from a step away">
+            <Icon name="expand" size={16} />
+            Focus
+          </button>
         )}
 
         {onOpenRecorder && !recording && (

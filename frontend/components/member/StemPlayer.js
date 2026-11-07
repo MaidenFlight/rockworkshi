@@ -19,6 +19,7 @@ import { afterPass, startRun, trainerSettings, trainerStatus } from "@/lib/speed
 import { forgetTake, keepTake, readTake, updateTake } from "@/lib/takeStore";
 import ChordChart from "./ChordChart";
 import Icon from "./Icon";
+import FocusView from "./player/FocusView";
 import MixerPanel from "./mixer/MixerPanel";
 import PartBalance from "./mixer/PartBalance";
 import EffectsRack from "./mixer/EffectsRack";
@@ -251,6 +252,8 @@ export default function StemPlayer({
   // loop reads at the end of each pass; the state is what's shown.
   const [trainer, setTrainer] = useState(null);
   const trainerRef = useRef(null);
+  // The focus view (player/FocusView.js): the same player at stage size, for the room.
+  const [focusOpen, setFocusOpen] = useState(false);
   // The studio column, for "Open studio mixer" to name and "Record your take" to open on the recorder.
   const studioId = useId();
   const studioRef = useRef(null);
@@ -1646,6 +1649,7 @@ export default function StemPlayer({
         trainer={trainer}
         onStartTrainer={review ? null : startTrainer}
         onStopTrainer={stopTrainer}
+        onFocus={chart && !review ? () => setFocusOpen(true) : null}
       />
 
       <Timeline
@@ -1691,6 +1695,40 @@ export default function StemPlayer({
           <StudioTabs ref={studioTabsRef} tabs={studioTabs} />
         </aside>
       </div>
+
+      {chart && !review && (
+        <FocusView
+          open={focusOpen}
+          onClose={() => setFocusOpen(false)}
+          title={title}
+          chart={{ chart, myPart, instrument: instrument || null, partAvailable: available?.chart ?? true, loop, onSeek: seek, onLoopSection: loopSection }}
+          position={position}
+          where={where}
+          ready={ready}
+          playing={playing}
+          recording={recording}
+          recordTime={recording ? Math.max(0, position - recordFrom) : 0}
+          onPlayPause={playing ? pause : play}
+          onStep={(direction) => stepBar(direction, false)}
+          speed={speed}
+          speeds={SPEEDS}
+          onSpeed={changeSpeed}
+          preparingSpeed={preparingSpeed}
+          loop={loop}
+          onLoopHere={() => {
+            const here = sectionLoopAt(currentPosition());
+            if (here) loopSection(here.start, here.end);
+          }}
+          onClearLoop={() => updateLoop(null)}
+          onRecord={startRecording}
+          onStopRecording={stopRecording}
+          status={
+            micError ||
+            (trainer ? trainerStatus(trainer.settings, trainer.run) : "") ||
+            (take && !recording ? `${takeTitle} is ready. Exit focus to hear it${onSendTake ? " and send it" : ""}.` : "")
+          }
+        />
+      )}
     </div>
     </PlayClock.Provider>
   );

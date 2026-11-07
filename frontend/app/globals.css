@@ -2674,6 +2674,14 @@ main:focus {
 .rw-tp-take + .rw-tp-master {
   margin-left: 0;
 }
+/* "Focus" opens the focus view; it leads the right-hand group, before Record your take. */
+.rw-tp-focus {
+  min-height: 44px;
+  margin-left: auto;
+}
+.rw-tp-focus + .rw-tp-take {
+  margin-left: 0;
+}
 .rw-tp-group {
   display: flex;
   flex-wrap: wrap;
@@ -3986,6 +3994,95 @@ div:has(> .rw-scrub:focus-visible) {
   bottom: 2px;
   width: 2px;
   background: var(--rw-orange);
+}
+
+/* ---- The focus view's stage (FocusView.js): the same cards and bars, as large as the screen allows ---- */
+.rw-play-along-stage .rw-chord-now {
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: 20px;
+  margin: 0;
+}
+.rw-play-along-stage .rw-chord-card {
+  align-items: center;
+  justify-content: center;
+  gap: 16px 32px;
+  padding: 24px 28px;
+}
+.rw-play-along-stage .rw-chord-label {
+  font-size: 15px;
+}
+.rw-play-along-stage .rw-chord-name {
+  font-size: clamp(88px, 13vw, 220px);
+  line-height: 0.9;
+}
+.rw-play-along-stage .rw-chord-card[data-role="next"] .rw-chord-name {
+  font-size: clamp(56px, 7vw, 120px);
+}
+.rw-play-along-stage .rw-chord-card[data-role="now"] .rw-chord-shape svg:not([data-keys]) {
+  width: clamp(160px, 20vw, 320px);
+}
+.rw-play-along-stage .rw-chord-card[data-role="next"] .rw-chord-shape svg:not([data-keys]) {
+  width: clamp(110px, 12vw, 200px);
+}
+.rw-play-along-stage .rw-beat-dots {
+  gap: 8px;
+  margin-top: 16px;
+}
+.rw-play-along-stage .rw-beat-dots span {
+  width: 36px;
+  height: 14px;
+}
+/* Bass, drums and voice: the bar being played, the next one beside it on a wide screen. */
+.rw-part-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 20px;
+}
+.rw-part-stage-bar {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  background: var(--rw-sand);
+  border-radius: var(--rw-radius-md);
+}
+.rw-part-stage-bar[data-role="next"] {
+  background: var(--rw-surface);
+  opacity: 0.85;
+}
+.rw-play-along-stage .rw-chord-shape svg[data-keys] {
+  width: clamp(220px, 26vw, 400px);
+  height: auto;
+}
+/* A phone: the two cards stacked, each a row (name, then shape), so both fit above the keys. */
+@media (max-width: 700px) {
+  .rw-play-along-stage .rw-chord-now,
+  .rw-part-stage {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .rw-play-along-stage .rw-chord-card {
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+  }
+  .rw-play-along-stage .rw-chord-card[data-role="now"] .rw-chord-shape svg:not([data-keys]) {
+    width: 132px;
+  }
+  .rw-play-along-stage .rw-chord-card[data-role="next"] .rw-chord-shape svg:not([data-keys]) {
+    width: 84px;
+  }
+  .rw-play-along-stage .rw-chord-card[data-role="next"] .rw-chord-name {
+    font-size: 44px;
+  }
+  .rw-play-along-stage .rw-chord-shape svg[data-keys] {
+    width: 168px;
+  }
+  .rw-play-along-stage .rw-beat-dots span {
+    width: 24px;
+    height: 10px;
+  }
 }
 
 /* ---- Play now and Next, and the bars of the chord chart ---- */

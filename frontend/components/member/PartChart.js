@@ -159,6 +159,31 @@ export default function PartChart({ chart, part, position, mode, loop = null, di
   }
   const peeking = peeked !== null && peeked === current;
   const info = chart.parts[part];
+  const nextBar = current >= 0 ? (bars[current + 1] ?? null) : (bars[0] ?? null);
+
+  // The focus view's stage (player/FocusView.js): the bar being played and the next, each the full width.
+  if (mode === "stage") {
+    return (
+      <div className="rw-part-stage" data-testid="part-stage">
+        <div className="rw-part-stage-bar">
+          <div className="rw-chord-label">{bar ? `Play now · ${section.name}, bar ${bar.b + 1} of ${section.bars.length}` : "Get ready"}</div>
+          {bar ? (
+            <Bar bar={bar} part={part} range={range} current cursor={position} activeTime={activeItem?.time ?? null} sectionName={section.name} disabled={disabled} onSeek={onSeek} />
+          ) : (
+            <div style={bigNote}>–</div>
+          )}
+          {/* On the paper with the bar: the marks are drawn in ink. */}
+          {part === "Drums" && <DrumKey />}
+        </div>
+        {nextBar && (
+          <div className="rw-part-stage-bar" data-role="next">
+            <div className="rw-chord-label">Next</div>
+            <Bar bar={nextBar} part={part} range={range} activeTime={null} sectionName={chart.sections[nextBar.s].name} disabled={disabled} onSeek={onSeek} />
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div>
