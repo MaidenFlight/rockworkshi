@@ -26,6 +26,16 @@ export function trainerSettings(raw) {
   return settings;
 }
 
+// The settings last used in this browser (the player remembers them as "rw-speed-trainer"), or the
+// defaults where there are none or storage isn't there.
+export function storedTrainerSettings() {
+  try {
+    return trainerSettings(JSON.parse(window.localStorage.getItem("rw-speed-trainer") || "null"));
+  } catch {
+    return trainerSettings(null);
+  }
+}
+
 // The speeds it plays, as fractions of full speed: 0.6, 0.7 … 1. It ends exactly on the top speed
 // even when the step doesn't divide the way there (60 to 100 by 15 is 60, 75, 90, 100).
 export function trainerSpeeds(settings) {

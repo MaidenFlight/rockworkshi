@@ -4759,6 +4759,23 @@ div:has(> .rw-scrub:focus-visible) {
   align-items: center;
   gap: 12px;
 }
+/* "Open the player without the steps": the way past the guided session, quieter than its buttons. */
+.rw-next-plain {
+  margin: 4px 0 0;
+  font-size: var(--rw-text-sm);
+}
+.rw-next-plain a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-weight: 700;
+  color: var(--rw-body);
+  text-underline-offset: 3px;
+}
+.rw-next-plain a:focus-visible {
+  outline: 2px solid var(--rw-teal);
+  outline-offset: 2px;
+}
 .rw-next-aside {
   margin: 18px 0 0;
   padding-top: 14px;

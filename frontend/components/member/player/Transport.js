@@ -2,18 +2,9 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { CLIP_KNEE } from "@/lib/audio/mix";
-import { TRAINER_CHOICES, trainerPlan, trainerSettings, trainerStatus } from "@/lib/speedTrainer";
+import { TRAINER_CHOICES, storedTrainerSettings, trainerPlan, trainerSettings, trainerStatus } from "@/lib/speedTrainer";
 import Icon from "../Icon";
 import Meter from "./Meter";
-
-// The speed trainer's settings from last time in this browser, or the defaults.
-function storedTrainer() {
-  try {
-    return trainerSettings(JSON.parse(window.localStorage.getItem("rw-speed-trainer") || "null"));
-  } catch {
-    return trainerSettings(null);
-  }
-}
 
 function clock(s) {
   const t = Math.max(0, Math.floor(s || 0));
@@ -62,7 +53,7 @@ export default function Transport({
   const bar = useRef(null);
   const trainerId = useId();
   const [trainerOpen, setTrainerOpen] = useState(false);
-  const [plan, setPlan] = useState(storedTrainer);
+  const [plan, setPlan] = useState(storedTrainerSettings);
   const [trainerError, setTrainerError] = useState("");
   const [starting, setStarting] = useState(false);
 

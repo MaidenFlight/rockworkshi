@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useImperativeHandle, useMemo, useRef, useState } from "react";
 import {
   MIX_MODES,
   createMasterBus,
@@ -15,7 +15,7 @@ import { analyser } from "@/lib/audio/meters";
 import { peaksInTurn, peaksOf } from "@/lib/audio/peaks";
 import { createStretchVoice } from "@/lib/audio/stretch";
 import { DEFAULT_EFFECTS, createTakeEffects } from "@/lib/audio/takeEffects";
-import { afterPass, startRun, trainerSettings, trainerStatus } from "@/lib/speedTrainer";
+import { afterPass, startRun, storedTrainerSettings, trainerSettings, trainerStatus } from "@/lib/speedTrainer";
 import { forgetTake, keepTake, readTake, updateTake } from "@/lib/takeStore";
 import ChordChart from "./ChordChart";
 import Icon from "./Icon";
@@ -162,6 +162,9 @@ function toWav(buffer) {
 // keepKey (lib/takeStore.js takeKey) keeps an unsent take in this browser, so it's back after a reload
 // or a visit elsewhere, until it's sent or deleted. Without it a take lasts as long as the page.
 // positionRef, a ref, gets a function that says where the song is, in seconds.
+// The guided practice session (PracticeSession.js) drives the player: `ref` gets { startTrainer,
+// openRecorder, sendTake }, onTakeState hears where the take is, and guided leaves out the first-visit
+// note, since the session explains each step itself.
 export default function StemPlayer({
   tracks,
   myPart,
@@ -180,6 +183,9 @@ export default function StemPlayer({
   available = null,
   keepKey = null,
   positionRef = null,
+  ref = null,
+  onTakeState = null,
+  guided = false,
 }) {
   const parts = useMemo(() => tracks.map((t) => t.part), [tracks]);
   const student = scope === "instrument" && Boolean(instrument);
@@ -1187,12 +1193,14 @@ export default function StemPlayer({
     if (playing) startAt(t);
   }
 
+  // Resolves true once the take is sent; a problem is shown in the recorder.
   async function sendTake() {
+    if (!take || !onSendTake) return false;
     const blob = toWav(take.buffer);
     setSendError("");
     if (blob.size > MAX_RECORDING_BYTES) {
       setSendError("This take is too long to send. Recordings can be up to about 7 minutes.");
-      return;
+      return false;
     }
     setSendProgress(0);
     try {
@@ -1200,8 +1208,10 @@ export default function StemPlayer({
       // Sent, so it's the school's copy that counts now.
       if (keepKey) await forgetTake(keepKey);
       setKeep(null);
+      return true;
     } catch (err) {
       setSendError(err.message);
+      return false;
     } finally {
       setSendProgress(null);
     }
@@ -1270,6 +1280,16 @@ export default function StemPlayer({
       positionRef.current = null;
     };
   }, [positionRef, getPosition]);
+
+  // For the guided practice session: what it can ask the player to do, and where the take is.
+  useImperativeHandle(ref, () => ({
+    startTrainer: () => startTrainer(storedTrainerSettings()),
+    openRecorder,
+    sendTake,
+  }));
+  useEffect(() => {
+    onTakeState?.({ take: Boolean(take), name: takeName.trim() || `Take ${takeCount}`, keep: keep?.state ?? null, sending: sendProgress !== null });
+  }, [onTakeState, take, takeName, takeCount, keep, sendProgress]);
   const getCountInBeat = useCallback(() => liveRef.current?.countInBeat() ?? -1, []);
   const getBeat = useCallback(() => liveRef.current?.beatNow() ?? -1, []);
   const partMeters = useMemo(() => Object.fromEntries(parts.map((p) => [p, () => [metersRef.current.parts[p]]])), [parts]);
@@ -1607,7 +1627,7 @@ export default function StemPlayer({
           Your instrument: <strong>{instrument}</strong>
         </p>
       )}
-      {intro && simple && (
+      {intro && simple && !guided && (
         <section className="rw-intro" aria-labelledby="player-intro">
           <h2 id="player-intro" className="rw-intro-title">
             New to the player?

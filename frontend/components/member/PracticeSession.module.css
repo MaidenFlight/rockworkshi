@@ -1,0 +1,154 @@
+/* The guided practice session (PracticeSession.js), above the player: label stock under the flare
+   rule, like the player's first-visit note and a teacher's pinned note. The steps run across the top,
+   the one you're on in ink with a flare-ink number, those done ticked in lagoon; then the step itself. */
+
+.session {
+  display: grid;
+  gap: 12px;
+  margin: 0 0 16px;
+  padding: 16px 20px 18px;
+  background: var(--rw-sand);
+  border: 1px solid var(--rw-border);
+  border-top: 4px solid var(--rw-flare);
+  color: var(--rw-prose);
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+}
+
+.steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.steps li {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--rw-text-sm);
+  font-weight: 700;
+  color: var(--rw-meta);
+}
+
+.num {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--rw-line);
+  border-radius: 50%;
+  font-size: var(--rw-text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.steps li[aria-current="step"] {
+  color: var(--rw-ink);
+}
+
+.steps li[aria-current="step"] .num {
+  border-color: var(--rw-orange-deep);
+  background: var(--rw-orange-deep);
+  color: #fff;
+}
+
+.steps li[data-done="true"] .num {
+  border-color: var(--rw-teal);
+  background: var(--rw-teal);
+  color: #fff;
+}
+
+.end {
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--rw-text-sm);
+  font-weight: 700;
+  color: var(--rw-body);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.end:focus-visible {
+  outline: 2px solid var(--rw-teal);
+  outline-offset: 2px;
+}
+
+.title {
+  margin: 4px 0 0;
+  font-family: var(--rw-font-display);
+  font-size: var(--rw-text-2xl);
+  font-weight: 800;
+  line-height: 1.05;
+  text-transform: uppercase;
+  color: var(--rw-ink);
+}
+
+.title:focus {
+  outline: none;
+}
+
+.text {
+  max-width: 70ch;
+  margin: 0;
+  font-size: var(--rw-text-base);
+  line-height: 1.6;
+}
+
+.tuner {
+  max-width: 560px;
+}
+
+.actions,
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+}
+
+.nav {
+  justify-content: flex-end;
+  padding-top: 12px;
+  border-top: 1px solid var(--rw-border);
+}
+
+.status {
+  font-size: var(--rw-text-sm);
+  font-weight: 700;
+  color: var(--rw-body);
+}
+
+.error {
+  font-size: var(--rw-text-sm);
+  font-weight: 700;
+  color: var(--rw-orange-deep);
+}
+
+.done {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.doneMark {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--rw-teal);
+  color: #fff;
+}

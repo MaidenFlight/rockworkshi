@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Icon from "@/components/member/Icon";
@@ -9,7 +9,9 @@ import StemPlayer from "@/components/member/StemPlayer";
 import ChordChart from "@/components/member/ChordChart";
 import FavoriteButton from "@/components/member/library/FavoriteButton";
 import PracticeNotes from "@/components/member/library/PracticeNotes";
+import PracticeSession from "@/components/member/PracticeSession";
 import SongTutorials from "@/components/member/SongTutorials";
+import { tickToday } from "@/components/member/TodayList";
 import { NetworkError, practiceRequest } from "@/lib/practice";
 import { takeKey } from "@/lib/takeStore";
 import { formatClock, hasLoop, sendForReview } from "@/lib/teaching";
@@ -40,6 +42,11 @@ function SongPlayAlong() {
   const params = useSearchParams();
   const assignmentId = params.get("assignment");
   const atParam = params.get("at");
+  // "Start today's practice" (the dashboard) opens the practice work as a guided session.
+  const session = params.get("session") === "1";
+  const playerRef = useRef(null);
+  const [takeState, setTakeState] = useState(null);
+  const [sessionSent, setSessionSent] = useState(false);
   const { user } = useAuth();
   // undefined = loading, null = failed (see failure)
   const [page, setPage] = useState(undefined); // { song, practice, tracks: data | null }
@@ -159,6 +166,17 @@ function SongPlayAlong() {
         </div>
       )}
 
+      {session && assignment && tracks && (
+        <PracticeSession
+          assignment={assignment}
+          instrument={tracks.instrument || assignment.instrument}
+          player={playerRef}
+          take={takeState}
+          sent={sessionSent}
+          onEnd={() => router.replace(`/member/song/${song.id}?assignment=${assignment.id}`)}
+        />
+      )}
+
       {pinned && (
         <p className="rw-moment-pinned" role="note">
           <span className="rw-moment-at">{formatClock(pinned.at)}</span>
@@ -234,12 +252,19 @@ function SongPlayAlong() {
             onSaveSession={saveSession}
             initialLoop={initialLoop}
             keepKey={takeKey(song.id, assignment?.id)}
-            // A take can be sent any time, waiting for feedback or not: each send is a new attempt.
+            ref={playerRef}
+            onTakeState={setTakeState}
+            guided={session && Boolean(assignment)}
+            // A take can be sent any time, waiting for feedback or not: each send is a new attempt. In a
+            // guided session the page stays, and the session says it's done.
             onSendTake={
               assignment
                 ? async (take, onProgress) => {
                     await sendForReview(assignment.id, take, onProgress);
-                    router.push(`/member/assignment/${assignment.id}`);
+                    if (session) {
+                      tickToday(assignment.id, "send");
+                      setSessionSent(true);
+                    } else router.push(`/member/assignment/${assignment.id}`);
                   }
                 : null
             }
