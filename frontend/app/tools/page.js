@@ -15,6 +15,7 @@ const TOOLS = [
   { key: "chords", title: "Chord Library", desc: "Every chord, scale and groove for the instrument you study, linked to our songs.", icon: "chords" },
   { key: "piano", title: "Piano", desc: "A two-octave, polyphonic on-screen keyboard.", icon: "keys" },
   { key: "rhythm", title: "Rhythm Trainer", desc: "Read a rhythm, hear it, tap it back. Every note graded early, late or on time.", icon: "drum" },
+  { key: "beats", title: "Beat Maker", desc: "Play drums on pads or your keyboard, start from a groove, and build your own beat into a song.", icon: "pads" },
 ];
 
 export default function ToolsHub() {
@@ -27,8 +28,8 @@ export default function ToolsHub() {
       <EditorialHero
         title={<T k="tools.hero.title">Music Tools</T>}
         intro={
-          <T k="tools.hero.intro.split">
-            The tuner and metronome are free for anyone. The chord library, piano and rhythm trainer come with membership.
+          <T k="tools.hero.intro.beats">
+            The tuner and metronome are free for anyone. The chord library, piano, rhythm trainer and beat maker come with membership.
           </T>
         }
       />
@@ -73,7 +74,7 @@ export default function ToolsHub() {
         {!isLoading && !member && (
           <div className="rw-tool-join">
             <p>
-              <T k="tools.join.copy">Membership opens all five tools, the lesson videos and the song library.</T>
+              <T k="tools.join.copy.six">Membership opens all six tools, the lesson videos and the song library.</T>
             </p>
             <div style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center" }}>
               {/* Someone signed in but not paid yet goes to their next signup step, not a new account. */}
