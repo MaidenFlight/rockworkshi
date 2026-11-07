@@ -2733,6 +2733,69 @@ main:focus {
 .rw-tp-notice:empty {
   display: none;
 }
+/* The speed between the keys' own (the trainer's 70%, 80%), said beside them. */
+.rw-tp-speed-now {
+  font-size: 13.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--rw-gold);
+}
+/* The speed trainer (lib/speedTrainer.js): a key with a lamp that's lit while it runs, opening a row
+   of four settings, or, running, where it is and a clear Stop. */
+.rw-tp-trainer-key[data-running="true"] {
+  border-color: var(--rw-sea-glass);
+}
+.rw-tp-trainer-key[data-running="true"]::before {
+  background: var(--rw-sea-glass);
+  box-shadow: 0 0 6px var(--rw-sea-glass);
+}
+.rw-tp-trainer {
+  padding-top: 8px;
+  border-top: 1px solid var(--rw-console-edge);
+}
+.rw-tp-trainer[hidden] {
+  display: none;
+}
+.rw-tp-trainer-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.rw-tp-trainer-field .rw-console-input {
+  flex: none;
+  width: auto;
+  min-height: 44px;
+  font-variant-numeric: tabular-nums;
+}
+.rw-tp-trainer-go,
+.rw-tp-trainer-stop {
+  min-height: 44px;
+}
+.rw-tp-trainer-now {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.rw-tp-trainer-lamp {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--rw-sea-glass);
+  box-shadow: 0 0 6px var(--rw-sea-glass);
+}
+.rw-tp-trainer-plan {
+  font-size: 13.5px;
+  color: var(--rw-console-meta);
+}
+.rw-tp-trainer-error {
+  flex-basis: 100%;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--rw-gold);
+}
 
 /* ---- Timeline ---- */
 .rw-timeline {

@@ -15,6 +15,7 @@ import { analyser } from "@/lib/audio/meters";
 import { peaksInTurn, peaksOf } from "@/lib/audio/peaks";
 import { createStretchVoice } from "@/lib/audio/stretch";
 import { DEFAULT_EFFECTS, createTakeEffects } from "@/lib/audio/takeEffects";
+import { afterPass, startRun, trainerSettings, trainerStatus } from "@/lib/speedTrainer";
 import { forgetTake, keepTake, readTake, updateTake } from "@/lib/takeStore";
 import ChordChart from "./ChordChart";
 import Icon from "./Icon";
@@ -246,6 +247,10 @@ export default function StemPlayer({
   const [recordFrom, setRecordFrom] = useState(0); // the song position the recording started from
   // Where an unsent take is: { state: "keeping" | "kept" | "unkept", at }, or null with no take kept.
   const [keep, setKeep] = useState(null);
+  // The speed trainer while it runs: { settings, run } (lib/speedTrainer.js). The ref is what the
+  // loop reads at the end of each pass; the state is what's shown.
+  const [trainer, setTrainer] = useState(null);
+  const trainerRef = useRef(null);
   // The studio column, for "Open studio mixer" to name and "Record your take" to open on the recorder.
   const studioId = useId();
   const studioRef = useRef(null);
@@ -621,6 +626,17 @@ export default function StemPlayer({
       if (current?.end != null && !recordingRef.current) {
         const loopEndsAt = startedAtRef.current + current.end / speedRef.current;
         if (loopEndsAt - ctx.currentTime < LOOP_LOOKAHEAD_S) {
+          // The speed trainer counts the pass and may step up, so the next pass starts at its speed.
+          const training = trainerRef.current;
+          if (training) {
+            const run = afterPass(training.settings, training.run);
+            trainerRef.current = { ...training, run };
+            setTrainer(trainerRef.current);
+            if (run.speed !== speedRef.current) {
+              speedRef.current = run.speed;
+              setSpeed(run.speed);
+            }
+          }
           startAt(current.start, Math.max(loopEndsAt, ctx.currentTime + startLead()));
         }
       }
@@ -799,6 +815,8 @@ export default function StemPlayer({
   }
 
   async function changeSpeed(value) {
+    // Picking a speed by hand takes over from the trainer.
+    stopTrainer();
     if (value !== 1 && !(await readyForSlowSpeed())) return;
     const t = currentPosition(); // read at the old speed
     speedRef.current = value;
@@ -855,6 +873,48 @@ export default function StemPlayer({
   function updateLoop(next) {
     loopRef.current = next;
     setLoop(next);
+    // The trainer counts passes of a loop, so it stops with one.
+    if (next?.end == null) stopTrainer();
+  }
+
+  // The chart section a position is in, as a loop: what the speed trainer repeats when no loop is set.
+  function sectionLoopAt(t) {
+    if (!chart) return null;
+    const s = Math.max(0, chart.sections.findLastIndex((sec) => sec.bars[0].time <= t + 0.001));
+    return { start: chart.sections[s].bars[0].time, end: chart.sections[s + 1]?.bars[0].time ?? chart.end };
+  }
+
+  // Starts the speed trainer (lib/speedTrainer.js) from the top of the loop, playing. Returns a reason
+  // when it can't: no loop and no chart to take a section from, or no slow playback in this browser.
+  async function startTrainer(raw) {
+    const settings = trainerSettings(raw);
+    try {
+      window.localStorage.setItem("rw-speed-trainer", JSON.stringify(settings));
+    } catch {
+      // Only a convenience: next time it starts from the defaults.
+    }
+    const current = loopRef.current?.end != null ? loopRef.current : sectionLoopAt(currentPosition());
+    if (!current) return "Set a loop first: the trainer repeats it, a little faster each time.";
+    const run = startRun(settings);
+    if (run.speed !== 1 && !(await readyForSlowSpeed())) return "Slow playback isn't available in this browser.";
+    if (loopRef.current !== current) {
+      loopRef.current = current;
+      setLoop(current);
+    }
+    trainerRef.current = { settings, run };
+    setTrainer(trainerRef.current);
+    speedRef.current = run.speed;
+    setSpeed(run.speed);
+    offsetRef.current = current.start;
+    setPosition(current.start);
+    if (playingRef.current) startAt(current.start);
+    else await play();
+    return null;
+  }
+
+  function stopTrainer() {
+    trainerRef.current = null;
+    setTrainer(null);
   }
 
   function markLoopStart() {
@@ -1030,6 +1090,7 @@ export default function StemPlayer({
     }
     stopSources();
     // A take lines up with the song in real time, so it's always recorded at full speed.
+    stopTrainer();
     speedRef.current = 1;
     setSpeed(1);
     chunksRef.current = [];
@@ -1290,19 +1351,23 @@ export default function StemPlayer({
       ? "Keep going to the end of the part, then press Stop."
       : take
         ? `Listen back with your take, nudge it into time if it sounds early or late, then ${onSendTake ? "send it to your teacher" : "download it"}.`
-        : forTeacher && speed < 1
-          ? "Start slowly, then record your final take at 100%."
-          : loop?.end != null
-            ? nextSpeed
-              ? `Repeat this loop until it feels easy, then step up to ${Math.round(nextSpeed * 100)}%.`
-              : forTeacher
-                ? "You're at full speed. When it feels solid, record your take."
-                : "You're looping at full speed. When it's solid, clear the loop and play the whole song."
-            : speed < 1
-              ? `When ${Math.round(speed * 100)}% feels easy, try ${Math.round(nextSpeed * 100)}%.`
-              : !playing && position < 1
-                ? "Press Play, or Space, and follow along. Stuck on a part? Drag across its bars on the Loop strip to repeat it."
-                : "Tricky bar? Drag across it on the Loop strip above to repeat it, and slow it down with Speed.";
+        : trainer
+          ? trainer.run.atTop
+            ? `You're at ${Math.round(trainer.run.speed * 100)}%, your top speed. Keep looping until it's solid${forTeacher ? ", then record your take" : ""}.`
+            : `${trainerStatus(trainer.settings, trainer.run)}. The trainer speeds up on its own.`
+          : forTeacher && speed < 1
+            ? "Start slowly, then record your final take at 100%."
+            : loop?.end != null
+              ? nextSpeed
+                ? `Repeat this loop until it feels easy, then step up to ${Math.round(nextSpeed * 100)}%.`
+                : forTeacher
+                  ? "You're at full speed. When it feels solid, record your take."
+                  : "You're looping at full speed. When it's solid, clear the loop and play the whole song."
+              : speed < 1
+                ? `When ${Math.round(speed * 100)}% feels easy, try ${Math.round(nextSpeed * 100)}%.`
+                : !playing && position < 1
+                  ? "Press Play, or Space, and follow along. Stuck on a part? Drag across its bars on the Loop strip to repeat it."
+                  : "Tricky bar? Drag across it on the Loop strip above to repeat it, and slow it down with Speed.";
 
   const bandHeader = (
     <div className="rw-tl-header">
@@ -1578,6 +1643,9 @@ export default function StemPlayer({
         recordTime={recording ? Math.max(0, position - recordFrom) : 0}
         getMaster={getMaster}
         onOpenRecorder={review ? null : openRecorder}
+        trainer={trainer}
+        onStartTrainer={review ? null : startTrainer}
+        onStopTrainer={stopTrainer}
       />
 
       <Timeline
