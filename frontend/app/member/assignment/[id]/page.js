@@ -6,6 +6,7 @@ import Link from "next/link";
 import Icon from "@/components/member/Icon";
 import { Button } from "@/components/ui";
 import { useAuth } from "@/contexts/AuthContext";
+import CompareTakes from "@/components/member/CompareTakes";
 import UnsentTake from "@/components/member/UnsentTake";
 import { assignmentTitle, formatClock, formatDate, hasLoop, sendForReview, studentStatus, teacherRequest } from "@/lib/teaching";
 import { pill } from "@/lib/terms";
@@ -70,6 +71,10 @@ export default function AssignmentPage() {
   const sent = a.submissions.length;
   const who = a.teacher?.name?.split(" ")[0];
   const teacher = who || "Your teacher";
+  // Sent takes that can be heard (links last 15 minutes), for comparing two of them.
+  const takes = a.submissions
+    .map((s, i) => ({ id: s.id, label: `Attempt ${a.submissions.length - i}`, date: shortDate(s.createdAt), recording: s.recording }))
+    .filter((t) => t.recording?.url);
 
   return (
     <div style={{ maxWidth: 800, margin: "0 auto", padding: "40px 24px 100px" }}>
@@ -140,6 +145,7 @@ export default function AssignmentPage() {
       </section>
 
       <h2 style={heading}>Your submissions</h2>
+      {takes.length > 1 && <CompareTakes takes={takes} />}
       {a.submissions.length === 0 ? (
         <p style={{ margin: 0, color: "var(--rw-meta)" }}>Nothing sent yet.</p>
       ) : (
