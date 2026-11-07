@@ -6,6 +6,7 @@ import Link from "next/link";
 import Icon from "@/components/member/Icon";
 import { Button } from "@/components/ui";
 import { useAuth } from "@/contexts/AuthContext";
+import UnsentTake from "@/components/member/UnsentTake";
 import { assignmentTitle, formatClock, formatDate, hasLoop, sendForReview, studentStatus, teacherRequest } from "@/lib/teaching";
 import { pill } from "@/lib/terms";
 
@@ -67,7 +68,8 @@ export default function AssignmentPage() {
   const times = hasLoop(a) ? `${formatClock(a.sectionStart)}–${formatClock(a.sectionEnd)}` : "";
   // Work can be sent again at any time; every send is kept as an attempt, newest first.
   const sent = a.submissions.length;
-  const teacher = a.teacher?.name?.split(" ")[0] || "Your teacher";
+  const who = a.teacher?.name?.split(" ")[0];
+  const teacher = who || "Your teacher";
 
   return (
     <div style={{ maxWidth: 800, margin: "0 auto", padding: "40px 24px 100px" }}>
@@ -109,6 +111,7 @@ export default function AssignmentPage() {
       </section>
 
       <h2 style={heading}>{sent ? "Send it again" : "Send for review"}</h2>
+      {a.song && <UnsentTake songId={a.song.id} assignmentId={a.id} />}
       <section style={panel}>
         {a.song && (
           <p style={{ margin: "0 0 12px", color: "var(--rw-body)", lineHeight: 1.55 }}>
@@ -141,33 +144,42 @@ export default function AssignmentPage() {
         <p style={{ margin: 0, color: "var(--rw-meta)" }}>Nothing sent yet.</p>
       ) : (
         <ol style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 10 }}>
-          {a.submissions.map((s, i) => (
-            <li key={s.id} style={panel}>
-              <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: "4px 12px" }}>
-                <strong style={{ color: "var(--rw-ink)" }}>
-                  Attempt {a.submissions.length - i}
-                  {i === 0 && a.submissions.length > 1 ? " · newest" : ""}
-                </strong>
-                <span style={{ fontSize: 13, color: "var(--rw-meta)" }}>
-                  Sent {formatDate(s.createdAt)} · {s.recording ? `${formatClock(s.recording.duration)} recording` : "no recording"}
-                </span>
-              </div>
-              {s.recording?.url && <audio controls preload="none" src={s.recording.url} aria-label={`Your recording, attempt ${a.submissions.length - i}`} style={{ width: "100%", marginTop: 10 }} />}
-              <p style={{ margin: "10px 0 0", color: "var(--rw-body)", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
-                {s.feedback || (i === 0 ? "Waiting for your teacher." : "No reply to this one: your teacher replies to the newest.")}
-              </p>
-              {s.reviewedAt && (
-                <div style={{ fontSize: 13, color: "var(--rw-meta)", marginTop: 8 }}>
-                  {teacher} replied {formatDate(s.reviewedAt)}
+          {a.submissions.map((s, i) => {
+            // Each send says where it stands: replied, waiting, or passed over for a newer one.
+            const state = s.reviewedAt
+              ? { tone: "open", label: `${teacher} replied ${shortDate(s.reviewedAt)}` }
+              : i === 0
+                ? { tone: "ready", label: who ? `Waiting for ${who}` : "Waiting for your teacher" }
+                : { tone: "draft", label: "Sent" };
+            return (
+              <li key={s.id} style={panel}>
+                <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: "6px 12px" }}>
+                  <strong style={{ color: "var(--rw-ink)" }}>
+                    Attempt {a.submissions.length - i}
+                    {i === 0 && a.submissions.length > 1 ? " · newest" : ""}
+                  </strong>
+                  <span style={pill(state.tone)}>{state.label}</span>
                 </div>
-              )}
-            </li>
-          ))}
+                <div style={{ fontSize: 13, color: "var(--rw-meta)", marginTop: 4 }}>
+                  Sent {formatDate(s.createdAt)} · {s.recording ? `${formatClock(s.recording.duration)} recording` : "no recording"}
+                </div>
+                {s.recording?.url && <audio controls preload="none" src={s.recording.url} aria-label={`Your recording, attempt ${a.submissions.length - i}`} style={{ width: "100%", marginTop: 10 }} />}
+                {(s.feedback || i > 0) && (
+                  <p style={{ margin: "10px 0 0", color: "var(--rw-body)", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
+                    {s.feedback || "No reply to this one: your teacher replies to the newest."}
+                  </p>
+                )}
+              </li>
+            );
+          })}
         </ol>
       )}
     </div>
   );
 }
+
+// "Nov 5", in the school's time, for a status that has to stay short.
+const shortDate = (iso) => new Date(iso).toLocaleDateString("en-US", { timeZone: "Pacific/Honolulu", month: "short", day: "numeric" });
 
 const panel = { padding: "18px 20px", background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)" };
 const heading = { fontWeight: 800, textTransform: "uppercase", fontSize: 24, color: "var(--rw-ink)", margin: "30px 0 10px" };

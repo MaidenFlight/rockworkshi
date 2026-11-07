@@ -11,6 +11,7 @@ import FavoriteButton from "@/components/member/library/FavoriteButton";
 import PracticeNotes from "@/components/member/library/PracticeNotes";
 import SongTutorials from "@/components/member/SongTutorials";
 import { NetworkError, practiceRequest } from "@/lib/practice";
+import { takeKey } from "@/lib/takeStore";
 import { hasLoop, sendForReview } from "@/lib/teaching";
 
 export default function SongPlayAlongPage() {
@@ -207,6 +208,7 @@ function SongPlayAlong() {
             resume={practice.session}
             onSaveSession={saveSession}
             initialLoop={initialLoop}
+            keepKey={takeKey(song.id, assignment?.id)}
             // A take can be sent any time, waiting for feedback or not: each send is a new attempt.
             onSendTake={
               assignment

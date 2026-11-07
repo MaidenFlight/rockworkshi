@@ -3605,6 +3605,33 @@ div:has(> .rw-scrub:focus-visible) {
   flex-wrap: wrap;
   gap: 8px;
 }
+/* Where the take is (RecordPanel's TakeStatus): a lamp and one sentence. Kept is sea glass; a take
+   that would be lost by leaving is gold, the console's warning colour, in words as well. */
+.rw-take-status {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--rw-console-meta);
+}
+.rw-take-status-lamp {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--rw-console-edge);
+}
+.rw-take-status[data-state="kept"] .rw-take-status-lamp {
+  background: var(--rw-sea-glass);
+}
+.rw-take-status:is([data-state="unkept"], [data-state="page"]) {
+  color: var(--rw-gold);
+}
+.rw-take-status:is([data-state="unkept"], [data-state="page"]) .rw-take-status-lamp {
+  background: var(--rw-gold);
+}
 
 /* ---- Effects ---- */
 .rw-fx {

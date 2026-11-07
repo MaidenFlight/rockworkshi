@@ -15,6 +15,7 @@ import { analyser } from "@/lib/audio/meters";
 import { peaksInTurn, peaksOf } from "@/lib/audio/peaks";
 import { createStretchVoice } from "@/lib/audio/stretch";
 import { DEFAULT_EFFECTS, createTakeEffects } from "@/lib/audio/takeEffects";
+import { forgetTake, keepTake, readTake, updateTake } from "@/lib/takeStore";
 import ChordChart from "./ChordChart";
 import Icon from "./Icon";
 import MixerPanel from "./mixer/MixerPanel";
@@ -156,6 +157,8 @@ function toWav(buffer) {
 // two faders instead of a strip per part. available says which of their stem, backing band and chart
 // the song has. Staff get scope "all": every stem, with the full mixer. So does the student demo, which
 // also names its instrument: that shows "Your instrument" and keeps the chart to that student's.
+// keepKey (lib/takeStore.js takeKey) keeps an unsent take in this browser, so it's back after a reload
+// or a visit elsewhere, until it's sent or deleted. Without it a take lasts as long as the page.
 export default function StemPlayer({
   tracks,
   myPart,
@@ -172,6 +175,7 @@ export default function StemPlayer({
   scope = "all",
   instrument = null,
   available = null,
+  keepKey = null,
 }) {
   const parts = useMemo(() => tracks.map((t) => t.part), [tracks]);
   const student = scope === "instrument" && Boolean(instrument);
@@ -240,6 +244,8 @@ export default function StemPlayer({
   const [monitoring, setMonitoring] = useState(false); // the mic is open for a level check, not recording
   const [micLabel, setMicLabel] = useState("");
   const [recordFrom, setRecordFrom] = useState(0); // the song position the recording started from
+  // Where an unsent take is: { state: "keeping" | "kept" | "unkept", at }, or null with no take kept.
+  const [keep, setKeep] = useState(null);
   // The studio column, for "Open studio mixer" to name and "Record your take" to open on the recorder.
   const studioId = useId();
   const studioRef = useRef(null);
@@ -537,6 +543,48 @@ export default function StemPlayer({
     // stopSources only reads refs.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tracks, reviewUrl, reviewTime, mixLevel]);
+
+  // An unsent take kept in this browser comes back once the band has loaded, as it was left.
+  useEffect(() => {
+    if (status !== "ready" || !keepKey || review) return;
+    let cancelled = false;
+    readTake(keepKey)
+      .then(async (kept) => {
+        if (!kept || cancelled || takeRef.current) return;
+        const buffer = await ctxRef.current.decodeAudioData(kept.wav.slice(0));
+        if (cancelled || takeRef.current) return;
+        takeRef.current = { buffer, songTime: kept.songTime };
+        setTake(takeRef.current);
+        setTakeCount(kept.number || 1);
+        setTakeName(kept.name || "");
+        nudgeRef.current = kept.nudgeMs || 0;
+        setNudgeMs(kept.nudgeMs || 0);
+        setKeep({ state: "kept", at: kept.recordedAt });
+      })
+      .catch((err) => console.error("Could not bring back the kept take:", err));
+    return () => {
+      cancelled = true;
+    };
+  }, [status, keepKey, review]);
+
+  // A kept take's name and line-up follow it, once they've settled.
+  useEffect(() => {
+    if (!keepKey || keep?.state !== "kept") return;
+    const id = setTimeout(() => updateTake(keepKey, { name: takeName, nudgeMs }), 600);
+    return () => clearTimeout(id);
+  }, [keepKey, keep?.state, takeName, nudgeMs]);
+
+  // Leaving would only lose something while recording or sending, or when the take isn't kept.
+  const atRisk = !review && (recording || sendProgress !== null || (Boolean(take) && keep?.state !== "kept"));
+  useEffect(() => {
+    if (!atRisk) return;
+    const warn = (e) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [atRisk]);
 
   // Mode, volume, mute and solo all land here as smoothed gain changes on the running
   // graph, so none of them restarts playback or moves the stems off their shared clock.
@@ -1022,6 +1070,22 @@ export default function StemPlayer({
     setTakeCount((n) => n + 1);
     setTakeName("");
     setMix((m) => ({ ...m, takeMuted: false }));
+    keepNewTake(buffer, songTime, takeCount + 1);
+  }
+
+  // Keeps a new take in this browser until it's sent or deleted (lib/takeStore.js).
+  async function keepNewTake(buffer, songTime, number) {
+    if (!keepKey) return;
+    const at = Date.now();
+    setKeep({ state: "keeping", at });
+    const wav = await toWav(buffer).arrayBuffer();
+    const kept = await keepTake(keepKey, { wav, songTime, duration: buffer.duration, number, name: "", nudgeMs: nudgeRef.current, recordedAt: at });
+    // A delete, or a newer take, may have come in while it was being stored.
+    if (takeRef.current?.buffer !== buffer) {
+      if (!takeRef.current) forgetTake(keepKey);
+      return;
+    }
+    setKeep({ state: kept ? "kept" : "unkept", at });
   }
 
   // A take is called by its number until it's given a name.
@@ -1052,6 +1116,8 @@ export default function StemPlayer({
     setTake(null);
     nudgeRef.current = 0;
     setNudgeMs(0);
+    setKeep(null);
+    if (keepKey) forgetTake(keepKey);
     if (playing) startAt(t);
   }
 
@@ -1065,6 +1131,9 @@ export default function StemPlayer({
     setSendProgress(0);
     try {
       await onSendTake({ blob, offset: take.songTime - nudgeMs / 1000, duration: take.buffer.duration }, setSendProgress);
+      // Sent, so it's the school's copy that counts now.
+      if (keepKey) await forgetTake(keepKey);
+      setKeep(null);
     } catch (err) {
       setSendError(err.message);
     } finally {
@@ -1438,6 +1507,7 @@ export default function StemPlayer({
               nextTakeName={`Take ${takeCount + 1}`}
               onRename={setTakeName}
               onPlayTake={playTake}
+              keep={keepKey ? keep : undefined}
             />
           ),
         },

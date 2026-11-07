@@ -1,0 +1,30 @@
+/* An unsent take waiting in this browser (UnsentTake.js), on the practice work's page: a label-stock
+   note, the take's red record mark, and the link back to it. */
+
+.note {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0 0 12px;
+  padding: 12px 16px;
+  background: var(--rw-sand);
+  border: 1px solid var(--rw-border);
+  border-radius: var(--rw-radius-md);
+  font-size: var(--rw-text-base);
+  line-height: 1.55;
+  color: var(--rw-prose);
+}
+
+.note strong {
+  color: var(--rw-ink);
+}
+
+.mark {
+  flex: none;
+  color: var(--rw-orange-deep);
+}
+
+.link {
+  font-weight: 700;
+  color: var(--rw-orange-deep);
+}
