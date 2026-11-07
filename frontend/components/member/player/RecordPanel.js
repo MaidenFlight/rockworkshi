@@ -152,7 +152,7 @@ export default function RecordPanel({
             </button>
           )}
         </div>
-        <Meter getNodes={getMic} active={listening} vertical={false} length={260} thickness={8} clipAt={0.99} clipLabel="Too loud" title="Mic level" />
+        <Meter getNodes={getMic} active={listening} vertical={false} length={260} thickness={8} clipAt={0.99} clipLabel="Too loud" title="Mic level" fluid />
         <div className="rw-meter-scale" aria-hidden="true">
           {["-48", "-36", "-24", "-12", "0 dB"].map((t) => (
             <span key={t}>{t}</span>

@@ -47,7 +47,7 @@ export default function PartBalance({ instrument, ownPart, mix, mode, levels, on
                 status={
                   <>
                     <StateMark state={heard ? "playing" : "off"} />
-                    {heard ? "Playing" : "Silent"}
+                    {heard ? "In mix" : "Silent"}
                   </>
                 }
               />
@@ -66,7 +66,7 @@ export default function PartBalance({ instrument, ownPart, mix, mode, levels, on
               status={
                 <>
                   <StateMark state={mix.takeMuted ? "muted" : "playing"} />
-                  {mix.takeMuted ? "Muted" : "Playing"}
+                  {mix.takeMuted ? "Muted" : "In mix"}
                 </>
               }
             >

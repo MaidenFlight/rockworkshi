@@ -74,7 +74,7 @@ export default function MixerPanel({ parts, mix, levels, states, onChange, takeL
               status={
                 <>
                   <StateMark state={mix.takeMuted ? "muted" : "playing"} />
-                  {mix.takeMuted ? "Muted" : "Playing"}
+                  {mix.takeMuted ? "Muted" : "In mix"}
                 </>
               }
             >

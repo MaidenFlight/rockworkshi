@@ -4,6 +4,14 @@ const PATHS = {
   star: <path d="M12 3l2.8 5.9 6.2.8-4.6 4.4 1.2 6.4L12 17.4l-5.6 3.1 1.2-6.4L3 9.7l6.2-.8z" fill="currentColor" stroke="none" />,
   "star-outline": <path d="M12 3l2.8 5.9 6.2.8-4.6 4.4 1.2 6.4L12 17.4l-5.6 3.1 1.2-6.4L3 9.7l6.2-.8z" />,
   "arrow-left": <path d="M20 12H5M11 5l-7 7 7 7" />,
+  "arrow-right": <path d="M4 12h15M13 5l7 7-7 7" />,
+  "chevron-right": <path d="M9 5.5l6.5 6.5L9 18.5" />,
+  // A task's state in the monthly checklist: to practise, waiting on the teacher, feedback in.
+  note: <path d="M9 18V5l12-2v13M3 18a3 3 0 1 0 6 0 3 3 0 1 0-6 0M15 16a3 3 0 1 0 6 0 3 3 0 1 0-6 0" />,
+  clock: <path d="M3.5 12a8.5 8.5 0 1 0 17 0 8.5 8.5 0 1 0-17 0M12 7v5.5l3.5 2" />,
+  feedback: <path d="M4 5h16v11H10.5L6 19.5V16H4zM8 9h8M8 12.5h5" />,
+  // The player's studio: a mixer's faders.
+  sliders: <path d="M6 4v16M12 4v16M18 4v16M3.5 15h5M9.5 8h5M15.5 12.5h5" />,
   x: <path d="M6 6l12 12M18 6L6 18" />,
   record: <rect x="5" y="5" width="14" height="14" rx="7" fill="currentColor" stroke="none" />,
   stop: <rect x="6" y="6" width="12" height="12" fill="currentColor" stroke="none" />,

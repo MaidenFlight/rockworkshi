@@ -1265,6 +1265,51 @@ main:focus {
   outline-offset: 2px;
 }
 
+/* The student area's footer (Footer.js): one slim row on the footer's lacquer instead of the site map,
+   so the practice room stays the focus. Type and link colours are the full footer's. */
+.rw-foot-slim {
+  margin-top: auto;
+  background: linear-gradient(168deg, var(--rw-ink), var(--rw-ink-deep));
+  color: rgba(255, 245, 236, 0.6);
+  font-size: var(--rw-text-xs);
+}
+
+.rw-foot-slim-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 6px 24px;
+}
+
+.rw-foot-slim-links {
+  display: flex;
+  flex-wrap: wrap;
+  margin-right: auto;
+}
+
+.rw-foot-slim-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 10px;
+  font-size: var(--rw-text-sm);
+  color: rgba(255, 245, 236, 0.72);
+  text-decoration: none;
+  transition: color 0.16s ease;
+}
+
+.rw-foot-slim-links a:hover {
+  color: #fff;
+}
+
+.rw-foot-slim-links a:focus-visible {
+  outline: 2px solid var(--rw-sea-glass);
+  outline-offset: -2px;
+}
+
 /* ---- Tags ---- */
 .rw-tags {
   display: grid;
@@ -2427,8 +2472,10 @@ main:focus {
   }
 }
 .rw-clip-led {
+  flex: none;
   padding: 1px 5px;
   border-radius: 2px;
+  white-space: nowrap;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -2606,6 +2653,26 @@ main:focus {
 }
 .rw-tp-master {
   margin-left: auto;
+}
+/* "Record your take": the way to the recorder, kept in the transport so it is always in reach. It sits
+   at the right, beside the master, edged in the take's red like the Rec lamp; it stays a console key,
+   so Play remains the one filled button. */
+.rw-tp-take {
+  min-height: 44px;
+  margin-left: auto;
+  padding: 0 16px;
+  border-color: var(--rw-part-take);
+  font-size: 15px;
+}
+.rw-tp-take:hover:not(:disabled) {
+  border-color: var(--rw-part-take);
+  background: color-mix(in srgb, var(--rw-part-take) 16%, var(--rw-console-raised));
+}
+.rw-tp-take svg {
+  color: var(--rw-part-take);
+}
+.rw-tp-take + .rw-tp-master {
+  margin-left: 0;
 }
 .rw-tp-group {
   display: flex;
@@ -3001,8 +3068,10 @@ div:has(> .rw-scrub:focus-visible) {
 }
 
 /* ---- Two columns: the chart on paper, the studio on the console ---- */
+/* One column below 1000px, never wider than the player: a wide panel can't push past a phone's edge. */
 .rw-player-cols {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
   align-items: start;
 }
@@ -3463,11 +3532,12 @@ div:has(> .rw-scrub:focus-visible) {
 .rw-rec-level-head .rw-studio-label {
   margin: 0;
 }
+/* Under the mic meter, which shrinks to fit a phone's recorder (Meter's fluid), so the scale does too. */
 .rw-meter-scale {
   display: flex;
   justify-content: space-between;
-  width: 300px;
-  max-width: 100%;
+  width: calc(100% - 64px);
+  max-width: 300px;
   margin-left: 64px;
   font-size: 12.5px;
   font-variant-numeric: tabular-nums;
@@ -4641,8 +4711,13 @@ div:has(> .rw-scrub:focus-visible) {
 }
 
 /* ---- Player: Simple view, the first-visit note and larger touch keys ---- */
+/* "Open studio mixer": one plain disclosure at the end of the band row, its faders mark in gold. */
 .rw-tl-view {
+  min-height: 44px;
   margin-left: auto;
+}
+.rw-tl-view svg {
+  color: var(--rw-gold);
 }
 .rw-tl-loopkeys .rw-btn-small {
   min-height: 44px;

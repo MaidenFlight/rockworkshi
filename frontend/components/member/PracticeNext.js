@@ -104,7 +104,7 @@ export default function PracticeNext({ next, failed, onRetry }) {
         <Button href={next.href}>{starting ? "Start practising" : "Continue practice"}</Button>
         {assignment ? (
           <Button href={`/member/assignment/${assignment.id}`} variant="secondary">
-            See the brief
+            View assignment
           </Button>
         ) : next.lesson ? (
           <Button href={`/member/lesson/${next.lesson.id}`} variant="secondary">
@@ -123,12 +123,15 @@ export default function PracticeNext({ next, failed, onRetry }) {
   );
 }
 
+// The latest reply from the teacher. The link says what it opens; the task it's on follows.
 function Feedback({ item }) {
   if (!item) return null;
+  const teacher = item.teacher?.name?.split(" ")[0];
+  const on = item.section || (item.song || item.lesson)?.title;
   return (
     <p className="rw-next-aside">
-      Your teacher left feedback on{" "}
-      <Link href={`/member/assignment/${item.id}`}>{(item.song || item.lesson)?.title ?? "your recording"}</Link>.
+      <Link href={`/member/assignment/${item.id}`}>Read {teacher ? `${teacher}'s` : "your teacher's"} feedback</Link>
+      {on ? ` on ${on}` : ""}.
     </p>
   );
 }

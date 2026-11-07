@@ -9,6 +9,7 @@ import { demoCheckRequest, demoStatusRequest } from "@/lib/auth/authApi";
 import { instruments } from "@/lib/content";
 import { Button, Container, PageHero } from "@/components/ui";
 import { Field, formStyles as f } from "@/components/ui/Form";
+import Icon from "@/components/member/Icon";
 import s from "./demo.module.css";
 
 // What a student of each instrument gets to play from (backend lib/instrumentAccess.js decides it).
@@ -108,11 +109,26 @@ function Demo() {
     }
   }
 
+  // Past the passcode, the page is the choice itself: a short heading and the cards, no page header.
+  const choosing = !isLoading && (inDemo || accepted);
+
   let body;
-  if (status === undefined || isLoading) {
+  if (choosing) {
+    body = (
+      <Chooser
+        offered={offered}
+        inDemo={inDemo}
+        current={inDemo ? user.instrument : null}
+        song={song}
+        error={error}
+        opening={opening}
+        onChoose={choose}
+        status={status}
+        onRetry={() => setAttempt((n) => n + 1)}
+      />
+    );
+  } else if (status === undefined || isLoading) {
     body = <p className={s.muted}>Loading…</p>;
-  } else if (inDemo || accepted) {
-    body = <Chooser offered={offered} inDemo={inDemo} current={inDemo ? user.instrument : null} song={song} error={error} opening={opening} onChoose={choose} />;
   } else if (status === null) {
     body = (
       <div className={f.panel} role="alert">
@@ -166,16 +182,18 @@ function Demo() {
 
   return (
     <div>
-      <PageHero
-        title={<>Student demo</>}
-        lead={
-          <>
-            Try the member area as a sample student: {song ? `${song.title} with every instrument on its own track, ` : "a song with every instrument on its own track, "}
-            the chart and chord library for their instrument, and the practice tools.
-          </>
-        }
-      />
-      <Container width={inDemo || accepted ? "wide" : "form"} style={{ padding: "36px 24px 100px" }}>
+      {!choosing && (
+        <PageHero
+          title={<>Student demo</>}
+          lead={
+            <>
+              Try the member area as a sample student: {song ? `${song.title} with every instrument on its own track, ` : "a song with every instrument on its own track, "}
+              the chart and chord library for their instrument, and the practice tools.
+            </>
+          }
+        />
+      )}
+      <Container width={choosing ? "wide" : "form"} style={{ padding: choosing ? "32px 24px 100px" : "36px 24px 100px" }}>
         {left && !inDemo && (
           <p role="status" className={s.left}>
             You&apos;ve left the student demo, and everything done in it has been cleared.
@@ -187,28 +205,28 @@ function Demo() {
   );
 }
 
-// One sample student for each instrument the demo offers. In the demo already, the current one is marked
-// and choosing another swaps the demo for a new one.
-function Chooser({ offered, inDemo, current, song, error, opening, onChoose }) {
-  return (
-    <section aria-labelledby="demo-pick">
-      <h2 id="demo-pick" className={s.title}>
-        {inDemo ? "Switch instrument" : "Choose an instrument"}
-      </h2>
-      <p className={s.lead}>
-        {inDemo
-          ? `You're in the demo as a ${current?.toLowerCase()} student. Pick another instrument to see what its students get. This demo is cleared when you do.`
-          : `You'll be Kai, a student about three months in${song ? `, working on ${song.title}` : ""}, with practice work and feedback from your teacher and a group lesson coming up.`}
-      </p>
-      {error && (
-        <p role="alert" className={s.error}>
-          {error}
-        </p>
-      )}
+// One sample student for each instrument the demo offers, each card naming what it does. In the demo
+// already, the current one is marked and continues it; choosing another swaps the demo for a new one.
+function Chooser({ offered, inDemo, current, song, error, opening, onChoose, status, onRetry }) {
+  let cards;
+  if (status === undefined) {
+    cards = <p className={s.muted}>Loading…</p>;
+  } else if (status === null) {
+    cards = (
+      <div role="alert">
+        <p className={s.muted}>The demo couldn&apos;t be reached. Check your connection and try again.</p>
+        <Button type="button" variant="secondary" onClick={onRetry}>
+          Try again
+        </Button>
+      </div>
+    );
+  } else {
+    cards = (
       <div className={s.grid}>
         {offered.map((name) => {
           const [file, position] = PHOTOS[name];
           const isCurrent = name === current;
+          const noun = name.toLowerCase();
           return (
             <button key={name} type="button" className={s.card} onClick={() => onChoose(name)} disabled={Boolean(opening)} aria-current={isCurrent || undefined}>
               <span className={s.photo}>
@@ -216,7 +234,7 @@ function Chooser({ offered, inDemo, current, song, error, opening, onChoose }) {
                   src={`/images/instruments/${file}.jpg`}
                   alt=""
                   fill
-                  sizes="(max-width: 380px) calc(100vw - 48px), (max-width: 700px) calc(50vw - 32px), (max-width: 1200px) calc(33.333vw - 32px), 368px"
+                  sizes="(max-width: 560px) calc(100vw - 48px), (max-width: 700px) calc(50vw - 32px), (max-width: 1200px) calc(33.333vw - 32px), 368px"
                   style={{ objectPosition: position }}
                 />
               </span>
@@ -225,19 +243,41 @@ function Chooser({ offered, inDemo, current, song, error, opening, onChoose }) {
                   {name}
                   {isCurrent && <span className={s.current}>Current</span>}
                 </span>
-                <span className={s.line}>{opening === name ? "Opening the demo…" : isCurrent ? "Back to this demo" : WHAT_YOU_GET[name]}</span>
+                <span className={s.line}>{WHAT_YOU_GET[name]}</span>
+                <span className={s.action}>
+                  {opening === name ? (
+                    "Opening the demo…"
+                  ) : (
+                    <>
+                      {isCurrent ? `Continue ${noun} demo` : `Explore ${noun}`}
+                      <Icon name="arrow-right" size={16} />
+                    </>
+                  )}
+                </span>
               </span>
             </button>
           );
         })}
       </div>
-      {inDemo && (
-        <p className={s.back}>
-          <Link href="/member" className={s.link}>
-            Back to the demo
-          </Link>
+    );
+  }
+
+  return (
+    <section aria-labelledby="demo-pick">
+      <h1 id="demo-pick" className={s.title}>
+        Choose your instrument
+      </h1>
+      <p className={s.lead}>
+        {inDemo
+          ? `You're in the demo as a ${current?.toLowerCase()} student. Another instrument starts a fresh demo and clears this one.`
+          : `You'll be Kai, a sample student about three months in${song ? `, working on ${song.title}` : ""}.`}
+      </p>
+      {error && (
+        <p role="alert" className={s.error}>
+          {error}
         </p>
       )}
+      {cards}
     </section>
   );
 }

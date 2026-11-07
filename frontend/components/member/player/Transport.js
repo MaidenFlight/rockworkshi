@@ -11,7 +11,8 @@ function clock(s) {
 }
 
 // The bar that stays in reach while you scroll: play, where you are, speed, clicks, the loop,
-// recording, and the master level. It sticks just under the site's own header.
+// recording, and the master level. It sticks just under the site's own header. onOpenRecorder puts
+// "Record your take" in it, so the take a student is practising towards is never one tab away.
 export default function Transport({
   ready,
   loadedCount,
@@ -40,6 +41,7 @@ export default function Transport({
   onClearLoop,
   recordTime,
   getMaster,
+  onOpenRecorder = null,
 }) {
   const bar = useRef(null);
   const beatDots = useRef(null);
@@ -138,6 +140,13 @@ export default function Transport({
             <span className="rw-rec-dot" aria-hidden="true" />
             Recording <span style={{ fontVariantNumeric: "tabular-nums" }}>{clock(recordTime)}</span>
           </div>
+        )}
+
+        {onOpenRecorder && !recording && (
+          <button type="button" className="rw-btn rw-tp-take" onClick={onOpenRecorder}>
+            <Icon name="record" size={14} />
+            Record your take
+          </button>
         )}
 
         <div className="rw-tp-master">

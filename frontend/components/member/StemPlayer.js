@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import {
   MIX_MODES,
   createMasterBus,
@@ -16,23 +16,20 @@ import { peaksInTurn, peaksOf } from "@/lib/audio/peaks";
 import { createStretchVoice } from "@/lib/audio/stretch";
 import { DEFAULT_EFFECTS, createTakeEffects } from "@/lib/audio/takeEffects";
 import ChordChart from "./ChordChart";
+import Icon from "./Icon";
 import MixerPanel from "./mixer/MixerPanel";
 import PartBalance from "./mixer/PartBalance";
 import EffectsRack from "./mixer/EffectsRack";
 import MixPresets from "./mixer/MixPresets";
 import RecordPanel from "./player/RecordPanel";
 import StudioTabs from "./player/StudioTabs";
-import Timeline, { partColor } from "./player/Timeline";
+import Timeline, { bandModes, partColor } from "./player/Timeline";
 import Transport from "./player/Transport";
 import { PlayClock } from "./player/clock";
 
-// Every mode plays all the stems in sync and only changes which are audible,
-// so switching mode mid-song never stops or jumps.
-const MODES = [
-  { id: "full", label: "Whole song" },
-  { id: "solo", label: "Isolated track" },
-  { id: "minus", label: "Without one part" },
-];
+// Every mode plays all the stems in sync and only changes which are audible, so switching mode
+// mid-song never stops or jumps. A player with every stem names its modes for the part in focus
+// (bandModes); a student's are named for their instrument (studentModes below).
 
 const NUDGE_LIMIT_MS = 300;
 const SPEEDS = [0.5, 0.75, 0.9, 1];
@@ -64,15 +61,16 @@ function remember(key, on) {
   }
 }
 
-// The view chosen last time, or Simple on a phone-sized screen and on a first visit to a song.
-function firstView(beenHereBefore) {
+// The view chosen last time, else Simple: anyone who hasn't opened the studio yet starts with the
+// transport and the chart, and "Open studio mixer" is right there when they want the rest.
+function firstView() {
   try {
     const stored = window.localStorage.getItem("rw-player-view");
     if (stored === "simple" || stored === "studio") return stored;
   } catch {
     // No storage: fall through to the default.
   }
-  return beenHereBefore && window.innerWidth >= 1000 ? "studio" : "simple";
+  return "simple";
 }
 
 // The upload limit in the API (MAX_RECORDING_BYTES).
@@ -187,7 +185,7 @@ export default function StemPlayer({
   const studentModes = student
     ? [
         { id: "full", label: "Whole song", ready: hasBacking },
-        { id: "minus", label: `Without ${noun}`, ready: hasBacking && Boolean(ownPart) },
+        { id: "minus", label: `Band without ${noun}`, ready: hasBacking && Boolean(ownPart) },
         { id: "solo", label: `${instrument} only`, ready: Boolean(ownPart) },
       ]
     : null;
@@ -230,8 +228,9 @@ export default function StemPlayer({
   const [countIn, setCountIn] = useState(() => remembered("rw-count-in"));
   const [metronome, setMetronome] = useState(() => remembered("rw-metronome"));
   // Simple leaves the part lanes and the studio (mixer, recorder, effects) out until asked for.
-  // Reviewing or recording for a teacher needs the studio, so those always open in it.
-  const [view, setView] = useState(() => (review || onSendTake ? "studio" : firstView(Boolean(resume))));
+  // A teacher reviewing a take needs the studio, so a review always opens in it. Practice work opens
+  // like any song: "Record your take" in the transport opens the recorder when it's wanted.
+  const [view, setView] = useState(() => (review ? "studio" : firstView()));
   const [intro, setIntro] = useState(() => !review && !remembered("rw-player-intro"));
   // Simple is built around the chart; a song without one keeps its lanes and studio.
   const simple = view === "simple" && Boolean(chart);
@@ -241,6 +240,10 @@ export default function StemPlayer({
   const [monitoring, setMonitoring] = useState(false); // the mic is open for a level check, not recording
   const [micLabel, setMicLabel] = useState("");
   const [recordFrom, setRecordFrom] = useState(0); // the song position the recording started from
+  // The studio column, for "Open studio mixer" to name and "Record your take" to open on the recorder.
+  const studioId = useId();
+  const studioRef = useRef(null);
+  const studioTabsRef = useRef(null);
 
   // stems -> per-stem gain -> master bus; take -> effects -> take gain -> master bus.
   const ctxRef = useRef(null);
@@ -842,6 +845,20 @@ export default function StemPlayer({
     }
   }
 
+  // "Record your take" in the transport: shows the studio on its recorder and brings the record key into
+  // view with focus on it. The view this browser remembers is left as it was chosen.
+  function openRecorder() {
+    setView("studio");
+    studioTabsRef.current?.choose("recorder");
+    requestAnimationFrame(() => {
+      const key = studioRef.current?.querySelector(".rw-deck-key");
+      if (!key) return;
+      const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      key.scrollIntoView({ block: "center", behavior: still ? "instant" : "smooth" });
+      key.focus({ preventScroll: true });
+    });
+  }
+
   function dismissIntro() {
     setIntro(false);
     remember("rw-player-intro", true);
@@ -1193,23 +1210,30 @@ export default function StemPlayer({
     }
   }
 
-  // One line on what to try next, for someone new to practising like this.
+  // One line on what to try next, for someone new to practising like this. Practice work ends in a
+  // take for the teacher, and takes always record at full speed, so slowing down is only ever the way
+  // there: it says so, rather than a speed ladder that reads against the teacher's "at full speed".
   const nextSpeed = SPEEDS.find((s) => s > speed);
+  const forTeacher = Boolean(onSendTake);
   const coach = !ready
     ? null
     : recording
       ? "Keep going to the end of the part, then press Stop."
       : take
         ? `Listen back with your take, nudge it into time if it sounds early or late, then ${onSendTake ? "send it to your teacher" : "download it"}.`
-        : loop?.end != null
-          ? nextSpeed
-            ? `Repeat this loop until it feels easy, then step up to ${Math.round(nextSpeed * 100)}%.`
-            : "You're looping at full speed. When it's solid, clear the loop and play the whole song."
-          : speed < 1
-            ? `When ${Math.round(speed * 100)}% feels easy, try ${Math.round(nextSpeed * 100)}%.`
-            : !playing && position < 1
-              ? "Press Play, or Space, and follow along. Stuck on a part? Drag across its bars on the Loop strip to repeat it."
-              : "Tricky bar? Drag across it on the Loop strip above to repeat it, and slow it down with Speed.";
+        : forTeacher && speed < 1
+          ? "Start slowly, then record your final take at 100%."
+          : loop?.end != null
+            ? nextSpeed
+              ? `Repeat this loop until it feels easy, then step up to ${Math.round(nextSpeed * 100)}%.`
+              : forTeacher
+                ? "You're at full speed. When it feels solid, record your take."
+                : "You're looping at full speed. When it's solid, clear the loop and play the whole song."
+            : speed < 1
+              ? `When ${Math.round(speed * 100)}% feels easy, try ${Math.round(nextSpeed * 100)}%.`
+              : !playing && position < 1
+                ? "Press Play, or Space, and follow along. Stuck on a part? Drag across its bars on the Loop strip to repeat it."
+                : "Tricky bar? Drag across it on the Loop strip above to repeat it, and slow it down with Speed.";
 
   const bandHeader = (
     <div className="rw-tl-header">
@@ -1228,7 +1252,7 @@ export default function StemPlayer({
         <div role="group" aria-label="Band" className="rw-tp-group">
           <span className="rw-tp-label">Band</span>
           <span className="rw-seg">
-            {MODES.map((m) => (
+            {bandModes(focus).map((m) => (
               <button key={m.id} type="button" onClick={() => (m.id === "full" ? playAllParts() : setMode(m.id))} aria-pressed={mode === m.id}>
                 {m.label}
               </button>
@@ -1275,17 +1299,17 @@ export default function StemPlayer({
         </div>
       )}
       {!review && chart && (
-        <div role="group" aria-label="Player view" className="rw-tp-group rw-tl-view">
-          <span className="rw-tp-label">View</span>
-          <span className="rw-seg">
-            <button type="button" onClick={() => chooseView("simple")} aria-pressed={simple}>
-              Simple
-            </button>
-            <button type="button" onClick={() => chooseView("studio")} aria-pressed={!simple} title="Part lanes, mixer, recorder and effects">
-              Studio
-            </button>
-          </span>
-        </div>
+        <button
+          type="button"
+          className="rw-btn rw-tl-view"
+          onClick={() => chooseView(simple ? "studio" : "simple")}
+          aria-expanded={!simple}
+          aria-controls={studioId}
+          title="Each part's lane, the mixer, the recorder and effects"
+        >
+          <Icon name="sliders" size={16} />
+          {simple ? "Open studio mixer" : "Close studio mixer"}
+        </button>
       )}
       {heldBack && (
         <div role="status" className="rw-tl-note">
@@ -1447,8 +1471,8 @@ export default function StemPlayer({
           </ol>
           <p className="rw-intro-more">
             {student
-              ? `Play, beside the timeline, switches between the whole song, the band without your ${noun}, and your ${noun} alone. Studio, beside View, balances your ${noun} against the band and opens the recorder.`
-              : "Studio, beside View, opens each part's lane, the mixer and the recorder."}
+              ? `Play, beside the timeline, switches between the whole song, the band without your ${noun}, and your ${noun} alone. Open studio mixer balances your ${noun} against the band, and Record your take opens the recorder.`
+              : "Open studio mixer shows each part's lane and the mixer, and Record your take opens the recorder."}
           </p>
           <button type="button" className="rw-btn rw-intro-ok" onClick={dismissIntro}>
             Got it
@@ -1483,6 +1507,7 @@ export default function StemPlayer({
         onClearLoop={() => updateLoop(null)}
         recordTime={recording ? Math.max(0, position - recordFrom) : 0}
         getMaster={getMaster}
+        onOpenRecorder={review ? null : openRecorder}
       />
 
       <Timeline
@@ -1524,8 +1549,8 @@ export default function StemPlayer({
           </section>
         )}
         {/* Hidden rather than removed, so a recording or mic check keeps its panel. */}
-        <aside className="rw-studio" aria-label="Studio" hidden={simple}>
-          <StudioTabs tabs={studioTabs} />
+        <aside id={studioId} ref={studioRef} className="rw-studio" aria-label="Studio" hidden={simple}>
+          <StudioTabs ref={studioTabsRef} tabs={studioTabs} />
         </aside>
       </div>
     </div>

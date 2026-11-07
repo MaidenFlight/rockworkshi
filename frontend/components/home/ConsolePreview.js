@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import ChordChart from "@/components/member/ChordChart";
 import Icon from "@/components/member/Icon";
-import Timeline, { partColor } from "@/components/member/player/Timeline";
+import Timeline, { bandModes, partColor } from "@/components/member/player/Timeline";
 import { PlayClock } from "@/components/member/player/clock";
 import preview from "@/lib/preview/rain-chorus.json";
 
@@ -13,11 +13,6 @@ import preview from "@/lib/preview/rain-chorus.json";
 // It opens small (the transport, speed and the chord cards) and "Explore the player" opens the band
 // and the full chart in place. The button sits above everything it reveals, so it never moves.
 
-const MODES = [
-  { id: "full", label: "Whole song" },
-  { id: "solo", label: "Isolated track" },
-  { id: "minus", label: "Without one part" },
-];
 const SPEEDS = [0.5, 0.75, 0.9, 1];
 const PARTS = Object.keys(preview.lanes);
 const chart = preview.chart;
@@ -289,7 +284,7 @@ export default function ConsolePreview() {
                   <div role="group" aria-label="Band" className="rw-tp-group">
                     <span className="rw-tp-label">Band</span>
                     <span className="rw-seg">
-                      {MODES.map((m) => (
+                      {bandModes(focus).map((m) => (
                         <button key={m.id} type="button" onClick={() => setMode(m.id)} aria-pressed={mode === m.id}>
                           {m.label}
                         </button>

@@ -48,10 +48,11 @@
   container-type: inline-size;
 }
 
-/* Checkbox, then the task, then its tags; on a narrow list the tags go under the task, lined up with it. */
+/* The state's mark, the task, its tags, then the arrow that says the row opens; on a narrow list the
+   tags go under the task, lined up with it. */
 .row {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 6px 12px;
   min-height: 56px;
@@ -73,33 +74,36 @@
   outline-offset: 2px;
 }
 
-/* The checkbox. Its state is also the pill's words, so colour is never the only sign. */
-.box {
+/* The state's mark: a drawn icon, never a box, so the row can't be mistaken for something to tick.
+   The pill says the same in words, so colour and shape are never the only sign. */
+.mark {
   display: grid;
   place-items: center;
-  flex: none;
-  width: 22px;
-  height: 22px;
-  border: 2px solid var(--rw-line);
-  border-radius: var(--rw-radius-sm);
-  background: #fff;
+  width: 24px;
+  height: 24px;
+  color: var(--rw-meta);
 }
 
-.box[data-state="sent"] {
-  border-color: var(--rw-orange-deep);
+.mark[data-state="sent"] {
+  color: var(--rw-orange-deep);
 }
 
-.box[data-state="sent"]::after {
-  content: "";
-  width: 8px;
-  height: 8px;
-  background: var(--rw-orange-deep);
+.mark[data-state="done"] {
+  color: var(--rw-teal);
 }
 
-.box[data-state="done"] {
-  border-color: var(--rw-teal);
-  background: var(--rw-teal);
-  color: #fff;
+/* The row opens the task's page. */
+.go {
+  display: grid;
+  place-items: center;
+  color: var(--rw-meta);
+  transition: color 0.16s ease, transform 0.18s ease;
+}
+
+.row:hover .go,
+.row:focus-visible .go {
+  color: var(--rw-ink);
+  transform: translateX(2px);
 }
 
 .main {
@@ -128,8 +132,16 @@
 }
 
 @container (max-width: 480px) {
+  .row {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
   .tags {
-    grid-column: 2 / -1;
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .go {
+    grid-column: 3;
+    grid-row: 1 / span 2;
   }
 }
 
@@ -171,7 +183,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .row {
+  .row,
+  .go {
     transition: none;
+  }
+  .row:hover .go,
+  .row:focus-visible .go {
+    transform: none;
   }
 }
