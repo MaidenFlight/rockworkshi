@@ -107,6 +107,29 @@ function validateFeedback(feedback) {
   return { value: text.value };
 }
 
+const MAX_NOTES = 20;
+const MAX_NOTE = 280;
+// No song is longer than this, so a moment past it is a mistake.
+const MAX_NOTE_AT = 60 * 60;
+
+// The teacher's notes tied to moments in the song: [{ at: seconds, text }], sorted by time. undefined
+// leaves the saved notes as they are (an older client sends feedback alone); null or [] clears them.
+function validateNotes(notes) {
+  if (notes === undefined) return { value: undefined };
+  if (notes === null) return { value: [] };
+  if (!Array.isArray(notes) || notes.length > MAX_NOTES) return { error: `Up to ${MAX_NOTES} notes, each a moment in the song and a line about it.` };
+  const value = [];
+  for (const note of notes) {
+    const at = Number(note?.at);
+    if (!Number.isFinite(at) || at < 0 || at > MAX_NOTE_AT) return { error: "Each note needs a moment in the song." };
+    const text = cleanText(note?.text, MAX_NOTE);
+    if (text.error || !text.value) return { error: `Each note needs 1 to ${MAX_NOTE} characters.` };
+    value.push({ at: Math.round(at * 100) / 100, text: text.value });
+  }
+  value.sort((a, b) => a.at - b.at);
+  return { value };
+}
+
 // Keys are random and namespaced by assignment, so a student can only attach
 // a recording uploaded through this assignment's upload link.
 function recordingPrefix(assignmentId) {
@@ -170,6 +193,7 @@ async function presentSubmission(s, linkSeconds) {
     createdAt: s.createdAt,
     recording,
     feedback: s.feedback,
+    notes: Array.isArray(s.notes) ? s.notes : [],
     reviewedAt: s.reviewedAt,
   };
 }
@@ -212,6 +236,7 @@ module.exports = {
   LIST_INCLUDE,
   validateAssignment,
   validateFeedback,
+  validateNotes,
   newRecordingKey,
   isRecordingKeyFor,
   deleteRecordings,

@@ -197,6 +197,15 @@ function sectionOf(chart, prefix) {
   return { start: round(start), end: round(end), from: k > 0 ? chords[k - 1] : null, to: k > 0 ? chords[k] : null };
 }
 
+// When a section's chords first change, in seconds into the song: where the teacher's note about rushing
+// is pinned (monthTasks). Null when the section never changes chord.
+function firstChangeAt(chart, name) {
+  const section = chart?.sections?.find((s) => s.name === name);
+  const chords = (section?.bars ?? []).flatMap((b) => b.chords ?? []);
+  const k = chords.findIndex((c, n) => n > 0 && c.name !== chords[n - 1].name);
+  return k > 0 && Number.isFinite(chords[k].time) ? round(chords[k].time) : null;
+}
+
 // What the chart says about the song, for the teacher's words: { chorus, verse, values }.
 function songWords(song) {
   const chorus = sectionOf(song?.chart, "Chorus");
@@ -258,15 +267,23 @@ function monthTasks(song, at, student) {
     instruction: `Put it all together: record the whole song with the band, start to finish, at full speed. ${student.tip}`,
   });
 
-  // What has happened to each, in the order the student works through them.
-  const done = (feedback, sent, replied) => ({ status: "reviewed", attempts: [{ sent: at(sent), feedback, reviewedAt: at(replied) }] });
+  // What has happened to each, in the order the student works through them. The replies carry notes
+  // pinned to moments in the song: the first beat of the first section, and the first verse's change.
+  const pin = (time, text) => (Number.isFinite(time) ? [{ at: time, text }] : undefined);
+  const change = firstChangeAt(song.chart, tasks[1]?.section);
+  const done = (feedback, sent, replied, notes) => ({ status: "reviewed", attempts: [{ sent: at(sent), feedback, reviewedAt: at(replied), notes }] });
   const history = [
-    done("A clean start, and you came in right on the first beat. Well done.", 0.12, 0.2),
+    done("A clean start, and you came in right on the first beat. Well done.", 0.12, 0.2, pin(tasks[0]?.sectionStart, "Right on the first beat. Count yourself in like this every time.")),
     {
       status: "reviewed",
       attempts: [
-        { sent: at(0.32), feedback: "A good start, but you're rushing where the chords change. Play it at 75% with the metronome on, then send it again.", reviewedAt: at(0.4) },
-        { sent: at(0.55), feedback: fill(student.verseFeedback, values), reviewedAt: at(0.65) },
+        {
+          sent: at(0.32),
+          feedback: "A good start, but you're rushing where the chords change. Play it at 75% with the metronome on, then send it again.",
+          reviewedAt: at(0.4),
+          notes: pin(change, "Rushing into this change. Wait for beat 1 before you move."),
+        },
+        { sent: at(0.55), feedback: fill(student.verseFeedback, values), reviewedAt: at(0.65), notes: pin(change, "On time into the change now. This was the spot.") },
       ],
     },
     { status: "ready", attempts: [{ sent: at(0.9) }] },
@@ -415,7 +432,7 @@ async function startDemo({ instrument: asked = "Guitar", now = clock.now() } = {
             level: 2,
             updatedAt: newest?.reviewedAt ?? newest?.sent ?? work.createdAt,
             submissions: {
-              create: attempts.map((a) => ({ createdAt: a.sent, feedback: a.feedback ?? null, reviewedAt: a.reviewedAt ?? null })),
+              create: attempts.map((a) => ({ createdAt: a.sent, feedback: a.feedback ?? null, reviewedAt: a.reviewedAt ?? null, ...(a.notes ? { notes: a.notes } : {}) })),
             },
           },
         });

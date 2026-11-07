@@ -161,6 +161,7 @@ function toWav(buffer) {
 // also names its instrument: that shows "Your instrument" and keeps the chart to that student's.
 // keepKey (lib/takeStore.js takeKey) keeps an unsent take in this browser, so it's back after a reload
 // or a visit elsewhere, until it's sent or deleted. Without it a take lasts as long as the page.
+// positionRef, a ref, gets a function that says where the song is, in seconds.
 export default function StemPlayer({
   tracks,
   myPart,
@@ -178,6 +179,7 @@ export default function StemPlayer({
   instrument = null,
   available = null,
   keepKey = null,
+  positionRef = null,
 }) {
   const parts = useMemo(() => tracks.map((t) => t.part), [tracks]);
   const student = scope === "instrument" && Boolean(instrument);
@@ -1260,6 +1262,14 @@ export default function StemPlayer({
     liveRef.current = { positionNow, countInBeat, beatNow };
   });
   const getPosition = useCallback(() => liveRef.current?.positionNow() ?? 0, []);
+  // Lets the page read where the song is (a teacher pinning a note to the moment they're hearing).
+  useEffect(() => {
+    if (!positionRef) return;
+    positionRef.current = getPosition;
+    return () => {
+      positionRef.current = null;
+    };
+  }, [positionRef, getPosition]);
   const getCountInBeat = useCallback(() => liveRef.current?.countInBeat() ?? -1, []);
   const getBeat = useCallback(() => liveRef.current?.beatNow() ?? -1, []);
   const partMeters = useMemo(() => Object.fromEntries(parts.map((p) => [p, () => [metersRef.current.parts[p]]])), [parts]);

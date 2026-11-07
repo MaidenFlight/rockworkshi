@@ -4865,6 +4865,85 @@ div:has(> .rw-scrub:focus-visible) {
   align-items: center;
 }
 
+/* A teacher's notes on moments, under their reply on the practice work's page: the time in the display
+   face in flare ink, the note, then Hear it (in that recording) and Practise this part (the player,
+   looping the bars around it). Ruled rows rather than boxes, inside the attempt's own panel. */
+.rw-moments {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--rw-border);
+}
+.rw-moment {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: baseline;
+  gap: 0 14px;
+  padding: 10px 0 2px;
+  border-bottom: 1px solid var(--rw-border);
+}
+.rw-moment-at {
+  min-width: 2.6em;
+  font-family: var(--rw-font-display);
+  font-size: var(--rw-text-xl);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--rw-orange-deep);
+}
+.rw-moment-text {
+  font-size: var(--rw-text-base);
+  line-height: 1.5;
+  color: var(--rw-ink);
+}
+.rw-moment-go {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 20px;
+}
+.rw-moment-go a,
+.rw-moment-go button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--rw-text-sm);
+  font-weight: 700;
+  color: var(--rw-orange-deep);
+  text-decoration: none;
+  cursor: pointer;
+}
+.rw-moment-go a:hover,
+.rw-moment-go button:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.rw-moment-go a:focus-visible,
+.rw-moment-go button:focus-visible {
+  outline: 2px solid var(--rw-teal);
+  outline-offset: 2px;
+}
+/* The note the player was opened from, above it: label stock with the flare rule, like the brief. */
+.rw-moment-pinned {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin: 0 0 16px;
+  padding: 12px 18px;
+  background: var(--rw-sand);
+  border-top: 4px solid var(--rw-flare);
+  font-size: var(--rw-text-base);
+  line-height: 1.55;
+  color: var(--rw-prose);
+}
+.rw-moment-pinned strong {
+  color: var(--rw-ink);
+}
+
 /* One column on a phone: the panel and teacher work, then the week and tools, then lesson videos. */
 @media (max-width: 860px) {
   .rw-dash {

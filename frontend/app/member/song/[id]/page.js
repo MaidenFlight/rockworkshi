@@ -12,7 +12,16 @@ import PracticeNotes from "@/components/member/library/PracticeNotes";
 import SongTutorials from "@/components/member/SongTutorials";
 import { NetworkError, practiceRequest } from "@/lib/practice";
 import { takeKey } from "@/lib/takeStore";
-import { hasLoop, sendForReview } from "@/lib/teaching";
+import { formatClock, hasLoop, sendForReview } from "@/lib/teaching";
+
+// The bars around a moment, as a loop: from the start of the bar before it to the end of the bar after.
+// Without a chart, four seconds either side.
+function loopAround(chart, t) {
+  const bars = chart?.sections?.flatMap((s) => s.bars.map((b) => b.time)) ?? [];
+  if (!bars.length) return { start: Math.max(0, t - 4), end: t + 4 };
+  const i = Math.max(0, bars.findLastIndex((b) => b <= t + 0.001));
+  return { start: bars[Math.max(0, i - 1)], end: bars[i + 2] ?? chart.end };
+}
 
 export default function SongPlayAlongPage() {
   // useSearchParams needs a Suspense boundary in a client page.
@@ -26,8 +35,11 @@ export default function SongPlayAlongPage() {
 function SongPlayAlong() {
   const { id } = useParams();
   const router = useRouter();
-  // Set when the song was opened from a teacher's practice work.
-  const assignmentId = useSearchParams().get("assignment");
+  // Set when the song was opened from a teacher's practice work, and `at` from one of their notes on a
+  // moment (seconds into the song).
+  const params = useSearchParams();
+  const assignmentId = params.get("assignment");
+  const atParam = params.get("at");
   const { user } = useAuth();
   // undefined = loading, null = failed (see failure)
   const [page, setPage] = useState(undefined); // { song, practice, tracks: data | null }
@@ -98,7 +110,11 @@ function SongPlayAlong() {
   const { song, practice, tracks, assignment } = page;
   const locked = page.access && !page.access.allowed;
   const backHref = assignment ? `/member/assignment/${assignment.id}` : "/member/library";
-  const initialLoop = assignment && hasLoop(assignment) ? { start: assignment.sectionStart, end: assignment.sectionEnd } : null;
+  // Opened from a teacher's note: the player loops the bars around that moment, and the note is shown.
+  const at = atParam !== null && atParam !== "" && Number.isFinite(Number(atParam)) ? Number(atParam) : null;
+  const pinned = at === null || !assignment ? null : (assignment.submissions.flatMap((s) => s.notes ?? []).find((n) => Math.abs(n.at - at) < 0.05) ?? null);
+  const initialLoop =
+    at !== null ? loopAround(tracks?.chart, at) : assignment && hasLoop(assignment) ? { start: assignment.sectionStart, end: assignment.sectionEnd } : null;
   // Resume state only goes back to the server when something changed, and at most every few seconds.
   const saveSession = (session, { keepalive } = {}) =>
     practiceRequest(`/songs/${song.id}/practice/session`, {
@@ -141,6 +157,15 @@ function SongPlayAlong() {
           </div>
           <div style={{ color: "var(--rw-body)", whiteSpace: "pre-wrap" }}>{assignment.instruction}</div>
         </div>
+      )}
+
+      {pinned && (
+        <p className="rw-moment-pinned" role="note">
+          <span className="rw-moment-at">{formatClock(pinned.at)}</span>
+          <span>
+            <strong>{assignment.teacher?.name?.split(" ")[0] || "Your teacher"}&apos;s note:</strong> {pinned.text} The player is looping the bars around it.
+          </span>
+        </p>
       )}
 
       {/* A shut song gets the one explanation below, which covers its tutorials too. */}

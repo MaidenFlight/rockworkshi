@@ -10,6 +10,7 @@ const {
   LIST_INCLUDE,
   validateAssignment,
   validateFeedback,
+  validateNotes,
   deleteAssignmentRecordings,
   presentAssignment,
   presentSubmission,
@@ -153,10 +154,12 @@ router.delete("/assignments/:id", async (req, res) => {
   res.status(204).end();
 });
 
-// Saving again replaces the feedback.
+// Saving again replaces the feedback, and the notes tied to moments when they're sent with it.
 router.put("/submissions/:id/feedback", async (req, res) => {
   const { error, value } = validateFeedback(req.body?.feedback);
   if (error) return res.status(400).json({ error });
+  const notes = validateNotes(req.body?.notes);
+  if (notes.error) return res.status(400).json({ error: notes.error });
 
   const submission = await prisma.submission.findUnique({ where: { id: req.params.id } });
   const assignment = submission && (await findOwnAssignment(req, submission.assignmentId, {}));
@@ -165,7 +168,7 @@ router.put("/submissions/:id/feedback", async (req, res) => {
   const [updated] = await prisma.$transaction([
     prisma.submission.update({
       where: { id: submission.id },
-      data: { feedback: value, reviewedAt: new Date() },
+      data: { feedback: value, reviewedAt: new Date(), ...(notes.value !== undefined ? { notes: notes.value } : {}) },
     }),
     // Only feedback on the newest submission completes the review. If the student
     // submitted again in the meantime, that one is still waiting.
