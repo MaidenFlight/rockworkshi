@@ -134,7 +134,9 @@ after enrolment changed only by the admin (a student asks from Account settings)
   rather than a player that fails silently. Plain URLs play directly.
 - **Practice tools:** the tuner and metronome are free for everyone (decided
   2026-11-05); the chord library, on-screen piano and rhythm trainer come with
-  membership. Until then all five were members-only.
+  membership. Until then all five were members-only. The beat maker (a drum kit,
+  grooves, a grid and a song, added 2026-11-06 at Denny's request) sits with the
+  membership tools for now; whether it should be free has not been decided.
 - Members can cancel their own membership.
 - Contact addresses must resolve to a real mailbox. Verifying a sending domain
   does not create one, so a visible address that bounces is a defect, not a

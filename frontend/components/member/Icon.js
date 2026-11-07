@@ -25,6 +25,13 @@ const PATHS = {
   keys: <path d="M3 5h18v14H3zM7.5 5v14M12 5v14M16.5 5v14M6 5v7M10.5 5v7M15 5v7" />,
   drum: <path d="M4 9c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 9v7c0 1.7 3.6 3 8 3s8-1.3 8-3V9M8 2l4 6.5M16 2l-4 6.5" />,
   library: <path d="M4 4h4.5v16H4zM10 4h4.5v16H10zM15.6 5l3.9-1 3 15.5-3.9 1z" />,
+  // The beat maker: four sample pads, one of them lit.
+  pads: (
+    <>
+      <path d="M4 4h6.5v6.5H4zM13.5 4H20v6.5h-6.5zM4 13.5h6.5V20H4z" />
+      <path d="M13.5 13.5H20V20h-6.5z" fill="currentColor" />
+    </>
+  ),
   "sound-off": <path d="M3.5 9h4l5-4v14l-5-4h-4zM16 9.5l5 5M21 9.5l-5 5" />,
   // The metronome.
   "sound-on": <path d="M3.5 9h4l5-4v14l-5-4h-4zM16 9a4.2 4.2 0 0 1 0 6M18.6 6.4a7.8 7.8 0 0 1 0 11.2" />,
