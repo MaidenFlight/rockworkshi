@@ -3,7 +3,8 @@
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
-import { ROLES } from "@/lib/auth/roles";
+import { ROLES, holds } from "@/lib/auth/roles";
+import { useAuth } from "@/contexts/AuthContext";
 import { useSiteText } from "@/contexts/SiteTextContext";
 
 const NAV = [
@@ -30,6 +31,7 @@ export default function AdminLayout({ children }) {
   const pathname = usePathname();
   const router = useRouter();
   const { setEditing } = useSiteText();
+  const { user } = useAuth();
 
   return (
     <ProtectedRoute allow={[ROLES.ADMINISTRATOR]}>
@@ -83,6 +85,22 @@ export default function AdminLayout({ children }) {
           >
             Edit site text &rarr;
           </button>
+          {holds(user, "teacher") && (
+            <Link
+              href="/teacher"
+              style={{
+                display: "block",
+                padding: "9px 12px",
+                borderRadius: 8,
+                fontSize: 14,
+                fontWeight: 700,
+                color: "var(--rw-teal)",
+                textDecoration: "none",
+              }}
+            >
+              Teacher Studio &rarr;
+            </Link>
+          )}
           <Link
             href="/member"
             target="_blank"
