@@ -1548,6 +1548,20 @@ export default function StemPlayer({
     a.click();
   }
 
+  // For the guided session's listen-back step: the take, playing, in the recorder.
+  function listenBack() {
+    openRecorder();
+    requestAnimationFrame(() => {
+      if (!videoTakeRef.current) {
+        if (!playingRef.current) playTake();
+        return;
+      }
+      const film = studioRef.current?.querySelector(".rw-take video");
+      film?.scrollIntoView({ block: "center" });
+      film?.play().catch(() => {});
+    });
+  }
+
   // Resolves true once the take is sent; a problem is shown in the recorder.
   async function sendTake() {
     if (videoTakeRef.current) return onSendVideo ? sendVideoTake() : false;
@@ -1652,10 +1666,19 @@ export default function StemPlayer({
     startTrainer: () => startTrainer({ ...storedTrainerSettings(), ...(task?.targetSpeed ? { top: task.targetSpeed } : {}) }),
     openRecorder,
     sendTake,
+    listenBack,
   }));
   useEffect(() => {
-    onTakeState?.({ take: Boolean(take || videoTake), name: takeName.trim() || `Take ${takeCount}`, keep: keep?.state ?? null, sending: sendProgress !== null });
-  }, [onTakeState, take, videoTake, takeName, takeCount, keep, sendProgress]);
+    const current = videoTake ?? take;
+    onTakeState?.({
+      take: Boolean(current),
+      name: takeName.trim() || `Take ${takeCount}`,
+      keep: keep?.state ?? null,
+      sending: sendProgress !== null,
+      verdict: current ? takeVerdict(task, current, { canFilm }) : null,
+      uploadStopped,
+    });
+  }, [onTakeState, take, videoTake, takeName, takeCount, keep, sendProgress, task, canFilm, uploadStopped]);
   const getCountInBeat = useCallback(() => liveRef.current?.countInBeat() ?? -1, []);
   const getBeat = useCallback(() => liveRef.current?.beatNow() ?? -1, []);
   const partMeters = useMemo(() => Object.fromEntries(parts.map((p) => [p, () => [metersRef.current.parts[p]]])), [parts]);

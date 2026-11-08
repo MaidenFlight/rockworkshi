@@ -9,18 +9,23 @@ import s from "./PracticeSession.module.css";
 
 // "Start today's practice": the day's practice work as one clear sequence above the player, using the
 // tools the student already has. Tune up (string instruments), practise the section (the loop and the
-// speed trainer), record a take (the recorder), and send it. Each step done is ticked on the dashboard's
-// Today list too.
-// player is the StemPlayer's handle ({ startTrainer, openRecorder, sendTake }); take is where the take
-// is (StemPlayer's onTakeState: { take, name, keep, sending }); sent turns true once it has gone.
+// speed trainer), record a take (the recorder), listen back, and save or submit it. Each step done is
+// ticked on the dashboard's Today list too. Getting to the end sends nothing: only the last step's key does.
+// player is the StemPlayer's handle ({ startTrainer, openRecorder, sendTake, listenBack }); take is where
+// the take is (StemPlayer's onTakeState: { take, name, keep, sending, verdict, uploadStopped }); sent turns
+// true once it has gone.
 export default function PracticeSession({ assignment, instrument, player, take, sent, onEnd }) {
   const teacher = assignment.teacher?.name?.split(" ")[0] || "your teacher";
   const part = assignment.section || "the section";
+  const checkpoint = Boolean(assignment.week) && assignment.kind === "checkpoint";
+  const assessment = Boolean(assignment.week) && assignment.kind === "assessment";
+  const speedWords = `${assignment.targetSpeed ?? 100}%`;
   const steps = [
     ...(TUNED.includes(instrument) ? [{ id: "tune", label: "Tune up" }] : []),
     { id: "practise", label: `Practise ${part}` },
     { id: "record", label: "Record your take" },
-    { id: "send", label: `Send to ${teacher}` },
+    { id: "listen", label: "Listen back" },
+    { id: "send", label: checkpoint ? "Save it" : assessment ? `Submit to ${teacher}` : `Send to ${teacher}` },
   ];
   // The step reached survives a reload, for this practice work, in this tab.
   const storageKey = `rw-session:${assignment.id}`;
@@ -75,9 +80,13 @@ export default function PracticeSession({ assignment, instrument, player, take, 
           </span>
           <div>
             <h2 id="session-step" className={s.title}>
-              Sent to {teacher}
+              {checkpoint ? "Saved" : assessment ? `Submitted to ${teacher}` : `Sent to ${teacher}`}
             </h2>
-            <p className={s.text}>That&apos;s today&apos;s practice done. {teacher === "your teacher" ? "Your teacher" : teacher} replies on the practice work&apos;s page.</p>
+            <p className={s.text}>
+              {checkpoint
+                ? `That's this checkpoint saved. ${teacher === "your teacher" ? "Your teacher" : teacher} can listen to it, and you can save another whenever you like.`
+                : `That's today's practice done. ${teacher === "your teacher" ? "Your teacher" : teacher} replies on the practice work's page.`}
+            </p>
           </div>
         </div>
         <div className={s.actions}>
@@ -124,8 +133,7 @@ export default function PracticeSession({ assignment, instrument, player, take, 
       {step.id === "practise" && (
         <>
           <p className={s.text}>
-            Loop {part} until it feels easy. The speed trainer starts it slow and speeds up a step every couple of passes, up to full speed. Or just press Play and
-            loop it at your own pace.
+            {`Loop ${part} until it feels easy. The speed trainer starts it slow and speeds up a step every couple of passes, up to ${assignment.targetSpeed ? `${assignment.targetSpeed}%` : "full speed"}. Or just press Play and loop it at your own pace.`}
           </p>
           <div className={s.actions}>
             <Button
@@ -145,7 +153,9 @@ export default function PracticeSession({ assignment, instrument, player, take, 
       {step.id === "record" && (
         <>
           <p className={s.text}>
-            {`Record the whole of ${part} at full speed, with headphones on so the mic only hears you. Listen back, and record again until you're happy with it.`}
+            {assessment
+              ? `Record the whole of ${part} at ${speedWords}, with headphones on so the mic only hears you. The recorder shows what this assessment asks for and can set the player up for it. You can record again until you're happy with it.`
+              : `Record the whole of ${part} at ${assignment.targetSpeed ? speedWords : "full speed"}, with headphones on so the mic only hears you. You can record again until you're happy with it.`}
           </p>
           <div className={s.actions}>
             <Button type="button" variant="secondary" onClick={() => player.current?.openRecorder()}>
@@ -159,25 +169,49 @@ export default function PracticeSession({ assignment, instrument, player, take, 
         </>
       )}
 
+      {step.id === "listen" && (
+        <>
+          <p className={s.text}>
+            {take?.take
+              ? `Play ${take.name} back from the start.${assignment.criteria?.length ? ` Listen for: ${assignment.criteria.join(", ").toLowerCase()}.` : ""} If it's not there yet, go back a step and record again.`
+              : "There's no take to listen to yet. Go back a step and record one."}
+          </p>
+          {take?.take && (
+            <div className={s.actions}>
+              <Button type="button" variant="secondary" onClick={() => player.current?.listenBack()}>
+                <Icon name="play" size={12} />
+                Play your take
+              </Button>
+            </div>
+          )}
+        </>
+      )}
+
       {step.id === "send" &&
-        (take?.take ? (
+        (take?.take && take.verdict?.ok === false ? (
+          <p className={s.text}>{take.verdict.text}</p>
+        ) : take?.take ? (
           <>
             <p className={s.text}>
-              {take.name} goes to {teacher}, who replies on the practice work&apos;s page. You can send it again any time.
+              {checkpoint
+                ? `${take.name} is saved where ${teacher} can listen to it. You can save another any time.`
+                : assessment
+                  ? `${take.name} goes to ${teacher} for the Week ${assignment.week} assessment. You can submit a better one later, and every one is kept.`
+                  : `${take.name} goes to ${teacher}, who replies on the practice work's page. You can send it again any time.`}
             </p>
             <div className={s.actions}>
               <Button type="button" onClick={send} disabled={sending || take.sending}>
-                {sending || take.sending ? "Sending…" : `Send to ${teacher}`}
+                {sending || take.sending ? "Uploading…" : take.uploadStopped ? "Resume upload" : checkpoint ? "Save to checkpoint" : assessment ? `Submit ${take.name} for the Week ${assignment.week} assessment` : `Send to ${teacher}`}
               </Button>
               {sendFailed && (
                 <span className={s.error} role="alert">
-                  It didn&apos;t send. The recorder says why: try again from there.
+                  It didn&apos;t go. The recorder says why: try again from there, or press the key again.
                 </span>
               )}
             </div>
           </>
         ) : (
-          <p className={s.text}>There&apos;s no take to send yet. Go back a step and record one.</p>
+          <p className={s.text}>There&apos;s no take yet. Go back to Record your take and record one.</p>
         ))}
 
       <div className={s.nav}>
@@ -187,7 +221,7 @@ export default function PracticeSession({ assignment, instrument, player, take, 
           </Button>
         )}
         {step.id !== "send" && (
-          <Button type="button" variant="secondary" onClick={next} disabled={step.id === "record" && !take?.take}>
+          <Button type="button" variant="secondary" onClick={next} disabled={(step.id === "record" || step.id === "listen") && !take?.take}>
             Next: {steps[index + 1].label}
             <Icon name="arrow-right" size={14} />
           </Button>
