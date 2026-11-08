@@ -288,6 +288,7 @@ function needsTake(task) {
 // then: these rules help a student know what's being asked, and don't try to catch anyone out.
 function takeProblem(task, take, { canFilm }) {
   if (task.media === "audio" && take.media === "video") return "This task asks for audio, so record it without the camera.";
+  if (take.media === "video" && !canFilm) return NEEDS_GUARDIAN;
   if (task.media === "video" && take.media === "audio" && !task.audioAllowed && canFilm) {
     return "This task asks for a video. Record it on the website, with the camera on.";
   }
@@ -301,6 +302,8 @@ function takeProblem(task, take, { canFilm }) {
   }
   return null;
 }
+
+const NEEDS_GUARDIAN = "A parent or guardian needs to turn on Practice videos on their family page first. You can send audio instead.";
 
 // Where a task goes when a take is sent: a checkpoint is saved, outside the queue, unless the teacher
 // asked to review it; anything else is waiting for the teacher.
@@ -501,6 +504,7 @@ module.exports = {
   MAX_VIDEO_BYTES,
   MAX_VIDEO_SECONDS,
   VIDEO_PART_BYTES,
+  NEEDS_GUARDIAN,
   UPLOAD_LINK_SECONDS,
   RECORDING_LINK_SECONDS,
   MAX_UNSENT_RECORDINGS,

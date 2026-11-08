@@ -2,7 +2,17 @@ const express = require("express");
 const prisma = require("../lib/prisma");
 const { findPage } = require("../lib/pagination");
 const { requireAuth } = require("../middleware/auth");
-const { isR2Configured, signedUploadUrl, headObject, putObject } = require("../lib/r2");
+const {
+  isR2Configured,
+  signedUploadUrl,
+  headObject,
+  putObject,
+  createMultipartUpload,
+  uploadPart,
+  listParts,
+  completeMultipartUpload,
+  abortMultipartUpload,
+} = require("../lib/r2");
 const { canFilm } = require("../lib/consents");
 const {
   SUPPORTS,
@@ -10,6 +20,9 @@ const {
   MAX_RECORDING_BYTES,
   VIDEO_TYPES,
   MAX_VIDEO_BYTES,
+  MAX_VIDEO_SECONDS,
+  VIDEO_PART_BYTES,
+  NEEDS_GUARDIAN,
   UPLOAD_LINK_SECONDS,
   RECORDING_LINK_SECONDS,
   ASSIGNMENT_INCLUDE,
@@ -110,6 +123,114 @@ router.put("/:id/recording", express.raw({ type: RECORDING_TYPE, limit: MAX_RECO
   res.status(201).json({ key });
 });
 
+// ---------------------------------------------------------------------------------------------
+// Video goes up in pieces, through here: the bucket doesn't take uploads from browsers, a video is far
+// too big to hold in memory at once, and a dropped connection should only cost the piece it was on.
+
+// Long enough for someone to come back and carry on the same day.
+const OPEN_UPLOAD_MS = 24 * 60 * 60 * 1000;
+const MAX_OPEN_UPLOADS = 3;
+// R2 keeps the pieces until told otherwise, so the piece-by-piece upload has to be cancelled by hand.
+async function cancelUpload(upload) {
+  try {
+    await abortMultipartUpload(upload.key, upload.uploadId);
+  } catch (err) {
+    // Already gone, or R2 will clear it by itself within the week.
+    console.error(`Could not cancel upload ${upload.id}:`, err);
+  }
+  await prisma.recordingUpload.delete({ where: { id: upload.id } }).catch(() => {});
+}
+
+async function findOpenUpload(req, res) {
+  const assignment = await findMyAssignment(req, req.params.id, {});
+  const upload = assignment && (await prisma.recordingUpload.findUnique({ where: { id: req.params.uploadId } }));
+  if (!upload || upload.assignmentId !== assignment.id) {
+    res.status(404).json({ error: "Not found." });
+    return null;
+  }
+  return upload;
+}
+
+const totalParts = (upload) => Math.ceil(upload.size / upload.partSize);
+// Every piece is the same size except the last.
+const partBytes = (upload, n) => (n < totalParts(upload) ? upload.partSize : upload.size - upload.partSize * (totalParts(upload) - 1));
+
+// Starts a video's upload. { id, partSize, parts } says how to cut it up.
+router.post("/:id/video-uploads", async (req, res) => {
+  const assignment = await findMyAssignment(req, req.params.id, {});
+  if (!assignment) return res.status(404).json({ error: "Not found." });
+  if (assignment.media !== "video") return res.status(400).json({ error: "This task asks for audio, so record it without the camera." });
+  if (!(await canFilm(req.user))) return res.status(403).json({ error: NEEDS_GUARDIAN });
+
+  const size = Number(req.body?.size);
+  const tooBig = `Videos can be up to ${Math.round(MAX_VIDEO_BYTES / 1024 / 1024)} MB and ${MAX_VIDEO_SECONDS / 60} minutes.`;
+  if (!Number.isInteger(size) || size <= 0 || size > MAX_VIDEO_BYTES) return res.status(400).json({ error: tooBig });
+  const duration = Number(req.body?.duration);
+  // A few seconds over is the recorder stopping itself at the limit.
+  if (Number.isFinite(duration) && duration > MAX_VIDEO_SECONDS + 10) return res.status(400).json({ error: tooBig });
+  const contentType = typeof req.body?.type === "string" ? req.body.type.split(";")[0].trim().toLowerCase() : "";
+  if (!VIDEO_TYPES[contentType]) return res.status(400).json({ error: "This browser recorded a kind of video the school can't store." });
+  if (!isR2Configured()) return res.status(503).json({ error: "Recording storage is not configured." });
+
+  const open = await prisma.recordingUpload.findMany({ where: { assignmentId: assignment.id, completedAt: null } });
+  const cutoff = Date.now() - OPEN_UPLOAD_MS;
+  const abandoned = open.filter((u) => u.createdAt.getTime() < cutoff);
+  await Promise.all(abandoned.map(cancelUpload));
+  if (open.length - abandoned.length >= MAX_OPEN_UPLOADS) return res.status(429).json({ error: "Too many videos are part-way through uploading. Try again tomorrow." });
+  if (!(await hasRoomForAnotherTake(assignment, res))) return;
+
+  const key = newRecordingKey(assignment.id, VIDEO_TYPES[contentType]);
+  const uploadId = await createMultipartUpload(key, contentType);
+  const upload = await prisma.recordingUpload.create({ data: { assignmentId: assignment.id, key, uploadId, contentType, size, partSize: VIDEO_PART_BYTES } });
+  res.status(201).json({ id: upload.id, partSize: upload.partSize, parts: totalParts(upload) });
+});
+
+// Which pieces have arrived, so an interrupted upload can send only the rest.
+router.get("/:id/video-uploads/:uploadId", async (req, res) => {
+  const upload = await findOpenUpload(req, res);
+  if (!upload) return;
+  if (upload.completedAt) return res.json({ id: upload.id, complete: true, key: upload.key, parts: totalParts(upload), partSize: upload.partSize, received: [] });
+  const parts = await listParts(upload.key, upload.uploadId);
+  res.json({ id: upload.id, complete: false, parts: totalParts(upload), partSize: upload.partSize, received: parts.map((p) => p.partNumber) });
+});
+
+router.put("/:id/video-uploads/:uploadId/parts/:n", express.raw({ type: "application/octet-stream", limit: VIDEO_PART_BYTES }), async (req, res) => {
+  const upload = await findOpenUpload(req, res);
+  if (!upload) return;
+  if (upload.completedAt) return res.status(409).json({ error: "This video has already finished uploading." });
+  const n = Number(req.params.n);
+  if (!Number.isInteger(n) || n < 1 || n > totalParts(upload)) return res.status(400).json({ error: "That isn't a piece of this video." });
+  if (!Buffer.isBuffer(req.body) || req.body.length !== partBytes(upload, n)) return res.status(400).json({ error: "That piece is the wrong size." });
+  await uploadPart(upload.key, upload.uploadId, n, req.body);
+  res.status(204).end();
+});
+
+// Joins the pieces into one stored file, only once they've all arrived, and hands back its key for
+// the send (POST /:id/submit). Safe to repeat.
+router.post("/:id/video-uploads/:uploadId/complete", async (req, res) => {
+  const upload = await findOpenUpload(req, res);
+  if (!upload) return;
+  if (!upload.completedAt) {
+    const parts = await listParts(upload.key, upload.uploadId);
+    const received = new Set(parts.map((p) => p.partNumber));
+    const missing = Array.from({ length: totalParts(upload) }, (_, i) => i + 1).filter((n) => !received.has(n));
+    if (missing.length) return res.status(409).json({ error: "Some of this video hasn't arrived yet.", missing });
+    await completeMultipartUpload(upload.key, upload.uploadId, parts);
+    await prisma.recordingUpload.update({ where: { id: upload.id }, data: { completedAt: new Date() } });
+  }
+  const stored = await headObject(upload.key);
+  if (!stored || stored.size !== upload.size) return res.status(500).json({ error: "The video didn't store properly. Please send it again." });
+  res.json({ key: upload.key });
+});
+
+// The student gave up on this video.
+router.delete("/:id/video-uploads/:uploadId", async (req, res) => {
+  const upload = await findOpenUpload(req, res);
+  if (!upload) return;
+  if (!upload.completedAt) await cancelUpload(upload);
+  res.status(204).end();
+});
+
 // Step 2: send the work for review, with the uploaded recording if there is one. It can be sent again
 // at any time, before or after the teacher replies: every send is kept as an attempt, newest first, and
 // the teacher's reply to the newest is what marks the work reviewed (teacher.routes.js).
@@ -186,7 +307,7 @@ router.post("/:id/submit", async (req, res) => {
 
 // express.raw reports an oversized body as an error, not a request.
 router.use((err, req, res, next) => {
-  if (err.type === "entity.too.large") return res.status(413).json({ error: RECORDING_TOO_BIG });
+  if (err.type === "entity.too.large") return res.status(413).json({ error: req.path.includes("/video-uploads/") ? "That piece is too big." : RECORDING_TOO_BIG });
   next(err);
 });
 
