@@ -33,6 +33,7 @@ export function assignmentTitle(assignment) {
 }
 
 export function studentStatus(assignment) {
+  if (assignment.status === "saved") return { label: "Saved", tone: "open" };
   if (assignment.status === "ready") return { label: "Waiting for your teacher", tone: "ready" };
   if (assignment.status === "reviewed") return { label: "Feedback ready", tone: "open" };
   return { label: "To practise", tone: "draft" };
@@ -65,12 +66,13 @@ function uploadRecording(assignmentId, blob, onProgress) {
   });
 }
 
-// Marks the work ready for review. A take is { blob, offset, duration } and is uploaded first.
+// Sends the work: for review, or saved as a checkpoint. A take is { blob, offset, duration, speed,
+// support } and is uploaded first.
 export async function sendForReview(assignmentId, take, onProgress) {
   let recording;
   if (take) {
     const key = await uploadRecording(assignmentId, take.blob, onProgress);
-    recording = { key, offset: take.offset, duration: take.duration };
+    recording = { key, offset: take.offset, duration: take.duration, speed: take.speed, support: take.support };
   }
   await teacherRequest(`/assignments/${assignmentId}/submit`, {
     method: "POST",

@@ -253,6 +253,7 @@ function SongPlayAlong() {
             initialLoop={initialLoop}
             keepKey={takeKey(song.id, assignment?.id)}
             ref={playerRef}
+            task={assignment}
             onTakeState={setTakeState}
             guided={session && Boolean(assignment)}
             // A take can be sent any time, waiting for feedback or not: each send is a new attempt. In a

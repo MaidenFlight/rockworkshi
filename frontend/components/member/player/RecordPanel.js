@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { measure } from "@/lib/audio/meters";
 import { drawPeaks } from "@/lib/audio/peaks";
+import { requirementWords } from "@/lib/months";
+import { isWeeklyAssessment } from "@/lib/takeRules";
 import { keptWhen } from "@/lib/takeStore";
 import Icon from "../Icon";
 import TapeDeck, { deckKey } from "../TapeDeck";
@@ -43,6 +45,9 @@ function useMicPermission() {
 // Recording around the tape deck: what state you're in, the mic, a level check before you
 // commit, and your take once it's down. keep says where an unsent take is (StemPlayer's keepKey):
 // undefined when this player doesn't keep takes, so it lasts as long as the page.
+// task is the practice work it's for. A checkpoint's take is saved; a weekly assessment says what it asks
+// for before recording (gaps: what the player still has to be set to), and its take is submitted on
+// purpose, once verdict says it fits. Work set before there were weeks is sent as it always was.
 export default function RecordPanel({
   ready,
   playing,
@@ -77,9 +82,24 @@ export default function RecordPanel({
   onRename,
   onPlayTake,
   keep,
+  task = null,
+  verdict = null,
+  gaps = [],
+  briefing = false,
+  speed = 1,
+  onSetUp,
+  onSetUpAndRecord,
+  onRecordAsPractice,
 }) {
   const permission = useMicPermission();
   const listening = monitoring || recording;
+  const assessment = isWeeklyAssessment(task);
+  const checkpoint = task?.kind === "checkpoint";
+  // The take the student has said they want to submit: asked once, and forgotten for a new take.
+  const [confirmingFor, setConfirmingFor] = useState(null);
+  const confirming = Boolean(take) && confirmingFor === take;
+  const teacher = task?.teacher?.name?.split(" ")[0] || "your teacher";
+  const uploading = sendProgress !== null ? `Uploading ${Math.round(sendProgress * 100)}%` : null;
 
   // While only checking the mic, the deck's VU meter reads the mic's analyser directly.
   useEffect(() => {
@@ -128,6 +148,35 @@ export default function RecordPanel({
         </span>
       </div>
 
+      {assessment && !recording && (
+        <div className="rw-brief">
+          <p className="rw-brief-title">Week {task.week} assessment{task.section ? `: ${task.section}` : ""}</p>
+          <p className="rw-brief-asks">{requirementWords(task).join(" · ")}</p>
+          {task.criteria?.length > 0 && <p className="rw-brief-marks">{teacher === "your teacher" ? "Your teacher" : teacher} will listen for: {task.criteria.join(", ").toLowerCase()}.</p>}
+          {gaps.length === 0 ? (
+            <p className="rw-brief-ready">The player is set for this take.</p>
+          ) : briefing ? (
+            <div className="rw-brief-ask" role="group" aria-label="Before you record">
+              <p>The player isn&apos;t set for the assessment yet: it needs {gaps.join(" and ")}. You can still practise any way you like, but a take has to match to be submitted.</p>
+              <div className="rw-brief-keys">
+                <button type="button" className="rw-btn rw-btn-primary" onClick={onSetUpAndRecord} disabled={!ready}>
+                  Set it and record
+                </button>
+                <button type="button" className="rw-btn" onClick={onRecordAsPractice} disabled={!ready}>
+                  Record as practice
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="rw-brief-keys">
+              <button type="button" className="rw-btn" onClick={onSetUp} disabled={!ready}>
+                Set the player to this
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
       <TapeDeck
         getPosition={getPosition}
         position={position}
@@ -164,7 +213,7 @@ export default function RecordPanel({
         <p className="rw-studio-hint">
           {listening
             ? "Play your loudest part. Aim for the gold zone; if Too loud lights, back off the mic or turn its input down."
-            : "Starts from the current position at full speed, and plays straight through any loop. Wear headphones so the mic only hears you."}
+            : `Starts from the current position at ${task?.targetSpeed ? (speed < 1 ? `${Math.round(speed * 100)}%` : "full speed") : "full speed"}, and plays straight through any loop. Wear headphones so the mic only hears you.`}
         </p>
       </div>
 
@@ -174,9 +223,10 @@ export default function RecordPanel({
             <span className="rw-studio-label">{takeName}</span>
             <span className="rw-take-meta">
               {clock(take.buffer.duration, true)} long · starts at {clock(Math.max(0, takeStart))}
+              {(take.speed ?? 1) !== 1 ? ` · played at ${Math.round(take.speed * 100)}%` : ""}
             </span>
           </div>
-          <TakeWave peaks={takePeaks} position={position} start={takeStart} length={take.buffer.duration} />
+          <TakeWave peaks={takePeaks} position={position} start={takeStart} length={take.buffer.duration * (take.speed ?? 1)} />
 
           <div className="rw-take-row">
             <button type="button" className="rw-btn rw-btn-primary" onClick={onPlayTake} disabled={!ready}>
@@ -204,14 +254,37 @@ export default function RecordPanel({
             <input type="range" className="rw-range" min={-NUDGE_LIMIT_MS} max={NUDGE_LIMIT_MS} step={5} value={nudgeMs} onChange={(e) => onNudge(Number(e.target.value))} />
           </label>
 
+          {assessment && onSend && (verdict?.ok ? <p className="rw-take-verdict" data-ok="true">This take can be submitted for the assessment.</p> : <p className="rw-take-verdict">{verdict?.text}</p>)}
+
+          {confirming ? (
+            <div className="rw-brief-ask" role="group" aria-label="Submit this take">
+              <p>
+                {takeName} goes to {teacher} for the Week {task.week} assessment. You can submit a better one later, and every one is kept.
+              </p>
+              <div className="rw-brief-keys">
+                <button type="button" className="rw-btn rw-btn-primary" onClick={onSend} disabled={sendProgress !== null}>
+                  {uploading ?? "Yes, submit it"}
+                </button>
+                <button type="button" className="rw-btn" onClick={() => setConfirmingFor(null)} disabled={sendProgress !== null}>
+                  Not yet
+                </button>
+              </div>
+            </div>
+          ) : null}
+
           <div className="rw-take-actions">
-            {onSend && (
+            {onSend && !assessment && (
               <button type="button" className="rw-btn rw-btn-primary" onClick={onSend} disabled={sendProgress !== null}>
-                {sendProgress !== null ? `Sending ${Math.round(sendProgress * 100)}%` : "Send to your teacher"}
+                {uploading ?? (checkpoint ? "Save to checkpoint" : "Send to your teacher")}
+              </button>
+            )}
+            {onSend && assessment && verdict?.ok && !confirming && (
+              <button type="button" className="rw-btn rw-btn-primary" onClick={() => setConfirmingFor(take)}>
+                Submit {takeName} for the Week {task.week} assessment
               </button>
             )}
             <button type="button" className="rw-btn" onClick={onDownload} disabled={exporting}>
-              {exporting ? "Preparing…" : "Download mix (.wav)"}
+              {exporting ? "Preparing…" : (take.speed ?? 1) !== 1 ? "Download take (.wav)" : "Download mix (.wav)"}
             </button>
             <button type="button" className="rw-btn rw-btn-quiet" onClick={onDelete}>
               Delete take
@@ -222,7 +295,7 @@ export default function RecordPanel({
               {sendError}
             </p>
           )}
-          <TakeStatus keep={keep} canSend={Boolean(onSend)} sending={sendProgress !== null} />
+          <TakeStatus keep={keep} canSend={Boolean(onSend)} sending={sendProgress !== null} verb={checkpoint ? "save" : assessment ? "submit" : "send"} />
         </div>
       )}
     </div>
@@ -231,21 +304,22 @@ export default function RecordPanel({
 
 // Where the take is, in words, so it's never a guess whether leaving loses it. Sent and replied are
 // shown on the practice work's page, where every send is listed.
-function TakeStatus({ keep, canSend, sending }) {
+function TakeStatus({ keep, canSend, sending, verb = "send" }) {
+  const Verb = verb.charAt(0).toUpperCase() + verb.slice(1);
   let state = "page";
-  let text = `${canSend ? "Until you send it, your take" : "Your take"} is only on this page. Leaving deletes it, so ${canSend ? "send or " : ""}download it first.`;
+  let text = `Not safely kept. ${canSend ? `Until you ${verb} it, your take` : "Your take"} is only on this page, and leaving deletes it, so ${canSend ? `${verb} or ` : ""}download it first.`;
   if (sending) {
     state = "sending";
-    text = "Sending to your teacher. Stay on this page until it's done.";
+    text = "Uploading. Stay on this page until it's done.";
   } else if (keep?.state === "keeping") {
     state = "keeping";
     text = "Keeping it in this browser…";
   } else if (keep?.state === "kept") {
     state = "kept";
-    text = `Only in this browser, kept since ${keptWhen(keep.at)}. It's still here if you leave and come back${canSend ? ", until you send it or delete it" : ", until you delete it"}.`;
+    text = `Kept in this browser since ${keptWhen(keep.at)}, and not sent yet. It's still here if you leave and come back${canSend ? `, until you ${verb} it or delete it` : ", until you delete it"}.`;
   } else if (keep?.state === "unkept") {
     state = "unkept";
-    text = `Only on this page: this browser won't keep it, so it's lost if you leave. ${canSend ? "Send or download" : "Download"} it first.`;
+    text = `Not safely kept. This browser won't store it, so it's lost if you leave. ${canSend ? `${Verb} or download` : "Download"} it first.`;
   }
   return (
     <p className="rw-take-status" data-state={state} role="status">

@@ -168,7 +168,7 @@ function ReviewCard({ assignment: a, submission: s, latest, tracks, mixLevel, li
   const band = useRef(null);
   const moment = () => {
     if (listening && band.current) return band.current();
-    return audio.current ? (s.recording?.offset ?? 0) + audio.current.currentTime : null;
+    return audio.current ? (s.recording?.offset ?? 0) + audio.current.currentTime * (s.recording?.speed ?? 1) : null;
   };
 
   return (
@@ -198,7 +198,7 @@ function ReviewCard({ assignment: a, submission: s, latest, tracks, mixLevel, li
               partLabel="student's"
               title={a.song.title}
               mixLevel={mixLevel}
-              review={{ url: s.recording.url, songTime: s.recording.offset ?? 0, label: "Student" }}
+              review={{ url: s.recording.url, songTime: s.recording.offset ?? 0, label: "Student", speed: s.recording.speed }}
               positionRef={band}
             />
           )}

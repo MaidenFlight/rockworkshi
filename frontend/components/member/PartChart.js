@@ -136,7 +136,7 @@ export function useDragToLoop(onLoopRange) {
 }
 
 // The bass tab, drum grid or vocal notes. In Guide me a cursor runs through the bars with the song.
-export default function PartChart({ chart, part, position, mode, loop = null, disabled, onSeek, onLoopSection }) {
+export default function PartChart({ chart, part, position, mode, loop = null, disabled, onSeek, onLoopSection, onPeek = null }) {
   const [peeked, setPeeked] = useState(null); // the bar being peeked at; hides once the song moves on
   const bars = useMemo(() => buildBars(chart, part), [chart, part]);
   const range = useMemo(() => {
@@ -194,7 +194,14 @@ export default function PartChart({ chart, part, position, mode, loop = null, di
               <div style={label}>{bar ? `${section.name} · bar ${bar.b + 1} of ${section.bars.length}` : "Get ready"}</div>
               {!peeking && <div style={bigNote}>?</div>}
             </div>
-            <button onClick={() => setPeeked(current)} disabled={!bar || peeking} style={btn}>
+            <button
+              onClick={() => {
+                setPeeked(current);
+                onPeek?.();
+              }}
+              disabled={!bar || peeking}
+              style={btn}
+            >
               Peek at this bar
             </button>
           </div>

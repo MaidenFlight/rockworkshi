@@ -42,6 +42,11 @@ function remember(key, value) {
   }
 }
 
+// The help level last chosen in this browser, for a player that keeps track of it itself.
+export function savedHelpMode() {
+  return saved(MODE_KEY, MODES.map((m) => m.id), "guide");
+}
+
 // voicing is "guitar", "keys" or "ukulele". A chord with no shape for the instrument draws nothing.
 function Diagram({ name, voicing }) {
   const shape = songChordShape(name, voicing);
@@ -58,7 +63,9 @@ function Diagram({ name, voicing }) {
 // (player/FocusView.js): the same two at their largest, or the bar being played for bass, drums and voice.
 // instrument (a student's) shows only that instrument's view, with no tabs for the other parts;
 // partAvailable false says their transcription isn't written yet, rather than showing another.
-export default function ChordChart({ chart, position, myPart = null, instrument = null, partAvailable = true, loop = null, disabled = false, onSeek, onLoopSection, coach = null, ephemeral = false, titleAs: Title = "h2", endLabel = null, compact = false, stage = false }) {
+// helpMode and onHelpMode let the player hold the help level, so a take knows how much help it had;
+// onPeek hears each peek at the chart. Without them the chart looks after its own help level.
+export default function ChordChart({ chart, position, myPart = null, instrument = null, partAvailable = true, loop = null, disabled = false, onSeek, onLoopSection, coach = null, ephemeral = false, titleAs: Title = "h2", endLabel = null, compact = false, stage = false, helpMode = null, onHelpMode = null, onPeek = null }) {
   // The player hands down new functions on every frame. Steady ones let the bars skip redrawing.
   const handlers = useRef({ onSeek, onLoopSection });
   useEffect(() => {
@@ -76,7 +83,8 @@ export default function ChordChart({ chart, position, myPart = null, instrument 
   });
   const part = studentView || chosen;
   const missing = Boolean(studentView) && NOTE_PARTS.includes(part) && (!partAvailable || !chart.parts?.[part]);
-  const [mode, setMode] = useState(() => (ephemeral ? "guide" : saved(MODE_KEY, MODES.map((m) => m.id), "guide")));
+  const [ownMode, setOwnMode] = useState(() => (ephemeral ? "guide" : savedHelpMode()));
+  const mode = helpMode ?? ownMode;
   const [peeked, setPeeked] = useState(null); // the chord being peeked at; hides again once the song moves on
 
   // Every chord in order, with the section and bar it belongs to.
@@ -105,9 +113,10 @@ export default function ChordChart({ chart, position, myPart = null, instrument 
   const beat = bar ? Math.min(3, Math.floor(((position - bar.time) / (barEnd - bar.time)) * 4)) : -1;
 
   function chooseMode(id) {
-    setMode(id);
+    setOwnMode(id);
     setPeeked(null);
     if (!ephemeral) remember(MODE_KEY, id);
+    onHelpMode?.(id);
   }
 
   function choosePart(id) {
@@ -214,7 +223,7 @@ export default function ChordChart({ chart, position, myPart = null, instrument 
       )}
 
       {NOTE_PARTS.includes(part) && !missing && (
-        <PartChart chart={chart} part={part} position={position} mode={mode} loop={loop} disabled={disabled} onSeek={seekTo} onLoopSection={loopRange} />
+        <PartChart chart={chart} part={part} position={position} mode={mode} loop={loop} disabled={disabled} onSeek={seekTo} onLoopSection={loopRange} onPeek={onPeek} />
       )}
 
       {!NOTE_PARTS.includes(part) && keys && (
@@ -233,7 +242,14 @@ export default function ChordChart({ chart, position, myPart = null, instrument 
             <div style={bigChord}>{peeking ? now.name : "?"}</div>
           </div>
           {peeking && <Diagram name={now.name} voicing={voicing} />}
-          <button onClick={() => setPeeked(current)} disabled={!now || peeking} style={btn}>
+          <button
+            onClick={() => {
+              setPeeked(current);
+              onPeek?.();
+            }}
+            disabled={!now || peeking}
+            style={btn}
+          >
             Peek at this chord
           </button>
         </div>

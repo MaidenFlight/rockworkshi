@@ -170,12 +170,14 @@ function Attempt({ assignment: a, submission: s, number, newest, teacher, who })
       ? { tone: "ready", label: who ? `Waiting for ${who}` : "Waiting for your teacher" }
       : { tone: "draft", label: "Sent" };
   const offset = s.recording?.offset ?? 0;
-  const inRecording = (at) => s.recording?.url && at >= offset && at <= offset + (s.recording.duration ?? 0);
+  // A take played slowed covers less of the song than it lasts.
+  const speed = s.recording?.speed ?? 1;
+  const inRecording = (at) => s.recording?.url && at >= offset && at <= offset + (s.recording.duration ?? 0) * speed;
 
   function hear(at) {
     const el = audio.current;
     if (!el) return;
-    el.currentTime = Math.max(0, at - offset - 1);
+    el.currentTime = Math.max(0, (at - offset) / speed - 1);
     el.play().catch(() => {});
     el.focus();
   }
