@@ -71,13 +71,16 @@
   gap: 12px;
   padding: 12px 14px;
   border: 1px solid var(--rw-border);
-  border-radius: var(--rw-radius-sm);
   background: #fff;
+}
+
+/* Only the plain rows are rounded: a tag's thick rule needs a square corner. */
+.task:not([data-kind="assessment"]) {
+  border-radius: var(--rw-radius-sm);
 }
 
 .task[data-kind="assessment"] {
   border-top: 4px solid var(--rw-orange);
-  border-radius: 0;
   background: var(--rw-cream);
 }
 
