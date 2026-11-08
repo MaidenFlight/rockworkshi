@@ -20,20 +20,14 @@ const { guardianInviteEmail } = require("../lib/mailer");
 const { INSTRUMENTS } = require("../lib/lessonVideos");
 const { canonicalInstrument } = require("../lib/instrumentAccess");
 const { isTimeZone } = require("../lib/zoned");
+const { PURPOSES, consentsFor } = require("../lib/consents");
 
-const PURPOSES = ["profile", "share-practice", "band-matching"];
 const AGE_BRACKETS = ["under-13", "13-17", "18+"];
 const FORMATS = ["online", "in-person", "either"];
 const GENRES = ["Rock", "Classic rock", "Pop", "Punk", "Metal", "Blues", "Jazz", "Funk", "Soul", "R&B", "Hip hop", "Reggae", "Hawaiian", "Country", "Folk", "Indie", "Electronic", "Other"];
 const INVITE_DAYS = 7;
 
 const text = (v, max) => (typeof v === "string" && v.trim() ? v.trim().slice(0, max) : null);
-
-// The latest answer for each consent purpose, or null where none was ever given.
-async function consentsFor(userId) {
-  const rows = await prisma.consentRecord.findMany({ where: { userId }, orderBy: { createdAt: "desc" } });
-  return Object.fromEntries(PURPOSES.map((p) => [p, rows.find((r) => r.purpose === p)?.granted ?? null]));
-}
 
 async function profileAllowed(user) {
   return !user.isMinor || (await consentsFor(user.id)).profile === true;

@@ -1,0 +1,299 @@
+/* A month of weekly practice, on the teacher's side: a section per week, a row per task. */
+
+.week {
+  display: grid;
+  gap: 14px;
+  padding: 18px 20px;
+  border: 1px solid var(--rw-border);
+  border-radius: var(--rw-radius-md);
+  background: var(--rw-surface);
+}
+
+.weekHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+}
+
+.weekNumber {
+  margin: 0;
+  font-family: var(--rw-font-display);
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.1;
+  text-transform: uppercase;
+  color: var(--rw-ink);
+}
+
+.weekTitle {
+  font-size: 15px;
+  color: var(--rw-body);
+}
+
+.weekTitleInput {
+  flex: 1 1 220px;
+  max-width: 340px;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid var(--rw-line);
+  border-radius: var(--rw-radius-field);
+  background: #fff;
+  color: var(--rw-ink);
+  font: inherit;
+  font-size: 15px;
+}
+
+.group {
+  display: grid;
+  gap: 8px;
+}
+
+.groupName {
+  margin: 0;
+  font-family: var(--rw-font-body);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--rw-ink);
+}
+
+.tasks {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* A checkpoint is a plain row. An assessment is a sewn tag, so the week's big piece of work stands out. */
+.task {
+  display: grid;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--rw-border);
+  background: #fff;
+}
+
+/* Only the plain rows are rounded: a tag's thick rule needs a square corner. */
+.task:not([data-kind="assessment"]) {
+  border-radius: var(--rw-radius-sm);
+}
+
+.task[data-kind="assessment"] {
+  border-top: 4px solid var(--rw-orange);
+  background: var(--rw-cream);
+}
+
+.taskRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+}
+
+.taskMain {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+.taskName {
+  font-weight: 700;
+  color: var(--rw-ink);
+}
+
+.taskMeta {
+  margin-top: 2px;
+  font-size: 13.5px;
+  color: var(--rw-body);
+}
+
+.taskActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.taskActions :global(.rw-st-btn) {
+  min-height: 44px;
+}
+
+.takes {
+  display: grid;
+  gap: 6px;
+  font-size: 13.5px;
+  color: var(--rw-body);
+}
+
+.takes audio {
+  width: 100%;
+  max-width: 460px;
+}
+
+.fields {
+  display: grid;
+  gap: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rw-border);
+}
+
+.fields :global(.rw-st-field) input,
+.fields :global(.rw-st-field) select,
+.fields :global(.rw-st-input),
+.fields :global(.rw-st-btn) {
+  min-height: 44px;
+}
+
+.clock {
+  font-variant-numeric: tabular-nums;
+}
+
+.criteria {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.criteria legend {
+  padding: 0;
+  margin-bottom: 8px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--rw-ink);
+}
+
+.criterion {
+  display: flex;
+  gap: 8px;
+}
+
+.criterion input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.formActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.formActions :global(.rw-st-btn) {
+  min-height: 44px;
+}
+
+.setup {
+  max-width: 520px;
+}
+
+.stack {
+  display: grid;
+  gap: 16px;
+}
+
+.note {
+  margin: 0;
+  padding: 12px 14px;
+  background: var(--rw-cream);
+  border-top: 4px solid var(--rw-orange);
+  font-size: 13.5px;
+  color: var(--rw-ink);
+}
+
+/* On the review page: how the take was made, and the three-way mark for each criterion. */
+.made {
+  font-size: 13.5px;
+  color: var(--rw-body);
+}
+
+.marks {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.mark {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.mark legend {
+  padding: 0;
+  margin-bottom: 4px;
+  font-size: 13.5px;
+  color: var(--rw-ink);
+}
+
+.markChoices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.markChoice {
+  position: relative;
+  display: inline-flex;
+}
+
+.markChoice input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.markChoice span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--rw-line);
+  background: #fff;
+  color: var(--rw-ink);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.markChoice input:checked + span {
+  border-color: var(--rw-ink);
+  background: var(--rw-cream);
+  box-shadow: inset 0 -4px 0 var(--rw-orange);
+}
+
+.markChoice input:focus-visible + span {
+  outline: 2px solid var(--rw-teal);
+  outline-offset: 2px;
+}
+
+.sectionLabel {
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--rw-ink);
+}
+
+.priorities {
+  display: grid;
+  gap: 8px;
+}
+
+.priorities input {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid var(--rw-line);
+  border-radius: var(--rw-radius-field);
+  background: #fff;
+  color: var(--rw-ink);
+  font: inherit;
+  font-size: 14px;
+}

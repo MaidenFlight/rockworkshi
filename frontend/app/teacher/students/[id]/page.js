@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { WEEKDAYS, api, kindLabel, send, toTime, when } from "@/lib/studio";
 import { STATUS_LABELS } from "@/lib/teaching";
+import { dayLabel } from "@/lib/months";
 
 const FORMAT = { online: "Online", "in-person": "In person", either: "Online or in person" };
 
@@ -15,10 +16,12 @@ export default function TeacherStudentPage() {
   const [notes, setNotes] = useState("");
   const [saved, setSaved] = useState("");
 
+  const [months, setMonths] = useState([]);
+
   const load = useCallback(
     () =>
-      api(`/teacher/students/${id}`)
-        .then((d) => (setData(d), setNotes(d.notes)))
+      Promise.all([api(`/teacher/students/${id}`), api(`/teacher/months?studentId=${id}`)])
+        .then(([d, m]) => (setData(d), setNotes(d.notes), setMonths(m.months)))
         .catch((err) => setError(err.message)),
     [id]
   );
@@ -46,9 +49,14 @@ export default function TeacherStudentPage() {
             <h1 className="rw-st-title">{student.name || "Student"}</h1>
             <p className="rw-st-lead">{student.isMinor ? "Under 18 · contact goes through the school and their guardian" : "Adult student"}</p>
           </div>
-          <Link href={`/teacher/new?student=${student.id}`} className="rw-st-btn" data-tone="primary">
-            Set practice work
-          </Link>
+          <div className="rw-st-actions">
+            <Link href={`/teacher/months/new?student=${student.id}`} className="rw-st-btn" data-tone="primary">
+              Plan a month
+            </Link>
+            <Link href={`/teacher/new?student=${student.id}`} className="rw-st-btn">
+              Set one task
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -143,6 +151,25 @@ export default function TeacherStudentPage() {
                   </tbody>
                 </table>
               </div>
+            )}
+          </section>
+
+          <section className="rw-st-card">
+            <h2>Months of practice</h2>
+            {months.length === 0 ? (
+              <p className="rw-st-muted">No month planned yet. Plan one to set four weeks of checkpoints and assessments on a song.</p>
+            ) : (
+              <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "grid", gap: 6 }}>
+                {months.map((m) => (
+                  <li key={m.id}>
+                    <Link href={`/teacher/months/${m.id}`}>{m.song?.title ?? "Removed song"}</Link>
+                    <span className="rw-st-muted">
+                      {" "}
+                      · starts {dayLabel(m.startsOn)} · {m.tasks} tasks{m.waiting ? ` · ${m.waiting} waiting for review` : ""}
+                    </span>
+                  </li>
+                ))}
+              </ul>
             )}
           </section>
 

@@ -6,6 +6,11 @@ const {
   HeadObjectCommand,
   ListObjectsV2Command,
   DeleteObjectCommand,
+  CreateMultipartUploadCommand,
+  UploadPartCommand,
+  ListPartsCommand,
+  CompleteMultipartUploadCommand,
+  AbortMultipartUploadCommand,
 } = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 
@@ -90,4 +95,59 @@ async function deleteObject(key) {
   await r2().send(new DeleteObjectCommand({ Bucket: process.env.R2_BUCKET, Key: key }));
 }
 
-module.exports = { isR2Configured, putObject, signedUrl, signedUploadUrl, headObject, listObjects, deleteObject };
+// A large file goes up in pieces, so a dropped connection only costs the piece it was on.
+async function createMultipartUpload(key, contentType) {
+  const out = await r2().send(new CreateMultipartUploadCommand({ Bucket: process.env.R2_BUCKET, Key: key, ContentType: contentType }));
+  return out.UploadId;
+}
+
+async function uploadPart(key, uploadId, partNumber, body) {
+  await r2().send(new UploadPartCommand({ Bucket: process.env.R2_BUCKET, Key: key, UploadId: uploadId, PartNumber: partNumber, Body: body }));
+}
+
+// The pieces that have arrived, as [{ partNumber, etag, size }] in order. [] once the upload is gone.
+async function listParts(key, uploadId) {
+  const parts = [];
+  let PartNumberMarker;
+  try {
+    do {
+      const out = await r2().send(new ListPartsCommand({ Bucket: process.env.R2_BUCKET, Key: key, UploadId: uploadId, PartNumberMarker }));
+      for (const p of out.Parts || []) parts.push({ partNumber: p.PartNumber, etag: p.ETag, size: p.Size });
+      PartNumberMarker = out.IsTruncated ? out.NextPartNumberMarker : undefined;
+    } while (PartNumberMarker);
+  } catch (err) {
+    if (err.$metadata?.httpStatusCode === 404) return [];
+    throw err;
+  }
+  return parts;
+}
+
+async function completeMultipartUpload(key, uploadId, parts) {
+  await r2().send(
+    new CompleteMultipartUploadCommand({
+      Bucket: process.env.R2_BUCKET,
+      Key: key,
+      UploadId: uploadId,
+      MultipartUpload: { Parts: parts.map((p) => ({ PartNumber: p.partNumber, ETag: p.etag })) },
+    })
+  );
+}
+
+async function abortMultipartUpload(key, uploadId) {
+  await r2().send(new AbortMultipartUploadCommand({ Bucket: process.env.R2_BUCKET, Key: key, UploadId: uploadId }));
+}
+
+module.exports = {
+  isR2Configured,
+  putObject,
+  signedUrl,
+  signedUploadUrl,
+  headObject,
+  listObjects,
+  deleteObject,
+  createMultipartUpload,
+  uploadPart,
+  listParts,
+  completeMultipartUpload,
+  abortMultipartUpload,
+};

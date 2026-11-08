@@ -10,6 +10,7 @@ const PURPOSE_TEXT = {
   profile: "Keep a music profile (instruments, goals, favourite music) that their teachers can read",
   "share-practice": "Share practice activity with their teachers (used from a later update)",
   "band-matching": "Be considered for teacher-arranged bands (used from a later update)",
+  "practice-video": "Record practice videos for their teacher. Videos are private: only they and their teacher can watch them",
 };
 
 export default function FamilyPage() {

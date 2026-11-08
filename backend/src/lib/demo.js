@@ -30,6 +30,7 @@ const { regenerate } = require("./classes");
 const { validateSession } = require("./practice");
 const { validateMixer, partForInstrument, canonicalInstrument } = require("./instrumentAccess");
 const { deleteAssignmentRecordings } = require("./assignments");
+const { buildMonth, sectionsOf } = require("./weeklyTemplate");
 
 const DEMO_MS = 2 * 60 * 60 * 1000;
 // Households at once. Past this the oldest are cleared first, so a script can't fill the database.
@@ -220,80 +221,96 @@ function songWords(song) {
   };
 }
 
-// Every section in the chart, in order, with where it starts and ends.
-function sectionsOf(chart) {
-  const sections = chart?.sections ?? [];
-  return sections
-    .map((s, i) => ({ name: s.name, start: s.bars?.[0]?.time, end: sections[i + 1]?.bars?.[0]?.time ?? chart.end }))
-    .filter((s) => s.name && Number.isFinite(s.start) && Number.isFinite(s.end) && s.end > s.start)
-    .map((s) => ({ ...s, start: round(s.start), end: round(s.end) }));
-}
+// How long ago the demo's month began, so a visitor lands in its third week with two weeks behind them.
+const MONTH_BEGAN_DAYS_AGO = 16;
 
-// The teacher's words for recording one section. The first verse and first chorus have the student's
-// own; the rest say what to listen for, plus a tip for the instrument.
-function sectionTask(section, { firstVerse, firstChorus, last }, student, values) {
-  const name = section.name.toLowerCase();
-  if (firstVerse) return fill(student.verse, values);
-  if (firstChorus) return fill(student.now, values);
-  if (/^intro/i.test(section.name)) return `Record the intro along with the band. Count yourself in and come in right on the first beat. ${student.tip}`;
-  if (last) return `Record ${name} along with the band, right through to the end of the song, and let the last note ring. ${student.tip}`;
-  if (/^verse/i.test(section.name)) return `Record ${name} along with the band at full speed. It's the same as the first verse, so play it with confidence. ${student.tip}`;
-  if (/^chorus/i.test(section.name)) return `Record ${name} along with the band. Same changes as the first chorus: keep the energy up. ${student.tip}`;
-  return `Record ${name} along with the band. ${student.tip}`;
-}
-
-// This month's practice work on the song, set at the start of the month: record each section of the
-// chart in order, then the whole song. The first sections have feedback (one was sent twice), the next is
-// waiting for the teacher, and the one after is today's. at(f) is a moment that far through the month so
-// far, so the dates read right on any day of the month. Nothing without a song.
-function monthTasks(song, at, student) {
-  if (!song) return [];
+// A month of weekly practice on the song, from the template the teachers use (lib/weeklyTemplate.js) and
+// with the instrument's own words on the first verse and chorus. Weeks 1 and 2 are done: checkpoints
+// saved and assessments marked, one of them sent twice. Week 3 is under way, with its video assessment
+// still to do, and week 4 is ahead. The sample work has no recordings, because nobody really played it:
+// it's only ever the replies that are shown. at(n) is that many days into the month.
+// Returns { weekTitles, tasks }, or null without a song and chart to build it from.
+function monthTasks(song, startsOn, at, student) {
+  if (!song) return null;
+  const { weekTitles, tasks: planned } = buildMonth(song.chart, { startsOn, level: 2 });
+  if (!planned.length) return null;
   const { values } = songWords(song);
   const sections = sectionsOf(song.chart);
-  const firstVerse = sections.findIndex((s) => /^verse/i.test(s.name));
-  const firstChorus = sections.findIndex((s) => /^chorus/i.test(s.name));
-  const tasks = sections.map((section, i) => ({
+
+  const tasks = planned.map((task, i) => ({
+    ...task,
+    position: i,
     songId: song.id,
-    section: section.name,
-    sectionStart: section.start,
-    sectionEnd: section.end,
-    instruction: sectionTask(section, { firstVerse: i === firstVerse, firstChorus: i === firstChorus, last: i === sections.length - 1 }, student, values),
+    instruction: `${task.instruction} ${student.tip}`,
+    createdAt: new Date(at(0).getTime() + i * 1000),
+    status: "assigned",
+    attempts: [],
   }));
-  tasks.push({
-    songId: song.id,
-    section: "Whole song",
-    sectionStart: null,
-    sectionEnd: null,
-    instruction: `Put it all together: record the whole song with the band, start to finish, at full speed. ${student.tip}`,
+  const find = (week, kind, n = 0) => tasks.filter((t) => t.week === week && t.kind === kind)[n];
+
+  // The first verse and chorus keep the teacher's words for this instrument, and the speeds they name.
+  const first = (word) => tasks.find((t) => t.week === 1 && t.kind === "checkpoint" && new RegExp(`^${word}`, "i").test(t.section));
+  const verse = first("verse");
+  if (verse) Object.assign(verse, { instruction: fill(student.verse, values), targetSpeed: 90 });
+  const chorus = first("chorus");
+  if (chorus) Object.assign(chorus, { instruction: fill(student.now, values), targetSpeed: 75 });
+
+  const save = (task, ...days) => task && Object.assign(task, { status: "saved", attempts: days.map((day) => ({ sent: at(day) })) });
+  const pin = (time, text) => (Number.isFinite(time) ? [{ at: time, text }] : undefined);
+  const marked = (task, ...marks) => task.criteria.map((criterion, i) => ({ criterion, mark: marks[i] }));
+  const change = firstChangeAt(song.chart, sections.find((s) => /^verse/i.test(s.name))?.name ?? sections[0]?.name);
+
+  // Week 1.
+  save(find(1, "checkpoint", 0), 1);
+  save(find(1, "checkpoint", 1), 2, 3);
+  save(find(1, "checkpoint", 2), 4);
+  const firstAssessment = find(1, "assessment");
+  Object.assign(firstAssessment, {
+    status: "reviewed",
+    attempts: [
+      {
+        sent: at(5),
+        reviewedAt: at(6),
+        feedback: "A good start, but you're rushing where the chords change. Play it at 75% with the metronome on, then send it again.",
+        notes: pin(change, "Rushing into this change. Wait for beat 1 before you move."),
+        marks: marked(firstAssessment, "getting-there", "got-it", "work-on", "getting-there"),
+        priorities: ["Wait for beat 1 before you change chord"],
+      },
+      {
+        sent: at(6.5),
+        reviewedAt: at(7),
+        // The instrument's own words, without the line about what to play next: that's next week's work.
+        feedback: `${fill(student.verseFeedback, values).replace(/ Try the verse at full speed.*$/, "")} Next we'll join it up with the rest of what you've learned.`,
+        notes: pin(change, "On time into the change now. This was the spot."),
+        marks: marked(firstAssessment, "got-it", "got-it", "getting-there", "got-it"),
+        priorities: ["Keep that change on time at full speed"],
+      },
+    ],
   });
 
-  // What has happened to each, in the order the student works through them. The replies carry notes
-  // pinned to moments in the song: the first beat of the first section, and the first verse's change.
-  const pin = (time, text) => (Number.isFinite(time) ? [{ at: time, text }] : undefined);
-  const change = firstChangeAt(song.chart, tasks[1]?.section);
-  const done = (feedback, sent, replied, notes) => ({ status: "reviewed", attempts: [{ sent: at(sent), feedback, reviewedAt: at(replied), notes }] });
-  const history = [
-    done("A clean start, and you came in right on the first beat. Well done.", 0.12, 0.2, pin(tasks[0]?.sectionStart, "Right on the first beat. Count yourself in like this every time.")),
-    {
-      status: "reviewed",
-      attempts: [
-        {
-          sent: at(0.32),
-          feedback: "A good start, but you're rushing where the chords change. Play it at 75% with the metronome on, then send it again.",
-          reviewedAt: at(0.4),
-          notes: pin(change, "Rushing into this change. Wait for beat 1 before you move."),
-        },
-        { sent: at(0.55), feedback: fill(student.verseFeedback, values), reviewedAt: at(0.65), notes: pin(change, "On time into the change now. This was the spot.") },
-      ],
-    },
-    { status: "ready", attempts: [{ sent: at(0.9) }] },
-  ];
-  // The last task (the whole song) always stays open, so a short chart still leaves one for today.
-  return tasks.map((task, i) => ({
-    ...task,
-    createdAt: at(0, i),
-    ...((i < tasks.length - 1 && history[i]) || { status: "assigned", attempts: [] }),
-  }));
+  // Week 2.
+  save(find(2, "checkpoint", 0), 8);
+  save(find(2, "checkpoint", 1), 9);
+  save(find(2, "checkpoint", 2), 11);
+  const secondAssessment = find(2, "assessment");
+  Object.assign(secondAssessment, {
+    status: "reviewed",
+    attempts: [
+      {
+        sent: at(12),
+        reviewedAt: at(13),
+        feedback: "A clean start, and you came in right on the first beat. The sections hang together now, and that's the hard part done. Well done.",
+        notes: pin(secondAssessment.sectionStart, "Right on the first beat. Count yourself in like this every time."),
+        marks: marked(secondAssessment, "got-it", "got-it", "getting-there", "got-it"),
+        priorities: [`Get ${values.change} smooth without looking`, student.tip],
+      },
+    ],
+  });
+
+  // Week 3, under way.
+  save(find(3, "checkpoint", 0), 15);
+
+  return { weekTitles, tasks };
 }
 
 // Moves each send to the early evening and each reply to mid-morning (the next morning, if the send was
@@ -386,7 +403,7 @@ async function startDemo({ instrument: asked = "Guitar", now = clock.now() } = {
         ].map((w) => ({ ...kaiKey, ...w, timeZone: ZONE })),
       });
       await tx.consentRecord.createMany({
-        data: ["share-practice", "band-matching"].map((purpose) => ({ ...kaiKey, givenById: kai.id, purpose, granted: true, createdAt: ago(90) })),
+        data: ["share-practice", "band-matching", "practice-video"].map((purpose) => ({ ...kaiKey, givenById: kai.id, purpose, granted: true, createdAt: ago(90) })),
       });
 
       // One lesson coming up: a group lesson at the studio on the coming Saturday (at least two days
@@ -414,25 +431,34 @@ async function startDemo({ instrument: asked = "Guitar", now = clock.now() } = {
       await regenerate(tx, lesson, now);
       await tx.classEnrollment.create({ data: { classId: lesson.id, userId: kai.id, createdAt: ago(4) } });
 
-      // The month so far: from midnight on the first, Honolulu, to now. The tasks were set then, in order,
-      // a second apart, so nothing is ever dated after now.
-      const monthStart = toInstant(`${today.slice(0, 8)}01`, 0, ZONE);
-      const span = Math.max(0, now.getTime() - monthStart.getTime());
-      const at = (fraction, seconds = 0) => new Date(monthStart.getTime() + span * fraction + seconds * 1000);
-      const tasks = monthTasks(song, at, student);
+      // The month so far. It began far enough back to be in its third week, whatever day it is, and the
+      // tasks were set then, in order, so nothing is ever dated after now.
+      const startsOn = addDays(today, -MONTH_BEGAN_DAYS_AGO);
+      const at = (day) => new Date(toInstant(startsOn, 12 * 60, ZONE).getTime() + day * DAY);
+      const month = monthTasks(song, startsOn, at, student);
+      const tasks = month?.tasks ?? [];
       settle(tasks, now);
+      const monthId = month && (await tx.practiceMonth.create({ data: { teacherId: teacher.id, studentId: kai.id, songId: song.id, startsOn, weekTitles: month.weekTitles, createdAt: at(0) } })).id;
       for (const { attempts, ...work } of tasks) {
         const newest = attempts.at(-1);
         await tx.assignment.create({
           data: {
             ...work,
+            monthId,
             teacherId: teacher.id,
             studentId: kai.id,
             instrument,
             level: 2,
             updatedAt: newest?.reviewedAt ?? newest?.sent ?? work.createdAt,
             submissions: {
-              create: attempts.map((a) => ({ createdAt: a.sent, feedback: a.feedback ?? null, reviewedAt: a.reviewedAt ?? null, ...(a.notes ? { notes: a.notes } : {}) })),
+              create: attempts.map((a) => ({
+                createdAt: a.sent,
+                feedback: a.feedback ?? null,
+                reviewedAt: a.reviewedAt ?? null,
+                ...(a.notes ? { notes: a.notes } : {}),
+                ...(a.marks ? { marks: a.marks } : {}),
+                ...(a.priorities ? { priorities: a.priorities } : {}),
+              })),
             },
           },
         });

@@ -2,7 +2,9 @@
 // In order: the teacher's open work, this month's term song, the song last opened, then the
 // first song this member can open. Nothing here is invented or estimated.
 
-const openWork = (a) => a.status !== "ready" && a.status !== "reviewed" && (a.song || a.lesson);
+import { currentMonth, groupMonths, nextTask, todayHere } from "./months.js";
+
+const openWork = (a) => a.status !== "ready" && a.status !== "saved" && a.status !== "reviewed" && (a.song || a.lesson);
 
 export function pickPracticeNext({ library, term, assignments }) {
   const songs = library?.songs ?? [];
@@ -14,8 +16,10 @@ export function pickPracticeNext({ library, term, assignments }) {
 
   if (term && term.membership !== "active") return { kind: "renew", expired: term.membership === "expired", isNew, feedback: null };
 
-  // The next in the order the teacher set them, as the month's checklist lists them.
-  const work = (assignments ?? []).filter(openWork).sort((a, b) => a.createdAt.localeCompare(b.createdAt))[0];
+  // This week's next task in the month under way; otherwise the next in the order the teacher set them.
+  const today = todayHere();
+  const month = currentMonth(groupMonths(assignments ?? []), today);
+  const work = (month && nextTask(month, today)) || (assignments ?? []).filter((a) => !a.month && openWork(a)).sort((a, b) => a.createdAt.localeCompare(b.createdAt))[0];
   if (work) {
     return {
       kind: "assignment",

@@ -59,9 +59,13 @@
   padding: 10px 16px;
   background: var(--rw-surface);
   border: 1px solid var(--rw-border);
-  border-radius: var(--rw-radius-md);
   text-decoration: none;
   transition: border-color 0.16s ease;
+}
+
+/* Only the plain rows are rounded: a tag's thick rule needs a square corner. */
+.row:not([data-kind="assessment"]) {
+  border-radius: var(--rw-radius-md);
 }
 
 .row:hover,
@@ -88,8 +92,15 @@
   color: var(--rw-orange-deep);
 }
 
-.mark[data-state="done"] {
+.mark[data-state="done"],
+.mark[data-state="saved"] {
   color: var(--rw-teal);
+}
+
+/* A weekly assessment is the sewn tag among the plain rows: the week's big piece of work. */
+.row[data-kind="assessment"] {
+  background: var(--rw-cream);
+  border-top: 4px solid var(--rw-orange);
 }
 
 /* The row opens the task's page. */

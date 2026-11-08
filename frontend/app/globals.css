@@ -3676,6 +3676,102 @@ div:has(> .rw-scrub:focus-visible) {
   flex-wrap: wrap;
   gap: 8px;
 }
+/* What a weekly assessment asks for, above the record key, and what became of a take. */
+.rw-brief {
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  border: 1px solid var(--rw-console-edge);
+  background: var(--rw-console-raised);
+}
+.rw-brief p {
+  margin: 0;
+}
+.rw-brief-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--rw-gold);
+}
+.rw-brief-asks {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--rw-console-text);
+}
+.rw-brief-marks,
+.rw-brief-ready {
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--rw-console-meta);
+}
+.rw-brief-ask {
+  display: grid;
+  gap: 8px;
+  margin-top: 4px;
+}
+.rw-brief-ask p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--rw-console-text);
+}
+.rw-brief-keys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.rw-brief-keys .rw-btn {
+  min-height: 44px;
+}
+.rw-brief-note {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--rw-gold);
+}
+/* The camera, and a video take played back. */
+.rw-camera-box {
+  display: grid;
+  gap: 8px;
+}
+.rw-camera {
+  display: block;
+  width: 100%;
+  max-height: 340px;
+  aspect-ratio: 16 / 9;
+  background: var(--rw-console-well);
+  object-fit: contain;
+}
+.rw-camera[data-live] {
+  transform: scaleX(-1);
+}
+.rw-camera-off {
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  font-size: 13.5px;
+  text-align: center;
+  color: var(--rw-console-meta);
+}
+.rw-mic-choice {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.rw-mic-choice select {
+  width: 100%;
+  min-height: 44px;
+}
+.rw-take-verdict {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--rw-gold);
+}
+.rw-take-verdict[data-ok="true"] {
+  color: var(--rw-console-text);
+}
 /* Where the take is (RecordPanel's TakeStatus): a lamp and one sentence. Kept is sea glass; a take
    that would be lost by leaving is gold, the console's warning colour, in words as well. */
 .rw-take-status {
@@ -4869,6 +4965,10 @@ div:has(> .rw-scrub:focus-visible) {
 
 .rw-dash-side .rw-st-btn {
   min-height: 44px;
+}
+.rw-dash-work {
+  display: grid;
+  gap: 32px;
 }
 .rw-dash-work:empty {
   display: none;

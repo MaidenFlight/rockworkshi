@@ -10,8 +10,10 @@ function clock(t) {
   return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, "0")}`;
 }
 
-// Where a sent take sits in the song: it starts at recording.offset and runs for its duration.
-const span = (take) => ({ start: take.recording.offset ?? 0, end: (take.recording.offset ?? 0) + (take.recording.duration ?? 0) });
+// Where a sent take sits in the song: it starts at recording.offset and runs for its duration. A take
+// played slowed covers less of the song than it lasts, so its own time is scaled by its speed.
+const speedOf = (take) => take.recording.speed ?? 1;
+const span = (take) => ({ start: take.recording.offset ?? 0, end: (take.recording.offset ?? 0) + (take.recording.duration ?? 0) * speedOf(take) });
 
 // Two of a student's sent takes, heard one at a time at the same point in the song, so they can hear
 // what changed. The switch flips between them without losing the place: a take's own time plus where
@@ -38,7 +40,8 @@ export default function CompareTakes({ takes }) {
     if (!playing) return;
     const el = audioFor(active);
     const offset = span(chosen[active]).start;
-    const id = setInterval(() => setSongTime(el.currentTime + offset), 100);
+    const rate = speedOf(chosen[active]);
+    const id = setInterval(() => setSongTime(el.currentTime * rate + offset), 100);
     return () => clearInterval(id);
     // chosen is rebuilt every render; the take that's playing is what matters.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -58,7 +61,7 @@ export default function CompareTakes({ takes }) {
       setSongTime(t);
     }
     const el = audioFor(active);
-    el.currentTime = Math.max(0, t - span(take).start);
+    el.currentTime = Math.max(0, (t - span(take).start) / speedOf(take));
     setNote("");
     try {
       await el.play();
@@ -72,7 +75,7 @@ export default function CompareTakes({ takes }) {
   function choose(side) {
     if (side === active) return;
     const take = chosen[side];
-    const t = playing ? audioFor(active).currentTime + span(chosen[active]).start : songTime;
+    const t = playing ? audioFor(active).currentTime * speedOf(chosen[active]) + span(chosen[active]).start : songTime;
     if (!covers(side, t)) {
       setNote(`${take.label} doesn't reach ${clock(t)}: it runs from ${clock(span(take).start)} to ${clock(span(take).end)}.`);
       return;
@@ -81,7 +84,7 @@ export default function CompareTakes({ takes }) {
     const wasPlaying = playing;
     audioFor(active).pause();
     const el = audioFor(side);
-    el.currentTime = Math.max(0, t - span(take).start);
+    el.currentTime = Math.max(0, (t - span(take).start) / speedOf(take));
     setActive(side);
     setSongTime(t);
     if (wasPlaying) el.play().catch(() => setPlaying(false));
@@ -91,7 +94,7 @@ export default function CompareTakes({ takes }) {
     setSongTime(t);
     if (covers(active, t)) {
       setNote("");
-      audioFor(active).currentTime = Math.max(0, t - span(chosen[active]).start);
+      audioFor(active).currentTime = Math.max(0, (t - span(chosen[active]).start) / speedOf(chosen[active]));
     } else {
       stop();
       setNote(`${chosen[active].label} runs from ${clock(span(chosen[active]).start)} to ${clock(span(chosen[active]).end)}.`);
@@ -135,7 +138,9 @@ export default function CompareTakes({ takes }) {
         {["a", "b"].map((side) => (
           <button key={side} type="button" aria-pressed={active === side} onClick={() => choose(side)}>
             <span className={s.label}>{chosen[side].label}</span>
-            <span className={s.date}>Sent {chosen[side].date}</span>
+            <span className={s.date}>
+              {chosen[side].verb ?? "Sent"} {chosen[side].date}
+            </span>
           </button>
         ))}
       </div>
@@ -165,9 +170,14 @@ export default function CompareTakes({ takes }) {
         </p>
       )}
 
-      {/* Both loaded, so a switch is instant. */}
-      <audio ref={aRef} src={chosen.a.recording.url} preload="auto" onEnded={() => setPlaying(false)} />
-      <audio ref={bRef} src={chosen.b.recording.url} preload="auto" onEnded={() => setPlaying(false)} />
+      {/* Both loaded, so a switch is instant. A filmed take is shown, the one that's playing. */}
+      {["a", "b"].map((side) =>
+        chosen[side].recording.media === "video" ? (
+          <video key={side} ref={side === "a" ? aRef : bRef} src={chosen[side].recording.url} preload="auto" playsInline hidden={active !== side} onEnded={() => setPlaying(false)} style={{ width: "100%", maxHeight: 420, marginTop: 12, background: "var(--rw-console)" }} />
+        ) : (
+          <audio key={side} ref={side === "a" ? aRef : bRef} src={chosen[side].recording.url} preload="auto" onEnded={() => setPlaying(false)} />
+        )
+      )}
     </section>
   );
 }

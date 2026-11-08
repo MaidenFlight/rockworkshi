@@ -5,6 +5,8 @@ import Link from "next/link";
 import Icon from "@/components/member/Icon";
 import { useParams, useRouter } from "next/navigation";
 import StemPlayer from "@/components/member/StemPlayer";
+import ui from "@/components/teacher/Month.module.css";
+import { HELP, MARKS, MARK_NAMES, dayLabel, requirementWords } from "@/lib/months";
 import {
   STATUS_LABELS,
   contentTitle,
@@ -59,7 +61,7 @@ export default function ReviewAssignment() {
       ...current,
       status: isLatest ? "reviewed" : current.status,
       submissions: current.submissions.map((s) =>
-        s.id === saved.id ? { ...s, feedback: saved.feedback, notes: saved.notes, reviewedAt: saved.reviewedAt } : s
+        s.id === saved.id ? { ...s, feedback: saved.feedback, notes: saved.notes, marks: saved.marks, priorities: saved.priorities, reviewedAt: saved.reviewedAt } : s
       ),
     }));
   }
@@ -103,6 +105,15 @@ export default function ReviewAssignment() {
             {studentName(a.student)} · {a.instrument} · Level {a.level} {a.levelName}
             {a.section || times ? ` · ${a.section || "Section"}${times}` : ""}
           </div>
+          {a.week && (
+            <div style={{ color: "var(--rw-meta)", fontSize: 14, marginTop: 2 }}>
+              Week {a.week} {a.kind === "assessment" ? "assessment" : "checkpoint"}
+              {a.dueOn ? ` · due ${dayLabel(a.dueOn)}` : ""} ·{" "}
+              <Link href={`/teacher/months/${a.month.id}`} style={{ color: "var(--rw-orange-deep)" }}>
+                See the month
+              </Link>
+            </div>
+          )}
         </div>
         <span style={{ fontSize: 12, fontWeight: 700, color: "var(--rw-body)", whiteSpace: "nowrap", marginTop: 6 }}>
           {STATUS_LABELS[a.status]}
@@ -112,14 +123,15 @@ export default function ReviewAssignment() {
       <div style={{ ...card, marginBottom: 28 }}>
         <div style={label}>What to practise</div>
         <p style={{ margin: 0, color: "var(--rw-ink)", lineHeight: 1.55, whiteSpace: "pre-wrap" }}>{a.instruction}</p>
+        {(a.month || a.media === "video" || a.support || a.targetSpeed) && <p className={ui.made} style={{ margin: "10px 0 0" }}>The final take: {requirementWords(a).join(" · ")}</p>}
         <div style={{ fontSize: 12.5, color: "var(--rw-meta)", marginTop: 10 }}>Set {formatDate(a.createdAt)}</div>
       </div>
 
-      <h2 style={h2}>Sent for review</h2>
+      <h2 style={h2}>{a.kind === "checkpoint" ? "Saved takes" : "Sent for review"}</h2>
       {error && <p style={{ color: "var(--rw-orange-deep)" }}>{error}</p>}
       {a.submissions.length === 0 ? (
         <p style={{ color: "var(--rw-meta)", fontSize: 14 }}>
-          {studentName(a.student)} hasn&apos;t marked this ready for review yet.
+          {a.kind === "checkpoint" ? `${studentName(a.student)} hasn't saved a take for this yet.` : `${studentName(a.student)} hasn't marked this ready for review yet.`}
         </p>
       ) : (
         <div style={{ display: "grid", gap: 14 }}>
@@ -156,7 +168,7 @@ function ReviewCard({ assignment: a, submission: s, latest, tracks, mixLevel, li
   const band = useRef(null);
   const moment = () => {
     if (listening && band.current) return band.current();
-    return audio.current ? (s.recording?.offset ?? 0) + audio.current.currentTime : null;
+    return audio.current ? (s.recording?.offset ?? 0) + audio.current.currentTime * (s.recording?.speed ?? 1) : null;
   };
 
   return (
@@ -170,15 +182,19 @@ function ReviewCard({ assignment: a, submission: s, latest, tracks, mixLevel, li
 
       {s.recording?.url && (
         <div style={{ display: "grid", gap: 10, marginBottom: 14 }}>
-          <audio ref={audio} controls preload="none" src={s.recording.url} style={{ width: "100%" }} />
-          {tracks && (
+          {s.recording.media === "video" ? (
+            <video ref={audio} controls preload="none" playsInline src={s.recording.url} style={{ width: "100%", maxHeight: 420, background: "var(--rw-console)" }} />
+          ) : (
+            <audio ref={audio} controls preload="none" src={s.recording.url} style={{ width: "100%" }} />
+          )}
+          {tracks && s.recording.media !== "video" && (
             <div>
               <button onClick={onListen} style={smallBtn}>
                 {listening ? "Hide the band" : "Listen with the band"}
               </button>
             </div>
           )}
-          {tracks && listening && (
+          {tracks && listening && s.recording.media !== "video" && (
             <StemPlayer
               key={s.id}
               tracks={tracks}
@@ -186,7 +202,7 @@ function ReviewCard({ assignment: a, submission: s, latest, tracks, mixLevel, li
               partLabel="student's"
               title={a.song.title}
               mixLevel={mixLevel}
-              review={{ url: s.recording.url, songTime: s.recording.offset ?? 0, label: "Student" }}
+              review={{ url: s.recording.url, songTime: s.recording.offset ?? 0, label: "Student", speed: s.recording.speed }}
               positionRef={band}
             />
           )}
@@ -194,9 +210,24 @@ function ReviewCard({ assignment: a, submission: s, latest, tracks, mixLevel, li
         </div>
       )}
 
-      <FeedbackForm submission={s} moment={s.recording?.url ? moment : null} onSaved={onSaved} />
+      {s.recording && (
+        <p className={ui.made} style={{ margin: "0 0 12px" }}>
+          {madeWords(s.recording).join(" · ")}
+        </p>
+      )}
+
+      <FeedbackForm assignment={a} submission={s} moment={s.recording?.url ? moment : null} onSaved={onSaved} />
     </div>
   );
+}
+
+// How a take was made, in a few words: each send keeps its own, whatever the task asks for now.
+function madeWords(recording) {
+  return [
+    recording.media === "video" ? "Video" : "Audio",
+    recording.support ? HELP[recording.support] : null,
+    recording.speed < 1 ? `Played at ${Math.round(recording.speed * 100)}%` : "Full speed",
+  ].filter(Boolean);
 }
 
 // "1:12" from seconds, and back (or null when it isn't a time).
@@ -210,8 +241,14 @@ function fromClock(text) {
 const MAX_NOTES = 20;
 const MAX_NOTE = 280;
 
-function FeedbackForm({ submission, moment, onSaved }) {
+function FeedbackForm({ assignment, submission, moment, onSaved }) {
   const [text, setText] = useState(submission.feedback || "");
+  // A mark for each thing the task is marked on, and what to work on next. An earlier send can have
+  // been marked on criteria the task no longer has, and keeps them.
+  const criteria = [...new Set([...(assignment.criteria || []), ...(submission.marks || []).map((m) => m.criterion)])];
+  const assessed = assignment.kind === "assessment" && criteria.length > 0;
+  const [marks, setMarks] = useState(() => Object.fromEntries((submission.marks || []).map((m) => [m.criterion, m.mark])));
+  const [priorities, setPriorities] = useState(() => [submission.priorities?.[0] ?? "", submission.priorities?.[1] ?? ""]);
   // Notes pinned to moments in the song: the student sees each with a way to hear it and practise it.
   const [notes, setNotes] = useState(() => (submission.notes || []).map((n, k) => ({ key: k, at: n.at, time: toClock(n.at), text: n.text })));
   const [saving, setSaving] = useState(false);
@@ -222,7 +259,10 @@ function FeedbackForm({ submission, moment, onSaved }) {
     .filter((n) => n.text.trim())
     .map((n) => ({ at: fromClock(n.time) ?? n.at, text: n.text.trim() }))
     .sort((x, y) => x.at - y.at);
-  const changed = text.trim() !== (submission.feedback || "") || JSON.stringify(cleanNotes) !== JSON.stringify(submission.notes || []);
+  const cleanMarks = criteria.filter((c) => marks[c]).map((c) => ({ criterion: c, mark: marks[c] }));
+  const cleanPriorities = priorities.map((p) => p.trim()).filter(Boolean);
+  const sameList = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  const changed = text.trim() !== (submission.feedback || "") || !sameList(cleanNotes, submission.notes || []) || !sameList(cleanMarks, submission.marks || []) || !sameList(cleanPriorities, submission.priorities || []);
 
   function addNote() {
     const at = Math.max(0, Math.round((moment?.() ?? 0) * 100) / 100);
@@ -239,7 +279,7 @@ function FeedbackForm({ submission, moment, onSaved }) {
     try {
       const { submission: saved } = await teacherRequest(`/teacher/submissions/${submission.id}/feedback`, {
         method: "PUT",
-        body: JSON.stringify({ feedback: text, notes: cleanNotes }),
+        body: JSON.stringify({ feedback: text, notes: cleanNotes, ...(assignment.kind === "assessment" ? { marks: cleanMarks, priorities: cleanPriorities } : {}) }),
       });
       onSaved(saved);
     } catch (err) {
@@ -251,6 +291,24 @@ function FeedbackForm({ submission, moment, onSaved }) {
 
   return (
     <form onSubmit={save} style={{ display: "grid", gap: 8 }}>
+      {assessed && (
+        <fieldset className={ui.marks} style={{ marginBottom: 6 }}>
+          <legend style={label}>How it went</legend>
+          {criteria.map((c) => (
+            <fieldset key={c} className={ui.mark}>
+              <legend>{c}</legend>
+              <div className={ui.markChoices}>
+                {MARKS.map((m) => (
+                  <label key={m} className={ui.markChoice}>
+                    <input type="radio" name={`${submission.id}-${c}`} checked={marks[c] === m} onChange={() => setMarks({ ...marks, [c]: m })} />
+                    <span>{MARK_NAMES[m]}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          ))}
+        </fieldset>
+      )}
       <label style={label} htmlFor={`feedback-${submission.id}`}>
         Feedback for the student
       </label>
@@ -316,6 +374,23 @@ function FeedbackForm({ submission, moment, onSaved }) {
           </span>
         </div>
       </div>
+      {assignment.kind === "assessment" && (
+        <div style={{ margin: "6px 0 4px" }}>
+          <p className={ui.sectionLabel}>Priorities for next week</p>
+          <div className={ui.priorities}>
+            {priorities.map((p, i) => (
+              <input
+                key={i}
+                aria-label={`Priority ${i + 1} for next week`}
+                value={p}
+                maxLength={120}
+                placeholder={i === 0 ? "The one thing to work on first" : "A second, if there is one"}
+                onChange={(e) => setPriorities(priorities.map((x, k) => (k === i ? e.target.value : x)))}
+              />
+            ))}
+          </div>
+        </div>
+      )}
       <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
         <button type="submit" disabled={saving || !text.trim() || !changed} style={primaryBtn}>
           {saving ? "Saving…" : submission.feedback ? "Update feedback" : "Send feedback"}

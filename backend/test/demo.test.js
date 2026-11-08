@@ -138,25 +138,47 @@ test("pressing it again in the same browser carries on with the same demo", asyn
 test("the demo looks like an active student's account", async () => {
   const work = await call(kai, "GET", "/assignments");
   assert.equal(work.status, 200);
-  // A month of tasks on the song, set at the start of the month in order: each section, then the whole song.
-  const tasks = [...work.data.assignments].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
-  assert.ok(tasks.length >= 4, "a month of tasks");
+  // A month of weekly work on the song: two weeks done, the third under way, the fourth ahead.
+  const tasks = [...work.data.assignments].sort((a, b) => a.position - b.position);
+  assert.ok(tasks.length >= 12, "a month of tasks");
   assert.ok(tasks.every((a) => a.song && !a.lesson), "only the song: the demo leaves lesson videos out");
-  assert.equal(tasks.at(-1).section, "Whole song");
-  assert.deepEqual(tasks.slice(0, 4).map((a) => a.status), ["reviewed", "reviewed", "ready", "assigned"], "two with feedback, one waiting, then today's");
-  assert.equal(tasks[1].attempts, 2, "one was sent twice");
-  const monthOf = (iso) => new Date(iso).toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "Pacific/Honolulu" });
-  assert.ok(tasks.every((a) => monthOf(a.createdAt) === monthOf(new Date())), "all set this month");
+  assert.ok(tasks.every((a) => a.month && a.week), "all of it in the month");
+  assert.equal(new Set(tasks.map((a) => a.month.id)).size, 1, "the one month");
+  const week = (n, kind) => tasks.filter((a) => a.week === n && a.kind === kind);
+  const statuses = (n, kind) => week(n, kind).map((a) => a.status);
+  assert.ok(statuses(1, "checkpoint").every((s) => s === "saved"));
+  assert.deepEqual(statuses(1, "assessment"), ["reviewed"]);
+  assert.ok(statuses(2, "checkpoint").every((s) => s === "saved"));
+  assert.deepEqual(statuses(2, "assessment"), ["reviewed"]);
+  assert.equal(statuses(3, "checkpoint")[0], "saved", "week 3 is under way");
+  assert.ok(statuses(3, "checkpoint").slice(1).every((s) => s === "assigned"));
+  assert.deepEqual(statuses(3, "assessment"), ["assigned"]);
+  assert.ok(tasks.filter((a) => a.week === 4).every((a) => a.status === "assigned"), "week 4 is ahead");
+  assert.equal(week(1, "assessment")[0].attempts, 2, "one assessment was sent twice");
+  assert.equal(week(1, "checkpoint")[1].attempts, 2, "and one checkpoint");
+  assert.equal(week(3, "assessment")[0].media, "video");
+  assert.equal(week(3, "assessment")[0].support, "solo");
+  assert.equal(work.data.canFilm, true);
   assert.ok(tasks.every((a) => a.submissions.every((s) => new Date(s.createdAt) <= new Date())), "nothing dated in the future");
-  const reviewed = work.data.assignments.find((a) => a.status === "reviewed");
+  assert.ok(tasks.every((a) => a.submissions.every((s) => s.recording === null)), "nobody really played it, so there are no recordings");
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: "Pacific/Honolulu" });
+  const daysIn = Math.round((Date.parse(today) - Date.parse(tasks[0].month.startsOn)) / 86400000);
+  assert.ok(daysIn >= 14 && daysIn < 21, "today is in the third week");
+  const reviewed = week(2, "assessment")[0];
   assert.ok(reviewed.submissions[0].feedback.length > 20);
   assert.equal(reviewed.teacher.name, "Brian Albus");
-  // The replies carry a note pinned to a moment inside the section the task was for.
-  for (const task of tasks.slice(0, 2)) {
-    const notes = (await call(kai, "GET", `/assignments/${task.id}`)).data.assignment.submissions.flatMap((s) => s.notes);
+  // The assessments carry a mark on every criterion, priorities, and a note inside what the task covers.
+  for (const task of [week(1, "assessment")[0], reviewed]) {
+    const replies = (await call(kai, "GET", `/assignments/${task.id}`)).data.assignment.submissions;
+    for (const reply of replies) {
+      assert.equal(reply.marks.length, task.criteria.length, `${task.section} is marked on each criterion`);
+      assert.ok(reply.priorities.length >= 1 && reply.priorities.length <= 2 && reply.priorities.every((p) => p.length <= 120));
+    }
+    const notes = replies.flatMap((s) => s.notes);
     assert.ok(notes.length > 0, `${task.section} has a note on a moment`);
     assert.ok(notes.every((n) => n.at >= task.sectionStart && n.at < task.sectionEnd && n.text.length > 10), `${task.section}'s notes are inside it`);
   }
+  assert.ok(work.data.priorities[tasks[0].month.id].list.length >= 1, "what to work on next comes from the latest reply");
 
   const from = new Date();
   const to = new Date(from.getTime() + 21 * 86400000);
@@ -206,7 +228,7 @@ test("payments, password changes, email and messages to the school are refused, 
   assert.equal(await prisma.contactMessage.count({ where: { OR: [{ email }, { email: kai.user.email }] } }), 0, "nothing in Admin → Messages");
 });
 
-test("a demo student can send work and takes to the demo's own teacher, and send them again", async () => {
+test("a demo student's month asks for a take, and only the demo's own teacher could see it", async () => {
   const { data } = await call(kai, "GET", "/assignments");
   const open = data.assignments.find((a) => a.status === "assigned");
   // An upload link where this machine has song storage; the demo isn't refused either way.
@@ -214,11 +236,8 @@ test("a demo student can send work and takes to the demo's own teacher, and send
   assert.ok([200, 503].includes(upload.status), `upload link: ${upload.status}`);
 
   const sent = await call(kai, "POST", `/assignments/${open.id}/submit`, {});
-  assert.equal(sent.status, 201);
-  await prisma.submission.updateMany({ where: { assignmentId: open.id }, data: { createdAt: new Date(Date.now() - 60 * 1000) } });
-  const again = await call(kai, "POST", `/assignments/${open.id}/submit`, {});
-  assert.equal(again.status, 201, "sent again while waiting");
-  assert.equal((await call(kai, "GET", `/assignments/${open.id}`)).data.assignment.submissions.length, 2);
+  assert.equal(sent.status, 400, "a task in a month needs a take");
+  assert.equal((await call(kai, "GET", `/assignments/${open.id}`)).data.assignment.submissions.length, 0);
   const link = await prisma.teacherStudent.findFirst({ where: { studentId: kai.user.id }, include: { teacher: true } });
   assert.ok(link.teacher.demoExpiresAt, "the only teacher who could read it is the demo's own");
 });
@@ -436,7 +455,7 @@ test("someone in a demo can switch instrument without the passcode, and the old 
 test("leaving the demo deletes the takes recorded in it", { skip: !process.env.TEST_R2 }, async () => {
   const { headObject } = require("../src/lib/r2");
   const visitor = await tryDemo();
-  const open = (await call(visitor, "GET", "/assignments")).data.assignments.find((a) => a.status === "assigned");
+  const open = (await call(visitor, "GET", "/assignments")).data.assignments.find((a) => a.status === "assigned" && a.media === "audio");
   const wav = Buffer.alloc(44 + 9600);
   wav.write("RIFF", 0);
   wav.write("WAVE", 8);

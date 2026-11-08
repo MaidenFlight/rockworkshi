@@ -1,4 +1,5 @@
 import { API_URL } from "@/lib/api";
+import { uploadVideo } from "@/lib/video/upload";
 
 // Shared by the /teacher pages.
 
@@ -15,6 +16,7 @@ export async function teacherRequest(path, options = {}) {
 
 export const STATUS_LABELS = {
   assigned: "Practising",
+  saved: "Checkpoint saved",
   ready: "Ready for review",
   reviewed: "Reviewed",
 };
@@ -32,9 +34,12 @@ export function assignmentTitle(assignment) {
 }
 
 export function studentStatus(assignment) {
-  if (assignment.status === "ready") return { label: "Waiting for your teacher", tone: "ready" };
-  if (assignment.status === "reviewed") return { label: "Feedback ready", tone: "open" };
-  return { label: "To practise", tone: "draft" };
+  // A weekly assessment is something the student submits on purpose, so it says so.
+  const assessment = assignment.kind === "assessment" && Boolean(assignment.week);
+  if (assignment.status === "saved") return { label: "Saved", tone: "open" };
+  if (assignment.status === "ready") return { label: assessment ? "Submitted" : "Waiting for your teacher", tone: "ready" };
+  if (assignment.status === "reviewed") return { label: assessment ? "Reviewed" : "Feedback ready", tone: "open" };
+  return { label: assessment ? "Not submitted" : "To practise", tone: "draft" };
 }
 
 export function hasLoop(assignment) {
@@ -64,16 +69,27 @@ function uploadRecording(assignmentId, blob, onProgress) {
   });
 }
 
-// Marks the work ready for review. A take is { blob, offset, duration } and is uploaded first.
+// Sends the work: for review, or saved as a checkpoint. A take is { blob, offset, duration, speed,
+// support } and is uploaded first.
 export async function sendForReview(assignmentId, take, onProgress) {
   let recording;
   if (take) {
     const key = await uploadRecording(assignmentId, take.blob, onProgress);
-    recording = { key, offset: take.offset, duration: take.duration };
+    recording = { key, offset: take.offset, duration: take.duration, speed: take.speed, support: take.support };
   }
   await teacherRequest(`/assignments/${assignmentId}/submit`, {
     method: "POST",
     body: JSON.stringify(recording ? { recording } : {}),
+  });
+}
+
+// Sends a video take. It's uploaded in pieces and can pick up where an earlier try stopped, then sent
+// as one send like any other. video = { blob, offset, duration, speed, support, uploadId, onStarted }.
+export async function sendVideoForReview(assignmentId, video, onProgress) {
+  const key = await uploadVideo(assignmentId, video.blob, { uploadId: video.uploadId, duration: video.duration, onStarted: video.onStarted, onProgress });
+  await teacherRequest(`/assignments/${assignmentId}/submit`, {
+    method: "POST",
+    body: JSON.stringify({ recording: { key, offset: video.offset, duration: video.duration, speed: video.speed, support: video.support } }),
   });
 }
 

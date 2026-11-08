@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import Icon from "@/components/member/Icon";
 import PracticeNext from "@/components/member/PracticeNext";
 import MonthlyChecklist from "@/components/member/MonthlyChecklist";
+import WeeklyMonth from "@/components/member/WeeklyMonth";
 import UpcomingClasses from "@/components/member/UpcomingClasses";
 import YourTerm from "@/components/member/YourTerm";
 import { NetworkError, practiceRequest } from "@/lib/practice";
@@ -32,6 +33,7 @@ export default function MemberDashboard() {
   const [library, setLibrary] = useState(undefined);
   const [term, setTerm] = useState(undefined);
   const [assignments, setAssignments] = useState(undefined);
+  const [priorities, setPriorities] = useState({});
   const [failure, setFailure] = useState("");
   const [attempt, setAttempt] = useState(0);
 
@@ -50,6 +52,7 @@ export default function MemberDashboard() {
         setLibrary(lib.status === "fulfilled" ? lib.value : null);
         setTerm(t.status === "fulfilled" ? t.value : null);
         setAssignments(work.status === "fulfilled" ? work.value.assignments : []);
+        setPriorities(work.status === "fulfilled" ? (work.value.priorities ?? {}) : {});
         setFailure(lib.status === "rejected" ? why(lib.reason) : "");
       }
     );
@@ -90,7 +93,12 @@ export default function MemberDashboard() {
           {/* The month's work as a checklist; the task on the panel above is marked Today. The wrapper keeps
               it right under that panel on phones (globals.css) and hides when there's no work. */}
           <div className="rw-dash-work">
-            <MonthlyChecklist assignments={assignments} currentId={next?.kind === "assignment" ? next.assignment.id : null} />
+            <WeeklyMonth assignments={assignments} priorities={priorities} currentId={next?.kind === "assignment" ? next.assignment.id : null} />
+            <MonthlyChecklist
+              assignments={assignments?.filter((a) => !a.month)}
+              other={Boolean(assignments?.some((a) => a.month))}
+              currentId={next?.kind === "assignment" ? next.assignment.id : null}
+            />
           </div>
 
           {!demo && lessons.length > 0 && (

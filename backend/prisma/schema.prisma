@@ -71,6 +71,8 @@ model User {
 
   assignmentsGiven    Assignment[] @relation("AssignmentTeacher")
   assignmentsReceived Assignment[] @relation("AssignmentStudent")
+  monthsTaught        PracticeMonth[] @relation("MonthTeacher")
+  practiceMonths      PracticeMonth[] @relation("MonthStudent")
 
   mixPresets MixPreset[]
   practice   SongPractice[]
@@ -179,15 +181,81 @@ model Assignment {
 
   // "assigned" -> "ready" (student asked for review) -> "reviewed".
   // Submitting again after feedback goes back to "ready".
+  // A checkpoint goes to "saved" instead of "ready": its take is there to look at, outside the
+  // teacher's review queue, unless reviewCheckpoint asks for it to be in the queue.
   status String @default("assigned")
+
+  // A task in a month of practice (null for work set on its own), its week (1-4), and where it comes
+  // in that month's list.
+  monthId  String?
+  month    PracticeMonth? @relation(fields: [monthId], references: [id], onDelete: SetNull)
+  week     Int?
+  position Int            @default(0)
+  // The last day to do it, "YYYY-MM-DD" in Pacific/Honolulu.
+  dueOn    String?
+
+  // "checkpoint" (small, repeatable practice) or "assessment" (a take the student submits on purpose).
+  // Everything set before there were checkpoints counts as an assessment: it goes to the teacher.
+  kind             String  @default("assessment")
+  reviewCheckpoint Boolean @default(false)
+  // What the take has to be. Null support or targetSpeed means any: all work set before these existed.
+  media            String  @default("audio") // "audio" | "video"
+  audioAllowed     Boolean @default(false) // on a video task, audio is accepted instead
+  support          String? // "guide" | "chart" | "solo", the most help a final take may use
+  targetSpeed      Int? // percent of full speed, 50-100
+  criteria         Json? // ["Steady timing", ...]: what the teacher marks
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   submissions Submission[]
+  uploads     RecordingUpload[]
 
   @@index([studentId, status])
   @@index([teacherId, status])
+  @@index([monthId])
+}
+
+// A month of practice on one song for one student: four weeks of tasks, set by the teacher.
+model PracticeMonth {
+  id        String  @id @default(uuid())
+  // Null once the teacher's account is deleted: the work belongs to the student.
+  teacherId String?
+  teacher   User?   @relation("MonthTeacher", fields: [teacherId], references: [id], onDelete: SetNull)
+  studentId String
+  student   User    @relation("MonthStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  songId    String?
+  song      Song?   @relation(fields: [songId], references: [id], onDelete: SetNull)
+
+  // The first day of week 1, "YYYY-MM-DD" in Pacific/Honolulu.
+  startsOn   String
+  weekTitles Json // four short names, one per week
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tasks Assignment[]
+
+  @@index([studentId])
+  @@index([teacherId])
+}
+
+// A video on its way up in pieces (R2 multipart). Kept so a dropped connection can pick up where it
+// stopped, and so ones nobody came back for can be cancelled.
+model RecordingUpload {
+  id           String     @id @default(uuid())
+  assignmentId String
+  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+
+  key         String    @unique // the R2 object it will become
+  uploadId    String // R2's id for the multipart upload
+  contentType String
+  size        Int
+  partSize    Int
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  @@index([assignmentId])
 }
 
 // One "ready for review" from the student, with an optional recording and the teacher's feedback.
@@ -208,6 +276,17 @@ model Submission {
   // The teacher's notes tied to moments: [{ at: seconds into the song, text }], sorted by time.
   // Saved with the feedback (lib/assignments.js validateNotes).
   notes      Json?
+  // The teacher's mark for each of the task's criteria: [{ criterion, mark }], and up to two
+  // priorities for next week. Saved with the feedback.
+  marks      Json?
+  priorities Json?
+
+  // How this take was made. Each send keeps its own, whatever the task asks for later.
+  media         String  @default("audio") // "audio" | "video"
+  recordingType String? // its content type; null is an older WAV
+  recordingSize Int?
+  speed         Float? // the song's speed while recording; null is full speed
+  support       String? // "guide" | "chart" | "solo", the most help used during it
 
   createdAt DateTime @default(now())
 
@@ -313,6 +392,7 @@ model Song {
   classes     Class[]
   termSlots   TermSlot[]
   termGrants  TermGrant[]
+  months      PracticeMonth[]
 
   // How loud the stems are played together: the 99.999th percentile of the summed
   // sample level (1.0 = full scale). Stems often sum well past full scale, so the
