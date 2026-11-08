@@ -21,7 +21,7 @@ export default function UpcomingClasses() {
 
   if (!events?.length) return null;
   return (
-    <section className="rw-st-card" aria-labelledby="upcoming-classes" style={{ marginBottom: 24 }}>
+    <section className="rw-st-card" aria-labelledby="upcoming-classes">
       <h2 id="upcoming-classes">Your next classes</h2>
       <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 10 }}>
         {events.map((e) => (

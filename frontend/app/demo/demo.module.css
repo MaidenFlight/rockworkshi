@@ -36,12 +36,15 @@
   color: var(--rw-orange-deep);
 }
 
+/* Past the passcode the page has no header band: the heading is set like the dashboard's own title,
+   so the cards sit in the first screen. */
 .title {
-  margin: 0 0 8px;
+  margin: 0 0 10px;
   font-family: var(--rw-font-display);
-  font-size: var(--rw-text-3xl);
+  font-size: var(--rw-text-4xl);
   font-weight: 800;
-  line-height: 1.05;
+  line-height: 1;
+  letter-spacing: 0.01em;
   text-transform: uppercase;
   color: var(--rw-ink);
 }
@@ -105,8 +108,10 @@
   transition: transform 220ms ease, filter 220ms ease;
 }
 
+/* Fills the card, so every card's action lines up along the foot of the row. */
 .caption {
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
   align-items: flex-start;
   gap: 6px;
@@ -137,9 +142,24 @@
 
 .line {
   font-size: var(--rw-text-sm);
-  font-weight: 600;
   line-height: 1.5;
+  color: var(--rw-body);
+}
+
+/* What choosing the card does, in the one red on it. */
+.action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 8px;
+  font-size: var(--rw-text-base);
+  font-weight: 700;
   color: var(--rw-orange-deep);
+}
+
+.action svg {
+  transition: transform 180ms ease;
 }
 
 .card:hover:not(:disabled),
@@ -147,19 +167,20 @@
   border-color: var(--rw-orange-deep);
 }
 
-.card:hover:not(:disabled) .line,
-.card:focus-visible .line {
+.card:hover:not(:disabled) .action,
+.card:focus-visible .action {
   text-decoration: underline;
   text-underline-offset: 4px;
+}
+
+.card:hover:not(:disabled) .action svg,
+.card:focus-visible .action svg {
+  transform: translateX(3px);
 }
 
 .card:focus-visible {
   outline: 2px solid var(--rw-teal);
   outline-offset: 4px;
-}
-
-.back {
-  margin: 24px 0 0;
 }
 
 @media (hover: hover) {
@@ -170,6 +191,9 @@
 }
 
 @media (max-width: 700px) {
+  .title {
+    font-size: var(--rw-text-3xl);
+  }
   .grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 16px;
@@ -182,11 +206,12 @@
   }
 }
 
-@media (max-width: 380px) {
+/* One a row on a phone: two-up cramped the name, the Current mark and the action. A shorter photo keeps
+   all of them within a few swipes. */
+@media (max-width: 560px) {
   .grid {
     grid-template-columns: 1fr;
   }
-  /* One a row on a phone: a shorter photo keeps all six within a few swipes. */
   .photo {
     aspect-ratio: 2 / 1;
   }
@@ -194,10 +219,13 @@
 
 @media (prefers-reduced-motion: reduce) {
   .card,
-  .photo img {
+  .photo img,
+  .action svg {
     transition: none;
   }
-  .card:hover img {
+  .card:hover:not(:disabled) img,
+  .card:hover:not(:disabled) .action svg,
+  .card:focus-visible .action svg {
     transform: none;
   }
 }

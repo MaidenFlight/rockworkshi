@@ -1,0 +1,127 @@
+/* Comparing two sent takes on the practice work's page (CompareTakes.js): a surface panel like the
+   attempts under it, a two-way switch of square tiles (the playing one on label stock with a flare
+   band, as the chart's help modes are), then Play, the time and a scrubber. */
+
+.panel {
+  display: grid;
+  gap: 14px;
+  margin: 0 0 12px;
+  padding: 18px 20px;
+  background: var(--rw-surface);
+  border: 1px solid var(--rw-border);
+  border-radius: var(--rw-radius-md);
+}
+
+.intro {
+  margin: 0;
+  font-size: var(--rw-text-base);
+  line-height: 1.55;
+  color: var(--rw-body);
+}
+
+.picks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+}
+
+.pick {
+  display: grid;
+  gap: 4px;
+  font-size: var(--rw-text-sm);
+  font-weight: 700;
+  color: var(--rw-ink);
+}
+
+.pick select {
+  min-height: 44px;
+  padding: 0 10px;
+  border: 1px solid var(--rw-line);
+  border-radius: var(--rw-radius-field);
+  background: #fff;
+  color: var(--rw-ink);
+  font: inherit;
+  font-weight: 400;
+}
+
+.switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.switch button {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  min-height: 64px;
+  padding: 10px 12px;
+  border: 1px solid var(--rw-border);
+  background: #fff;
+  color: var(--rw-body);
+  font: inherit;
+  cursor: pointer;
+  transition: background-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.switch button + button {
+  border-left: 0;
+}
+
+.switch button[aria-pressed="true"] {
+  background: var(--rw-sand);
+  color: var(--rw-ink);
+  box-shadow: inset 0 -4px 0 var(--rw-orange);
+}
+
+.switch button:focus-visible {
+  outline: 2px solid var(--rw-teal);
+  outline-offset: 2px;
+}
+
+.label {
+  font-family: var(--rw-font-display);
+  font-size: var(--rw-text-xl);
+  font-weight: 800;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.date {
+  font-size: var(--rw-text-xs);
+  color: var(--rw-meta);
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+}
+
+.time {
+  min-width: 3.2em;
+  font-family: var(--rw-font-display);
+  font-size: var(--rw-text-2xl);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--rw-ink);
+}
+
+.scrub {
+  flex: 1 1 180px;
+  min-height: 44px;
+  accent-color: var(--rw-orange-deep);
+}
+
+.note {
+  margin: 0;
+  font-size: var(--rw-text-sm);
+  font-weight: 700;
+  color: var(--rw-orange-deep);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .switch button {
+    transition: none;
+  }
+}

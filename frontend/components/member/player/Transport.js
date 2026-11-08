@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { CLIP_KNEE } from "@/lib/audio/mix";
+import { TRAINER_CHOICES, storedTrainerSettings, trainerPlan, trainerSettings, trainerStatus } from "@/lib/speedTrainer";
 import Icon from "../Icon";
 import Meter from "./Meter";
 
@@ -11,7 +12,10 @@ function clock(s) {
 }
 
 // The bar that stays in reach while you scroll: play, where you are, speed, clicks, the loop,
-// recording, and the master level. It sticks just under the site's own header.
+// recording, and the master level. It sticks just under the site's own header. onOpenRecorder puts
+// "Record your take" in it, so the take a student is practising towards is never one tab away.
+// onStartTrainer(settings) starts the speed trainer (lib/speedTrainer.js) and resolves with a reason
+// when it can't; trainer is the running one, { settings, run }, or null.
 export default function Transport({
   ready,
   loadedCount,
@@ -40,8 +44,28 @@ export default function Transport({
   onClearLoop,
   recordTime,
   getMaster,
+  onOpenRecorder = null,
+  trainer = null,
+  onStartTrainer = null,
+  onStopTrainer = null,
+  onFocus = null,
 }) {
   const bar = useRef(null);
+  const trainerId = useId();
+  const [trainerOpen, setTrainerOpen] = useState(false);
+  const [plan, setPlan] = useState(storedTrainerSettings);
+  const [trainerError, setTrainerError] = useState("");
+  const [starting, setStarting] = useState(false);
+
+  async function startTrainer() {
+    setTrainerError("");
+    setStarting(true);
+    try {
+      setTrainerError((await onStartTrainer(plan)) || "");
+    } finally {
+      setStarting(false);
+    }
+  }
   const beatDots = useRef(null);
   const countDots = useRef(null);
   const [top, setTop] = useState(0);
@@ -140,6 +164,20 @@ export default function Transport({
           </div>
         )}
 
+        {onFocus && (
+          <button type="button" className="rw-btn rw-tp-focus" onClick={onFocus} title="The chart, play and record at full-screen size, for playing from a step away">
+            <Icon name="expand" size={16} />
+            Focus
+          </button>
+        )}
+
+        {onOpenRecorder && !recording && (
+          <button type="button" className="rw-btn rw-tp-take" onClick={onOpenRecorder}>
+            <Icon name="record" size={14} />
+            Record your take
+          </button>
+        )}
+
         <div className="rw-tp-master">
           <Meter getNodes={getMaster} active={playing} vertical={false} length={92} thickness={5} clipAt={CLIP_KNEE} clipLabel="Clip guard" title="Master level, left and right" />
         </div>
@@ -156,6 +194,22 @@ export default function Transport({
                 </button>
               ))}
             </span>
+            {/* The trainer plays between the keys' speeds (70%, 80%), so the speed is said here then. */}
+            {!speeds.includes(speed) && <span className="rw-tp-speed-now">Now {Math.round(speed * 100)}%</span>}
+            {onStartTrainer && (
+              <button
+                type="button"
+                className="rw-toggle rw-tp-trainer-key"
+                data-running={trainer ? "true" : "false"}
+                onClick={() => setTrainerOpen((open) => !open)}
+                aria-expanded={trainerOpen}
+                aria-controls={trainerId}
+                disabled={recording}
+                title="Repeat the loop, a little faster every few passes"
+              >
+                Speed trainer
+              </button>
+            )}
           </div>
 
           <div role="group" aria-label="Clicks" className="rw-tp-group">
@@ -189,6 +243,52 @@ export default function Transport({
         </div>
       )}
 
+      {onStartTrainer && (
+        <div id={trainerId} className="rw-tp-row rw-tp-trainer" role="group" aria-label="Speed trainer" hidden={!trainerOpen}>
+          {trainer ? (
+            <>
+              <span className="rw-tp-trainer-now">
+                <span className="rw-tp-trainer-lamp" aria-hidden="true" />
+                {trainerStatus(trainer.settings, trainer.run)}
+              </span>
+              <span className="rw-tp-trainer-plan">{trainerPlan(trainer.settings)}</span>
+              <button type="button" className="rw-btn rw-tp-trainer-stop" onClick={onStopTrainer}>
+                <Icon name="stop" size={12} />
+                Stop trainer
+              </button>
+            </>
+          ) : (
+            <>
+              <TrainerChoice label="Start" value={plan.start} options={TRAINER_CHOICES.start} format={(n) => `${n}%`} onChange={(start) => setPlan((p) => trainerSettings({ ...p, start }))} />
+              <TrainerChoice label="Step" value={plan.step} options={TRAINER_CHOICES.step} format={(n) => `+${n}%`} onChange={(step) => setPlan((p) => trainerSettings({ ...p, step }))} />
+              <TrainerChoice
+                label="Passes each"
+                value={plan.passes}
+                options={TRAINER_CHOICES.passes}
+                format={(n) => `${n}`}
+                onChange={(passes) => setPlan((p) => trainerSettings({ ...p, passes }))}
+              />
+              <TrainerChoice
+                label="Up to"
+                value={plan.top}
+                options={TRAINER_CHOICES.top.filter((n) => n >= plan.start)}
+                format={(n) => `${n}%`}
+                onChange={(top) => setPlan((p) => trainerSettings({ ...p, top }))}
+              />
+              <button type="button" className="rw-btn rw-btn-primary rw-tp-trainer-go" onClick={startTrainer} disabled={!ready || recording || starting}>
+                {starting ? "Starting…" : "Start trainer"}
+              </button>
+              <span className="rw-tp-trainer-plan">Repeats the loop, then speeds up. It stops at your top speed.</span>
+              {trainerError && (
+                <span role="alert" className="rw-tp-trainer-error">
+                  {trainerError}
+                </span>
+              )}
+            </>
+          )}
+        </div>
+      )}
+
       <div className="rw-tp-notice" role="status" aria-live="polite">
         {preparingSpeed ? "Getting slow playback ready…" : speedError || notice}
       </div>
@@ -201,6 +301,22 @@ export default function Transport({
         <span className="rw-mini-where">{recording ? `Recording ${clock(recordTime)}` : where ? `${where.section} · bar ${where.bar} of ${where.bars}` : `of ${clock(duration)}`}</span>
       </div>
     </div>
+  );
+}
+
+// One of the trainer's settings: a label over a short list of choices.
+function TrainerChoice({ label, value, options, format, onChange }) {
+  return (
+    <label className="rw-tp-trainer-field">
+      <span className="rw-tp-label">{label}</span>
+      <select className="rw-console-input" value={value} onChange={(e) => onChange(Number(e.target.value))}>
+        {options.map((n) => (
+          <option key={n} value={n}>
+            {format(n)}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
 

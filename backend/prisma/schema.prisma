@@ -205,6 +205,9 @@ model Submission {
   // Private: only the student and the teacher who set the assignment can read it.
   feedback   String?
   reviewedAt DateTime?
+  // The teacher's notes tied to moments: [{ at: seconds into the song, text }], sorted by time.
+  // Saved with the feedback (lib/assignments.js validateNotes).
+  notes      Json?
 
   createdAt DateTime @default(now())
 

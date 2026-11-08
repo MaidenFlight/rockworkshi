@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useImperativeHandle, useMemo, useRef, useState } from "react";
 import {
   MIX_MODES,
   createMasterBus,
@@ -15,24 +15,24 @@ import { analyser } from "@/lib/audio/meters";
 import { peaksInTurn, peaksOf } from "@/lib/audio/peaks";
 import { createStretchVoice } from "@/lib/audio/stretch";
 import { DEFAULT_EFFECTS, createTakeEffects } from "@/lib/audio/takeEffects";
+import { afterPass, startRun, storedTrainerSettings, trainerSettings, trainerStatus } from "@/lib/speedTrainer";
+import { forgetTake, keepTake, readTake, updateTake } from "@/lib/takeStore";
 import ChordChart from "./ChordChart";
+import Icon from "./Icon";
+import FocusView from "./player/FocusView";
 import MixerPanel from "./mixer/MixerPanel";
 import PartBalance from "./mixer/PartBalance";
 import EffectsRack from "./mixer/EffectsRack";
 import MixPresets from "./mixer/MixPresets";
 import RecordPanel from "./player/RecordPanel";
 import StudioTabs from "./player/StudioTabs";
-import Timeline, { partColor } from "./player/Timeline";
+import Timeline, { bandModes, partColor } from "./player/Timeline";
 import Transport from "./player/Transport";
 import { PlayClock } from "./player/clock";
 
-// Every mode plays all the stems in sync and only changes which are audible,
-// so switching mode mid-song never stops or jumps.
-const MODES = [
-  { id: "full", label: "Whole song" },
-  { id: "solo", label: "Isolated track" },
-  { id: "minus", label: "Without one part" },
-];
+// Every mode plays all the stems in sync and only changes which are audible, so switching mode
+// mid-song never stops or jumps. A player with every stem names its modes for the part in focus
+// (bandModes); a student's are named for their instrument (studentModes below).
 
 const NUDGE_LIMIT_MS = 300;
 const SPEEDS = [0.5, 0.75, 0.9, 1];
@@ -64,15 +64,16 @@ function remember(key, on) {
   }
 }
 
-// The view chosen last time, or Simple on a phone-sized screen and on a first visit to a song.
-function firstView(beenHereBefore) {
+// The view chosen last time, else Simple: anyone who hasn't opened the studio yet starts with the
+// transport and the chart, and "Open studio mixer" is right there when they want the rest.
+function firstView() {
   try {
     const stored = window.localStorage.getItem("rw-player-view");
     if (stored === "simple" || stored === "studio") return stored;
   } catch {
     // No storage: fall through to the default.
   }
-  return beenHereBefore && window.innerWidth >= 1000 ? "studio" : "simple";
+  return "simple";
 }
 
 // The upload limit in the API (MAX_RECORDING_BYTES).
@@ -158,6 +159,12 @@ function toWav(buffer) {
 // two faders instead of a strip per part. available says which of their stem, backing band and chart
 // the song has. Staff get scope "all": every stem, with the full mixer. So does the student demo, which
 // also names its instrument: that shows "Your instrument" and keeps the chart to that student's.
+// keepKey (lib/takeStore.js takeKey) keeps an unsent take in this browser, so it's back after a reload
+// or a visit elsewhere, until it's sent or deleted. Without it a take lasts as long as the page.
+// positionRef, a ref, gets a function that says where the song is, in seconds.
+// The guided practice session (PracticeSession.js) drives the player: `ref` gets { startTrainer,
+// openRecorder, sendTake }, onTakeState hears where the take is, and guided leaves out the first-visit
+// note, since the session explains each step itself.
 export default function StemPlayer({
   tracks,
   myPart,
@@ -174,6 +181,11 @@ export default function StemPlayer({
   scope = "all",
   instrument = null,
   available = null,
+  keepKey = null,
+  positionRef = null,
+  ref = null,
+  onTakeState = null,
+  guided = false,
 }) {
   const parts = useMemo(() => tracks.map((t) => t.part), [tracks]);
   const student = scope === "instrument" && Boolean(instrument);
@@ -187,7 +199,7 @@ export default function StemPlayer({
   const studentModes = student
     ? [
         { id: "full", label: "Whole song", ready: hasBacking },
-        { id: "minus", label: `Without ${noun}`, ready: hasBacking && Boolean(ownPart) },
+        { id: "minus", label: `Band without ${noun}`, ready: hasBacking && Boolean(ownPart) },
         { id: "solo", label: `${instrument} only`, ready: Boolean(ownPart) },
       ]
     : null;
@@ -230,8 +242,9 @@ export default function StemPlayer({
   const [countIn, setCountIn] = useState(() => remembered("rw-count-in"));
   const [metronome, setMetronome] = useState(() => remembered("rw-metronome"));
   // Simple leaves the part lanes and the studio (mixer, recorder, effects) out until asked for.
-  // Reviewing or recording for a teacher needs the studio, so those always open in it.
-  const [view, setView] = useState(() => (review || onSendTake ? "studio" : firstView(Boolean(resume))));
+  // A teacher reviewing a take needs the studio, so a review always opens in it. Practice work opens
+  // like any song: "Record your take" in the transport opens the recorder when it's wanted.
+  const [view, setView] = useState(() => (review ? "studio" : firstView()));
   const [intro, setIntro] = useState(() => !review && !remembered("rw-player-intro"));
   // Simple is built around the chart; a song without one keeps its lanes and studio.
   const simple = view === "simple" && Boolean(chart);
@@ -241,6 +254,18 @@ export default function StemPlayer({
   const [monitoring, setMonitoring] = useState(false); // the mic is open for a level check, not recording
   const [micLabel, setMicLabel] = useState("");
   const [recordFrom, setRecordFrom] = useState(0); // the song position the recording started from
+  // Where an unsent take is: { state: "keeping" | "kept" | "unkept", at }, or null with no take kept.
+  const [keep, setKeep] = useState(null);
+  // The speed trainer while it runs: { settings, run } (lib/speedTrainer.js). The ref is what the
+  // loop reads at the end of each pass; the state is what's shown.
+  const [trainer, setTrainer] = useState(null);
+  const trainerRef = useRef(null);
+  // The focus view (player/FocusView.js): the same player at stage size, for the room.
+  const [focusOpen, setFocusOpen] = useState(false);
+  // The studio column, for "Open studio mixer" to name and "Record your take" to open on the recorder.
+  const studioId = useId();
+  const studioRef = useRef(null);
+  const studioTabsRef = useRef(null);
 
   // stems -> per-stem gain -> master bus; take -> effects -> take gain -> master bus.
   const ctxRef = useRef(null);
@@ -535,6 +560,48 @@ export default function StemPlayer({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tracks, reviewUrl, reviewTime, mixLevel]);
 
+  // An unsent take kept in this browser comes back once the band has loaded, as it was left.
+  useEffect(() => {
+    if (status !== "ready" || !keepKey || review) return;
+    let cancelled = false;
+    readTake(keepKey)
+      .then(async (kept) => {
+        if (!kept || cancelled || takeRef.current) return;
+        const buffer = await ctxRef.current.decodeAudioData(kept.wav.slice(0));
+        if (cancelled || takeRef.current) return;
+        takeRef.current = { buffer, songTime: kept.songTime };
+        setTake(takeRef.current);
+        setTakeCount(kept.number || 1);
+        setTakeName(kept.name || "");
+        nudgeRef.current = kept.nudgeMs || 0;
+        setNudgeMs(kept.nudgeMs || 0);
+        setKeep({ state: "kept", at: kept.recordedAt });
+      })
+      .catch((err) => console.error("Could not bring back the kept take:", err));
+    return () => {
+      cancelled = true;
+    };
+  }, [status, keepKey, review]);
+
+  // A kept take's name and line-up follow it, once they've settled.
+  useEffect(() => {
+    if (!keepKey || keep?.state !== "kept") return;
+    const id = setTimeout(() => updateTake(keepKey, { name: takeName, nudgeMs }), 600);
+    return () => clearTimeout(id);
+  }, [keepKey, keep?.state, takeName, nudgeMs]);
+
+  // Leaving would only lose something while recording or sending, or when the take isn't kept.
+  const atRisk = !review && (recording || sendProgress !== null || (Boolean(take) && keep?.state !== "kept"));
+  useEffect(() => {
+    if (!atRisk) return;
+    const warn = (e) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [atRisk]);
+
   // Mode, volume, mute and solo all land here as smoothed gain changes on the running
   // graph, so none of them restarts playback or moves the stems off their shared clock.
   useEffect(() => {
@@ -570,6 +637,17 @@ export default function StemPlayer({
       if (current?.end != null && !recordingRef.current) {
         const loopEndsAt = startedAtRef.current + current.end / speedRef.current;
         if (loopEndsAt - ctx.currentTime < LOOP_LOOKAHEAD_S) {
+          // The speed trainer counts the pass and may step up, so the next pass starts at its speed.
+          const training = trainerRef.current;
+          if (training) {
+            const run = afterPass(training.settings, training.run);
+            trainerRef.current = { ...training, run };
+            setTrainer(trainerRef.current);
+            if (run.speed !== speedRef.current) {
+              speedRef.current = run.speed;
+              setSpeed(run.speed);
+            }
+          }
           startAt(current.start, Math.max(loopEndsAt, ctx.currentTime + startLead()));
         }
       }
@@ -748,6 +826,8 @@ export default function StemPlayer({
   }
 
   async function changeSpeed(value) {
+    // Picking a speed by hand takes over from the trainer.
+    stopTrainer();
     if (value !== 1 && !(await readyForSlowSpeed())) return;
     const t = currentPosition(); // read at the old speed
     speedRef.current = value;
@@ -804,6 +884,48 @@ export default function StemPlayer({
   function updateLoop(next) {
     loopRef.current = next;
     setLoop(next);
+    // The trainer counts passes of a loop, so it stops with one.
+    if (next?.end == null) stopTrainer();
+  }
+
+  // The chart section a position is in, as a loop: what the speed trainer repeats when no loop is set.
+  function sectionLoopAt(t) {
+    if (!chart) return null;
+    const s = Math.max(0, chart.sections.findLastIndex((sec) => sec.bars[0].time <= t + 0.001));
+    return { start: chart.sections[s].bars[0].time, end: chart.sections[s + 1]?.bars[0].time ?? chart.end };
+  }
+
+  // Starts the speed trainer (lib/speedTrainer.js) from the top of the loop, playing. Returns a reason
+  // when it can't: no loop and no chart to take a section from, or no slow playback in this browser.
+  async function startTrainer(raw) {
+    const settings = trainerSettings(raw);
+    try {
+      window.localStorage.setItem("rw-speed-trainer", JSON.stringify(settings));
+    } catch {
+      // Only a convenience: next time it starts from the defaults.
+    }
+    const current = loopRef.current?.end != null ? loopRef.current : sectionLoopAt(currentPosition());
+    if (!current) return "Set a loop first: the trainer repeats it, a little faster each time.";
+    const run = startRun(settings);
+    if (run.speed !== 1 && !(await readyForSlowSpeed())) return "Slow playback isn't available in this browser.";
+    if (loopRef.current !== current) {
+      loopRef.current = current;
+      setLoop(current);
+    }
+    trainerRef.current = { settings, run };
+    setTrainer(trainerRef.current);
+    speedRef.current = run.speed;
+    setSpeed(run.speed);
+    offsetRef.current = current.start;
+    setPosition(current.start);
+    if (playingRef.current) startAt(current.start);
+    else await play();
+    return null;
+  }
+
+  function stopTrainer() {
+    trainerRef.current = null;
+    setTrainer(null);
   }
 
   function markLoopStart() {
@@ -840,6 +962,20 @@ export default function StemPlayer({
     } catch {
       // Only a convenience: it just won't be remembered.
     }
+  }
+
+  // "Record your take" in the transport: shows the studio on its recorder and brings the record key into
+  // view with focus on it. The view this browser remembers is left as it was chosen.
+  function openRecorder() {
+    setView("studio");
+    studioTabsRef.current?.choose("recorder");
+    requestAnimationFrame(() => {
+      const key = studioRef.current?.querySelector(".rw-deck-key");
+      if (!key) return;
+      const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      key.scrollIntoView({ block: "center", behavior: still ? "instant" : "smooth" });
+      key.focus({ preventScroll: true });
+    });
   }
 
   function dismissIntro() {
@@ -965,6 +1101,7 @@ export default function StemPlayer({
     }
     stopSources();
     // A take lines up with the song in real time, so it's always recorded at full speed.
+    stopTrainer();
     speedRef.current = 1;
     setSpeed(1);
     chunksRef.current = [];
@@ -1005,6 +1142,22 @@ export default function StemPlayer({
     setTakeCount((n) => n + 1);
     setTakeName("");
     setMix((m) => ({ ...m, takeMuted: false }));
+    keepNewTake(buffer, songTime, takeCount + 1);
+  }
+
+  // Keeps a new take in this browser until it's sent or deleted (lib/takeStore.js).
+  async function keepNewTake(buffer, songTime, number) {
+    if (!keepKey) return;
+    const at = Date.now();
+    setKeep({ state: "keeping", at });
+    const wav = await toWav(buffer).arrayBuffer();
+    const kept = await keepTake(keepKey, { wav, songTime, duration: buffer.duration, number, name: "", nudgeMs: nudgeRef.current, recordedAt: at });
+    // A delete, or a newer take, may have come in while it was being stored.
+    if (takeRef.current?.buffer !== buffer) {
+      if (!takeRef.current) forgetTake(keepKey);
+      return;
+    }
+    setKeep({ state: kept ? "kept" : "unkept", at });
   }
 
   // A take is called by its number until it's given a name.
@@ -1035,21 +1188,30 @@ export default function StemPlayer({
     setTake(null);
     nudgeRef.current = 0;
     setNudgeMs(0);
+    setKeep(null);
+    if (keepKey) forgetTake(keepKey);
     if (playing) startAt(t);
   }
 
+  // Resolves true once the take is sent; a problem is shown in the recorder.
   async function sendTake() {
+    if (!take || !onSendTake) return false;
     const blob = toWav(take.buffer);
     setSendError("");
     if (blob.size > MAX_RECORDING_BYTES) {
       setSendError("This take is too long to send. Recordings can be up to about 7 minutes.");
-      return;
+      return false;
     }
     setSendProgress(0);
     try {
       await onSendTake({ blob, offset: take.songTime - nudgeMs / 1000, duration: take.buffer.duration }, setSendProgress);
+      // Sent, so it's the school's copy that counts now.
+      if (keepKey) await forgetTake(keepKey);
+      setKeep(null);
+      return true;
     } catch (err) {
       setSendError(err.message);
+      return false;
     } finally {
       setSendProgress(null);
     }
@@ -1110,6 +1272,24 @@ export default function StemPlayer({
     liveRef.current = { positionNow, countInBeat, beatNow };
   });
   const getPosition = useCallback(() => liveRef.current?.positionNow() ?? 0, []);
+  // Lets the page read where the song is (a teacher pinning a note to the moment they're hearing).
+  useEffect(() => {
+    if (!positionRef) return;
+    positionRef.current = getPosition;
+    return () => {
+      positionRef.current = null;
+    };
+  }, [positionRef, getPosition]);
+
+  // For the guided practice session: what it can ask the player to do, and where the take is.
+  useImperativeHandle(ref, () => ({
+    startTrainer: () => startTrainer(storedTrainerSettings()),
+    openRecorder,
+    sendTake,
+  }));
+  useEffect(() => {
+    onTakeState?.({ take: Boolean(take), name: takeName.trim() || `Take ${takeCount}`, keep: keep?.state ?? null, sending: sendProgress !== null });
+  }, [onTakeState, take, takeName, takeCount, keep, sendProgress]);
   const getCountInBeat = useCallback(() => liveRef.current?.countInBeat() ?? -1, []);
   const getBeat = useCallback(() => liveRef.current?.beatNow() ?? -1, []);
   const partMeters = useMemo(() => Object.fromEntries(parts.map((p) => [p, () => [metersRef.current.parts[p]]])), [parts]);
@@ -1193,23 +1373,34 @@ export default function StemPlayer({
     }
   }
 
-  // One line on what to try next, for someone new to practising like this.
+  // One line on what to try next, for someone new to practising like this. Practice work ends in a
+  // take for the teacher, and takes always record at full speed, so slowing down is only ever the way
+  // there: it says so, rather than a speed ladder that reads against the teacher's "at full speed".
   const nextSpeed = SPEEDS.find((s) => s > speed);
+  const forTeacher = Boolean(onSendTake);
   const coach = !ready
     ? null
     : recording
       ? "Keep going to the end of the part, then press Stop."
       : take
         ? `Listen back with your take, nudge it into time if it sounds early or late, then ${onSendTake ? "send it to your teacher" : "download it"}.`
-        : loop?.end != null
-          ? nextSpeed
-            ? `Repeat this loop until it feels easy, then step up to ${Math.round(nextSpeed * 100)}%.`
-            : "You're looping at full speed. When it's solid, clear the loop and play the whole song."
-          : speed < 1
-            ? `When ${Math.round(speed * 100)}% feels easy, try ${Math.round(nextSpeed * 100)}%.`
-            : !playing && position < 1
-              ? "Press Play, or Space, and follow along. Stuck on a part? Drag across its bars on the Loop strip to repeat it."
-              : "Tricky bar? Drag across it on the Loop strip above to repeat it, and slow it down with Speed.";
+        : trainer
+          ? trainer.run.atTop
+            ? `You're at ${Math.round(trainer.run.speed * 100)}%, your top speed. Keep looping until it's solid${forTeacher ? ", then record your take" : ""}.`
+            : `${trainerStatus(trainer.settings, trainer.run)}. The trainer speeds up on its own.`
+          : forTeacher && speed < 1
+            ? "Start slowly, then record your final take at 100%."
+            : loop?.end != null
+              ? nextSpeed
+                ? `Repeat this loop until it feels easy, then step up to ${Math.round(nextSpeed * 100)}%.`
+                : forTeacher
+                  ? "You're at full speed. When it feels solid, record your take."
+                  : "You're looping at full speed. When it's solid, clear the loop and play the whole song."
+              : speed < 1
+                ? `When ${Math.round(speed * 100)}% feels easy, try ${Math.round(nextSpeed * 100)}%.`
+                : !playing && position < 1
+                  ? "Press Play, or Space, and follow along. Stuck on a part? Drag across its bars on the Loop strip to repeat it."
+                  : "Tricky bar? Drag across it on the Loop strip above to repeat it, and slow it down with Speed.";
 
   const bandHeader = (
     <div className="rw-tl-header">
@@ -1228,7 +1419,7 @@ export default function StemPlayer({
         <div role="group" aria-label="Band" className="rw-tp-group">
           <span className="rw-tp-label">Band</span>
           <span className="rw-seg">
-            {MODES.map((m) => (
+            {bandModes(focus).map((m) => (
               <button key={m.id} type="button" onClick={() => (m.id === "full" ? playAllParts() : setMode(m.id))} aria-pressed={mode === m.id}>
                 {m.label}
               </button>
@@ -1275,17 +1466,17 @@ export default function StemPlayer({
         </div>
       )}
       {!review && chart && (
-        <div role="group" aria-label="Player view" className="rw-tp-group rw-tl-view">
-          <span className="rw-tp-label">View</span>
-          <span className="rw-seg">
-            <button type="button" onClick={() => chooseView("simple")} aria-pressed={simple}>
-              Simple
-            </button>
-            <button type="button" onClick={() => chooseView("studio")} aria-pressed={!simple} title="Part lanes, mixer, recorder and effects">
-              Studio
-            </button>
-          </span>
-        </div>
+        <button
+          type="button"
+          className="rw-btn rw-tl-view"
+          onClick={() => chooseView(simple ? "studio" : "simple")}
+          aria-expanded={!simple}
+          aria-controls={studioId}
+          title="Each part's lane, the mixer, the recorder and effects"
+        >
+          <Icon name="sliders" size={16} />
+          {simple ? "Open studio mixer" : "Close studio mixer"}
+        </button>
       )}
       {heldBack && (
         <div role="status" className="rw-tl-note">
@@ -1414,6 +1605,7 @@ export default function StemPlayer({
               nextTakeName={`Take ${takeCount + 1}`}
               onRename={setTakeName}
               onPlayTake={playTake}
+              keep={keepKey ? keep : undefined}
             />
           ),
         },
@@ -1435,7 +1627,7 @@ export default function StemPlayer({
           Your instrument: <strong>{instrument}</strong>
         </p>
       )}
-      {intro && simple && (
+      {intro && simple && !guided && (
         <section className="rw-intro" aria-labelledby="player-intro">
           <h2 id="player-intro" className="rw-intro-title">
             New to the player?
@@ -1447,8 +1639,8 @@ export default function StemPlayer({
           </ol>
           <p className="rw-intro-more">
             {student
-              ? `Play, beside the timeline, switches between the whole song, the band without your ${noun}, and your ${noun} alone. Studio, beside View, balances your ${noun} against the band and opens the recorder.`
-              : "Studio, beside View, opens each part's lane, the mixer and the recorder."}
+              ? `Play, beside the timeline, switches between the whole song, the band without your ${noun}, and your ${noun} alone. Open studio mixer balances your ${noun} against the band, and Record your take opens the recorder.`
+              : "Open studio mixer shows each part's lane and the mixer, and Record your take opens the recorder."}
           </p>
           <button type="button" className="rw-btn rw-intro-ok" onClick={dismissIntro}>
             Got it
@@ -1483,6 +1675,11 @@ export default function StemPlayer({
         onClearLoop={() => updateLoop(null)}
         recordTime={recording ? Math.max(0, position - recordFrom) : 0}
         getMaster={getMaster}
+        onOpenRecorder={review ? null : openRecorder}
+        trainer={trainer}
+        onStartTrainer={review ? null : startTrainer}
+        onStopTrainer={stopTrainer}
+        onFocus={chart && !review ? () => setFocusOpen(true) : null}
       />
 
       <Timeline
@@ -1524,10 +1721,44 @@ export default function StemPlayer({
           </section>
         )}
         {/* Hidden rather than removed, so a recording or mic check keeps its panel. */}
-        <aside className="rw-studio" aria-label="Studio" hidden={simple}>
-          <StudioTabs tabs={studioTabs} />
+        <aside id={studioId} ref={studioRef} className="rw-studio" aria-label="Studio" hidden={simple}>
+          <StudioTabs ref={studioTabsRef} tabs={studioTabs} />
         </aside>
       </div>
+
+      {chart && !review && (
+        <FocusView
+          open={focusOpen}
+          onClose={() => setFocusOpen(false)}
+          title={title}
+          chart={{ chart, myPart, instrument: instrument || null, partAvailable: available?.chart ?? true, loop, onSeek: seek, onLoopSection: loopSection }}
+          position={position}
+          where={where}
+          ready={ready}
+          playing={playing}
+          recording={recording}
+          recordTime={recording ? Math.max(0, position - recordFrom) : 0}
+          onPlayPause={playing ? pause : play}
+          onStep={(direction) => stepBar(direction, false)}
+          speed={speed}
+          speeds={SPEEDS}
+          onSpeed={changeSpeed}
+          preparingSpeed={preparingSpeed}
+          loop={loop}
+          onLoopHere={() => {
+            const here = sectionLoopAt(currentPosition());
+            if (here) loopSection(here.start, here.end);
+          }}
+          onClearLoop={() => updateLoop(null)}
+          onRecord={startRecording}
+          onStopRecording={stopRecording}
+          status={
+            micError ||
+            (trainer ? trainerStatus(trainer.settings, trainer.run) : "") ||
+            (take && !recording ? `${takeTitle} is ready. Exit focus to hear it${onSendTake ? " and send it" : ""}.` : "")
+          }
+        />
+      )}
     </div>
     </PlayClock.Provider>
   );

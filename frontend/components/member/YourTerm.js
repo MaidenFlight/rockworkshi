@@ -1,9 +1,10 @@
 import Link from "next/link";
 
-// The term at a glance, beside the practice panel: which month it is and what each month holds.
-// `data` is GET /term, which never sends a song title before it's open. This month's song is
-// played from the practice panel, so here it's a row like the others.
-export default function YourTerm({ data }) {
+// The term at a glance, at the foot of the dashboard's side column: which month it is and what each
+// month holds. `data` is GET /term, which never sends a song title before it's open. This month's song
+// is played from the practice panel, so here it's a row like the others. The student demo has no lesson
+// videos, so its membership line leaves them out.
+export default function YourTerm({ data, demo = false }) {
   // Loading, failed or lapsed: the practice panel already says what to do.
   if (!data || data.membership !== "active") return null;
   const { term } = data;
@@ -12,10 +13,7 @@ export default function YourTerm({ data }) {
     return (
       <section className="rw-st-card" aria-labelledby="your-term">
         <h2 id="your-term">Your membership</h2>
-        <p style={text}>
-          It opens the practice library, lesson videos and tools. Lessons at the school, and the term groups that come with them,
-          are arranged with us separately.
-        </p>
+        <p style={text}>It opens the library{demo ? "" : ", lesson videos"} and practice tools. Lessons at the school are arranged separately.</p>
         <Link href="/trial" className="rw-dash-link" style={link}>
           Ask about lessons
         </Link>

@@ -54,10 +54,11 @@ function Diagram({ name, voicing }) {
 // coach is a line of advice on what to try next, from the player. ephemeral leaves the visitor's
 // remembered part and help level alone (the homepage preview); titleAs sets the heading level.
 // endLabel names what comes after the last section, for a chart that's an excerpt. compact shows only
-// the chord to play now and the next one (the homepage preview's small view).
+// the chord to play now and the next one (the homepage preview's small view). stage is the focus view's
+// (player/FocusView.js): the same two at their largest, or the bar being played for bass, drums and voice.
 // instrument (a student's) shows only that instrument's view, with no tabs for the other parts;
 // partAvailable false says their transcription isn't written yet, rather than showing another.
-export default function ChordChart({ chart, position, myPart = null, instrument = null, partAvailable = true, loop = null, disabled = false, onSeek, onLoopSection, coach = null, ephemeral = false, titleAs: Title = "h2", endLabel = null, compact = false }) {
+export default function ChordChart({ chart, position, myPart = null, instrument = null, partAvailable = true, loop = null, disabled = false, onSeek, onLoopSection, coach = null, ephemeral = false, titleAs: Title = "h2", endLabel = null, compact = false, stage = false }) {
   // The player hands down new functions on every frame. Steady ones let the bars skip redrawing.
   const handlers = useRef({ onSeek, onLoopSection });
   useEffect(() => {
@@ -131,6 +132,24 @@ export default function ChordChart({ chart, position, myPart = null, instrument 
     return (
       <div className="rw-play-along rw-play-along-compact">
         <ChordNow now={now} next={next} beat={beat} voicing={voicing} />
+      </div>
+    );
+  }
+
+  // The focus view: no choices to make, only what to play, as large as the screen allows.
+  if (stage) {
+    const notes = NOTE_PARTS.includes(part);
+    return (
+      <div className="rw-play-along rw-play-along-stage" data-kind={notes ? "notes" : "chords"}>
+        {missing ? (
+          <p className="rw-part-missing" role="status">
+            {`The ${MISSING_NAME[part]} part for this song isn't written out yet. Play along by ear for now.`}
+          </p>
+        ) : notes ? (
+          <PartChart chart={chart} part={part} position={position} mode="stage" loop={loop} disabled={disabled} onSeek={seekTo} onLoopSection={loopRange} />
+        ) : (
+          <ChordNow now={now} next={next} beat={beat} voicing={voicing} />
+        )}
       </div>
     );
   }

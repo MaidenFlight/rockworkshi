@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { measure } from "@/lib/audio/meters";
 import { drawPeaks } from "@/lib/audio/peaks";
+import { keptWhen } from "@/lib/takeStore";
 import Icon from "../Icon";
 import TapeDeck, { deckKey } from "../TapeDeck";
 import Meter from "./Meter";
@@ -40,7 +41,8 @@ function useMicPermission() {
 }
 
 // Recording around the tape deck: what state you're in, the mic, a level check before you
-// commit, and your take once it's down.
+// commit, and your take once it's down. keep says where an unsent take is (StemPlayer's keepKey):
+// undefined when this player doesn't keep takes, so it lasts as long as the page.
 export default function RecordPanel({
   ready,
   playing,
@@ -74,6 +76,7 @@ export default function RecordPanel({
   nextTakeName,
   onRename,
   onPlayTake,
+  keep,
 }) {
   const permission = useMicPermission();
   const listening = monitoring || recording;
@@ -152,7 +155,7 @@ export default function RecordPanel({
             </button>
           )}
         </div>
-        <Meter getNodes={getMic} active={listening} vertical={false} length={260} thickness={8} clipAt={0.99} clipLabel="Too loud" title="Mic level" />
+        <Meter getNodes={getMic} active={listening} vertical={false} length={260} thickness={8} clipAt={0.99} clipLabel="Too loud" title="Mic level" fluid />
         <div className="rw-meter-scale" aria-hidden="true">
           {["-48", "-36", "-24", "-12", "0 dB"].map((t) => (
             <span key={t}>{t}</span>
@@ -219,12 +222,36 @@ export default function RecordPanel({
               {sendError}
             </p>
           )}
-          <p className="rw-studio-hint">
-            {onSend ? "Until you send it, your take" : "Your take"} stays on this device. Leaving the page deletes it, so download it first if you want to keep it.
-          </p>
+          <TakeStatus keep={keep} canSend={Boolean(onSend)} sending={sendProgress !== null} />
         </div>
       )}
     </div>
+  );
+}
+
+// Where the take is, in words, so it's never a guess whether leaving loses it. Sent and replied are
+// shown on the practice work's page, where every send is listed.
+function TakeStatus({ keep, canSend, sending }) {
+  let state = "page";
+  let text = `${canSend ? "Until you send it, your take" : "Your take"} is only on this page. Leaving deletes it, so ${canSend ? "send or " : ""}download it first.`;
+  if (sending) {
+    state = "sending";
+    text = "Sending to your teacher. Stay on this page until it's done.";
+  } else if (keep?.state === "keeping") {
+    state = "keeping";
+    text = "Keeping it in this browser…";
+  } else if (keep?.state === "kept") {
+    state = "kept";
+    text = `Only in this browser, kept since ${keptWhen(keep.at)}. It's still here if you leave and come back${canSend ? ", until you send it or delete it" : ", until you delete it"}.`;
+  } else if (keep?.state === "unkept") {
+    state = "unkept";
+    text = `Only on this page: this browser won't keep it, so it's lost if you leave. ${canSend ? "Send or download" : "Download"} it first.`;
+  }
+  return (
+    <p className="rw-take-status" data-state={state} role="status">
+      <span aria-hidden="true" className="rw-take-status-lamp" />
+      {text}
+    </p>
   );
 }
 

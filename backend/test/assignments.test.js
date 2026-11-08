@@ -256,6 +256,44 @@ test("work can be sent again at any time, and the teacher's reply to the newest 
   }
 });
 
+test("feedback can carry notes tied to moments in the song", async () => {
+  const created = await call("teacherA", "POST", "/teacher/assignments", newAssignment(users.studentX.id));
+  const id = created.data.assignment.id;
+  const sent = await call("studentX", "POST", `/assignments/${id}/submit`, {});
+  const path = `/teacher/submissions/${sent.data.submission.id}/feedback`;
+
+  // Out of order on the way in, in song order on the way out.
+  const notes = [
+    { at: 31.256, text: "  Early into the G here. Wait for beat 1.  " },
+    { at: 12, text: "Nice and steady." },
+  ];
+  const saved = await call("teacherA", "PUT", path, { feedback: "Closer. Two spots to look at.", notes });
+  assert.equal(saved.status, 200);
+  assert.deepEqual(saved.data.submission.notes, [
+    { at: 12, text: "Nice and steady." },
+    { at: 31.26, text: "Early into the G here. Wait for beat 1." },
+  ]);
+  const seen = (await call("studentX", "GET", `/assignments/${id}`)).data.assignment.submissions[0];
+  assert.equal(seen.notes.length, 2);
+  assert.equal(seen.notes[1].at, 31.26);
+
+  // Feedback sent without notes (an older client) keeps them; null clears them.
+  assert.equal((await call("teacherA", "PUT", path, { feedback: "Closer still." })).data.submission.notes.length, 2);
+  assert.deepEqual((await call("teacherA", "PUT", path, { feedback: "Closer still.", notes: null })).data.submission.notes, []);
+
+  // Each note needs a moment and a line, and there's a limit.
+  for (const bad of [
+    "not a list",
+    [{ at: -1, text: "Before the song" }],
+    [{ at: "soon", text: "No time" }],
+    [{ at: 10, text: "   " }],
+    [{ at: 10, text: "x".repeat(281) }],
+    Array.from({ length: 21 }, (_, i) => ({ at: i, text: "One" })),
+  ]) {
+    assert.equal((await call("teacherA", "PUT", path, { feedback: "Fine.", notes: bad })).status, 400, JSON.stringify(bad).slice(0, 40));
+  }
+});
+
 test("only the admin manages roles and links", async () => {
   const z = users.unpaid.id;
   assert.equal((await call("teacherA", "GET", "/admin/teaching")).status, 403);

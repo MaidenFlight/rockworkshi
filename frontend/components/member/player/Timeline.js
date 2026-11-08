@@ -16,8 +16,21 @@ export function partColor(part) {
   return PARTS.includes(part) ? `var(--rw-part-${part.toLowerCase()})` : "var(--rw-part-other)";
 }
 
-// What a lane's state says in words, so it never rests on colour alone.
-export const STATE_TEXT = { playing: "Playing", solo: "Solo", muted: "Muted", off: "Left out", silent: "Not soloed" };
+// What a lane's state says in words, so it never rests on colour alone. "In mix" rather than
+// "Playing": it's true whether or not the song is, where "Playing" read wrong while paused.
+export const STATE_TEXT = { playing: "In mix", solo: "Solo", muted: "Muted", off: "Left out", silent: "Not soloed" };
+
+// The band keys of a player with every stem (staff, the student demo, the homepage preview), named for
+// the part in focus like a student's are for their instrument: the whole song, the band without that
+// part, and the part alone.
+export function bandModes(part) {
+  const name = part ?? "One part";
+  return [
+    { id: "full", label: "Whole song" },
+    { id: "minus", label: `Band without ${name.toLowerCase()}` },
+    { id: "solo", label: `${name} only` },
+  ];
+}
 
 function clock(s) {
   const t = Math.max(0, Math.floor(s));

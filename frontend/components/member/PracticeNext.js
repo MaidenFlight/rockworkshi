@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui";
-import TodayList from "@/components/member/TodayList";
+import TodayList, { stepsFor } from "@/components/member/TodayList";
+import UnsentTake from "@/components/member/UnsentTake";
 import { formatClock, formatWhen } from "@/lib/practice";
 
 const LABELS = {
@@ -83,6 +84,14 @@ export default function PracticeNext({ next, failed, onRetry }) {
   ].filter(Boolean);
   const title = song?.title ?? assignment?.lesson?.title;
   const starting = next.leftOff == null && (next.kind === "start" || next.isNew);
+  // Practice work on a song is a guided session: today's steps, one at a time, above the player.
+  const guided = Boolean(assignment && song);
+  const teacher = assignment?.teacher?.name?.split(" ")[0] || "your teacher";
+  const plan = guided
+    ? stepsFor(assignment)
+        .map((s) => (s.id === "tune" ? "tune up" : s.id === "loop" ? `practise ${assignment.section || "the section"}` : s.id === "send" ? `record a take and send it to ${teacher}` : null))
+        .filter(Boolean)
+    : [];
 
   return (
     <section className="rw-tag rw-next" aria-labelledby="practice-next">
@@ -92,7 +101,13 @@ export default function PracticeNext({ next, failed, onRetry }) {
       </h2>
       {meta.length > 0 && <p className="rw-next-meta">{meta.join(" · ")}</p>}
       {assignment?.instruction && <p className="rw-next-brief">{assignment.instruction}</p>}
-      {next.leftOff ? (
+      {guided ? (
+        <p className="rw-next-text">
+          Step by step: {plan.slice(0, -1).join(", ")}
+          {plan.length > 1 ? ", then " : ""}
+          {plan.at(-1)}.
+        </p>
+      ) : next.leftOff ? (
         <p className="rw-next-text">
           You left off at <strong>{formatClock(next.leftOff)}</strong>
           {next.lastOpenedAt ? `, ${formatWhen(next.lastOpenedAt)}` : ""}. The player opens there, paused.
@@ -101,10 +116,10 @@ export default function PracticeNext({ next, failed, onRetry }) {
         <p className="rw-next-text">Press Play and follow the chart. You can slow it down and loop any bars until they feel easy.</p>
       ) : null}
       <div className="rw-next-actions">
-        <Button href={next.href}>{starting ? "Start practising" : "Continue practice"}</Button>
+        {guided ? <Button href={`${next.href}&session=1`}>Start today&apos;s practice</Button> : <Button href={next.href}>{starting ? "Start practising" : "Continue practice"}</Button>}
         {assignment ? (
           <Button href={`/member/assignment/${assignment.id}`} variant="secondary">
-            See the brief
+            View assignment
           </Button>
         ) : next.lesson ? (
           <Button href={`/member/lesson/${next.lesson.id}`} variant="secondary">
@@ -112,7 +127,13 @@ export default function PracticeNext({ next, failed, onRetry }) {
           </Button>
         ) : null}
       </div>
+      {guided && (
+        <p className="rw-next-plain">
+          <Link href={next.href}>Open the player without the steps</Link>
+        </p>
+      )}
       {assignment && <TodayList key={assignment.id} assignment={assignment} />}
+      {assignment && song && <UnsentTake key={`take-${assignment.id}`} songId={song.id} assignmentId={assignment.id} aside />}
       {next.waiting && (
         <p className="rw-next-aside">
           {next.waiting.upcoming && next.waiting.unlockShort ? `Your term's first song unlocks ${next.waiting.unlockShort}.` : "This month's term song is being prepared."}
@@ -123,12 +144,15 @@ export default function PracticeNext({ next, failed, onRetry }) {
   );
 }
 
+// The latest reply from the teacher. The link says what it opens; the task it's on follows.
 function Feedback({ item }) {
   if (!item) return null;
+  const teacher = item.teacher?.name?.split(" ")[0];
+  const on = item.section || (item.song || item.lesson)?.title;
   return (
     <p className="rw-next-aside">
-      Your teacher left feedback on{" "}
-      <Link href={`/member/assignment/${item.id}`}>{(item.song || item.lesson)?.title ?? "your recording"}</Link>.
+      <Link href={`/member/assignment/${item.id}`}>Read {teacher ? `${teacher}'s` : "your teacher's"} feedback</Link>
+      {on ? ` on ${on}` : ""}.
     </p>
   );
 }

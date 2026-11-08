@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId, useImperativeHandle, useState } from "react";
 
 function saved(key, ids) {
   try {
@@ -13,7 +13,8 @@ function saved(key, ids) {
 
 // Tabs for the studio column. Every panel stays mounted, so a mix being saved or a slider being
 // dragged isn't lost by looking at another tab. Arrow keys move between tabs, as in any tablist.
-export default function StudioTabs({ tabs, label = "Studio", storageKey = "rw-studio-tab" }) {
+// `ref` gets { choose(id) }, so the player can open a tab from elsewhere (Record your take).
+export default function StudioTabs({ tabs, label = "Studio", storageKey = "rw-studio-tab", ref }) {
   const base = useId();
   const ids = tabs.map((t) => t.id);
   const [chosen, setChosen] = useState(() => saved(storageKey, ids) ?? ids[0]);
@@ -28,6 +29,8 @@ export default function StudioTabs({ tabs, label = "Studio", storageKey = "rw-st
       // Only a convenience.
     }
   }
+
+  useImperativeHandle(ref, () => ({ choose }));
 
   function onKey(e) {
     const i = usable.findIndex((t) => t.id === current);

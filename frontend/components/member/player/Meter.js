@@ -10,7 +10,9 @@ const SETTLE_S = 2; // keeps reading this long after the sound stops, so the bar
 // and a peak line that holds for a moment. clipAt is an amplitude: the light comes on when a
 // peak reaches it, and stays on for a moment so it can be seen.
 // getNodes is called each frame, so a node that appears later (the mic) is picked up.
-export default function Meter({ getNodes, active, vertical = true, length = 120, thickness = 6, clipAt = null, clipLabel = "Clip", title }) {
+// fluid (horizontal only) lets the bar shrink below `length` to fit a narrow column, such as the
+// recorder on a phone; `length` is then its widest.
+export default function Meter({ getNodes, active, vertical = true, length = 120, thickness = 6, clipAt = null, clipLabel = "Clip", title, fluid = false }) {
   const box = useRef(null);
   const clip = useRef(null);
 
@@ -48,10 +50,11 @@ export default function Meter({ getNodes, active, vertical = true, length = 120,
   }, [active, getNodes, clipAt, vertical]);
 
   const channels = (getNodes() ?? []).length > 1 ? 2 : 1;
+  const stretch = fluid && !vertical;
   const wellStyle = {
     position: "relative",
     overflow: "hidden",
-    width: vertical ? thickness : length,
+    width: vertical ? thickness : stretch ? "100%" : length,
     height: vertical ? length : thickness,
     background: `linear-gradient(${vertical ? "0deg" : "90deg"}, var(--rw-meter-low) 0%, var(--rw-meter-low) 62%, var(--rw-meter-mid) 62%, var(--rw-meter-mid) 88%, var(--rw-meter-high) 88%)`,
   };
@@ -68,7 +71,7 @@ export default function Meter({ getNodes, active, vertical = true, length = 120,
           {clipLabel}
         </span>
       )}
-      <div style={{ display: "flex", flexDirection: vertical ? "row" : "column", gap: 2 }}>
+      <div style={{ display: "flex", flexDirection: vertical ? "row" : "column", gap: 2, ...(stretch ? { flex: `0 1 ${length}px`, minWidth: 0 } : null) }}>
         {Array.from({ length: channels }, (_, i) => (
           <div key={i} data-well="true" style={wellStyle}>
             {/* The unlit part of the bar covers the zones from the top down. */}

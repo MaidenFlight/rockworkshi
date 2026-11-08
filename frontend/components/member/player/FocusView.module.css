@@ -1,0 +1,337 @@
+/* The player's focus view (FocusView.js): the console at stage size, filling the screen. What to play
+   sits on paper in the middle (the chord cards or the bar, sized in globals.css under
+   .rw-play-along-stage); the keys along the foot are 60 to 84px, made to be hit from a step away. */
+
+.dialog {
+  width: 100vw;
+  max-width: none;
+  height: 100vh;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: var(--rw-console);
+  color: var(--rw-console-text);
+}
+
+.dialog::backdrop {
+  background: var(--rw-console);
+}
+
+.stage {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 16px;
+  height: 100%;
+  padding: 16px 24px 20px;
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 24px;
+}
+
+.where {
+  display: grid;
+  flex: 1 1 0;
+  gap: 2px;
+  min-width: 0;
+}
+
+.song {
+  overflow: hidden;
+  font-size: var(--rw-text-xs);
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--rw-console-meta);
+}
+
+.place {
+  font-family: var(--rw-font-display);
+  font-size: var(--rw-text-3xl);
+  font-weight: 800;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.clock {
+  margin-left: auto;
+  font-family: var(--rw-font-display);
+  font-size: var(--rw-text-4xl);
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.exit,
+.key,
+.wide,
+.seg button,
+.rec {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1px solid var(--rw-console-edge);
+  border-radius: var(--rw-radius-sm);
+  background: var(--rw-console-raised);
+  color: var(--rw-console-text);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.16s ease, background-color 0.16s ease;
+}
+
+.exit {
+  min-height: 44px;
+  padding: 0 16px;
+  font-size: var(--rw-text-base);
+}
+
+.exit:hover,
+.key:hover:not(:disabled),
+.wide:hover:not(:disabled),
+.seg button:hover:not(:disabled) {
+  border-color: var(--rw-console-meta);
+}
+
+/* The chart takes whatever height is left and scrolls only if it has to. */
+.chart {
+  display: grid;
+  align-content: center;
+  min-height: 0;
+  overflow: auto;
+}
+
+.keys {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--rw-console-edge);
+}
+
+.transport {
+  display: flex;
+  gap: 8px;
+}
+
+.key {
+  width: 84px;
+  height: 84px;
+  padding: 0;
+}
+
+.play {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-width: 200px;
+  height: 84px;
+  padding: 0 28px;
+  border: 1px solid var(--rw-orange);
+  border-radius: var(--rw-radius-sm);
+  background: var(--rw-orange);
+  color: #fff;
+  font: inherit;
+  font-size: var(--rw-text-xl);
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 0.16s ease;
+}
+
+.play:hover:not(:disabled) {
+  filter: brightness(1.04);
+}
+
+.group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.label {
+  font-size: var(--rw-text-xs);
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--rw-console-meta);
+}
+
+.wide {
+  min-height: 60px;
+  padding: 0 20px;
+  font-size: var(--rw-text-md);
+}
+
+.wide[data-on="true"] {
+  border-color: var(--rw-sea-glass);
+  color: var(--rw-sea-glass);
+}
+
+.sub {
+  display: block;
+  font-size: var(--rw-text-xs);
+  font-weight: 400;
+  color: var(--rw-console-meta);
+}
+
+.seg {
+  display: inline-flex;
+}
+
+.seg button {
+  min-height: 60px;
+  padding: 0 18px;
+  border-radius: 0;
+  font-size: var(--rw-text-md);
+  font-variant-numeric: tabular-nums;
+}
+
+.seg button + button {
+  border-left: 0;
+}
+
+.seg button:first-child {
+  border-radius: var(--rw-radius-sm) 0 0 var(--rw-radius-sm);
+}
+
+.seg button:last-child {
+  border-radius: 0 var(--rw-radius-sm) var(--rw-radius-sm) 0;
+}
+
+.seg button[aria-pressed="true"] {
+  border-color: var(--rw-gold);
+  background: var(--rw-gold);
+  color: var(--rw-ink);
+}
+
+.now {
+  font-size: var(--rw-text-md);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--rw-gold);
+}
+
+/* Record, edged in the take's red like the Rec lamp; solid red while it records. */
+.rec {
+  min-height: 84px;
+  min-width: 160px;
+  padding: 0 24px;
+  border: 2px solid var(--rw-part-take);
+  font-size: var(--rw-text-xl);
+  font-variant-numeric: tabular-nums;
+}
+
+.rec svg {
+  color: var(--rw-part-take);
+}
+
+.rec[data-recording="true"] {
+  background: var(--rw-flare);
+  border-color: var(--rw-flare);
+  color: var(--rw-ink);
+}
+
+.rec[data-recording="true"] svg {
+  color: var(--rw-ink);
+}
+
+.key:disabled,
+.play:disabled,
+.wide:disabled,
+.seg button:disabled,
+.rec:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.exit:focus-visible,
+.key:focus-visible,
+.play:focus-visible,
+.wide:focus-visible,
+.seg button:focus-visible,
+.rec:focus-visible {
+  outline: 2px solid var(--rw-sea-glass);
+  outline-offset: 3px;
+}
+
+.status {
+  flex-basis: 100%;
+  margin: 0;
+  text-align: center;
+  font-size: var(--rw-text-base);
+  color: var(--rw-console-meta);
+}
+
+/* A phone: smaller type at the top, keys that still clear 44px, two to a row where they must. */
+@media (max-width: 700px) {
+  .stage {
+    gap: 12px;
+    padding: 12px 16px 16px;
+  }
+  .place {
+    font-size: var(--rw-text-xl);
+  }
+  /* The place in the song says enough here; the clock gives its room to Exit. */
+  .clock {
+    display: none;
+  }
+  .exit {
+    padding: 0 12px;
+    font-size: var(--rw-text-sm);
+  }
+  .label {
+    display: none;
+  }
+  .keys {
+    gap: 10px 12px;
+    padding-top: 12px;
+  }
+  .key {
+    width: 64px;
+    height: 64px;
+  }
+  .play {
+    min-width: 0;
+    flex: 1 1 140px;
+    height: 64px;
+  }
+  .transport {
+    flex: 1 1 100%;
+  }
+  .wide,
+  .seg button {
+    min-height: 52px;
+  }
+  .seg button {
+    padding: 0 12px;
+  }
+  .rec {
+    min-height: 64px;
+    min-width: 0;
+    flex: 1 1 140px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .exit,
+  .key,
+  .wide,
+  .seg button,
+  .rec,
+  .play {
+    transition: none;
+  }
+}

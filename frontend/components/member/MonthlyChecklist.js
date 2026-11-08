@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { assignmentTitle, studentStatus } from "@/lib/teaching";
 import { pill } from "@/lib/terms";
+import Icon from "./Icon";
 import s from "./MonthlyChecklist.module.css";
 
 const ZONE = "Pacific/Honolulu";
@@ -14,6 +15,9 @@ const day = (iso) => new Date(iso).toLocaleDateString("en-US", { timeZone: ZONE,
 
 const sent = (a) => a.status === "ready" || a.status === "reviewed";
 const STATE = { assigned: "todo", ready: "sent", reviewed: "done" };
+// Each state's mark: a note to practise, a clock while the teacher has it, their reply once it's in.
+// Drawn icons rather than boxes, so the rows don't read as the Today list's checkboxes.
+const MARK = { todo: "note", sent: "clock", done: "feedback" };
 
 // The teacher's work as a checklist, a month at a time (the month it was set, Honolulu time) and in the
 // order it was set. Each task says whether it has been sent, how often, and whether the teacher has
@@ -86,12 +90,8 @@ function Task({ task: a, current, showSong }) {
   return (
     <li>
       <Link href={`/member/assignment/${a.id}`} className={s.row} aria-current={current ? "step" : undefined}>
-        <span className={s.box} data-state={state} aria-hidden="true">
-          {state === "done" && (
-            <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2">
-              <path d="M3 8.5l3.2 3L13 4.5" />
-            </svg>
-          )}
+        <span className={s.mark} data-state={state} aria-hidden="true">
+          <Icon name={MARK[state]} size={20} />
         </span>
         <span className={s.main}>
           <span className={s.title}>{a.section || assignmentTitle(a)}</span>
@@ -100,6 +100,9 @@ function Task({ task: a, current, showSong }) {
         <span className={s.tags}>
           {current && <span className={s.today}>Today</span>}
           <span style={pill(status.tone)}>{status.label}</span>
+        </span>
+        <span className={s.go} aria-hidden="true">
+          <Icon name="chevron-right" size={18} />
         </span>
       </Link>
     </li>

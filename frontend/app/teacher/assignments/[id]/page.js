@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Icon from "@/components/member/Icon";
 import { useParams, useRouter } from "next/navigation";
@@ -59,7 +59,7 @@ export default function ReviewAssignment() {
       ...current,
       status: isLatest ? "reviewed" : current.status,
       submissions: current.submissions.map((s) =>
-        s.id === saved.id ? { ...s, feedback: saved.feedback, reviewedAt: saved.reviewedAt } : s
+        s.id === saved.id ? { ...s, feedback: saved.feedback, notes: saved.notes, reviewedAt: saved.reviewedAt } : s
       ),
     }));
   }
@@ -124,48 +124,17 @@ export default function ReviewAssignment() {
       ) : (
         <div style={{ display: "grid", gap: 14 }}>
           {a.submissions.map((s, i) => (
-            <div key={s.id} style={card}>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginBottom: 12 }}>
-                <strong style={{ color: "var(--rw-ink)" }}>
-                  {i === 0 ? "Latest" : "Earlier"} · sent {formatDate(s.createdAt)}
-                </strong>
-                <span style={{ fontSize: 13, color: "var(--rw-meta)" }}>
-                  {s.recording ? `Recording ${formatClock(s.recording.duration)}` : "No recording"}
-                </span>
-              </div>
-
-              {s.recording?.url && (
-                <div style={{ display: "grid", gap: 10, marginBottom: 14 }}>
-                  <audio controls preload="none" src={s.recording.url} style={{ width: "100%" }} />
-                  {tracks && (
-                    <div>
-                      <button
-                        onClick={() => setListeningTo(listeningTo === s.id ? null : s.id)}
-                        style={smallBtn}
-                      >
-                        {listeningTo === s.id ? "Hide the band" : "Listen with the band"}
-                      </button>
-                    </div>
-                  )}
-                  {tracks && listeningTo === s.id && (
-                    <StemPlayer
-                      key={s.id}
-                      tracks={tracks}
-                      myPart={partForInstrument(a.instrument)}
-                      partLabel="student's"
-                      title={a.song.title}
-                      mixLevel={mixLevel}
-                      review={{ url: s.recording.url, songTime: s.recording.offset ?? 0, label: "Student" }}
-                    />
-                  )}
-                  <span style={{ fontSize: 12.5, color: "var(--rw-meta)" }}>
-                    Recording links last 15 minutes. Reload the page if one stops playing.
-                  </span>
-                </div>
-              )}
-
-              <FeedbackForm submission={s} onSaved={(saved) => applyFeedback(saved, i === 0)} />
-            </div>
+            <ReviewCard
+              key={s.id}
+              assignment={a}
+              submission={s}
+              latest={i === 0}
+              tracks={tracks}
+              mixLevel={mixLevel}
+              listening={listeningTo === s.id}
+              onListen={() => setListeningTo(listeningTo === s.id ? null : s.id)}
+              onSaved={(saved) => applyFeedback(saved, i === 0)}
+            />
           ))}
         </div>
       )}
@@ -179,11 +148,89 @@ export default function ReviewAssignment() {
   );
 }
 
-function FeedbackForm({ submission, onSaved }) {
+// One send, with its recording (alone, or with the band) and the feedback on it. moment() says where
+// in the song the teacher is: the band player's position while it's open, else the recording's own
+// time plus where it starts in the song.
+function ReviewCard({ assignment: a, submission: s, latest, tracks, mixLevel, listening, onListen, onSaved }) {
+  const audio = useRef(null);
+  const band = useRef(null);
+  const moment = () => {
+    if (listening && band.current) return band.current();
+    return audio.current ? (s.recording?.offset ?? 0) + audio.current.currentTime : null;
+  };
+
+  return (
+    <div style={card}>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginBottom: 12 }}>
+        <strong style={{ color: "var(--rw-ink)" }}>
+          {latest ? "Latest" : "Earlier"} · sent {formatDate(s.createdAt)}
+        </strong>
+        <span style={{ fontSize: 13, color: "var(--rw-meta)" }}>{s.recording ? `Recording ${formatClock(s.recording.duration)}` : "No recording"}</span>
+      </div>
+
+      {s.recording?.url && (
+        <div style={{ display: "grid", gap: 10, marginBottom: 14 }}>
+          <audio ref={audio} controls preload="none" src={s.recording.url} style={{ width: "100%" }} />
+          {tracks && (
+            <div>
+              <button onClick={onListen} style={smallBtn}>
+                {listening ? "Hide the band" : "Listen with the band"}
+              </button>
+            </div>
+          )}
+          {tracks && listening && (
+            <StemPlayer
+              key={s.id}
+              tracks={tracks}
+              myPart={partForInstrument(a.instrument)}
+              partLabel="student's"
+              title={a.song.title}
+              mixLevel={mixLevel}
+              review={{ url: s.recording.url, songTime: s.recording.offset ?? 0, label: "Student" }}
+              positionRef={band}
+            />
+          )}
+          <span style={{ fontSize: 12.5, color: "var(--rw-meta)" }}>Recording links last 15 minutes. Reload the page if one stops playing.</span>
+        </div>
+      )}
+
+      <FeedbackForm submission={s} moment={s.recording?.url ? moment : null} onSaved={onSaved} />
+    </div>
+  );
+}
+
+// "1:12" from seconds, and back (or null when it isn't a time).
+const toClock = (t) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}`;
+function fromClock(text) {
+  const m = /^\s*(\d{1,2}):([0-5]\d)(?:\.(\d))?\s*$/.exec(text) || /^\s*(\d{1,4})\s*$/.exec(text);
+  if (!m) return null;
+  return m[2] === undefined ? Number(m[1]) : Number(m[1]) * 60 + Number(m[2]) + (m[3] ? Number(m[3]) / 10 : 0);
+}
+
+const MAX_NOTES = 20;
+const MAX_NOTE = 280;
+
+function FeedbackForm({ submission, moment, onSaved }) {
   const [text, setText] = useState(submission.feedback || "");
+  // Notes pinned to moments in the song: the student sees each with a way to hear it and practise it.
+  const [notes, setNotes] = useState(() => (submission.notes || []).map((n, k) => ({ key: k, at: n.at, time: toClock(n.at), text: n.text })));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const changed = text.trim() !== (submission.feedback || "");
+  const newest = useRef(null);
+  // The time as typed counts even before its box loses focus (Enter in it sends the form).
+  const cleanNotes = notes
+    .filter((n) => n.text.trim())
+    .map((n) => ({ at: fromClock(n.time) ?? n.at, text: n.text.trim() }))
+    .sort((x, y) => x.at - y.at);
+  const changed = text.trim() !== (submission.feedback || "") || JSON.stringify(cleanNotes) !== JSON.stringify(submission.notes || []);
+
+  function addNote() {
+    const at = Math.max(0, Math.round((moment?.() ?? 0) * 100) / 100);
+    setNotes((list) => [...list, { key: Date.now(), at, time: toClock(at), text: "" }]);
+    requestAnimationFrame(() => newest.current?.focus());
+  }
+
+  const editNote = (key, change) => setNotes((list) => list.map((n) => (n.key === key ? { ...n, ...change } : n)));
 
   async function save(e) {
     e.preventDefault();
@@ -192,7 +239,7 @@ function FeedbackForm({ submission, onSaved }) {
     try {
       const { submission: saved } = await teacherRequest(`/teacher/submissions/${submission.id}/feedback`, {
         method: "PUT",
-        body: JSON.stringify({ feedback: text }),
+        body: JSON.stringify({ feedback: text, notes: cleanNotes }),
       });
       onSaved(saved);
     } catch (err) {
@@ -226,6 +273,49 @@ function FeedbackForm({ submission, onSaved }) {
           resize: "vertical",
         }}
       />
+      <div style={{ display: "grid", gap: 8, margin: "6px 0 4px" }}>
+        <div style={label}>Notes on moments</div>
+        {notes.length > 0 && (
+          <ol style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 8 }}>
+            {notes.map((n, k) => (
+              <li key={n.key} style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                <input
+                  aria-label={`Note ${k + 1}: when in the song (minutes:seconds)`}
+                  value={n.time}
+                  onChange={(e) => editNote(n.key, { time: e.target.value })}
+                  onBlur={() => {
+                    const at = fromClock(n.time);
+                    editNote(n.key, at === null ? { time: toClock(n.at) } : { at, time: toClock(at) });
+                  }}
+                  style={{ ...field, width: 72, fontVariantNumeric: "tabular-nums" }}
+                />
+                <input
+                  ref={k === notes.length - 1 ? newest : null}
+                  aria-label={`Note ${k + 1}`}
+                  value={n.text}
+                  maxLength={MAX_NOTE}
+                  onChange={(e) => editNote(n.key, { text: e.target.value })}
+                  placeholder="What you hear here, like: the change to G is late"
+                  style={{ ...field, flex: "1 1 240px" }}
+                />
+                <button type="button" onClick={() => setNotes((list) => list.filter((x) => x.key !== n.key))} style={smallBtn}>
+                  Remove
+                </button>
+              </li>
+            ))}
+          </ol>
+        )}
+        <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+          <button type="button" onClick={addNote} disabled={notes.length >= MAX_NOTES} style={smallBtn}>
+            {moment ? "Add a note at this moment" : "Add a note"}
+          </button>
+          <span style={{ fontSize: 12.5, color: "var(--rw-meta)" }}>
+            {moment
+              ? "Pause the recording where you mean. The student can jump straight there to hear it and practise it."
+              : "Type the time in the song it's about. The student can jump straight there to practise it."}
+          </span>
+        </div>
+      </div>
       <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
         <button type="submit" disabled={saving || !text.trim() || !changed} style={primaryBtn}>
           {saving ? "Saving…" : submission.feedback ? "Update feedback" : "Send feedback"}
@@ -248,6 +338,15 @@ const card = {
   borderRadius: "var(--rw-radius-md)",
   background: "var(--rw-surface)",
   padding: "16px 18px",
+};
+const field = {
+  boxSizing: "border-box",
+  minHeight: 40,
+  padding: "8px 10px",
+  borderRadius: "var(--rw-radius-sm)",
+  border: "1px solid var(--rw-line)",
+  fontFamily: "inherit",
+  fontSize: 14,
 };
 const smallBtn = {
   padding: "7px 12px",

@@ -151,6 +151,12 @@ test("the demo looks like an active student's account", async () => {
   const reviewed = work.data.assignments.find((a) => a.status === "reviewed");
   assert.ok(reviewed.submissions[0].feedback.length > 20);
   assert.equal(reviewed.teacher.name, "Brian Albus");
+  // The replies carry a note pinned to a moment inside the section the task was for.
+  for (const task of tasks.slice(0, 2)) {
+    const notes = (await call(kai, "GET", `/assignments/${task.id}`)).data.assignment.submissions.flatMap((s) => s.notes);
+    assert.ok(notes.length > 0, `${task.section} has a note on a moment`);
+    assert.ok(notes.every((n) => n.at >= task.sectionStart && n.at < task.sectionEnd && n.text.length > 10), `${task.section}'s notes are inside it`);
+  }
 
   const from = new Date();
   const to = new Date(from.getTime() + 21 * 86400000);

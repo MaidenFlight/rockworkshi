@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import Icon from "@/components/member/Icon";
 import { Button } from "@/components/ui";
 import { useAuth } from "@/contexts/AuthContext";
+import CompareTakes from "@/components/member/CompareTakes";
+import UnsentTake from "@/components/member/UnsentTake";
 import { assignmentTitle, formatClock, formatDate, hasLoop, sendForReview, studentStatus, teacherRequest } from "@/lib/teaching";
 import { pill } from "@/lib/terms";
 
@@ -67,7 +69,12 @@ export default function AssignmentPage() {
   const times = hasLoop(a) ? `${formatClock(a.sectionStart)}–${formatClock(a.sectionEnd)}` : "";
   // Work can be sent again at any time; every send is kept as an attempt, newest first.
   const sent = a.submissions.length;
-  const teacher = a.teacher?.name?.split(" ")[0] || "Your teacher";
+  const who = a.teacher?.name?.split(" ")[0];
+  const teacher = who || "Your teacher";
+  // Sent takes that can be heard (links last 15 minutes), for comparing two of them.
+  const takes = a.submissions
+    .map((s, i) => ({ id: s.id, label: `Attempt ${a.submissions.length - i}`, date: shortDate(s.createdAt), recording: s.recording }))
+    .filter((t) => t.recording?.url);
 
   return (
     <div style={{ maxWidth: 800, margin: "0 auto", padding: "40px 24px 100px" }}>
@@ -109,6 +116,7 @@ export default function AssignmentPage() {
       </section>
 
       <h2 style={heading}>{sent ? "Send it again" : "Send for review"}</h2>
+      {a.song && <UnsentTake songId={a.song.id} assignmentId={a.id} />}
       <section style={panel}>
         {a.song && (
           <p style={{ margin: "0 0 12px", color: "var(--rw-body)", lineHeight: 1.55 }}>
@@ -137,37 +145,89 @@ export default function AssignmentPage() {
       </section>
 
       <h2 style={heading}>Your submissions</h2>
+      {takes.length > 1 && <CompareTakes takes={takes} />}
       {a.submissions.length === 0 ? (
         <p style={{ margin: 0, color: "var(--rw-meta)" }}>Nothing sent yet.</p>
       ) : (
         <ol style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 10 }}>
           {a.submissions.map((s, i) => (
-            <li key={s.id} style={panel}>
-              <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: "4px 12px" }}>
-                <strong style={{ color: "var(--rw-ink)" }}>
-                  Attempt {a.submissions.length - i}
-                  {i === 0 && a.submissions.length > 1 ? " · newest" : ""}
-                </strong>
-                <span style={{ fontSize: 13, color: "var(--rw-meta)" }}>
-                  Sent {formatDate(s.createdAt)} · {s.recording ? `${formatClock(s.recording.duration)} recording` : "no recording"}
-                </span>
-              </div>
-              {s.recording?.url && <audio controls preload="none" src={s.recording.url} aria-label={`Your recording, attempt ${a.submissions.length - i}`} style={{ width: "100%", marginTop: 10 }} />}
-              <p style={{ margin: "10px 0 0", color: "var(--rw-body)", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
-                {s.feedback || (i === 0 ? "Waiting for your teacher." : "No reply to this one: your teacher replies to the newest.")}
-              </p>
-              {s.reviewedAt && (
-                <div style={{ fontSize: 13, color: "var(--rw-meta)", marginTop: 8 }}>
-                  {teacher} replied {formatDate(s.reviewedAt)}
-                </div>
-              )}
-            </li>
+            <Attempt key={s.id} assignment={a} submission={s} number={a.submissions.length - i} newest={i === 0} teacher={teacher} who={who} />
           ))}
         </ol>
       )}
     </div>
   );
 }
+
+// One send: where it stands, the recording, the teacher's reply, and their notes on moments in the song.
+// Each note can be heard in this recording (from a second before) and practised in the player, which
+// opens there looping the bars around it.
+function Attempt({ assignment: a, submission: s, number, newest, teacher, who }) {
+  const audio = useRef(null);
+  const state = s.reviewedAt
+    ? { tone: "open", label: `${teacher} replied ${shortDate(s.reviewedAt)}` }
+    : newest
+      ? { tone: "ready", label: who ? `Waiting for ${who}` : "Waiting for your teacher" }
+      : { tone: "draft", label: "Sent" };
+  const offset = s.recording?.offset ?? 0;
+  const inRecording = (at) => s.recording?.url && at >= offset && at <= offset + (s.recording.duration ?? 0);
+
+  function hear(at) {
+    const el = audio.current;
+    if (!el) return;
+    el.currentTime = Math.max(0, at - offset - 1);
+    el.play().catch(() => {});
+    el.focus();
+  }
+
+  return (
+    <li style={panel}>
+      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: "6px 12px" }}>
+        <strong style={{ color: "var(--rw-ink)" }}>
+          Attempt {number}
+          {newest && a.submissions.length > 1 ? " · newest" : ""}
+        </strong>
+        <span style={pill(state.tone)}>{state.label}</span>
+      </div>
+      <div style={{ fontSize: 13, color: "var(--rw-meta)", marginTop: 4 }}>
+        Sent {formatDate(s.createdAt)} · {s.recording ? `${formatClock(s.recording.duration)} recording` : "no recording"}
+      </div>
+      {s.recording?.url && <audio ref={audio} controls preload="none" src={s.recording.url} aria-label={`Your recording, attempt ${number}`} style={{ width: "100%", marginTop: 10 }} />}
+      {(s.feedback || !newest) && (
+        <p style={{ margin: "10px 0 0", color: "var(--rw-body)", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
+          {s.feedback || "No reply to this one: your teacher replies to the newest."}
+        </p>
+      )}
+      {s.notes?.length > 0 && (
+        <ol className="rw-moments" aria-label={`${teacher}'s notes on moments`}>
+          {s.notes.map((n) => (
+            <li key={`${n.at}-${n.text}`} className="rw-moment">
+              <span className="rw-moment-at">{formatClock(n.at)}</span>
+              <span className="rw-moment-text">{n.text}</span>
+              <span className="rw-moment-go">
+                {inRecording(n.at) && (
+                  <button type="button" onClick={() => hear(n.at)}>
+                    <Icon name="play" size={12} />
+                    Hear it
+                  </button>
+                )}
+                {a.song && (
+                  <Link href={`/member/song/${a.song.id}?assignment=${a.id}&at=${n.at}`}>
+                    <Icon name="loop" size={14} />
+                    Practise this part
+                  </Link>
+                )}
+              </span>
+            </li>
+          ))}
+        </ol>
+      )}
+    </li>
+  );
+}
+
+// "Nov 5", in the school's time, for a status that has to stay short.
+const shortDate = (iso) => new Date(iso).toLocaleDateString("en-US", { timeZone: "Pacific/Honolulu", month: "short", day: "numeric" });
 
 const panel = { padding: "18px 20px", background: "var(--rw-surface)", border: "1px solid var(--rw-border)", borderRadius: "var(--rw-radius-md)" };
 const heading = { fontWeight: 800, textTransform: "uppercase", fontSize: 24, color: "var(--rw-ink)", margin: "30px 0 10px" };

@@ -129,9 +129,9 @@ export default function MemberDashboard() {
           )}
         </div>
 
+        {/* Classes and the practice tools first; the membership is reference, so it comes last. */}
         <aside className="rw-dash-side" aria-label="Your week and your tools">
           <UpcomingClasses />
-          <YourTerm data={term} />
           <nav className="rw-st-card" aria-labelledby="practice-room">
             <h2 id="practice-room">Practice room</h2>
             <ul className="rw-dash-tools">
@@ -156,6 +156,7 @@ export default function MemberDashboard() {
               ))}
             </ul>
           </nav>
+          <YourTerm data={term} demo={demo} />
         </aside>
       </div>
     </div>

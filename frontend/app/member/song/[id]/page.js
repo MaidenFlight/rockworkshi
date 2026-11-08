@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Icon from "@/components/member/Icon";
@@ -9,9 +9,21 @@ import StemPlayer from "@/components/member/StemPlayer";
 import ChordChart from "@/components/member/ChordChart";
 import FavoriteButton from "@/components/member/library/FavoriteButton";
 import PracticeNotes from "@/components/member/library/PracticeNotes";
+import PracticeSession from "@/components/member/PracticeSession";
 import SongTutorials from "@/components/member/SongTutorials";
+import { tickToday } from "@/components/member/TodayList";
 import { NetworkError, practiceRequest } from "@/lib/practice";
-import { hasLoop, sendForReview } from "@/lib/teaching";
+import { takeKey } from "@/lib/takeStore";
+import { formatClock, hasLoop, sendForReview } from "@/lib/teaching";
+
+// The bars around a moment, as a loop: from the start of the bar before it to the end of the bar after.
+// Without a chart, four seconds either side.
+function loopAround(chart, t) {
+  const bars = chart?.sections?.flatMap((s) => s.bars.map((b) => b.time)) ?? [];
+  if (!bars.length) return { start: Math.max(0, t - 4), end: t + 4 };
+  const i = Math.max(0, bars.findLastIndex((b) => b <= t + 0.001));
+  return { start: bars[Math.max(0, i - 1)], end: bars[i + 2] ?? chart.end };
+}
 
 export default function SongPlayAlongPage() {
   // useSearchParams needs a Suspense boundary in a client page.
@@ -25,8 +37,16 @@ export default function SongPlayAlongPage() {
 function SongPlayAlong() {
   const { id } = useParams();
   const router = useRouter();
-  // Set when the song was opened from a teacher's practice work.
-  const assignmentId = useSearchParams().get("assignment");
+  // Set when the song was opened from a teacher's practice work, and `at` from one of their notes on a
+  // moment (seconds into the song).
+  const params = useSearchParams();
+  const assignmentId = params.get("assignment");
+  const atParam = params.get("at");
+  // "Start today's practice" (the dashboard) opens the practice work as a guided session.
+  const session = params.get("session") === "1";
+  const playerRef = useRef(null);
+  const [takeState, setTakeState] = useState(null);
+  const [sessionSent, setSessionSent] = useState(false);
   const { user } = useAuth();
   // undefined = loading, null = failed (see failure)
   const [page, setPage] = useState(undefined); // { song, practice, tracks: data | null }
@@ -97,7 +117,11 @@ function SongPlayAlong() {
   const { song, practice, tracks, assignment } = page;
   const locked = page.access && !page.access.allowed;
   const backHref = assignment ? `/member/assignment/${assignment.id}` : "/member/library";
-  const initialLoop = assignment && hasLoop(assignment) ? { start: assignment.sectionStart, end: assignment.sectionEnd } : null;
+  // Opened from a teacher's note: the player loops the bars around that moment, and the note is shown.
+  const at = atParam !== null && atParam !== "" && Number.isFinite(Number(atParam)) ? Number(atParam) : null;
+  const pinned = at === null || !assignment ? null : (assignment.submissions.flatMap((s) => s.notes ?? []).find((n) => Math.abs(n.at - at) < 0.05) ?? null);
+  const initialLoop =
+    at !== null ? loopAround(tracks?.chart, at) : assignment && hasLoop(assignment) ? { start: assignment.sectionStart, end: assignment.sectionEnd } : null;
   // Resume state only goes back to the server when something changed, and at most every few seconds.
   const saveSession = (session, { keepalive } = {}) =>
     practiceRequest(`/songs/${song.id}/practice/session`, {
@@ -109,7 +133,7 @@ function SongPlayAlong() {
   return (
     <div style={{ maxWidth: 1320, margin: "0 auto", padding: "40px 24px 100px" }}>
       <Link href={backHref} className="rw-back">
-        <Icon name="arrow-left" size={14} /> {assignment ? "Practice work" : "Practice library"}
+        <Icon name="arrow-left" size={14} /> {assignment ? "Assignment" : "Practice library"}
       </Link>
       <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginTop: 10, marginBottom: 22 }}>
         <div style={{ flex: 1 }}>
@@ -140,6 +164,26 @@ function SongPlayAlong() {
           </div>
           <div style={{ color: "var(--rw-body)", whiteSpace: "pre-wrap" }}>{assignment.instruction}</div>
         </div>
+      )}
+
+      {session && assignment && tracks && (
+        <PracticeSession
+          assignment={assignment}
+          instrument={tracks.instrument || assignment.instrument}
+          player={playerRef}
+          take={takeState}
+          sent={sessionSent}
+          onEnd={() => router.replace(`/member/song/${song.id}?assignment=${assignment.id}`)}
+        />
+      )}
+
+      {pinned && (
+        <p className="rw-moment-pinned" role="note">
+          <span className="rw-moment-at">{formatClock(pinned.at)}</span>
+          <span>
+            <strong>{assignment.teacher?.name?.split(" ")[0] || "Your teacher"}&apos;s note:</strong> {pinned.text} The player is looping the bars around it.
+          </span>
+        </p>
       )}
 
       {/* A shut song gets the one explanation below, which covers its tutorials too. */}
@@ -207,12 +251,20 @@ function SongPlayAlong() {
             resume={practice.session}
             onSaveSession={saveSession}
             initialLoop={initialLoop}
-            // A take can be sent any time, waiting for feedback or not: each send is a new attempt.
+            keepKey={takeKey(song.id, assignment?.id)}
+            ref={playerRef}
+            onTakeState={setTakeState}
+            guided={session && Boolean(assignment)}
+            // A take can be sent any time, waiting for feedback or not: each send is a new attempt. In a
+            // guided session the page stays, and the session says it's done.
             onSendTake={
               assignment
                 ? async (take, onProgress) => {
                     await sendForReview(assignment.id, take, onProgress);
-                    router.push(`/member/assignment/${assignment.id}`);
+                    if (session) {
+                      tickToday(assignment.id, "send");
+                      setSessionSent(true);
+                    } else router.push(`/member/assignment/${assignment.id}`);
                   }
                 : null
             }

@@ -1,11 +1,42 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { footerLinks, footerSocial } from "@/lib/content";
 import RockWorksIcon from "@/components/RockWorksIcon";
 import SocialIcon from "@/components/SocialIcon";
 import WorldToggle from "@/components/WorldToggle";
 import T from "@/components/T";
 
+// Inside the student area the footer is one slim row, so practising isn't framed by the school's
+// whole site map: help, the legal pages and the world switch.
+const SLIM_LINKS = [
+  { label: "FAQ", href: "/faq" },
+  { label: "Contact", href: "/contact" },
+  { label: "Terms", href: "/terms" },
+  { label: "Privacy", href: "/privacy" },
+];
+
 export default function Footer() {
+  const pathname = usePathname();
+  if (pathname?.startsWith("/member")) {
+    return (
+      <footer className="rw-foot-slim">
+        <div className="rw-foot-slim-inner">
+          <span>© {new Date().getFullYear()} Rock Works School of Music</span>
+          <nav aria-label="Help and legal" className="rw-foot-slim-links">
+            {SLIM_LINKS.map((l) => (
+              <Link key={l.href} href={l.href}>
+                {l.label}
+              </Link>
+            ))}
+          </nav>
+          <WorldToggle />
+        </div>
+      </footer>
+    );
+  }
+
   return (
     <footer style={{ background: "linear-gradient(168deg,var(--rw-ink),var(--rw-ink-deep))", color: "rgba(255,245,236,0.72)", marginTop: "auto" }}>
       <div style={{ height: 4, background: "linear-gradient(90deg,var(--rw-teal),var(--rw-gold),var(--rw-flare),var(--rw-sea-glass))" }} />

@@ -4,12 +4,17 @@ import { useState } from "react";
 import { formatClock } from "@/lib/practice";
 import { hasLoop } from "@/lib/teaching";
 
-// Today's steps for the teacher's open work, built only from what the assignment holds: the
-// section to loop, the lesson to watch, and the take to send. Ticks stay in this browser for
-// the day; nothing is reported to anyone.
+// The instruments with strings to tune first. Mirrors the tuner's own (components/tuner/Tuner.js).
+export const TUNED = ["Guitar", "Bass", "Ukulele"];
+
+// Today's steps for the teacher's open work, built only from what the assignment holds: tuning up
+// (a string instrument), the section to loop, the lesson to watch, and the take to send. The guided
+// practice session (PracticeSession.js) walks through the same steps and ticks them. Ticks stay in this
+// browser for the day; nothing is reported to anyone.
 export function stepsFor(assignment) {
   if (!assignment) return [];
   const steps = [];
+  if (assignment.song && TUNED.includes(assignment.instrument)) steps.push({ id: "tune", text: "Tune up" });
   if (assignment.lesson) steps.push({ id: "lesson", text: `Watch the lesson: ${assignment.lesson.title}` });
   if (assignment.song && hasLoop(assignment)) {
     const part = assignment.section || `${formatClock(assignment.sectionStart)} to ${formatClock(assignment.sectionEnd)}`;
@@ -27,6 +32,17 @@ function readTicks(id) {
     return JSON.parse(window.localStorage.getItem(keyFor(id)) || "[]");
   } catch {
     return [];
+  }
+}
+
+// Ticks one of today's steps from elsewhere: the guided practice session, as each step is done.
+export function tickToday(assignmentId, stepId) {
+  const ticked = readTicks(assignmentId);
+  if (ticked.includes(stepId)) return;
+  try {
+    window.localStorage.setItem(keyFor(assignmentId), JSON.stringify([...ticked, stepId]));
+  } catch {
+    // Only a convenience: the dashboard just won't show it ticked.
   }
 }
 

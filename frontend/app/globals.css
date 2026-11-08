@@ -1265,6 +1265,51 @@ main:focus {
   outline-offset: 2px;
 }
 
+/* The student area's footer (Footer.js): one slim row on the footer's lacquer instead of the site map,
+   so the practice room stays the focus. Type and link colours are the full footer's. */
+.rw-foot-slim {
+  margin-top: auto;
+  background: linear-gradient(168deg, var(--rw-ink), var(--rw-ink-deep));
+  color: rgba(255, 245, 236, 0.6);
+  font-size: var(--rw-text-xs);
+}
+
+.rw-foot-slim-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 6px 24px;
+}
+
+.rw-foot-slim-links {
+  display: flex;
+  flex-wrap: wrap;
+  margin-right: auto;
+}
+
+.rw-foot-slim-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 10px;
+  font-size: var(--rw-text-sm);
+  color: rgba(255, 245, 236, 0.72);
+  text-decoration: none;
+  transition: color 0.16s ease;
+}
+
+.rw-foot-slim-links a:hover {
+  color: #fff;
+}
+
+.rw-foot-slim-links a:focus-visible {
+  outline: 2px solid var(--rw-sea-glass);
+  outline-offset: -2px;
+}
+
 /* ---- Tags ---- */
 .rw-tags {
   display: grid;
@@ -2427,8 +2472,10 @@ main:focus {
   }
 }
 .rw-clip-led {
+  flex: none;
   padding: 1px 5px;
   border-radius: 2px;
+  white-space: nowrap;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -2607,6 +2654,34 @@ main:focus {
 .rw-tp-master {
   margin-left: auto;
 }
+/* "Record your take": the way to the recorder, kept in the transport so it is always in reach. It sits
+   at the right, beside the master, edged in the take's red like the Rec lamp; it stays a console key,
+   so Play remains the one filled button. */
+.rw-tp-take {
+  min-height: 44px;
+  margin-left: auto;
+  padding: 0 16px;
+  border-color: var(--rw-part-take);
+  font-size: 15px;
+}
+.rw-tp-take:hover:not(:disabled) {
+  border-color: var(--rw-part-take);
+  background: color-mix(in srgb, var(--rw-part-take) 16%, var(--rw-console-raised));
+}
+.rw-tp-take svg {
+  color: var(--rw-part-take);
+}
+.rw-tp-take + .rw-tp-master {
+  margin-left: 0;
+}
+/* "Focus" opens the focus view; it leads the right-hand group, before Record your take. */
+.rw-tp-focus {
+  min-height: 44px;
+  margin-left: auto;
+}
+.rw-tp-focus + .rw-tp-take {
+  margin-left: 0;
+}
 .rw-tp-group {
   display: flex;
   flex-wrap: wrap;
@@ -2665,6 +2740,69 @@ main:focus {
 }
 .rw-tp-notice:empty {
   display: none;
+}
+/* The speed between the keys' own (the trainer's 70%, 80%), said beside them. */
+.rw-tp-speed-now {
+  font-size: 13.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--rw-gold);
+}
+/* The speed trainer (lib/speedTrainer.js): a key with a lamp that's lit while it runs, opening a row
+   of four settings, or, running, where it is and a clear Stop. */
+.rw-tp-trainer-key[data-running="true"] {
+  border-color: var(--rw-sea-glass);
+}
+.rw-tp-trainer-key[data-running="true"]::before {
+  background: var(--rw-sea-glass);
+  box-shadow: 0 0 6px var(--rw-sea-glass);
+}
+.rw-tp-trainer {
+  padding-top: 8px;
+  border-top: 1px solid var(--rw-console-edge);
+}
+.rw-tp-trainer[hidden] {
+  display: none;
+}
+.rw-tp-trainer-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.rw-tp-trainer-field .rw-console-input {
+  flex: none;
+  width: auto;
+  min-height: 44px;
+  font-variant-numeric: tabular-nums;
+}
+.rw-tp-trainer-go,
+.rw-tp-trainer-stop {
+  min-height: 44px;
+}
+.rw-tp-trainer-now {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.rw-tp-trainer-lamp {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--rw-sea-glass);
+  box-shadow: 0 0 6px var(--rw-sea-glass);
+}
+.rw-tp-trainer-plan {
+  font-size: 13.5px;
+  color: var(--rw-console-meta);
+}
+.rw-tp-trainer-error {
+  flex-basis: 100%;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--rw-gold);
 }
 
 /* ---- Timeline ---- */
@@ -3001,8 +3139,10 @@ div:has(> .rw-scrub:focus-visible) {
 }
 
 /* ---- Two columns: the chart on paper, the studio on the console ---- */
+/* One column below 1000px, never wider than the player: a wide panel can't push past a phone's edge. */
 .rw-player-cols {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
   align-items: start;
 }
@@ -3463,11 +3603,12 @@ div:has(> .rw-scrub:focus-visible) {
 .rw-rec-level-head .rw-studio-label {
   margin: 0;
 }
+/* Under the mic meter, which shrinks to fit a phone's recorder (Meter's fluid), so the scale does too. */
 .rw-meter-scale {
   display: flex;
   justify-content: space-between;
-  width: 300px;
-  max-width: 100%;
+  width: calc(100% - 64px);
+  max-width: 300px;
   margin-left: 64px;
   font-size: 12.5px;
   font-variant-numeric: tabular-nums;
@@ -3534,6 +3675,33 @@ div:has(> .rw-scrub:focus-visible) {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+/* Where the take is (RecordPanel's TakeStatus): a lamp and one sentence. Kept is sea glass; a take
+   that would be lost by leaving is gold, the console's warning colour, in words as well. */
+.rw-take-status {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--rw-console-meta);
+}
+.rw-take-status-lamp {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--rw-console-edge);
+}
+.rw-take-status[data-state="kept"] .rw-take-status-lamp {
+  background: var(--rw-sea-glass);
+}
+.rw-take-status:is([data-state="unkept"], [data-state="page"]) {
+  color: var(--rw-gold);
+}
+.rw-take-status:is([data-state="unkept"], [data-state="page"]) .rw-take-status-lamp {
+  background: var(--rw-gold);
 }
 
 /* ---- Effects ---- */
@@ -3826,6 +3994,95 @@ div:has(> .rw-scrub:focus-visible) {
   bottom: 2px;
   width: 2px;
   background: var(--rw-orange);
+}
+
+/* ---- The focus view's stage (FocusView.js): the same cards and bars, as large as the screen allows ---- */
+.rw-play-along-stage .rw-chord-now {
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: 20px;
+  margin: 0;
+}
+.rw-play-along-stage .rw-chord-card {
+  align-items: center;
+  justify-content: center;
+  gap: 16px 32px;
+  padding: 24px 28px;
+}
+.rw-play-along-stage .rw-chord-label {
+  font-size: 15px;
+}
+.rw-play-along-stage .rw-chord-name {
+  font-size: clamp(88px, 13vw, 220px);
+  line-height: 0.9;
+}
+.rw-play-along-stage .rw-chord-card[data-role="next"] .rw-chord-name {
+  font-size: clamp(56px, 7vw, 120px);
+}
+.rw-play-along-stage .rw-chord-card[data-role="now"] .rw-chord-shape svg:not([data-keys]) {
+  width: clamp(160px, 20vw, 320px);
+}
+.rw-play-along-stage .rw-chord-card[data-role="next"] .rw-chord-shape svg:not([data-keys]) {
+  width: clamp(110px, 12vw, 200px);
+}
+.rw-play-along-stage .rw-beat-dots {
+  gap: 8px;
+  margin-top: 16px;
+}
+.rw-play-along-stage .rw-beat-dots span {
+  width: 36px;
+  height: 14px;
+}
+/* Bass, drums and voice: the bar being played, the next one beside it on a wide screen. */
+.rw-part-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 20px;
+}
+.rw-part-stage-bar {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  background: var(--rw-sand);
+  border-radius: var(--rw-radius-md);
+}
+.rw-part-stage-bar[data-role="next"] {
+  background: var(--rw-surface);
+  opacity: 0.85;
+}
+.rw-play-along-stage .rw-chord-shape svg[data-keys] {
+  width: clamp(220px, 26vw, 400px);
+  height: auto;
+}
+/* A phone: the two cards stacked, each a row (name, then shape), so both fit above the keys. */
+@media (max-width: 700px) {
+  .rw-play-along-stage .rw-chord-now,
+  .rw-part-stage {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .rw-play-along-stage .rw-chord-card {
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+  }
+  .rw-play-along-stage .rw-chord-card[data-role="now"] .rw-chord-shape svg:not([data-keys]) {
+    width: 132px;
+  }
+  .rw-play-along-stage .rw-chord-card[data-role="next"] .rw-chord-shape svg:not([data-keys]) {
+    width: 84px;
+  }
+  .rw-play-along-stage .rw-chord-card[data-role="next"] .rw-chord-name {
+    font-size: 44px;
+  }
+  .rw-play-along-stage .rw-chord-shape svg[data-keys] {
+    width: 168px;
+  }
+  .rw-play-along-stage .rw-beat-dots span {
+    width: 24px;
+    height: 10px;
+  }
 }
 
 /* ---- Play now and Next, and the bars of the chord chart ---- */
@@ -4502,6 +4759,23 @@ div:has(> .rw-scrub:focus-visible) {
   align-items: center;
   gap: 12px;
 }
+/* "Open the player without the steps": the way past the guided session, quieter than its buttons. */
+.rw-next-plain {
+  margin: 4px 0 0;
+  font-size: var(--rw-text-sm);
+}
+.rw-next-plain a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-weight: 700;
+  color: var(--rw-body);
+  text-underline-offset: 3px;
+}
+.rw-next-plain a:focus-visible {
+  outline: 2px solid var(--rw-teal);
+  outline-offset: 2px;
+}
 .rw-next-aside {
   margin: 18px 0 0;
   padding-top: 14px;
@@ -4608,6 +4882,85 @@ div:has(> .rw-scrub:focus-visible) {
   align-items: center;
 }
 
+/* A teacher's notes on moments, under their reply on the practice work's page: the time in the display
+   face in flare ink, the note, then Hear it (in that recording) and Practise this part (the player,
+   looping the bars around it). Ruled rows rather than boxes, inside the attempt's own panel. */
+.rw-moments {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--rw-border);
+}
+.rw-moment {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: baseline;
+  gap: 0 14px;
+  padding: 10px 0 2px;
+  border-bottom: 1px solid var(--rw-border);
+}
+.rw-moment-at {
+  min-width: 2.6em;
+  font-family: var(--rw-font-display);
+  font-size: var(--rw-text-xl);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--rw-orange-deep);
+}
+.rw-moment-text {
+  font-size: var(--rw-text-base);
+  line-height: 1.5;
+  color: var(--rw-ink);
+}
+.rw-moment-go {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 20px;
+}
+.rw-moment-go a,
+.rw-moment-go button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--rw-text-sm);
+  font-weight: 700;
+  color: var(--rw-orange-deep);
+  text-decoration: none;
+  cursor: pointer;
+}
+.rw-moment-go a:hover,
+.rw-moment-go button:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.rw-moment-go a:focus-visible,
+.rw-moment-go button:focus-visible {
+  outline: 2px solid var(--rw-teal);
+  outline-offset: 2px;
+}
+/* The note the player was opened from, above it: label stock with the flare rule, like the brief. */
+.rw-moment-pinned {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin: 0 0 16px;
+  padding: 12px 18px;
+  background: var(--rw-sand);
+  border-top: 4px solid var(--rw-flare);
+  font-size: var(--rw-text-base);
+  line-height: 1.55;
+  color: var(--rw-prose);
+}
+.rw-moment-pinned strong {
+  color: var(--rw-ink);
+}
+
 /* One column on a phone: the panel and teacher work, then the week and tools, then lesson videos. */
 @media (max-width: 860px) {
   .rw-dash {
@@ -4641,8 +4994,13 @@ div:has(> .rw-scrub:focus-visible) {
 }
 
 /* ---- Player: Simple view, the first-visit note and larger touch keys ---- */
+/* "Open studio mixer": one plain disclosure at the end of the band row, its faders mark in gold. */
 .rw-tl-view {
+  min-height: 44px;
   margin-left: auto;
+}
+.rw-tl-view svg {
+  color: var(--rw-gold);
 }
 .rw-tl-loopkeys .rw-btn-small {
   min-height: 44px;
