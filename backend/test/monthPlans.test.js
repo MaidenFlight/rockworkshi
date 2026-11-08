@@ -151,6 +151,28 @@ test("a task removed from the plan only goes if nobody has sent anything for it"
   assert.equal(plans.changeCount(impact), 1, "keeping work isn't a change");
 });
 
+test("taking a task out isn't a change to the ones after it, but changing the order is", () => {
+  const three = [task({ id: "one", position: 0 }), task({ id: "two", position: 1 }), task({ id: "three", position: 2 })];
+  const base = version(three);
+  const fewer = version([{ ...three[0] }, { ...three[2], position: 1 }]);
+  const shrunk = plans.monthImpact({ base, target: fewer, month: monthFrom(base) });
+  assert.equal(shrunk.reordered, false);
+  assert.deepEqual(shrunk.changes, [], "the rest aren't reported as changed");
+  assert.deepEqual(shrunk.positions, [{ assignmentId: "row-three", position: 1 }], "they're only renumbered");
+  assert.equal(plans.changeCount(shrunk), 1, "just the removal");
+
+  const swapped = version([{ ...three[1], position: 0 }, { ...three[0], position: 1 }, three[2]]);
+  const moved = plans.monthImpact({ base, target: swapped, month: monthFrom(base) });
+  assert.equal(moved.reordered, true);
+  assert.equal(plans.changeCount(moved), 1);
+
+  // A task moved to a later week says so on its own.
+  const later = version([three[1], three[2], { ...three[0], week: 2 }].map((t, position) => ({ ...t, position })));
+  const week = plans.monthImpact({ base, target: later, month: monthFrom(base) });
+  assert.equal(week.reordered, false);
+  assert.deepEqual(week.changes[0].fields, [{ field: "week", from: 1, to: 2 }]);
+});
+
 test("a new task reaches everyone except a student it was left out for, and left-out tasks stay out", () => {
   const base = version([task({ id: "old" })]);
   const target = version([task({ id: "old" }), task({ id: "new", week: 2 })]);
@@ -202,6 +224,28 @@ test("a template's new version keeps what the plan changed for itself", () => {
   assert.deepEqual(tasks.map((t) => t.position), tasks.map((_, i) => i));
 
   assert.equal(plans.mergeTemplate({ base, target: base, plan: base }).changesAnything, false);
+});
+
+test("a template's new order is taken unless the plan has its own", () => {
+  const list = [task({ id: "one", position: 0 }), task({ id: "two", position: 1 })];
+  const flipped = [task({ id: "two", position: 0 }), task({ id: "one", position: 1 })];
+  const base = { weekTitles: TITLES, tasks: list };
+  const target = { weekTitles: TITLES, tasks: flipped };
+
+  const following = plans.mergeTemplate({ base, target, plan: { weekTitles: TITLES, tasks: list } });
+  assert.equal(following.report.reordered, true);
+  assert.deepEqual(following.tasks.map((t) => t.id), ["two", "one"]);
+
+  // A plan with the same new order has nothing to take.
+  const ownOrder = plans.mergeTemplate({ base: { weekTitles: TITLES, tasks: flipped }, target, plan: { weekTitles: TITLES, tasks: list } });
+  assert.equal(ownOrder.changesAnything, false);
+  assert.deepEqual(ownOrder.tasks.map((t) => t.id), ["one", "two"]);
+
+  // Taking a task out of the template doesn't flag the rest.
+  const shorter = { weekTitles: TITLES, tasks: [{ ...list[1], position: 0 }] };
+  const merged = plans.mergeTemplate({ base, target: shorter, plan: { weekTitles: TITLES, tasks: list } });
+  assert.deepEqual(merged.report.changes, []);
+  assert.deepEqual(merged.tasks.map((t) => [t.id, t.position]), [["two", 0]]);
 });
 
 test("the fingerprint of an impact changes when what would happen changes", () => {

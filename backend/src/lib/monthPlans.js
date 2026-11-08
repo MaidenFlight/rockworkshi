@@ -284,8 +284,9 @@ const contentOf = (p) => ({ startsOn: p.startsOn ?? null, weekTitles: p.weekTitl
 const sameContent = (a, b) => same(contentOf(a), contentOf(b));
 
 // What a student's month has that a change could be applied to. dueOn stands in for dueDay, since a
-// month's due dates are real dates.
-const TASK_FIELDS = ["week", "position", "kind", "section", "sectionStart", "sectionEnd", "instruction", "level", "media", "audioAllowed", "support", "targetSpeed", "criteria", "reviewCheckpoint", "dueOn"];
+// month's due dates are real dates. Order isn't here: taking one task out renumbers all the rest,
+// which isn't a change to any of them, so it's worked out on its own (orderChange).
+const TASK_FIELDS = ["week", "kind", "section", "sectionStart", "sectionEnd", "instruction", "level", "media", "audioAllowed", "support", "targetSpeed", "criteria", "reviewCheckpoint", "dueOn"];
 const MONTH_FIELDS = ["startsOn", "weekTitles"];
 // The same for a plan taking changes from a template, where due dates are still relative.
 const PLAN_FIELDS = [...TASK_FIELDS.filter((f) => f !== "dueOn"), "dueDay"];
@@ -310,6 +311,20 @@ function threeWay(base, target, current, fields) {
 }
 
 const brief = (task) => ({ taskId: task.id, label: taskLabel(task), week: task.week, kind: task.kind });
+
+// What the plan's order means for this month: the new number for each task, written quietly, and
+// whether the student would see tasks come in a different order. A task moving to another week says so
+// itself, so tasks are compared by the week they're going to.
+function orderChange(month, target, assignments) {
+  const targetTasks = new Map(target.tasks.map((t) => [t.id, t]));
+  const shared = month.tasks.filter((a) => targetTasks.has(a.planTaskId));
+  const now = [...shared].sort((a, b) => targetTasks.get(a.planTaskId).week - targetTasks.get(b.planTaskId).week || a.position - b.position).map((a) => a.planTaskId);
+  const next = target.tasks.filter((t) => assignments.has(t.id)).map((t) => t.id);
+  return {
+    reordered: !same(now, next),
+    positions: shared.filter((a) => a.position !== targetTasks.get(a.planTaskId).position).map((a) => ({ assignmentId: a.id, position: targetTasks.get(a.planTaskId).position })),
+  };
+}
 
 // What a plan's current state would do to one student's month. base = { startsOn, weekTitles, tasks }
 // as this month last took it, target the same as the plan stands now; month has tasks with attempts
@@ -355,12 +370,12 @@ function monthImpact({ base, target, month, overrides }) {
     (assignment.attempts ? keeps : removes).push({ assignmentId: assignment.id, ...brief(task), attempts: assignment.attempts });
   }
 
-  return { monthUpdates: head.updates, monthFields: head.changed, monthKept: head.kept, changes, adds, removes, keeps };
+  return { monthUpdates: head.updates, monthFields: head.changed, monthKept: head.kept, changes, adds, removes, keeps, ...orderChange(month, target, assignments) };
 }
 
 // How much of an impact would really change something for the student.
 function changeCount(impact) {
-  return impact.monthFields.length + impact.changes.filter((c) => c.fields.length).length + impact.adds.length + impact.removes.length;
+  return impact.monthFields.length + impact.changes.filter((c) => c.fields.length).length + impact.adds.length + impact.removes.length + (impact.reordered ? 1 : 0);
 }
 
 // A fingerprint of what the teacher was shown, so applying can tell if it's no longer what would happen.
@@ -408,9 +423,15 @@ function mergeTemplate({ base, target, plan }) {
     adds.push(brief(task));
   }
 
-  const report = { weekTitles: titles.changed, weekTitlesKept: titles.kept, changes, adds, removes, keeps };
-  const changesAnything = titles.changed.length > 0 || changes.some((c) => c.fields.length) || adds.length > 0 || removes.length > 0;
-  return { weekTitles: titles.updates.weekTitles ?? plan.weekTitles, tasks: inOrder(merged), report, changesAnything };
+  // The template's new order is only taken if this plan still had the template's old one.
+  const inAll = (list) => list.filter((t) => baseTasks.has(t.id) && targetTasks.has(t.id) && planTasks.has(t.id)).map((t) => t.id);
+  const reordered = !same(inAll(base.tasks), inAll(target.tasks)) && same(inAll(base.tasks), inAll(plan.tasks));
+  const newPlace = (t) => (reordered && targetTasks.has(t.id) ? targetTasks.get(t.id).position : t.position);
+  const sorted = [...merged].sort((a, b) => newPlace(a) - newPlace(b));
+
+  const report = { weekTitles: titles.changed, weekTitlesKept: titles.kept, changes, adds, removes, keeps, reordered };
+  const changesAnything = titles.changed.length > 0 || changes.some((c) => c.fields.length) || adds.length > 0 || removes.length > 0 || reordered;
+  return { weekTitles: titles.updates.weekTitles ?? plan.weekTitles, tasks: inOrder(sorted), report, changesAnything };
 }
 
 // The tasks of the template's suggestion for a song, with due dates made relative.
