@@ -50,7 +50,7 @@ export default function TeacherStudentPage() {
             <p className="rw-st-lead">{student.isMinor ? "Under 18 · contact goes through the school and their guardian" : "Adult student"}</p>
           </div>
           <div className="rw-st-actions">
-            <Link href={`/teacher/months/new?student=${student.id}`} className="rw-st-btn" data-tone="primary">
+            <Link href={`/teacher/plans/new?student=${student.id}`} className="rw-st-btn" data-tone="primary">
               Plan a month
             </Link>
             <Link href={`/teacher/new?student=${student.id}`} className="rw-st-btn">

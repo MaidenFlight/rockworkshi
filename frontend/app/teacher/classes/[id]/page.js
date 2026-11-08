@@ -64,6 +64,9 @@ export default function ClassPage() {
           </div>
           {c.status === "active" && (
             <div className="rw-st-actions">
+              <Link href={`/teacher/plans/new?class=${c.id}`} className="rw-st-btn" data-tone="primary">
+                Plan a month for this class
+              </Link>
               <button type="button" className="rw-st-btn" onClick={() => setEditing(!editing)} aria-expanded={editing}>
                 {editing ? "Close editing" : "Edit class"}
               </button>

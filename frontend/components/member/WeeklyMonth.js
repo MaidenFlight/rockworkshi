@@ -94,13 +94,14 @@ function useKeptTakes(month) {
   return kept;
 }
 
-function Week({ number, month, now = false, currentId = null, kept, open = false }) {
+// One week of the month. renderTask replaces the row, for a teacher's preview of what the student will get.
+export function Week({ number, month, now = false, currentId = null, kept, open = false, renderTask }) {
   const tasks = month.tasks.filter((t) => t.week === number);
   if (!tasks.length) return null;
   const checkpoints = tasks.filter((t) => t.kind === "checkpoint");
   const assessments = tasks.filter((t) => t.kind === "assessment");
   const due = tasks.map((t) => t.dueOn).filter(Boolean).sort().at(-1);
-  const row = (t) => <Task key={t.id} task={t} current={t.id === currentId} kept={kept.has(t.id)} />;
+  const row = renderTask ?? ((t) => <Task key={t.id} task={t} current={t.id === currentId} kept={kept.has(t.id)} />);
 
   return (
     <details className={s.week} open={open}>

@@ -239,7 +239,7 @@ async function planPayload(plan) {
   return {
     ...base,
     students,
-    pendingChanges: impact ? impact.totals.tasks + impact.students.reduce((n, s) => n + (s.linked ? s.monthFields.length : 0), 0) : 0,
+    pendingChanges: impact ? impact.affected.reduce((n, s) => n + s.changeCount, 0) : 0,
     template: plan.template
       ? { id: plan.template.id, name: plan.template.name, version: plan.templateVersion, latest: plan.template.version, behind: plan.templateVersion < plan.template.version, archived: Boolean(plan.template.archivedAt) }
       : null,

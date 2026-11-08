@@ -413,6 +413,24 @@ test("changing a published plan does nothing until it has been reviewed and appl
   assert.equal(await speedOf("studentY"), 95);
 });
 
+test("changing only the order of tasks still has to be reviewed and applied", async () => {
+  const plan = await published(["studentX"]);
+  const order = (tasks) => tasks.filter((t) => t.week === 1 && t.kind === "checkpoint").map((t) => t.section);
+  const [a, b, ...rest] = plan.tasks;
+  const edited = (await save(plan, { tasks: [b, a, ...rest] })).data.plan;
+  assert.notDeepEqual(order(edited.tasks), order(plan.tasks));
+  assert.equal(edited.pendingChanges, 1, "a new order is a change the student would see");
+
+  const { impact } = (await call("teacherA", "GET", `/teacher/plans/${plan.id}/impact`)).data;
+  assert.equal(impact.totals.students, 1);
+  assert.equal(impact.students[0].reordered, true);
+  assert.equal((await applyChanges(edited, ["studentX"])).status, 200);
+
+  const month = await monthFor(plan, "studentX");
+  assert.deepEqual(order(month.tasks), order(edited.tasks), "the student's month is in the new order");
+  assert.equal((await call("teacherA", "GET", `/teacher/plans/${plan.id}`)).data.plan.pendingChanges, 0);
+});
+
 test("an individual student's settings survive a change to the plan", async () => {
   const plan = await draft(["studentX", "studentY"]);
   const [a, b] = plan.tasks;

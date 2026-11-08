@@ -7,6 +7,8 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const TABS = [
   { href: "/teacher", label: "Assignments", exact: true, also: ["/teacher/assignments", "/teacher/new"] },
+  { href: "/teacher/inbox", label: "Inbox" },
+  { href: "/teacher/plans", label: "Plans", also: ["/teacher/months"] },
   { href: "/teacher/calendar", label: "Calendar" },
   { href: "/teacher/classes", label: "Classes" },
   { href: "/teacher/students", label: "Students" },

@@ -6,7 +6,7 @@ const { audit } = require("../lib/audit");
 const { canonicalInstrument } = require("../lib/instrumentAccess");
 const { isDateString } = require("../lib/zoned");
 const { canFilm } = require("../lib/consents");
-const { buildMonth, sectionsOf, WEEK_TITLES } = require("../lib/weeklyTemplate");
+const { buildMonth, sectionsOf, transitionsOf, WEEK_TITLES } = require("../lib/weeklyTemplate");
 const { same, taskLabel } = require("../lib/monthPlans");
 const {
   STATUSES,
@@ -238,6 +238,7 @@ async function presentMonth(month) {
     plan: month.plan ?? null,
     canFilm: await canFilm(month.student),
     sections: sectionsOf(month.song?.chart).map(({ name, start, end }) => ({ name, start, end })),
+    transitions: transitionsOf(month.song?.chart),
     tasks: await Promise.all(month.tasks.map((t) => presentAssignment(t, { linkSeconds: RECORDING_LINK_SECONDS }))),
   };
 }

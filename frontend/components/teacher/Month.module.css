@@ -143,6 +143,19 @@
   min-height: 44px;
 }
 
+/* A box takes the width of its column, so a narrow column can't push it over its neighbour. */
+.fields :global(.rw-st-field) {
+  min-width: 0;
+  align-content: start;
+}
+
+.fields :global(.rw-st-field) input,
+.fields :global(.rw-st-field) select {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+}
+
 .clock {
   font-variant-numeric: tabular-nums;
 }
