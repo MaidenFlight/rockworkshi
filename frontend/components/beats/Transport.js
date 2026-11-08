@@ -84,7 +84,7 @@ function TempoField({ m }) {
   );
 }
 
-export default function Transport({ m }) {
+export default function Transport({ m, midi }) {
   const { engineState, beat } = m;
   const lamp = lampOf(engineState);
   const running = engineState.status === "running" || engineState.status === "starting";
@@ -115,6 +115,11 @@ export default function Transport({ m }) {
           {lamp.text}
         </span>
         <span ref={readout} className={s.readout} />
+        {midi.state.status === "on" && midi.state.devices.length > 0 && (
+          <span className={s.lamp} data-lamp="midi" data-flash="midi" title={midi.state.devices.map((d) => d.name).join(", ")}>
+            MIDI
+          </span>
+        )}
         <div className={s.statusKeys}>
           <button type="button" className={s.iconKey} onClick={m.undo} disabled={!m.canUndo} aria-keyshortcuts="Control+Z">
             Undo

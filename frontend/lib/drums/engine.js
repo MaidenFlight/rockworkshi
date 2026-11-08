@@ -60,8 +60,9 @@ export class DrumEngine {
     this.endAt = null;
     this.onRecord = null; // (part, step, piece, level) for each note played while recording
     this.listeners = new Set();
-    this.state = { status: "idle", error: null, recording: false, mode: null, countIn: false, ended: false };
+    this.state = { status: "idle", error: null, recording: false, mode: null, countIn: false, ended: false, soundOff: false };
     this.onContextState = () => {
+      if (this.ctx?.state === "running") this.setState({ soundOff: false });
       if (this.state.status === "running" && this.ctx && this.ctx.state !== "running") this.interrupt();
     };
   }
@@ -176,8 +177,8 @@ export class DrumEngine {
   // ---- playing by hand ----
 
   // A pad or key: sounds at once. While recording, the note also goes into the beat, on the
-  // nearest step to where it was heard.
-  hit(piece, level) {
+  // nearest step to where it was heard. `velocityGain` scales this hit, for a MIDI note.
+  hit(piece, level, velocityGain = 1) {
     let ctx;
     try {
       ctx = this.ensureContext();
@@ -188,8 +189,21 @@ export class DrumEngine {
     // Booked now, on the clock as it stands: a context that is still starting (the very first tap)
     // plays it with its first sound, without waiting here for the start to be confirmed.
     if (ctx.state !== "running") this.wake();
-    this.kit.hit(piece, level, ctx.currentTime);
+    this.kit.hit(piece, level, ctx.currentTime, { velocityGain });
     if (this.state.recording && this.state.status === "running") this.record(piece, level);
+  }
+
+  // A note from a MIDI instrument. Unlike a tap it isn't a gesture, so it can't be what starts the
+  // sound on a page nobody has touched yet. Then it is dropped (booked on a clock that isn't moving,
+  // every note would sound at once when it did start) and the page asks for a click. True if it played.
+  hitMidi(piece, level, velocityGain) {
+    const touched = typeof navigator !== "undefined" && navigator.userActivation?.hasBeenActive === true;
+    if (this.ctx?.state !== "running" && !touched) {
+      this.setState({ soundOff: true });
+      return false;
+    }
+    this.hit(piece, level, velocityGain);
+    return true;
   }
 
   record(piece, level) {

@@ -16,6 +16,7 @@ import SongStrip from "./SongStrip";
 import StepGrid from "./StepGrid";
 import Transport from "./Transport";
 import { useBeatMaker } from "./useBeatMaker";
+import { useMidiInput } from "./useMidiInput";
 import s from "./beats.module.css";
 
 const TABS = [
@@ -124,6 +125,8 @@ export default function BeatMaker() {
     [engine, flash],
   );
 
+  const midi = useMidiInput({ engine, prefs: m.prefs, setPrefs: m.setPrefs, flash });
+
   // Every frame while playing, the screen reads what is sounding now from the audio clock.
   const status = engineState.status;
   useEffect(() => {
@@ -197,8 +200,8 @@ export default function BeatMaker() {
         </Link>
         <h1 className={s.title}>Beat Maker</h1>
         <p className={s.lead}>
-          Play drums on the pads or your keyboard, start from a groove, and build your own beat part by part into a song. Use it to practise
-          drums, or to make a backing beat for any instrument.
+          Play drums on the pads, your keyboard or a MIDI kit, start from a groove, and build your own beat part by part into a song. Use it to
+          practise drums, or to make a backing beat for any instrument.
         </p>
 
         {m.shared && (
@@ -245,8 +248,8 @@ export default function BeatMaker() {
         )}
 
         <section ref={consoleRef} className={s.console} data-view={view} aria-label="Beat maker">
-          <Transport m={m} />
-          {(loading || m.loadFailed.length > 0 || engineState.error) && (
+          <Transport m={m} midi={midi} />
+          {(loading || m.loadFailed.length > 0 || engineState.error || engineState.soundOff) && (
             <div className={s.consoleNotes}>
               {loading && m.loadFailed.length === 0 && (
                 <p className={s.loading} role="status">
@@ -264,6 +267,11 @@ export default function BeatMaker() {
               {engineState.error && (
                 <p className={s.alert} role="alert">
                   {engineState.error}
+                </p>
+              )}
+              {engineState.soundOff && (
+                <p className={s.alert} role="status">
+                  Your MIDI notes are coming in. Click anywhere on this page to turn the sound on.
                 </p>
               )}
             </div>
@@ -342,7 +350,7 @@ export default function BeatMaker() {
           {TABS.map((t) => (
             <div key={t.id} role="tabpanel" id={`bm-panel-${t.id}`} aria-labelledby={`bm-tab-${t.id}`} hidden={tab !== t.id} className={s.panel}>
               {t.id === "grooves" && <SettingsGrooves m={m} />}
-              {t.id === "kit" && <SettingsKit m={m} playPiece={playPiece} />}
+              {t.id === "kit" && <SettingsKit m={m} playPiece={playPiece} midi={midi} />}
               {t.id === "beat" && <SettingsBeat m={m} />}
               {t.id === "saved" && <SettingsSaved m={m} />}
             </div>

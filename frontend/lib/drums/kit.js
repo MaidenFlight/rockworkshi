@@ -22,13 +22,15 @@ export const GROUPS = [
 ];
 
 // `files`: the recordings for each layer, round robins in order. A level without its own layer
-// plays the main one louder or softer (`ACCENT_GAIN`, `GHOST_GAIN`). `voices`: how many hits of
+// plays the main one louder or softer (`ACCENT_GAIN`, `GHOST_GAIN`). `layerDb`: how loud a piece's
+// own soft and hard recordings are against its main ones, measured from the shipped files (the
+// loudest 100 ms, averaged across round robins), so a MIDI velocity can play them at the right level. `voices`: how many hits of
 // one sound may ring at once before the oldest fades. `chokes`: what this hit silences, as a real
 // closing hi-hat stops an open one. `code`: the physical key (KeyboardEvent.code) that plays it;
 // `label` is what a QWERTY keyboard prints on that key.
 export const PIECES = [
-  { id: "crash", name: "Crash", short: "Crash", group: "cymbals", code: "KeyW", label: "W", midi: 49, voices: 3, files: { main: ["crash-1"], accent: ["crash-hard-1"] } },
-  { id: "ride", name: "Ride", short: "Ride", group: "cymbals", code: "KeyO", label: "O", midi: 51, voices: 4, files: { main: ["ride-1", "ride-2"], accent: ["ride-hard-1"] } },
+  { id: "crash", name: "Crash", short: "Crash", group: "cymbals", code: "KeyW", label: "W", midi: 49, voices: 3, files: { main: ["crash-1"], accent: ["crash-hard-1"] }, layerDb: { accent: 4.9 } },
+  { id: "ride", name: "Ride", short: "Ride", group: "cymbals", code: "KeyO", label: "O", midi: 51, voices: 4, files: { main: ["ride-1", "ride-2"], accent: ["ride-hard-1"] }, layerDb: { accent: 3.4 } },
   { id: "rideBell", name: "Ride bell", short: "Bell", group: "cymbals", code: "KeyI", label: "I", midi: 53, voices: 3, files: { main: ["ride-bell-1", "ride-bell-2"] } },
   { id: "hatOpen", name: "Open hi-hat", short: "Open hat", group: "hats", code: "KeyS", label: "S", midi: 46, voices: 2, files: { main: ["hat-open-1", "hat-open-2"] } },
   {
@@ -46,10 +48,11 @@ export const PIECES = [
       main: ["hat-closed-1", "hat-closed-2", "hat-closed-3"],
       accent: ["hat-closed-hard-1", "hat-closed-hard-2"],
     },
+    layerDb: { ghost: -10.8, accent: 4.6 },
   },
   { id: "hatPedal", name: "Hi-hat pedal", short: "Pedal", group: "hats", code: "KeyA", label: "A", midi: 44, voices: 2, chokes: ["hatOpen"], files: { main: ["hat-pedal-1", "hat-pedal-2"] } },
-  { id: "tom1", name: "High tom", short: "Tom 1", group: "toms", code: "KeyK", label: "K", midi: 48, voices: 3, files: { main: ["tom-1-1", "tom-1-2"], accent: ["tom-1-hard-1"] } },
-  { id: "tom2", name: "Mid tom", short: "Tom 2", group: "toms", code: "KeyL", label: "L", midi: 45, voices: 3, files: { main: ["tom-2-1", "tom-2-2"], accent: ["tom-2-hard-1"] } },
+  { id: "tom1", name: "High tom", short: "Tom 1", group: "toms", code: "KeyK", label: "K", midi: 48, voices: 3, files: { main: ["tom-1-1", "tom-1-2"], accent: ["tom-1-hard-1"] }, layerDb: { accent: 3.1 } },
+  { id: "tom2", name: "Mid tom", short: "Tom 2", group: "toms", code: "KeyL", label: "L", midi: 45, voices: 3, files: { main: ["tom-2-1", "tom-2-2"], accent: ["tom-2-hard-1"] }, layerDb: { accent: 3.2 } },
   {
     id: "floorTom",
     name: "Floor tom",
@@ -60,6 +63,7 @@ export const PIECES = [
     midi: 41,
     voices: 3,
     files: { main: ["floor-tom-1", "floor-tom-2"], accent: ["floor-tom-hard-1"] },
+    layerDb: { accent: 3.0 },
   },
   { id: "rimshot", name: "Rimshot", short: "Rimshot", group: "snare", code: "KeyR", label: "R", midi: 40, voices: 3, files: { main: ["rimshot-1", "rimshot-2"] } },
   {
@@ -72,6 +76,7 @@ export const PIECES = [
     midi: 38,
     voices: 4,
     files: { ghost: ["snare-soft-1", "snare-soft-2"], main: ["snare-1", "snare-2", "snare-3"], accent: ["snare-hard-1", "snare-hard-2"] },
+    layerDb: { ghost: -12, accent: 2.8 },
   },
   { id: "sidestick", name: "Side-stick", short: "Side-stick", group: "snare", code: "KeyE", label: "E", midi: 37, voices: 3, files: { main: ["sidestick-1", "sidestick-2"] } },
   {
@@ -84,6 +89,7 @@ export const PIECES = [
     midi: 36,
     voices: 3,
     files: { ghost: ["kick-soft-1", "kick-soft-2"], main: ["kick-1", "kick-2", "kick-3"], accent: ["kick-hard-1", "kick-hard-2"] },
+    layerDb: { ghost: -5.8, accent: 2.8 },
   },
 ];
 
@@ -117,6 +123,13 @@ export function layerFor(piece, level) {
   if (level === LEVEL.accent) return files.accent ? { files: files.accent, gain: 1 } : { files: files.main, gain: ACCENT_GAIN };
   if (level === LEVEL.ghost) return files.ghost ? { files: files.ghost, gain: 1 } : { files: files.main, gain: GHOST_GAIN };
   return { files: files.main, gain: 1 };
+}
+
+// How loud a level's recordings already are against the main ones (1 is the same).
+export function layerLevel(piece, level) {
+  if (level === LEVEL.accent) return piece.files.accent ? 10 ** ((piece.layerDb?.accent ?? 0) / 20) : ACCENT_GAIN;
+  if (level === LEVEL.ghost) return piece.files.ghost ? 10 ** ((piece.layerDb?.ghost ?? 0) / 20) : GHOST_GAIN;
+  return 1;
 }
 
 // Picks a round robin: never the one just played, so a fast roll doesn't sound like a machine gun.

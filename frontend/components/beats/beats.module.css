@@ -164,6 +164,14 @@
 .lamp[data-lamp="wait"]::before {
   background: var(--rw-console-meta);
 }
+/* Shows a device is connected; blinks in the drums' colour on every note it sends. */
+.lamp[data-lamp="midi"]::before {
+  transition: background-color 0.2s ease;
+}
+.lamp[data-lamp="midi"][data-hit]::before {
+  background: var(--rw-part-drums);
+  transition: none;
+}
 
 .readout {
   font-size: var(--rw-text-sm);
@@ -1362,6 +1370,7 @@
 .muteCheck input:focus-visible,
 .paperSlider:focus-visible,
 .textInput:focus-visible,
+.midiSelect:focus-visible,
 .hear:focus-visible {
   outline: 2px solid var(--rw-teal);
   outline-offset: 2px;
@@ -1645,6 +1654,66 @@
   .mixRow .muteCheck {
     grid-area: mute;
   }
+}
+
+.midiPanel {
+  display: grid;
+  gap: var(--rw-space-3);
+  min-width: 0;
+}
+
+.midiPanel .fieldHelp {
+  margin: 0;
+}
+
+.midiLast {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 24px;
+  max-width: 560px;
+  padding: 10px 14px;
+  background: var(--rw-surface);
+  border: 1px solid var(--rw-line);
+  border-radius: var(--rw-radius-sm);
+}
+
+.midiNote {
+  margin: 0;
+  font-size: var(--rw-text-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--rw-prose);
+}
+
+.midiNoteNumber {
+  display: block;
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: var(--rw-text-xl);
+  line-height: 1.1;
+  color: var(--rw-ink);
+}
+
+.midiPick {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: var(--rw-text-sm);
+  font-weight: 700;
+  color: var(--rw-ink);
+}
+
+.midiSelect {
+  min-height: 44px;
+  padding: 0 10px;
+  font: inherit;
+  font-size: var(--rw-text-base);
+  font-weight: 400;
+  color: var(--rw-ink);
+  background: var(--rw-surface);
+  border: 1px solid var(--rw-line);
+  border-radius: var(--rw-radius-field);
 }
 
 .saveForm {
@@ -2063,7 +2132,8 @@
   .choice,
   .iconKey,
   .smallKey,
-  .compact {
+  .compact,
+  .lamp[data-lamp="midi"]::before {
     transition: none;
   }
 }

@@ -7,6 +7,7 @@
 // breaks the page: it falls back to memory for this visit and says so once.
 import { BEAT_VERSION, NAME_MAX, cleanName, sanitizeBeat } from "./beat.js";
 import { PIECE_IDS } from "./kit.js";
+import { DEFAULT_MIDI_PREFS, sanitizeMidiPrefs } from "./midiInput.js";
 
 export const MAX_SAVED = 50;
 const PREFIX = "rw-beats";
@@ -57,6 +58,7 @@ export const DEFAULT_PREFS = {
   mix: {}, // piece -> volume 0..1.5
   muted: [], // pieces muted in the mix
   introDone: false,
+  midi: DEFAULT_MIDI_PREFS, // reconnect on the next visit? and any notes changed by hand
 };
 
 export function sanitizePrefs(raw) {
@@ -74,6 +76,7 @@ export function sanitizePrefs(raw) {
     mix,
     muted: Array.isArray(p.muted) ? PIECE_IDS.filter((id) => p.muted.includes(id)) : [],
     introDone: p.introDone === true,
+    midi: sanitizeMidiPrefs(p.midi),
   };
 }
 

@@ -6,7 +6,7 @@ import { meterOf, songLength } from "./beat.js";
 import { Sequencer } from "./sequencer.js";
 
 const PPQ = 480;
-const VELOCITY = [0, 46, 92, 120];
+export const VELOCITY = [0, 46, 92, 120]; // for a level: off, ghost, hit, accent
 const NOTE_TICKS = 60;
 const TIME_SIGNATURE = { "4/4": [4, 2, 24], "3/4": [3, 2, 24], "12/8": [12, 3, 36], "6/8": [6, 3, 36] };
 

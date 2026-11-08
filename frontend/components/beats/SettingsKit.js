@@ -2,13 +2,14 @@
 
 import { GRID_ORDER, LEVEL, PIECE_BY_ID } from "@/lib/drums/kit";
 import { useKeyLabels } from "./keyLabels";
+import MidiSection from "./MidiSection";
 import s from "./beats.module.css";
 
 const pct = (v) => `${Math.round(v * 100)}%`;
 
 // This browser's mix: the whole kit's volume, each drum's level, and mutes. Muting the drums you
-// want to play yourself turns any beat into a play-along.
-export default function SettingsKit({ m, playPiece }) {
+// want to play yourself turns any beat into a play-along. MIDI sits above the long list of drums.
+export default function SettingsKit({ m, playPiece, midi }) {
   const { prefs, setPrefs } = m;
   const keyLabels = useKeyLabels();
   const changed = Object.keys(prefs.mix).length > 0 || prefs.muted.length > 0;
@@ -38,6 +39,8 @@ export default function SettingsKit({ m, playPiece }) {
           <span className={s.sliderValue}>{pct(prefs.volume)}</span>
         </div>
       </section>
+
+      <MidiSection midi={midi} />
 
       <section className={s.section}>
         <h3 className={s.sectionTitle}>Mix</h3>
