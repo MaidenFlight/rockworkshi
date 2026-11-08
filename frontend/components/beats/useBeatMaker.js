@@ -11,7 +11,7 @@ import { SHARE_PARAM, decodeBeat } from "@/lib/drums/share";
 import { DEFAULT_PREFS, MAX_SAVED, browserStorage, makeSavedId, openBeatStore, sanitizePrefs, scopeFor } from "@/lib/drums/storage";
 import { createTapTempo } from "@/lib/metronome/tap";
 
-const IDLE = { status: "idle", error: null, recording: false, mode: null, countIn: false, ended: false };
+const IDLE = { status: "idle", error: null, recording: false, mode: null, countIn: false, ended: false, soundOff: false };
 const UNDO_LIMIT = 100;
 const noSubscribe = () => () => {};
 const idleState = () => IDLE;

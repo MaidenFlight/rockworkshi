@@ -3,7 +3,7 @@
 `/tools/beats`, listed in the tools hub as **Beat Maker**. Built 2026-11-06 after Denny asked for "a
 place for drum sampling … like EZdrummer but simpler, a lot of room for input, a sort of creative zone".
 
-It is a drum kit you can play (pads, or the computer keyboard), a library of grooves and fills to start
+It is a drum kit you can play (pads, the computer keyboard, or an electronic kit, pad controller or keyboard over MIDI), a library of grooves and fills to start
 from, a grid for writing your own, parts (Verse, Chorus, Fill…) strung into a song, recording what you
 play into a part, and saving, sharing and MIDI export. Drummers practise with it; anyone else makes a
 backing beat for their own instrument.
@@ -21,13 +21,14 @@ and set `free: true` on its entry in `app/tools/page.js`.
 | `grooves.js` | 24 grooves and fills written out by hand (standard beats), and the example song a first visit opens on |
 | `sequencer.js` | Turns a beat into timed events one step at a time (bars, steps, clicks, hits, end). Pure; reads the beat at every step so edits are heard at once |
 | `samples.js` | Loads and decodes the recordings once per visit (see below) |
-| `voices.js` | Plays hits: a gain per drum (the mix), overlap, voice limits, the hi-hat choke, round robins |
+| `voices.js` | Plays hits: a level per drum and a mute that only the beat's hits go through (the mix), overlap, voice limits, the hi-hat choke, round robins |
 | `engine.js` | The AudioContext, the transport, the 25 ms scheduler (the metronome's ticker), the click, recording, `snapshot()` for the screen |
 | `share.js`, `midi.js`, `storage.js` | Share links (`?beat=`), Standard MIDI Files, this browser's saved beats and settings |
-| `frontend/components/beats/` | The page: `BeatMaker` (layout, keys, the audio-clock frame loop), `Transport`, `PartTabs`, `StepGrid`, `PadKit`, `SongStrip`, four settings tabs, one CSS module |
+| `midiInput.js` | Playing the kit over MIDI: which note plays which drum, how a velocity becomes a recording and a volume, and `MidiLink`, the connection (permission, devices coming and going) |
+| `frontend/components/beats/` | The page: `BeatMaker` (layout, keys, the audio-clock frame loop), `Transport`, `PartTabs`, `StepGrid`, `PadKit`, `SongStrip`, four settings tabs, `MidiSection` and `useMidiInput`, one CSS module |
 | `frontend/scripts/make-drum-kit.mjs` | Rebuilds the drum MP3s from the original recordings |
 
-Unit tests sit beside the modules (`lib/drums/*.test.js`, 41 tests) and run with `npm test` in `frontend`.
+Unit tests sit beside the modules (`lib/drums/*.test.js`, 65 tests) and run with `npm test` in `frontend`.
 
 ## The drum sounds
 
@@ -115,6 +116,8 @@ are where to change it for everyone.
   activate a focused pad. Keys are physical positions, so the kit sits under the same fingers on any
   layout; the pads show what the key prints where the browser can say (Chrome, Edge). Shift plays an
   accent. Ghost / Hit / Accent above the pads sets how hard the pads, the keys and the grid play.
+- **MIDI in** (see below): an electronic kit, pad controller or keyboard plays the kit, with how hard you
+  hit setting the recording and the volume.
 - **Overlap and limits:** hits ring over each other; a drum hit again keeps ringing until it has too many
   voices (2–4 by drum), then the oldest fades in 30 ms. A closed or pedalled hi-hat chokes an open one
   (12 ms fade). Sequenced hits vary ±0.6 dB, like a player.
@@ -131,8 +134,50 @@ are where to change it for everyone.
   in this browser per person, like the metronome's presets. Nothing goes to the account yet.
 - **Sharing:** "Copy a link" packs the whole beat (parts, song, tempo, name; never the mix or anything
   about the person) into `?beat=`. Opening one offers it before replacing anything; Undo brings the old
-  beat back. A damaged link opens what it can. **MIDI:** the song (or the looped part, four times) as a
-  type-0 file, General MIDI drums on channel 10, swing and crashes where they are heard.
+  beat back. A damaged link opens what it can. **MIDI download:** the song (or the looped part, four
+  times) as a type-0 file, General MIDI drums on channel 10, swing and crashes where they are heard.
+- **The mix:** faders set a drum's level for everything. A mute only stops the beat's hits, so a drum
+  muted to play along with still sounds when it is played by hand or over MIDI.
+
+## MIDI in
+
+Added 2026-11-07, because Denny asked for MIDI integration. Web MIDI only exists in Chrome, Edge, Firefox
+and Chrome on Android (no Safari, nothing on an iPhone), and only on HTTPS, so the page says so where it
+isn't there. The Kit tab has it, above the long list of drums.
+
+- **Connecting.** Connect MIDI asks the browser (no sysex; Chrome now asks permission for all Web MIDI).
+  Every input and every channel is listened to, because pads and keyboards send on channel 1 and drum
+  modules on 10. Devices plugged in or pulled out while the page is open come and go by themselves. Nothing
+  is opened until someone asks. After that a return visit reconnects by itself, but only if
+  `navigator.permissions` already says granted, so opening the page never puts up a prompt. Disconnect, or
+  leaving the page, closes the ports, because Windows lets only one program at a time use a device.
+- **Which note plays what.** `DEFAULT_NOTES` is General MIDI's drum notes folded onto the 13 sounds, plus
+  the notes Roland-style modules send for a rim or a cymbal's edge, so a kit's notes mostly work untouched;
+  a pad controller's sixteen pads from note 36 all play something. Anything else is set on the page: it
+  shows the last note played with a drum to choose, so you hit the pad, then pick. Those changes, and
+  "Nothing" for a note to silence, are kept in this browser, and the MIDI download's own notes play back
+  as the same drums.
+- **How hard.** A velocity picks the recording: under 69 a ghost, 69–105 a hit, 106 up an accent, the
+  midpoints between the velocities the download writes (46, 92, 120), so a file played back in records
+  the same levels. The volume on top follows General MIDI's curve (velocity squared, 92 as 1), divided
+  by how loud that recording already is (`layerDb` in `kit.js`, measured from the shipped MP3s). So
+  loudness is one smooth line across the changes of recording: without it the kick, whose soft recordings
+  are only 5.8 dB down rather than 12, would have got quieter as you hit harder at velocity 69. If the
+  MP3s are ever rebuilt, measure `layerDb` again.
+- **What counts as a note.** Note-on with velocity above 0, on any channel. Note-offs (including note-on
+  at velocity 0, which is how many devices send them), clock, controllers and aftertouch are ignored. So
+  the hi-hat pedal's position (CC 4) isn't read, since modules send the open or closed note themselves, and
+  a grabbed cymbal doesn't choke (aftertouch).
+- **Record** writes MIDI notes like any other, at the level the velocity chose. Ghost / Hit / Accent has no
+  effect on them.
+- **The first note on an untouched page.** A MIDI note isn't a user gesture, so it can't start audio on
+  a page nobody has clicked since it loaded, which is what a return visit is. Those notes are dropped (booked
+  on a clock that isn't moving, they would all sound at once when it started) and the console says to
+  click anywhere. Arriving from another page of the site counts as touched: the first note sounds.
+- **The screen.** Each note lights its drum, and a small MIDI lamp beside the transport shows a device is
+  connected and blinks on every note. The last note has its own small store, so only its line redraws on
+  a hit, not the whole page. No time is taken from the MIDI message's own timestamp: a note plays the
+  moment it arrives.
 
 ## Checked, and not checked (2026-11-06)
 
@@ -178,6 +223,39 @@ started test browser took 0.5–0.6 s before it sounded: all of it inside `new A
 opening the audio device (the same call on a blank page: 46–570 ms; on later pages 46–50 ms; the beat
 maker's own part, 5 ms). Tests, ESLint and `next build` pass.
 
-Not checked: a person listening to the new kit (Denny heard only the first one), real phones (iPhone
-Safari, Android Chrome), Firefox and Safari on a desktop, Bluetooth output latency, a real sign-in (the
-member was simulated in the browser), very long sessions.
+**MIDI in (2026-11-07), with no MIDI hardware to hand.** On the real members' route in headless Chrome, a
+stand-in device delivering real `MIDIMessageEvent`s through the page's own handlers, with the audio
+instrumented (43 checks):
+
+- Opening the page asks nothing and makes no AudioContext. Connect MIDI asks once, without sysex, names the
+  device and shows the lamp; it is remembered.
+- A snare note: one hit, booked within 2.1 ms, gain 1 at velocity 92, the drum and the lamp lit, the note
+  shown. Velocities 30, 46, 68, 69, 92, 105, 106, 120, 127 each got exactly the gain on the curve, soft,
+  normal and hard from different recordings (peaks 0.11, 0.51, 0.77); the output measured −25.2, −4.8 and
+  −0.7 dB at velocities 30, 92, 127.
+- Note-offs, velocity 0, clock, active sensing, controllers, aftertouch and pitch bend: no sound. Channels
+  1 and 10 both play.
+- Note 72 (no drum): silent, shown as Nothing. Choosing Crash saved it and it played; a standard note could
+  be silenced; Reset the notes brought it back and left nothing saved.
+- The hi-hat choke; Record writing an accent (velocity 120) and a ghost (30) on the grid, one Undo taking
+  the pass back; every drum muted, the beat digital silence and a MIDI snare still −3.4 dB.
+- Devices plugged in and pulled out, all of them gone (says so, lamp out), one plugged back. Disconnect
+  closes the port and stops the notes; leaving the page closes it too.
+- A return visit: reconnects with one request, no AudioContext, the page's first notes dropped and the note
+  asking for a click shown, a click clearing it with nothing queued played, the next note sounding. Arriving
+  from `/tools` by a link, the first note sounded. With permission gone, no prompt on opening.
+- Chrome's real Web MIDI API (156), real permission: allowed, it connected and said no device is plugged in
+  (0 inputs on this PC), and a return visit reconnected; refused, it said how to allow it. The `midi`
+  permission in CDP has to be set with `sysex: true` for `requestMIDIAccess` to succeed.
+- A browser without Web MIDI gets one sentence and no button. Six states (not connected, asking, refused,
+  no device, connected with a note, no Web MIDI) at 390 and 1280 px in both worlds: no sideways scroll,
+  every control at least 44 px, contrast passes, no console errors.
+- 24 more unit tests (162 in all): the note map, the velocity curve for every drum and velocity, saved
+  settings, the connection against a stand-in browser, and what a mute lets through.
+
+Not checked: any real MIDI device, which is the point that matters most, so real note numbers from a real
+module, how the velocity curve feels under the hands, a pad's real latency, and whether Windows lets the
+browser share a device with another program. Firefox's MIDI prompt. Also: a person listening to the new kit
+(Denny heard only the first one), real phones (iPhone Safari, Android Chrome), Firefox and Safari on a
+desktop, Bluetooth output latency, a real sign-in (the member was simulated in the browser), very long
+sessions.

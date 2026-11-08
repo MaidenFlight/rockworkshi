@@ -1,5 +1,6 @@
-// Plays hits on one AudioContext, live or offline, through a small mixer: a gain per drum (the
-// Kit tab's faders and mutes) into one kit bus. Hits overlap freely; a sound that is hit again
+// Plays hits on one AudioContext, live or offline, through a small mixer: a level per drum (the
+// Kit tab's faders) into one kit bus, and before it a mute that only the beat's hits go through, so
+// a drum muted to play along with still sounds when you play it. Hits overlap freely; a sound that is hit again
 // while it rings keeps ringing until it has too many voices, then the oldest fades. A closed or
 // pedalled hi-hat stops an open one, as on a real stand.
 import { PIECES, PIECE_BY_ID, layerFor, nextRoundRobin } from "./kit.js";
@@ -25,10 +26,14 @@ export class KitVoices {
     this.bus = ctx.createGain();
     this.bus.connect(output);
     this.gains = {};
+    this.beatGains = {};
     for (const p of PIECES) {
-      const g = ctx.createGain();
-      g.connect(this.bus);
-      this.gains[p.id] = g;
+      const level = ctx.createGain();
+      level.connect(this.bus);
+      this.gains[p.id] = level;
+      const beat = ctx.createGain();
+      beat.connect(level);
+      this.beatGains[p.id] = beat;
     }
     this.voices = {}; // piece -> [{ src, gain, start, tag }]
     this.lastPick = {};
@@ -38,15 +43,22 @@ export class KitVoices {
   setMix(mix = {}, muted = [], { immediate = false } = {}) {
     const now = this.ctx.currentTime;
     for (const p of PIECES) {
-      const value = muted.includes(p.id) ? 0 : (mix[p.id] ?? 1);
-      if (immediate) this.gains[p.id].gain.value = value;
-      else smooth(this.gains[p.id].gain, value, now);
+      const level = mix[p.id] ?? 1;
+      const open = muted.includes(p.id) ? 0 : 1;
+      if (immediate) {
+        this.gains[p.id].gain.value = level;
+        this.beatGains[p.id].gain.value = open;
+      } else {
+        smooth(this.gains[p.id].gain, level, now);
+        smooth(this.beatGains[p.id].gain, open, now);
+      }
     }
   }
 
   // Plays `piece` at `level` (1 ghost, 2 hit, 3 accent) at time `t`. `tag` marks who asked, so
-  // Stop can silence the sequencer's hits without cutting off a pad played by hand.
-  hit(piece, level, t, { tag = "live", humanize = false } = {}) {
+  // Stop can silence the sequencer's hits without cutting off a pad played by hand. `velocityGain`
+  // scales this one hit, for a MIDI note that says how hard it was played.
+  hit(piece, level, t, { tag = "live", humanize = false, velocityGain = 1 } = {}) {
     const p = PIECE_BY_ID[piece];
     if (!p || !level) return false;
     const layer = layerFor(p, level);
@@ -68,9 +80,9 @@ export class KitVoices {
     src.buffer = sample.buffer;
     const gain = ctx.createGain();
     const vary = humanize ? 10 ** (((Math.random() * 2 - 1) * HUMANIZE_DB) / 20) : 1;
-    gain.gain.value = layer.gain * vary;
+    gain.gain.value = layer.gain * vary * velocityGain;
     src.connect(gain);
-    gain.connect(this.gains[piece]);
+    gain.connect(tag === "seq" ? this.beatGains[piece] : this.gains[piece]);
     const voice = { src, gain, start: when, tag, stopping: false };
     list.push(voice);
     src.onended = () => {
