@@ -20,9 +20,8 @@ function TeacherDashboard() {
   const [students, setStudents] = useState(null);
   const [studentFilter, setStudentFilter] = useState("");
   const [error, setError] = useState("");
-  const [waitingPage, setWaitingPage] = usePageParam("waiting");
+  const [waiting, setWaiting] = useState(null); // how many are in the inbox
   const [page, setPage] = usePageParam("page");
-  const waiting = usePagedList("/teacher/assignments", "assignments", { page: waitingPage, pageSize: 10, params: { status: "ready" } });
   const all = usePagedList("/teacher/assignments", "assignments", { page, params: { studentId: studentFilter } });
 
   useEffect(() => {
@@ -32,9 +31,12 @@ function TeacherDashboard() {
         setError(err.message);
         setStudents([]);
       });
+    teacherRequest("/teacher/inbox?pageSize=1")
+      .then((q) => setWaiting(q.waiting))
+      .catch((err) => setError(err.message));
   }, []);
 
-  const problem = error || waiting.error || all.error;
+  const problem = error || all.error;
 
   return (
     <div>
@@ -48,19 +50,14 @@ function TeacherDashboard() {
         <>
           <section style={{ marginBottom: 32 }}>
             <h2 style={h2}>Waiting for review</h2>
-            {waiting.loading ? (
-              <p style={muted}>Loading…</p>
-            ) : waiting.items.length === 0 ? (
-              !waiting.error && <p style={muted}>Nothing to review right now.</p>
+            {waiting === null ? (
+              !error && <p style={muted}>Loading…</p>
+            ) : waiting === 0 ? (
+              <p style={muted}>Nothing to review right now.</p>
             ) : (
-              <>
-                <div style={{ display: "grid", gap: 8 }}>
-                  {waiting.items.map((a) => (
-                    <AssignmentRow key={a.id} assignment={a} />
-                  ))}
-                </div>
-                <Pagination pagination={waiting.pagination} onChange={setWaitingPage} label="Waiting for review pages" />
-              </>
+              <Link href="/teacher/inbox" className="rw-st-btn" data-tone="primary" style={{ minHeight: 44 }}>
+                {`Open the inbox: ${waiting} waiting`}
+              </Link>
             )}
           </section>
 
