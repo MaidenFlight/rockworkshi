@@ -138,7 +138,9 @@ export default function CompareTakes({ takes }) {
         {["a", "b"].map((side) => (
           <button key={side} type="button" aria-pressed={active === side} onClick={() => choose(side)}>
             <span className={s.label}>{chosen[side].label}</span>
-            <span className={s.date}>Sent {chosen[side].date}</span>
+            <span className={s.date}>
+              {chosen[side].verb ?? "Sent"} {chosen[side].date}
+            </span>
           </button>
         ))}
       </div>

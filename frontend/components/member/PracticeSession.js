@@ -11,7 +11,7 @@ import s from "./PracticeSession.module.css";
 // tools the student already has. Tune up (string instruments), practise the section (the loop and the
 // speed trainer), record a take (the recorder), listen back, and save or submit it. Each step done is
 // ticked on the dashboard's Today list too. Getting to the end sends nothing: only the last step's key does.
-// player is the StemPlayer's handle ({ startTrainer, openRecorder, sendTake, listenBack }); take is where
+// player is the StemPlayer's handle ({ startTrainer, openRecorder, sendTake, listenBack, setUp }); take is where
 // the take is (StemPlayer's onTakeState: { take, name, keep, sending, verdict, uploadStopped }); sent turns
 // true once it has gone.
 export default function PracticeSession({ assignment, instrument, player, take, sent, onEnd }) {
@@ -158,7 +158,15 @@ export default function PracticeSession({ assignment, instrument, player, take, 
               : `Record the whole of ${part} at ${assignment.targetSpeed ? speedWords : "full speed"}, with headphones on so the mic only hears you. You can record again until you're happy with it.`}
           </p>
           <div className={s.actions}>
-            <Button type="button" variant="secondary" onClick={() => player.current?.openRecorder()}>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => {
+                // Set to what the task asks for, whatever the speed trainer had got to.
+                player.current?.setUp();
+                player.current?.openRecorder();
+              }}
+            >
               <Icon name="record" size={12} />
               Open the recorder
             </Button>

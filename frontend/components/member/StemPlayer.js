@@ -1667,6 +1667,7 @@ export default function StemPlayer({
     openRecorder,
     sendTake,
     listenBack,
+    setUp: setUpForTask,
   }));
   useEffect(() => {
     const current = videoTake ?? take;
@@ -1785,7 +1786,9 @@ export default function StemPlayer({
             : `${trainerStatus(trainer.settings, trainer.run)}. The trainer speeds up on its own.`
           : forTeacher && speed * 100 < finalSpeed - 0.5
             ? `Start slowly, then record your final take at ${finalSpeed}%.`
-            : loop?.end != null
+            : forTeacher && task?.targetSpeed && speed * 100 >= finalSpeed - 0.5 && finalSpeed < 100 && !take && !videoTake
+              ? `You're at the ${finalSpeed}% this task asks for. When it feels solid, record your take.`
+              : loop?.end != null
               ? nextSpeed
                 ? `Repeat this loop until it feels easy, then step up to ${Math.round(nextSpeed * 100)}%.`
                 : forTeacher

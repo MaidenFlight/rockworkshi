@@ -329,7 +329,7 @@ export default function RecordPanel({
         <p className="rw-studio-hint">
           {listening
             ? "Play your loudest part. Aim for the gold zone; if Too loud lights, back off the mic or turn its input down."
-            : `Starts from the current position at ${task?.targetSpeed ? (speed < 1 ? `${Math.round(speed * 100)}%` : "full speed") : "full speed"}, and plays straight through any loop. Wear headphones so the mic only hears you.${filming ? " Recording stops by itself at 8 minutes." : ""}`}
+            : `Starts from the current position at ${task?.targetSpeed ? (speed < 1 ? `${Math.round(speed * 100)}%` : "full speed") : "full speed"}, and plays straight through any loop. Wear headphones so the mic only hears you.${filming ? " Recording stops by itself at 8 minutes." : ""}${current ? ` Recording again replaces ${takeName}.` : ""}`}
         </p>
       </div>
 

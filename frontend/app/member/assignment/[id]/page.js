@@ -78,7 +78,7 @@ export default function AssignmentPage() {
   const teacher = who || "Your teacher";
   // Sent takes that can be heard (links last 15 minutes), for comparing two of them.
   const takes = a.submissions
-    .map((s, i) => ({ id: s.id, label: `${a.week && a.kind === "checkpoint" ? "Take" : "Attempt"} ${a.submissions.length - i}`, date: shortDate(s.createdAt), recording: s.recording }))
+    .map((s, i) => ({ id: s.id, label: `${a.week && a.kind === "checkpoint" ? "Take" : "Attempt"} ${a.submissions.length - i}`, verb: !a.week ? "Sent" : a.kind === "checkpoint" ? "Saved" : "Submitted", date: shortDate(s.createdAt), recording: s.recording }))
     .filter((t) => t.recording?.url);
 
   return (
