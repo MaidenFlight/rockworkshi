@@ -58,7 +58,18 @@ export function keptWhen(at) {
   return d.toDateString() === new Date().toDateString() ? time : `${d.toLocaleDateString("en-US", { month: "short", day: "numeric" })}, ${time}`;
 }
 
-// Keeps a take: { wav (ArrayBuffer), songTime, duration, number, name, nudgeMs, recordedAt }.
+// Asks the browser not to clear what's kept here when space runs short. It may say no, and a take is
+// still kept in that case, so this only improves the odds.
+export function askToKeepStored() {
+  try {
+    navigator.storage?.persist?.().catch(() => {});
+  } catch {
+    // Not every browser has it.
+  }
+}
+
+// Keeps a take: { wav (an ArrayBuffer, or a video's Blob), songTime, duration, number, name, nudgeMs,
+// recordedAt }, plus for a video { media: "video", type, uploadId }.
 // Resolves true once it's stored, false when this browser won't keep it.
 export async function keepTake(key, { wav, ...details }) {
   try {

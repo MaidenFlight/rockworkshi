@@ -182,15 +182,19 @@ function ReviewCard({ assignment: a, submission: s, latest, tracks, mixLevel, li
 
       {s.recording?.url && (
         <div style={{ display: "grid", gap: 10, marginBottom: 14 }}>
-          <audio ref={audio} controls preload="none" src={s.recording.url} style={{ width: "100%" }} />
-          {tracks && (
+          {s.recording.media === "video" ? (
+            <video ref={audio} controls preload="none" playsInline src={s.recording.url} style={{ width: "100%", maxHeight: 420, background: "var(--rw-console)" }} />
+          ) : (
+            <audio ref={audio} controls preload="none" src={s.recording.url} style={{ width: "100%" }} />
+          )}
+          {tracks && s.recording.media !== "video" && (
             <div>
               <button onClick={onListen} style={smallBtn}>
                 {listening ? "Hide the band" : "Listen with the band"}
               </button>
             </div>
           )}
-          {tracks && listening && (
+          {tracks && listening && s.recording.media !== "video" && (
             <StemPlayer
               key={s.id}
               tracks={tracks}

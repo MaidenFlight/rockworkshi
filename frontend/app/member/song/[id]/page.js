@@ -14,7 +14,7 @@ import SongTutorials from "@/components/member/SongTutorials";
 import { tickToday } from "@/components/member/TodayList";
 import { NetworkError, practiceRequest } from "@/lib/practice";
 import { takeKey } from "@/lib/takeStore";
-import { formatClock, hasLoop, sendForReview } from "@/lib/teaching";
+import { formatClock, hasLoop, sendForReview, sendVideoForReview } from "@/lib/teaching";
 
 // The bars around a moment, as a loop: from the start of the bar before it to the end of the bar after.
 // Without a chart, four seconds either side.
@@ -80,6 +80,7 @@ function SongPlayAlong() {
           // The school hasn't set this student's instrument, so there's no part to give them.
           noInstrument: tracks.status === "rejected" && tracks.reason?.reason === "no_instrument",
           assignment: assignment.status === "fulfilled" && assignment.value?.assignment.song?.id === id ? assignment.value.assignment : null,
+          canFilm: assignment.status === "fulfilled" ? assignment.value?.canFilm !== false : true,
         });
         setFailure(null);
       }
@@ -115,6 +116,13 @@ function SongPlayAlong() {
   }
 
   const { song, practice, tracks, assignment } = page;
+  // Once a take has gone: a guided session says so where it is, otherwise it's on to the task's page.
+  const afterSend = () => {
+    if (session) {
+      tickToday(assignment.id, "send");
+      setSessionSent(true);
+    } else router.push(`/member/assignment/${assignment.id}`);
+  };
   const locked = page.access && !page.access.allowed;
   const backHref = assignment ? `/member/assignment/${assignment.id}` : "/member/library";
   // Opened from a teacher's note: the player loops the bars around that moment, and the note is shown.
@@ -262,10 +270,16 @@ function SongPlayAlong() {
               assignment
                 ? async (take, onProgress) => {
                     await sendForReview(assignment.id, take, onProgress);
-                    if (session) {
-                      tickToday(assignment.id, "send");
-                      setSessionSent(true);
-                    } else router.push(`/member/assignment/${assignment.id}`);
+                    afterSend();
+                  }
+                : null
+            }
+            canFilm={page.canFilm}
+            onSendVideo={
+              assignment
+                ? async (video, onProgress) => {
+                    await sendVideoForReview(assignment.id, video, onProgress);
+                    afterSend();
                   }
                 : null
             }

@@ -22,9 +22,13 @@ export function setupGaps(task, { help, speed, hasChart = true }) {
   return gaps;
 }
 
-// Whether a recorded take fits. made = { support, speed, raisedBy }: the most help used, what brought
-// it up ("mode", "peek", "focus", or nothing when it started that way), and the speed it was played at.
-export function takeVerdict(task, made) {
+// Whether a recorded take fits. made = { support, speed, raisedBy, media }: the most help used, what
+// brought it up ("mode", "peek", "focus", or nothing when it started that way), the speed it was played
+// at, and "video" if it was filmed. canFilm false means audio is what this student can send.
+export function takeVerdict(task, made, { canFilm = true } = {}) {
+  if (task?.media === "video" && made.media !== "video" && !task.audioAllowed && canFilm) {
+    return { ok: false, why: "media", text: "This task asks for a video, so this take stays as practice. Record a new take with the camera on." };
+  }
   if (!isWeeklyAssessment(task)) return { ok: true, text: null };
   if (task.support && made.support && rank(made.support) > rank(task.support)) {
     const how =

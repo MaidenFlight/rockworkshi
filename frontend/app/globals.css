@@ -3724,6 +3724,45 @@ div:has(> .rw-scrub:focus-visible) {
 .rw-brief-keys .rw-btn {
   min-height: 44px;
 }
+.rw-brief-note {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--rw-gold);
+}
+/* The camera, and a video take played back. */
+.rw-camera-box {
+  display: grid;
+  gap: 8px;
+}
+.rw-camera {
+  display: block;
+  width: 100%;
+  max-height: 340px;
+  aspect-ratio: 16 / 9;
+  background: var(--rw-console-well);
+  object-fit: contain;
+}
+.rw-camera[data-live] {
+  transform: scaleX(-1);
+}
+.rw-camera-off {
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  font-size: 13.5px;
+  text-align: center;
+  color: var(--rw-console-meta);
+}
+.rw-mic-choice {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.rw-mic-choice select {
+  width: 100%;
+  min-height: 44px;
+}
 .rw-take-verdict {
   margin: 0;
   font-size: 13.5px;

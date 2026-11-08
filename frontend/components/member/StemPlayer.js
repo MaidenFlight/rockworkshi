@@ -18,6 +18,8 @@ import { DEFAULT_EFFECTS, createTakeEffects } from "@/lib/audio/takeEffects";
 import { afterPass, startRun, storedTrainerSettings, trainerSettings, trainerStatus } from "@/lib/speedTrainer";
 import { forgetTake, keepTake, readTake, updateTake } from "@/lib/takeStore";
 import { moreHelp, isWeeklyAssessment, setupGaps, takeVerdict } from "@/lib/takeRules";
+import { askToKeepStored } from "@/lib/takeStore";
+import { AUDIO_BITRATE, MAX_VIDEO_BYTES, MAX_VIDEO_SECONDS, VIDEO_BITRATE, WARN_SECONDS, cameraConstraints, cameraProblem, canRecordVideo, micConstraints, pickVideoFormat } from "@/lib/video/capture";
 import ChordChart, { savedHelpMode } from "./ChordChart";
 import Icon from "./Icon";
 import FocusView from "./player/FocusView";
@@ -156,6 +158,8 @@ function toWav(buffer) {
 // onSendTake({ blob, offset, duration, speed, support }, onProgress) offers sending a take to a teacher.
 // task is the practice work it's for (the API's assignment): the player opens at its help and speed, and
 // a task with a speed is recorded at the speed that's set, where anything else records at full speed.
+// canFilm says this student may be filmed; onSendVideo({ blob, offset, duration, speed, support, uploadId,
+// onStarted }, onProgress) sends a video take, for a task that asks for one.
 // chart is the song's chord chart, if it has one.
 // scope "instrument" is a student's player (see /songs/:id/tracks): tracks are their own stem
 // (role "own") and one backing band of every other part (role "backing", with a `makeup` gain that
@@ -191,6 +195,8 @@ export default function StemPlayer({
   onTakeState = null,
   guided = false,
   task = null,
+  canFilm = true,
+  onSendVideo = null,
 }) {
   const parts = useMemo(() => tracks.map((t) => t.part), [tracks]);
   const student = scope === "instrument" && Boolean(instrument);
@@ -277,6 +283,29 @@ export default function StemPlayer({
   const takeHelpRef = useRef(null);
   // The recorder is asking whether to set the player up for the assessment, or record as practice.
   const [briefing, setBriefing] = useState(false);
+  // A task that asks for video records through the camera, if this student and browser can.
+  const [recordAs, setRecordAs] = useState(() => (task?.media === "video" && canFilm && canRecordVideo() ? "video" : "audio"));
+  // A video take: { blob, url, type, media: "video", duration, songTime, speed, support, raisedBy, uploadId }.
+  const [videoTake, setVideoTake] = useState(null);
+  const videoTakeRef = useRef(null);
+  const [camera, setCamera] = useState(null); // the camera's stream while it's on
+  // { stream, source } while the camera's on, plus filming: { recorder, chunks, type, startedAt, timers }.
+  const cameraRef = useRef(null);
+  const [cameraError, setCameraError] = useState("");
+  const [videoWarning, setVideoWarning] = useState("");
+  // An upload that stopped part-way and can be picked up.
+  const [uploadStopped, setUploadStopped] = useState(false);
+  // The microphone to record with: chosen once, remembered, and offered when there's more than one.
+  const [mics, setMics] = useState([]);
+  const [micId, setMicId] = useState(() => {
+    try {
+      return window.localStorage.getItem("rw-mic") || "";
+    } catch {
+      return "";
+    }
+  });
+  const micIdRef = useRef(micId);
+  const workletLoadedRef = useRef(false);
   // The studio column, for "Open studio mixer" to name and "Record your take" to open on the recorder.
   const studioId = useId();
   const studioRef = useRef(null);
@@ -569,6 +598,7 @@ export default function StemPlayer({
       takeVoiceRef.current = null;
       micRef.current?.stream.getTracks().forEach((t) => t.stop());
       micRef.current = null;
+      workletLoadedRef.current = false;
       ctx.close();
     };
     // stopSources only reads refs.
@@ -581,7 +611,18 @@ export default function StemPlayer({
     let cancelled = false;
     readTake(keepKey)
       .then(async (kept) => {
-        if (!kept || cancelled || takeRef.current) return;
+        if (!kept || cancelled || takeRef.current || videoTakeRef.current) return;
+        if (kept.media === "video") {
+          const video = { blob: kept.wav, url: URL.createObjectURL(kept.wav), type: kept.type, media: "video", duration: kept.duration, songTime: kept.songTime, speed: kept.speed ?? 1, support: kept.support ?? null, raisedBy: kept.raisedBy ?? null, uploadId: kept.uploadId ?? null };
+          videoTakeRef.current = video;
+          setVideoTake(video);
+          setRecordAs("video");
+          setTakeCount(kept.number || 1);
+          setTakeName(kept.name || "");
+          setUploadStopped(Boolean(kept.uploadId));
+          setKeep({ state: "kept", at: kept.recordedAt });
+          return;
+        }
         const buffer = await ctxRef.current.decodeAudioData(kept.wav.slice(0));
         if (cancelled || takeRef.current) return;
         takeRef.current = { buffer, songTime: kept.songTime, speed: kept.speed ?? 1, support: kept.support ?? null, raisedBy: kept.raisedBy ?? null };
@@ -598,6 +639,15 @@ export default function StemPlayer({
     };
   }, [status, keepKey, review]);
 
+  // Nothing stays on after the page goes: the camera's light goes off and the video's memory comes back.
+  useEffect(
+    () => () => {
+      cameraRef.current?.stream.getTracks().forEach((t) => t.stop());
+      if (videoTakeRef.current?.url) URL.revokeObjectURL(videoTakeRef.current.url);
+    },
+    []
+  );
+
   // A kept take's name and line-up follow it, once they've settled.
   useEffect(() => {
     if (!keepKey || keep?.state !== "kept") return;
@@ -606,7 +656,7 @@ export default function StemPlayer({
   }, [keepKey, keep?.state, takeName, nudgeMs]);
 
   // Leaving would only lose something while recording or sending, or when the take isn't kept.
-  const atRisk = !review && (recording || sendProgress !== null || (Boolean(take) && keep?.state !== "kept"));
+  const atRisk = !review && (recording || sendProgress !== null || (Boolean(take || videoTake) && keep?.state !== "kept"));
   useEffect(() => {
     if (!atRisk) return;
     const warn = (e) => {
@@ -1037,7 +1087,7 @@ export default function StemPlayer({
       setBriefing(true);
       return;
     }
-    startRecording();
+    startTake();
   }
 
   function dismissIntro() {
@@ -1096,18 +1146,55 @@ export default function StemPlayer({
   }
 
   // Asks for the mic once, then keeps the recorder wired up for later takes.
+  // The microphones this browser will name, which is only once it's been allowed to use one.
+  async function refreshMics() {
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      setMics(devices.filter((d) => d.kind === "audioinput" && d.label).map((d) => ({ id: d.deviceId, label: d.label })));
+    } catch {
+      // No list, so no choice to offer.
+    }
+  }
+
+  // Lets go of the microphone, so the next recording opens the one that's been chosen.
+  function releaseMic() {
+    const mic = micRef.current;
+    if (!mic) return;
+    mic.stream.getTracks().forEach((t) => t.stop());
+    mic.worklet.disconnect();
+    micRef.current = null;
+    setMonitoring(false);
+  }
+
+  async function chooseMic(id) {
+    micIdRef.current = id;
+    setMicId(id);
+    try {
+      window.localStorage.setItem("rw-mic", id);
+    } catch {
+      // Only a convenience: it just won't be remembered.
+    }
+    releaseMic();
+    if (cameraRef.current && !cameraRef.current.filming) {
+      closeCamera();
+      await openCamera();
+    }
+  }
+
   async function ensureMic() {
     if (micRef.current) return micRef.current;
     const ctx = ctxRef.current;
-    // Echo cancellation and noise suppression are tuned for calls and mangle instruments.
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
-    });
-    const moduleUrl = URL.createObjectURL(new Blob([RECORDER_WORKLET], { type: "application/javascript" }));
-    try {
-      await ctx.audioWorklet.addModule(moduleUrl);
-    } finally {
-      URL.revokeObjectURL(moduleUrl);
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: micConstraints(micIdRef.current) });
+    refreshMics();
+    // A processor can only be registered once in an audio context.
+    if (!workletLoadedRef.current) {
+      const moduleUrl = URL.createObjectURL(new Blob([RECORDER_WORKLET], { type: "application/javascript" }));
+      try {
+        await ctx.audioWorklet.addModule(moduleUrl);
+        workletLoadedRef.current = true;
+      } finally {
+        URL.revokeObjectURL(moduleUrl);
+      }
     }
     const source = ctx.createMediaStreamSource(stream);
     metersRef.current.mic = analyser(ctx);
@@ -1151,6 +1238,147 @@ export default function StemPlayer({
     }
   }
 
+  // Turns the camera on, with the preview, so the student can see how they're framed before recording.
+  async function openCamera() {
+    setCameraError("");
+    try {
+      await ctxRef.current.resume();
+      const stream = await navigator.mediaDevices.getUserMedia(cameraConstraints(micIdRef.current));
+      const source = ctxRef.current.createMediaStreamSource(stream);
+      metersRef.current.mic = analyser(ctxRef.current);
+      source.connect(metersRef.current.mic);
+      setMicLabel(stream.getAudioTracks()[0]?.label || "");
+      cameraRef.current = { stream, source };
+      setCamera(stream);
+      refreshMics();
+      return cameraRef.current;
+    } catch (err) {
+      console.error("Camera unavailable:", err);
+      setCameraError(cameraProblem(err));
+      return null;
+    }
+  }
+
+  function closeCamera() {
+    const open = cameraRef.current;
+    if (!open || open.filming) return;
+    open.stream.getTracks().forEach((t) => t.stop());
+    open.source.disconnect();
+    cameraRef.current = null;
+    setCamera(null);
+  }
+
+  // Whichever kind of take this is.
+  function startTake() {
+    return recordAs === "video" ? startFilming() : startRecording();
+  }
+
+  // Only one take at a time: starting the other kind replaces it.
+  function clearVideoTake() {
+    if (videoTakeRef.current?.url) URL.revokeObjectURL(videoTakeRef.current.url);
+    videoTakeRef.current = null;
+    setVideoTake(null);
+    setUploadStopped(false);
+  }
+
+  async function startFilming() {
+    setCameraError("");
+    setBriefing(false);
+    setVideoWarning("");
+    const open = cameraRef.current ?? (await openCamera());
+    if (!open) return;
+    const type = pickVideoFormat((t) => MediaRecorder.isTypeSupported(t));
+    let recorder;
+    try {
+      recorder = new MediaRecorder(open.stream, { mimeType: type, videoBitsPerSecond: VIDEO_BITRATE, audioBitsPerSecond: AUDIO_BITRATE });
+    } catch (err) {
+      console.error("Could not start filming:", err);
+      setCameraError("This browser couldn't start recording video. Try again, or try another browser.");
+      return;
+    }
+    if (task?.targetSpeed) {
+      if (speedRef.current !== 1 && !(await readyForSlowSpeed())) {
+        speedRef.current = 1;
+        setSpeed(1);
+      }
+    } else {
+      speedRef.current = 1;
+      setSpeed(1);
+    }
+    stopSources();
+    stopTrainer();
+    takeRef.current = null;
+    setTake(null);
+
+    const chunks = [];
+    let bytes = 0;
+    recorder.ondataavailable = (e) => {
+      if (!e.data.size) return;
+      chunks.push(e.data);
+      bytes += e.data.size;
+      // Stops just short of the most the school can store.
+      if (bytes >= MAX_VIDEO_BYTES * 0.97 && recordingRef.current) stopRecording();
+    };
+    recordingRef.current = true;
+    takeHelpRef.current = chart ? { support: helpRef.current, raisedBy: null } : { support: null, raisedBy: null };
+    if (focusOpen) raiseHelp("guide", "focus");
+    setRecordFrom(offsetRef.current);
+    startWithCountIn(offsetRef.current);
+    const startedAt = ctxRef.current.currentTime;
+    recorder.start(1000);
+    const timers = [
+      setTimeout(() => setVideoWarning(`${WARN_SECONDS} seconds left: recording stops at ${MAX_VIDEO_SECONDS / 60} minutes.`), (MAX_VIDEO_SECONDS - WARN_SECONDS) * 1000),
+      setTimeout(() => recordingRef.current && stopRecording(), MAX_VIDEO_SECONDS * 1000),
+    ];
+    open.filming = { recorder, chunks, type, startedAt, timers };
+    setRecording(true);
+    setPlaying(true);
+  }
+
+  function stopFilming({ recorder, chunks, type, startedAt, timers }) {
+    timers.forEach(clearTimeout);
+    setVideoWarning("");
+    const rate = speedRef.current;
+    recordingRef.current = false;
+    offsetRef.current = currentPosition();
+    const duration = ctxRef.current.currentTime - startedAt;
+    // Near enough for notes on moments: a browser's recorder can't say exactly when it started.
+    const songTime = (startedAt - startedAtRef.current) * rate;
+    const made = takeHelpRef.current;
+    stopSources();
+    setPosition(offsetRef.current);
+    setRecording(false);
+    setPlaying(false);
+    delete cameraRef.current.filming;
+    recorder.onstop = () => finishVideo(new Blob(chunks, { type: recorder.mimeType || type }), { duration, songTime, speed: rate, ...made });
+    recorder.stop();
+  }
+
+  function finishVideo(blob, made) {
+    if (!blob.size) return;
+    clearVideoTake();
+    const video = { blob, url: URL.createObjectURL(blob), type: blob.type, media: "video", uploadId: null, ...made };
+    videoTakeRef.current = video;
+    setVideoTake(video);
+    setTakeCount((n) => n + 1);
+    setTakeName("");
+    keepNewVideo(video, takeCount + 1);
+  }
+
+  // Kept in this browser until it's sent, like an audio take. It only says so once the browser has it.
+  async function keepNewVideo(video, number) {
+    if (!keepKey) return;
+    const at = Date.now();
+    setKeep({ state: "keeping", at });
+    askToKeepStored();
+    const kept = await keepTake(keepKey, { wav: video.blob, media: "video", type: video.type, songTime: video.songTime, duration: video.duration, number, name: "", nudgeMs: 0, recordedAt: at, speed: video.speed, support: video.support, raisedBy: video.raisedBy });
+    if (videoTakeRef.current !== video) {
+      if (!videoTakeRef.current) forgetTake(keepKey);
+      return;
+    }
+    setKeep({ state: kept ? "kept" : "unkept", at });
+  }
+
   async function startRecording() {
     setMicError("");
     setBriefing(false);
@@ -1175,6 +1403,7 @@ export default function StemPlayer({
     stopSources();
     // The trainer changes speed part-way through a loop, which a take can't follow.
     stopTrainer();
+    clearVideoTake();
     chunksRef.current = [];
     recordingRef.current = true;
     takeHelpRef.current = chart ? { support: helpRef.current, raisedBy: null } : { support: null, raisedBy: null };
@@ -1187,6 +1416,10 @@ export default function StemPlayer({
   }
 
   function stopRecording() {
+    if (cameraRef.current?.filming) {
+      stopFilming(cameraRef.current.filming);
+      return;
+    }
     const ctx = ctxRef.current;
     const mic = micRef.current;
     recordingRef.current = false;
@@ -1257,6 +1490,12 @@ export default function StemPlayer({
   }
 
   function deleteTake() {
+    if (videoTakeRef.current) {
+      clearVideoTake();
+      setKeep(null);
+      if (keepKey) forgetTake(keepKey);
+      return;
+    }
     const t = currentPosition();
     takeRef.current = null;
     setTake(null);
@@ -1267,8 +1506,51 @@ export default function StemPlayer({
     if (playing) startAt(t);
   }
 
+  // Sends the video in pieces. If it stops part-way the video stays here, and pressing again carries on.
+  async function sendVideoTake() {
+    const video = videoTakeRef.current;
+    setSendError("");
+    setSendProgress(0);
+    try {
+      await onSendVideo(
+        {
+          blob: video.blob,
+          offset: video.songTime,
+          duration: video.duration,
+          speed: video.speed ?? 1,
+          support: video.support ?? null,
+          uploadId: video.uploadId,
+          onStarted: (id) => {
+            video.uploadId = id;
+            if (keepKey) updateTake(keepKey, { uploadId: id });
+          },
+        },
+        setSendProgress
+      );
+      if (keepKey) await forgetTake(keepKey);
+      setKeep(null);
+      setUploadStopped(false);
+      return true;
+    } catch (err) {
+      setSendError(err.message);
+      setUploadStopped(Boolean(video.uploadId));
+      return false;
+    } finally {
+      setSendProgress(null);
+    }
+  }
+
+  function downloadVideo() {
+    const video = videoTakeRef.current;
+    const a = document.createElement("a");
+    a.href = video.url;
+    a.download = `${title} - ${takeTitle}.${video.type.includes("mp4") ? "mp4" : "webm"}`;
+    a.click();
+  }
+
   // Resolves true once the take is sent; a problem is shown in the recorder.
   async function sendTake() {
+    if (videoTakeRef.current) return onSendVideo ? sendVideoTake() : false;
     if (!take || !onSendTake) return false;
     const blob = toWav(take.buffer);
     setSendError("");
@@ -1372,8 +1654,8 @@ export default function StemPlayer({
     sendTake,
   }));
   useEffect(() => {
-    onTakeState?.({ take: Boolean(take), name: takeName.trim() || `Take ${takeCount}`, keep: keep?.state ?? null, sending: sendProgress !== null });
-  }, [onTakeState, take, takeName, takeCount, keep, sendProgress]);
+    onTakeState?.({ take: Boolean(take || videoTake), name: takeName.trim() || `Take ${takeCount}`, keep: keep?.state ?? null, sending: sendProgress !== null });
+  }, [onTakeState, take, videoTake, takeName, takeCount, keep, sendProgress]);
   const getCountInBeat = useCallback(() => liveRef.current?.countInBeat() ?? -1, []);
   const getBeat = useCallback(() => liveRef.current?.beatNow() ?? -1, []);
   const partMeters = useMemo(() => Object.fromEntries(parts.map((p) => [p, () => [metersRef.current.parts[p]]])), [parts]);
@@ -1681,21 +1963,45 @@ export default function StemPlayer({
               onRecord={beginRecording}
               onStop={stopRecording}
               task={task}
-              verdict={take ? takeVerdict(task, take) : null}
+              verdict={take || videoTake ? takeVerdict(task, videoTake ?? take, { canFilm }) : null}
+              recordAs={recordAs}
+              onRecordAs={setRecordAs}
+              videoNote={
+                task?.media !== "video"
+                  ? null
+                  : !canFilm
+                    ? "A parent or guardian hasn't turned on Practice videos yet, so record audio for this one. They can turn it on from their family page."
+                    : !canRecordVideo()
+                      ? task.audioAllowed
+                        ? "This browser can't record video, so record audio instead."
+                        : "This browser can't record video. Try Chrome, Edge, Firefox or Safari, on a computer or phone."
+                      : null
+              }
+              camera={camera}
+              cameraError={cameraError}
+              onCameraOn={openCamera}
+              onCameraOff={closeCamera}
+              videoTake={videoTake}
+              videoWarning={videoWarning}
+              uploadStopped={uploadStopped}
+              onDownloadVideo={downloadVideo}
+              mics={mics}
+              micId={micId}
+              onChooseMic={chooseMic}
               gaps={setupGaps(task, { help, speed, hasChart: Boolean(chart) })}
               briefing={briefing}
               speed={speed}
               onSetUp={setUpForTask}
               onSetUpAndRecord={async () => {
                 await setUpForTask();
-                startRecording();
+                startTake();
               }}
-              onRecordAsPractice={startRecording}
+              onRecordAsPractice={startTake}
               onCheckMic={checkMic}
               onStopCheck={() => setMonitoring(false)}
               nudgeMs={nudgeMs}
               onNudge={changeNudge}
-              onSend={onSendTake ? sendTake : null}
+              onSend={onSendTake || onSendVideo ? sendTake : null}
               sendProgress={sendProgress}
               sendError={sendError}
               onDownload={downloadMix}
@@ -1854,12 +2160,12 @@ export default function StemPlayer({
             if (here) loopSection(here.start, here.end);
           }}
           onClearLoop={() => updateLoop(null)}
-          onRecord={startRecording}
+          onRecord={startTake}
           onStopRecording={stopRecording}
           status={
             micError ||
             (trainer ? trainerStatus(trainer.settings, trainer.run) : "") ||
-            (take && !recording ? `${takeTitle} is ready. Exit focus to hear it${onSendTake ? " and send it" : ""}.` : "")
+            ((take || videoTake) && !recording ? `${takeTitle} is ready. Exit focus to hear it${onSendTake ? " and send it" : ""}.` : "")
           }
         />
       )}

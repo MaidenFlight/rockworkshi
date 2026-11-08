@@ -1,4 +1,5 @@
 import { API_URL } from "@/lib/api";
+import { uploadVideo } from "@/lib/video/upload";
 
 // Shared by the /teacher pages.
 
@@ -79,6 +80,16 @@ export async function sendForReview(assignmentId, take, onProgress) {
   await teacherRequest(`/assignments/${assignmentId}/submit`, {
     method: "POST",
     body: JSON.stringify(recording ? { recording } : {}),
+  });
+}
+
+// Sends a video take. It's uploaded in pieces and can pick up where an earlier try stopped, then sent
+// as one send like any other. video = { blob, offset, duration, speed, support, uploadId, onStarted }.
+export async function sendVideoForReview(assignmentId, video, onProgress) {
+  const key = await uploadVideo(assignmentId, video.blob, { uploadId: video.uploadId, duration: video.duration, onStarted: video.onStarted, onProgress });
+  await teacherRequest(`/assignments/${assignmentId}/submit`, {
+    method: "POST",
+    body: JSON.stringify({ recording: { key, offset: video.offset, duration: video.duration, speed: video.speed, support: video.support } }),
   });
 }
 

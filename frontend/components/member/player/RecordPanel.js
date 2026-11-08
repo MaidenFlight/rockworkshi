@@ -90,6 +90,20 @@ export default function RecordPanel({
   onSetUp,
   onSetUpAndRecord,
   onRecordAsPractice,
+  recordAs = "audio",
+  onRecordAs,
+  videoNote = null,
+  camera = null,
+  cameraError = "",
+  onCameraOn,
+  onCameraOff,
+  videoTake = null,
+  videoWarning = "",
+  uploadStopped = false,
+  onDownloadVideo,
+  mics = [],
+  micId = "",
+  onChooseMic,
 }) {
   const permission = useMicPermission();
   const listening = monitoring || recording;
@@ -97,13 +111,69 @@ export default function RecordPanel({
   const checkpoint = task?.kind === "checkpoint";
   // The take the student has said they want to submit: asked once, and forgotten for a new take.
   const [confirmingFor, setConfirmingFor] = useState(null);
-  const confirming = Boolean(take) && confirmingFor === take;
+  const current = videoTake ?? take;
+  const confirming = Boolean(current) && confirmingFor === current;
+  const filming = recordAs === "video";
   const teacher = task?.teacher?.name?.split(" ")[0] || "your teacher";
   const uploading = sendProgress !== null ? `Uploading ${Math.round(sendProgress * 100)}%` : null;
+  // What to do with a take, the same for a recording and a video.
+  const firstKey = uploadStopped ? "Resume upload" : checkpoint ? "Save to checkpoint" : "Send to your teacher";
+  const takeActions = current && !recording && (
+    <>
+      {onSend && (assessment || verdict?.ok === false) && (verdict?.ok ? <p className="rw-take-verdict" data-ok="true">This take can be submitted for the assessment.</p> : <p className="rw-take-verdict">{verdict?.text}</p>)}
+
+      {confirming ? (
+        <div className="rw-brief-ask" role="group" aria-label="Submit this take">
+          <p>
+            {takeName} goes to {teacher} for the Week {task.week} assessment. You can submit a better one later, and every one is kept.
+          </p>
+          <div className="rw-brief-keys">
+            <button type="button" className="rw-btn rw-btn-primary" onClick={onSend} disabled={sendProgress !== null}>
+              {uploading ?? (uploadStopped ? "Resume upload" : "Yes, submit it")}
+            </button>
+            <button type="button" className="rw-btn" onClick={() => setConfirmingFor(null)} disabled={sendProgress !== null}>
+              Not yet
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      <div className="rw-take-actions">
+        {onSend && !assessment && verdict?.ok !== false && (
+          <button type="button" className="rw-btn rw-btn-primary" onClick={onSend} disabled={sendProgress !== null}>
+            {uploading ?? firstKey}
+          </button>
+        )}
+        {onSend && assessment && verdict?.ok && !confirming && (
+          <button type="button" className="rw-btn rw-btn-primary" onClick={() => setConfirmingFor(current)}>
+            {uploadStopped ? "Resume upload" : `Submit ${takeName} for the Week ${task.week} assessment`}
+          </button>
+        )}
+        {videoTake ? (
+          <button type="button" className="rw-btn" onClick={onDownloadVideo}>
+            Download video
+          </button>
+        ) : (
+          <button type="button" className="rw-btn" onClick={onDownload} disabled={exporting}>
+            {exporting ? "Preparing…" : (take.speed ?? 1) !== 1 ? "Download take (.wav)" : "Download mix (.wav)"}
+          </button>
+        )}
+        <button type="button" className="rw-btn rw-btn-quiet" onClick={onDelete}>
+          Delete take
+        </button>
+      </div>
+      {sendError && (
+        <p role="alert" className="rw-studio-error">
+          {sendError}
+        </p>
+      )}
+      <TakeStatus keep={keep} canSend={Boolean(onSend)} sending={sendProgress !== null} verb={checkpoint ? "save" : assessment ? "submit" : "send"} />
+    </>
+  );
 
   // While only checking the mic, the deck's VU meter reads the mic's analyser directly.
   useEffect(() => {
-    if (!monitoring || recording) return;
+    if (recording ? !filming : !monitoring) return;
     const scratch = new Float32Array(1024);
     let frame = requestAnimationFrame(function step() {
       const node = getMic()[0];
@@ -111,7 +181,7 @@ export default function RecordPanel({
       frame = requestAnimationFrame(step);
     });
     return () => cancelAnimationFrame(frame);
-  }, [monitoring, recording, getMic, micLevel]);
+  }, [monitoring, recording, filming, getMic, micLevel]);
 
   const countingIn = recording && playing && recordTime < 0.05;
   const state = recording
@@ -122,8 +192,8 @@ export default function RecordPanel({
       ? { id: "check", text: "Checking your mic", icon: "mic" }
       : take && playing
         ? { id: "playback", text: "Playing back with your take", icon: "play" }
-        : take
-          ? { id: "take", text: "Take ready to hear", icon: "check" }
+        : current
+          ? { id: "take", text: videoTake ? "Video ready to watch" : "Take ready to hear", icon: "check" }
           : { id: "ready", text: "Ready to record", icon: "mic" };
 
   const mic = micError
@@ -177,6 +247,39 @@ export default function RecordPanel({
         </div>
       )}
 
+      {videoNote && <p className="rw-brief-note">{videoNote}</p>}
+      {task?.media === "video" && task.audioAllowed && !videoNote && !recording && (
+        <div className="rw-seg" role="group" aria-label="Record as">
+          {["video", "audio"].map((f) => (
+            <button key={f} type="button" aria-pressed={recordAs === f} onClick={() => onRecordAs(f)}>
+              {f === "video" ? "Video" : "Audio"}
+            </button>
+          ))}
+        </div>
+      )}
+      {filming && (
+        <div className="rw-camera-box">
+          {camera ? <LivePreview stream={camera} /> : <div className="rw-camera rw-camera-off">Your camera is off. It only comes on when you turn it on here.</div>}
+          {videoWarning && (
+            <p className="rw-studio-error" role="status">
+              {videoWarning}
+            </p>
+          )}
+          {cameraError && (
+            <p className="rw-studio-error" role="alert">
+              {cameraError}
+            </p>
+          )}
+          {!recording && (
+            <div className="rw-brief-keys">
+              <button type="button" className="rw-btn" onClick={camera ? onCameraOff : onCameraOn} disabled={!ready}>
+                {camera ? "Turn camera off" : "Turn camera on"}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
       <TapeDeck
         getPosition={getPosition}
         position={position}
@@ -185,20 +288,33 @@ export default function RecordPanel({
         recording={recording}
         listening={listening}
         level={micLevel}
-        label={take && !recording ? takeName : nextTakeName}
+        label={current && !recording ? takeName : nextTakeName}
       >
-        <button type="button" className="rw-deck-key" onClick={recording ? onStop : onRecord} disabled={!ready} style={deckKey(recording)}>
+        <button type="button" className="rw-deck-key" onClick={recording ? onStop : onRecord} disabled={!ready || (filming && !camera && !recording)} style={deckKey(recording)}>
           <span style={{ display: "inline-flex", color: recording ? "var(--rw-ink)" : "var(--rw-orange)" }}>
             <Icon name={recording ? "stop" : "record"} size={14} />
           </span>
-          {recording ? "Stop" : take ? "Record again" : "Record"}
+          {recording ? "Stop" : current ? "Record again" : "Record"}
         </button>
       </TapeDeck>
 
       <div className="rw-rec-level">
+        {mics.length > 1 && !recording && (
+          <label className="rw-mic-choice">
+            <span className="rw-studio-label">Microphone</span>
+            <select className="rw-console-input" value={micId} onChange={(e) => onChooseMic(e.target.value)}>
+              <option value="">The browser&apos;s default</option>
+              {mics.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         <div className="rw-rec-level-head">
           <span className="rw-studio-label">Mic level</span>
-          {!recording && (
+          {!recording && !filming && (
             <button type="button" className="rw-toggle" onClick={monitoring ? onStopCheck : onCheckMic} disabled={!ready} aria-pressed={monitoring}>
               {monitoring ? "Stop checking" : "Check mic"}
             </button>
@@ -213,7 +329,7 @@ export default function RecordPanel({
         <p className="rw-studio-hint">
           {listening
             ? "Play your loudest part. Aim for the gold zone; if Too loud lights, back off the mic or turn its input down."
-            : `Starts from the current position at ${task?.targetSpeed ? (speed < 1 ? `${Math.round(speed * 100)}%` : "full speed") : "full speed"}, and plays straight through any loop. Wear headphones so the mic only hears you.`}
+            : `Starts from the current position at ${task?.targetSpeed ? (speed < 1 ? `${Math.round(speed * 100)}%` : "full speed") : "full speed"}, and plays straight through any loop. Wear headphones so the mic only hears you.${filming ? " Recording stops by itself at 8 minutes." : ""}`}
         </p>
       </div>
 
@@ -254,52 +370,38 @@ export default function RecordPanel({
             <input type="range" className="rw-range" min={-NUDGE_LIMIT_MS} max={NUDGE_LIMIT_MS} step={5} value={nudgeMs} onChange={(e) => onNudge(Number(e.target.value))} />
           </label>
 
-          {assessment && onSend && (verdict?.ok ? <p className="rw-take-verdict" data-ok="true">This take can be submitted for the assessment.</p> : <p className="rw-take-verdict">{verdict?.text}</p>)}
+          {takeActions}
+        </div>
+      )}
 
-          {confirming ? (
-            <div className="rw-brief-ask" role="group" aria-label="Submit this take">
-              <p>
-                {takeName} goes to {teacher} for the Week {task.week} assessment. You can submit a better one later, and every one is kept.
-              </p>
-              <div className="rw-brief-keys">
-                <button type="button" className="rw-btn rw-btn-primary" onClick={onSend} disabled={sendProgress !== null}>
-                  {uploading ?? "Yes, submit it"}
-                </button>
-                <button type="button" className="rw-btn" onClick={() => setConfirmingFor(null)} disabled={sendProgress !== null}>
-                  Not yet
-                </button>
-              </div>
-            </div>
-          ) : null}
-
-          <div className="rw-take-actions">
-            {onSend && !assessment && (
-              <button type="button" className="rw-btn rw-btn-primary" onClick={onSend} disabled={sendProgress !== null}>
-                {uploading ?? (checkpoint ? "Save to checkpoint" : "Send to your teacher")}
-              </button>
-            )}
-            {onSend && assessment && verdict?.ok && !confirming && (
-              <button type="button" className="rw-btn rw-btn-primary" onClick={() => setConfirmingFor(take)}>
-                Submit {takeName} for the Week {task.week} assessment
-              </button>
-            )}
-            <button type="button" className="rw-btn" onClick={onDownload} disabled={exporting}>
-              {exporting ? "Preparing…" : (take.speed ?? 1) !== 1 ? "Download take (.wav)" : "Download mix (.wav)"}
-            </button>
-            <button type="button" className="rw-btn rw-btn-quiet" onClick={onDelete}>
-              Delete take
-            </button>
+      {videoTake && !recording && (
+        <div className="rw-take" data-take="true">
+          <div className="rw-take-head">
+            <span className="rw-studio-label">{takeName}</span>
+            <span className="rw-take-meta">
+              {clock(videoTake.duration, true)} long · {Math.max(1, Math.round(videoTake.blob.size / 1024 / 1024))} MB
+              {(videoTake.speed ?? 1) !== 1 ? ` · played at ${Math.round(videoTake.speed * 100)}%` : ""}
+            </span>
           </div>
-          {sendError && (
-            <p role="alert" className="rw-studio-error">
-              {sendError}
-            </p>
-          )}
-          <TakeStatus keep={keep} canSend={Boolean(onSend)} sending={sendProgress !== null} verb={checkpoint ? "save" : assessment ? "submit" : "send"} />
+          <video className="rw-camera" controls playsInline preload="metadata" src={videoTake.url} aria-label={`Your video, ${takeName}`} />
+          <label className="rw-take-name">
+            <span>Name</span>
+            <input className="rw-console-input" value={takeInput} placeholder={takeName} maxLength={30} onChange={(e) => onRename(e.target.value)} aria-label="Name this take" />
+          </label>
+          {takeActions}
         </div>
       )}
     </div>
   );
+}
+
+// What the camera sees, mirrored as a mirror would be. The recording itself isn't.
+function LivePreview({ stream }) {
+  const element = useRef(null);
+  useEffect(() => {
+    if (element.current) element.current.srcObject = stream;
+  }, [stream]);
+  return <video ref={element} className="rw-camera" data-live="true" autoPlay muted playsInline aria-label="Camera preview" />;
 }
 
 // Where the take is, in words, so it's never a guess whether leaving loses it. Sent and replied are

@@ -58,6 +58,18 @@ test("a take below the target speed stays as practice", () => {
   assert.match(slow.text, /record a new take at 90%/);
 });
 
+test("a task that asks for video needs a filmed take", () => {
+  const video = assessment({ media: "video", support: null, targetSpeed: null });
+  assert.equal(takeVerdict(video, { media: "video" }).ok, true);
+  const audio = takeVerdict(video, {});
+  assert.equal(audio.ok, false);
+  assert.equal(audio.why, "media");
+  assert.match(audio.text, /camera/);
+  assert.equal(takeVerdict({ ...video, audioAllowed: true }, {}).ok, true, "where the teacher accepts audio");
+  assert.equal(takeVerdict(video, {}, { canFilm: false }).ok, true, "or the student can't be filmed");
+  assert.equal(takeVerdict({ kind: "checkpoint", week: 1, media: "video" }, {}).ok, false, "a checkpoint asking for video too");
+});
+
 test("a checkpoint and work with no week are never held back", () => {
   assert.equal(takeVerdict({ kind: "checkpoint", week: 1, support: "solo", targetSpeed: 100 }, { support: "guide", speed: 0.5 }).ok, true);
   assert.equal(takeVerdict({ kind: "assessment", week: null, support: null }, { support: "guide", speed: 1 }).ok, true);

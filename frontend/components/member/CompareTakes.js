@@ -168,9 +168,14 @@ export default function CompareTakes({ takes }) {
         </p>
       )}
 
-      {/* Both loaded, so a switch is instant. */}
-      <audio ref={aRef} src={chosen.a.recording.url} preload="auto" onEnded={() => setPlaying(false)} />
-      <audio ref={bRef} src={chosen.b.recording.url} preload="auto" onEnded={() => setPlaying(false)} />
+      {/* Both loaded, so a switch is instant. A filmed take is shown, the one that's playing. */}
+      {["a", "b"].map((side) =>
+        chosen[side].recording.media === "video" ? (
+          <video key={side} ref={side === "a" ? aRef : bRef} src={chosen[side].recording.url} preload="auto" playsInline hidden={active !== side} onEnded={() => setPlaying(false)} style={{ width: "100%", maxHeight: 420, marginTop: 12, background: "var(--rw-console)" }} />
+        ) : (
+          <audio key={side} ref={side === "a" ? aRef : bRef} src={chosen[side].recording.url} preload="auto" onEnded={() => setPlaying(false)} />
+        )
+      )}
     </section>
   );
 }

@@ -251,7 +251,12 @@ function Attempt({ assignment: a, submission: s, number, newest, teacher, who, d
         {word} {formatDate(s.createdAt)} · {s.recording ? `${formatClock(s.recording.duration)} recording` : demo ? "the recording isn't part of the demo" : "no recording"}
         {a.week && s.recording ? ` · ${[s.recording.support ? HELP[s.recording.support] : null, s.recording.speed < 1 ? `${Math.round(s.recording.speed * 100)}% speed` : "full speed"].filter(Boolean).join(" · ")}` : ""}
       </div>
-      {s.recording?.url && <audio ref={audio} controls preload="none" src={s.recording.url} aria-label={`Your recording, attempt ${number}`} style={{ width: "100%", marginTop: 10 }} />}
+      {s.recording?.url &&
+        (s.recording.media === "video" ? (
+          <video ref={audio} controls preload="none" playsInline src={s.recording.url} aria-label={`Your video, attempt ${number}`} style={{ width: "100%", maxHeight: 420, marginTop: 10, background: "var(--rw-console)" }} />
+        ) : (
+          <audio ref={audio} controls preload="none" src={s.recording.url} aria-label={`Your recording, attempt ${number}`} style={{ width: "100%", marginTop: 10 }} />
+        ))}
       {(s.feedback || !newest) && (
         <p style={{ margin: "10px 0 0", color: "var(--rw-body)", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
           {s.feedback || (checkpoint ? "Saved for your teacher to listen to." : "No reply to this one: your teacher replies to the newest.")}
