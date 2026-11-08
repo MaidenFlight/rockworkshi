@@ -20,7 +20,7 @@ export function stepsFor(assignment) {
     const part = assignment.section || `${formatClock(assignment.sectionStart)} to ${formatClock(assignment.sectionEnd)}`;
     steps.push({ id: "loop", text: `Loop ${part} until it feels easy` });
   }
-  if (assignment.song) steps.push({ id: "send", text: "Record a take and send it to your teacher" });
+  if (assignment.song) steps.push({ id: "send", text: assignment.week ? (assignment.kind === "checkpoint" ? "Record a take and save it" : "Record a take and submit it to your teacher") : "Record a take and send it to your teacher" });
   return steps;
 }
 

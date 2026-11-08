@@ -33,10 +33,12 @@ export function assignmentTitle(assignment) {
 }
 
 export function studentStatus(assignment) {
+  // A weekly assessment is something the student submits on purpose, so it says so.
+  const assessment = assignment.kind === "assessment" && Boolean(assignment.week);
   if (assignment.status === "saved") return { label: "Saved", tone: "open" };
-  if (assignment.status === "ready") return { label: "Waiting for your teacher", tone: "ready" };
-  if (assignment.status === "reviewed") return { label: "Feedback ready", tone: "open" };
-  return { label: "To practise", tone: "draft" };
+  if (assignment.status === "ready") return { label: assessment ? "Submitted" : "Waiting for your teacher", tone: "ready" };
+  if (assignment.status === "reviewed") return { label: assessment ? "Reviewed" : "Feedback ready", tone: "open" };
+  return { label: assessment ? "Not submitted" : "To practise", tone: "draft" };
 }
 
 export function hasLoop(assignment) {

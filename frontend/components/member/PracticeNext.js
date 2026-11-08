@@ -87,15 +87,16 @@ export default function PracticeNext({ next, failed, onRetry }) {
   // Practice work on a song is a guided session: today's steps, one at a time, above the player.
   const guided = Boolean(assignment && song);
   const teacher = assignment?.teacher?.name?.split(" ")[0] || "your teacher";
+  const finish = assignment?.week ? (assignment.kind === "checkpoint" ? "record a take and save it" : `record a take and submit it to ${teacher}`) : `record a take and send it to ${teacher}`;
   const plan = guided
     ? stepsFor(assignment)
-        .map((s) => (s.id === "tune" ? "tune up" : s.id === "loop" ? `practise ${assignment.section || "the section"}` : s.id === "send" ? `record a take and send it to ${teacher}` : null))
+        .map((s) => (s.id === "tune" ? "tune up" : s.id === "loop" ? `practise ${assignment.section || "the section"}` : s.id === "send" ? finish : null))
         .filter(Boolean)
     : [];
 
   return (
     <section className="rw-tag rw-next" aria-labelledby="practice-next">
-      <p className="rw-next-label">{LABELS[next.kind]}</p>
+      <p className="rw-next-label">{assignment?.week ? `Week ${assignment.week} ${assignment.kind === "assessment" ? "assessment" : "checkpoint"}` : LABELS[next.kind]}</p>
       <h2 id="practice-next" className="rw-next-title">
         {title}
       </h2>

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { assignmentTitle, studentStatus } from "@/lib/teaching";
 import { pill } from "@/lib/terms";
+import { dayLabel, requirementWords } from "@/lib/months";
 import Icon from "./Icon";
 import s from "./MonthlyChecklist.module.css";
 
@@ -14,16 +15,18 @@ const monthLabel = (iso) => new Date(iso).toLocaleDateString("en-US", { timeZone
 const day = (iso) => new Date(iso).toLocaleDateString("en-US", { timeZone: ZONE, month: "short", day: "numeric" }).replace(" ", " ");
 
 const sent = (a) => a.status === "ready" || a.status === "reviewed";
-const STATE = { assigned: "todo", ready: "sent", reviewed: "done" };
-// Each state's mark: a note to practise, a clock while the teacher has it, their reply once it's in.
-// Drawn icons rather than boxes, so the rows don't read as the Today list's checkboxes.
-const MARK = { todo: "note", sent: "clock", done: "feedback" };
+const STATE = { assigned: "todo", saved: "saved", ready: "sent", reviewed: "done" };
+// Each state's mark: a note to practise, a tick once a checkpoint's saved, a clock while the teacher has
+// it, their reply once it's in. Drawn icons rather than boxes, so the rows don't read as the Today
+// list's checkboxes.
+const MARK = { todo: "note", saved: "check", sent: "clock", done: "feedback" };
 
 // The teacher's work as a checklist, a month at a time (the month it was set, Honolulu time) and in the
 // order it was set. Each task says whether it has been sent, how often, and whether the teacher has
 // replied. It opens on the task's page, which lists every attempt with its feedback and sends it again.
 // `currentId` is the task on the practice panel above, marked Today. Draws nothing without any work.
-export default function MonthlyChecklist({ assignments, currentId }) {
+// other is for work set outside a month of weekly practice (WeeklyMonth.js), listed after it.
+export default function MonthlyChecklist({ assignments, currentId, other = false }) {
   if (!assignments?.length) return null;
 
   const months = new Map();
@@ -42,7 +45,7 @@ export default function MonthlyChecklist({ assignments, currentId }) {
     <section aria-labelledby="month-tasks">
       <div className={s.head}>
         <h2 id="month-tasks" className="rw-dash-h2">
-          {latest.name} tasks
+          {other ? "Other tasks" : `${latest.name} tasks`}
         </h2>
         <span className={s.count}>
           {done} of {latest.tasks.length} sent
@@ -77,25 +80,31 @@ function Tasks({ tasks, currentId, showSong }) {
   );
 }
 
-function Task({ task: a, current, showSong }) {
+// One task's row. kept says a take for it is waiting in this browser.
+export function Task({ task: a, current, showSong = false, kept = false }) {
   const status = studentStatus(a);
   const state = STATE[a.status] ?? "todo";
   const attempts = a.attempts ?? a.submissions.length;
   const newest = a.submissions[0];
   const teacher = a.teacher?.name?.split(" ")[0] || "Your teacher";
+  const checkpoint = a.week && a.kind === "checkpoint";
+  const verb = !a.week ? "Sent" : checkpoint ? "Saved" : "Submitted";
+  const none = !a.week ? "Not sent yet" : checkpoint ? "No take saved yet" : "Not submitted yet";
   const sends = !attempts
-    ? "Not sent yet"
-    : `${attempts === 1 ? "Sent" : `Sent ${attempts === 2 ? "twice" : `${attempts} times`}, last`} ${day(newest.createdAt)}${newest.reviewedAt ? ` · ${teacher} replied ${day(newest.reviewedAt)}` : ""}`;
+    ? none
+    : `${attempts === 1 ? verb : `${verb} ${attempts === 2 ? "twice" : `${attempts} times`}, last`} ${day(newest.createdAt)}${newest.reviewedAt ? ` · ${teacher} replied ${day(newest.reviewedAt)}` : ""}`;
+  const asks = a.week ? [...requirementWords(a), a.dueOn ? `due ${dayLabel(a.dueOn)}` : null].filter(Boolean).join(" · ") : null;
 
   return (
     <li>
-      <Link href={`/member/assignment/${a.id}`} className={s.row} aria-current={current ? "step" : undefined}>
+      <Link href={`/member/assignment/${a.id}`} className={s.row} data-kind={a.week ? a.kind : undefined} aria-current={current ? "step" : undefined}>
         <span className={s.mark} data-state={state} aria-hidden="true">
           <Icon name={MARK[state]} size={20} />
         </span>
         <span className={s.main}>
           <span className={s.title}>{a.section || assignmentTitle(a)}</span>
-          <span className={s.meta}>{[showSong && a.section ? assignmentTitle(a) : null, sends].filter(Boolean).join(" · ")}</span>
+          {asks && <span className={s.meta}>{asks}</span>}
+          <span className={s.meta}>{[showSong && a.section ? assignmentTitle(a) : null, sends, kept ? "a take is kept in this browser, not sent yet" : null].filter(Boolean).join(" · ")}</span>
         </span>
         <span className={s.tags}>
           {current && <span className={s.today}>Today</span>}

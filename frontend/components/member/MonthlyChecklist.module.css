@@ -88,8 +88,16 @@
   color: var(--rw-orange-deep);
 }
 
-.mark[data-state="done"] {
+.mark[data-state="done"],
+.mark[data-state="saved"] {
   color: var(--rw-teal);
+}
+
+/* A weekly assessment is the sewn tag among the plain rows: the week's big piece of work. */
+.row[data-kind="assessment"] {
+  background: var(--rw-cream);
+  border-top: 4px solid var(--rw-orange);
+  border-radius: 0;
 }
 
 /* The row opens the task's page. */

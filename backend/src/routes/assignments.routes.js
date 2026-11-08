@@ -58,13 +58,37 @@ function numberOrNull(value, min, max) {
   return value !== null && value !== undefined && Number.isFinite(n) && n >= min && n <= max ? n : null;
 }
 
+// What the teacher most recently asked to be worked on next in each of these months, as
+// { monthId: { list, section } }. A list only carries each task's newest send, so an earlier reply's
+// priorities would disappear from it as soon as the work is sent again.
+async function latestPriorities(studentId, items) {
+  const monthIds = [...new Set(items.map((a) => a.monthId).filter(Boolean))];
+  if (!monthIds.length) return {};
+  const replies = await prisma.submission.findMany({
+    where: { reviewedAt: { not: null }, assignment: { studentId, monthId: { in: monthIds } } },
+    orderBy: { reviewedAt: "desc" },
+    select: { priorities: true, assignment: { select: { monthId: true, section: true } } },
+  });
+  const latest = {};
+  for (const reply of replies) {
+    if (latest[reply.assignment.monthId] || !Array.isArray(reply.priorities) || !reply.priorities.length) continue;
+    latest[reply.assignment.monthId] = { list: reply.priorities, section: reply.assignment.section };
+  }
+  return latest;
+}
+
 router.get("/", async (req, res) => {
   const { items, pagination } = await findPage(
     prisma.assignment,
     { where: { studentId: req.user.id }, include: LIST_INCLUDE, orderBy: [{ updatedAt: "desc" }, { id: "asc" }] },
     req.query
   );
-  res.json({ assignments: await Promise.all(items.map((a) => presentAssignment(a))), pagination, canFilm: await canFilm(req.user) });
+  res.json({
+    assignments: await Promise.all(items.map((a) => presentAssignment(a))),
+    pagination,
+    canFilm: await canFilm(req.user),
+    priorities: await latestPriorities(req.user.id, items),
+  });
 });
 
 router.get("/:id", async (req, res) => {

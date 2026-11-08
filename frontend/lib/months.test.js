@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { dayLabel, rangeName, requirementWords, taskForSaving, todayHere, weekOf } from "./months.js";
+import { currentMonth, dayLabel, groupMonths, nextTask, rangeName, requirementWords, stillToPractise, taskForSaving, todayHere, weekOf } from "./months.js";
 
 test("a day reads the same wherever the page is opened", () => {
   assert.equal(dayLabel("2026-11-13"), "Nov 13", "a date never splits across lines");
@@ -18,6 +18,44 @@ test("a day belongs to one of the month's four weeks", () => {
   assert.equal(weekOf("2026-11-01", "2026-10-20"), 1, "before it starts");
   assert.equal(weekOf("2026-11-01", "2026-12-25"), 4, "after it ends");
   assert.equal(weekOf("2026-02-25", "2026-03-04"), 2, "across a month end");
+});
+
+const month = (id, startsOn) => ({ id, startsOn, weekTitles: ["A", "B", "C", "D"] });
+const task = (id, m, week, position, kind, status = "assigned") => ({ id, month: m, week, position, kind, status, section: id, song: { id: "song" }, teacher: { name: "Brian Albus" } });
+
+test("tasks are gathered by month, in the teacher's order", () => {
+  const oct = month("oct", "2026-10-05");
+  const nov = month("nov", "2026-11-02");
+  const months = groupMonths([task("b", nov, 2, 3, "checkpoint"), task("a", nov, 1, 1, "assessment"), task("c", oct, 1, 0, "checkpoint"), { id: "old", month: null }]);
+  assert.deepEqual(months.map((m) => m.id), ["nov", "oct"], "newest first");
+  assert.deepEqual(months[0].tasks.map((t) => t.id), ["a", "b"]);
+  assert.equal(months[0].song.id, "song");
+});
+
+test("the month to show is the one under way", () => {
+  const months = [month("dec", "2026-12-07"), month("nov", "2026-11-02"), month("oct", "2026-10-05")];
+  assert.equal(currentMonth(months, "2026-11-20").id, "nov");
+  assert.equal(currentMonth(months, "2026-12-07").id, "dec");
+  assert.equal(currentMonth([month("dec", "2026-12-07"), month("jan", "2027-01-04")].reverse(), "2026-11-20").id, "dec", "the soonest to start, if none has");
+  assert.equal(currentMonth([], "2026-11-20"), null);
+});
+
+test("what still needs practice, and what's next", () => {
+  const m = month("nov", "2026-11-02");
+  const tasks = [
+    task("w1a", m, 1, 0, "checkpoint", "saved"),
+    task("w1b", m, 1, 1, "checkpoint"),
+    task("w1z", m, 1, 2, "assessment", "reviewed"),
+    task("w2a", m, 2, 3, "checkpoint"),
+    task("w2z", m, 2, 4, "assessment"),
+    task("w3a", m, 3, 5, "checkpoint"),
+  ];
+  const nov = { ...m, tasks };
+  assert.deepEqual(stillToPractise(nov, 2).map((t) => t.id), ["w1b", "w2a"], "open checkpoints up to this week");
+  assert.equal(nextTask(nov, "2026-11-10").id, "w2a", "this week's first");
+  assert.equal(nextTask({ ...nov, tasks: tasks.filter((t) => t.week !== 2) }, "2026-11-10").id, "w1b", "then what's left from earlier");
+  assert.equal(nextTask({ ...nov, tasks: tasks.filter((t) => t.week === 3) }, "2026-11-10").id, "w3a", "then what's ahead");
+  assert.equal(nextTask({ ...nov, tasks: tasks.slice(0, 1) }, "2026-11-10"), null, "nothing open");
 });
 
 test("sections are named as the template names them", () => {

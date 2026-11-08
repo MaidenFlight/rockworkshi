@@ -4927,6 +4927,10 @@ div:has(> .rw-scrub:focus-visible) {
 .rw-dash-side .rw-st-btn {
   min-height: 44px;
 }
+.rw-dash-work {
+  display: grid;
+  gap: 32px;
+}
 .rw-dash-work:empty {
   display: none;
 }

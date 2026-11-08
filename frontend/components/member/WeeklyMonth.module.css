@@ -1,0 +1,133 @@
+/* A month of work by week (WeeklyMonth.js), on the student's dashboard. Its task rows are the monthly
+   checklist's own. */
+
+.priorities {
+  margin: 0 0 12px;
+  padding: 12px 16px;
+  background: var(--rw-cream);
+  border: 1px solid var(--rw-border);
+}
+
+.prioritiesTitle {
+  margin: 0 0 4px;
+  font-family: var(--rw-font-body);
+  font-size: 13.5px;
+  font-weight: 700;
+  text-transform: none;
+  color: var(--rw-ink);
+}
+
+.priorities ul {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--rw-ink);
+}
+
+.still {
+  margin: 0 0 10px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--rw-body);
+}
+
+.still strong {
+  color: var(--rw-ink);
+}
+
+.week {
+  border-top: 1px solid var(--rw-border);
+}
+
+.week > summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
+  min-height: 44px;
+  padding: 10px 0;
+  cursor: pointer;
+  list-style: none;
+}
+
+.week > summary::-webkit-details-marker {
+  display: none;
+}
+
+.week > summary:focus-visible {
+  outline: 2px solid var(--rw-teal);
+  outline-offset: 2px;
+}
+
+.chevron {
+  align-self: center;
+  display: grid;
+  place-items: center;
+  color: var(--rw-meta);
+  transition: transform 0.18s ease;
+}
+
+.week[open] .chevron {
+  transform: rotate(90deg);
+}
+
+.weekNumber {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.1;
+  text-transform: uppercase;
+  color: var(--rw-ink);
+}
+
+.weekName {
+  font-size: 15px;
+  color: var(--rw-body);
+}
+
+.now {
+  padding: 2px 8px;
+  background: var(--rw-cream);
+  color: var(--rw-orange-deep);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.weekMeta {
+  margin-left: auto;
+  font-size: 13.5px;
+  color: var(--rw-meta);
+  white-space: nowrap;
+}
+
+.weekBody {
+  display: grid;
+  gap: 14px;
+  padding: 0 0 16px;
+}
+
+.kind {
+  margin: 0 0 6px;
+  font-family: var(--rw-font-body);
+  font-size: 13.5px;
+  font-weight: 700;
+  text-transform: none;
+  color: var(--rw-ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chevron {
+    transition: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .weekMeta {
+    flex-basis: 100%;
+    margin-left: 28px;
+  }
+}

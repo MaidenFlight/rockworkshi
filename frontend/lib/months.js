@@ -31,6 +31,40 @@ export function weekOf(startsOn, today) {
   return Math.min(4, Math.max(1, Math.floor(days / 7) + 1));
 }
 
+// The assignments that belong to months, one entry per month, newest first, each month's tasks in the
+// order the teacher set them.
+export function groupMonths(assignments) {
+  const months = new Map();
+  for (const a of assignments) {
+    if (!a.month) continue;
+    if (!months.has(a.month.id)) months.set(a.month.id, { ...a.month, song: a.song, teacher: a.teacher, tasks: [] });
+    months.get(a.month.id).tasks.push(a);
+  }
+  const list = [...months.values()];
+  for (const m of list) m.tasks.sort((x, y) => x.week - y.week || x.position - y.position);
+  return list.sort((x, y) => y.startsOn.localeCompare(x.startsOn));
+}
+
+// The month to show: the newest that has started, or else the one starting soonest.
+export function currentMonth(months, today) {
+  return months.find((m) => m.startsOn <= today) ?? months[months.length - 1] ?? null;
+}
+
+// Something has gone in for this task: a checkpoint saved, or an assessment submitted.
+export const isDone = (task) => ["saved", "ready", "reviewed"].includes(task.status);
+
+// The checkpoints that haven't had a take saved yet, from the start of the month up to this week.
+export function stillToPractise(month, week) {
+  return month.tasks.filter((t) => t.kind === "checkpoint" && t.week <= week && !isDone(t));
+}
+
+// What to do next in a month: this week's first open task, then any left from earlier, then what's ahead.
+export function nextTask(month, today) {
+  const week = weekOf(month.startsOn, today);
+  const when = (t) => (t.week === week ? 0 : t.week < week ? 1 : 2);
+  return month.tasks.filter((t) => !isDone(t)).sort((a, b) => when(a) - when(b) || a.week - b.week || a.position - b.position)[0] ?? null;
+}
+
 // One section, or two joined up: named as the template names them.
 export function rangeName(from, to) {
   if (from === to) return from.name;
