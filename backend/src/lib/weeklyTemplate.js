@@ -21,6 +21,8 @@ const RUN_THROUGH_SHARE = 0.6;
 
 const round = (n) => Math.round(n * 1000) / 1000;
 const lower = (name) => name.charAt(0).toLowerCase() + name.slice(1);
+// A section in a sentence: "the intro", but "verse 1".
+const the = (name) => (/\d/.test(name) ? lower(name) : `the ${lower(name)}`);
 
 // Every section in the chart, in order: where it starts and ends, and when each of its bars starts.
 function sectionsOf(chart) {
@@ -83,7 +85,7 @@ function buildMonth(chart, { startsOn, level, readsChart = false }) {
   const practised = new Set(parts);
 
   // Week 1: each part on its own, then two of them joined up.
-  for (const p of parts) add(1, "checkpoint", part(p), `Learn ${lower(p.name)} ${how(1)}. Loop it until the changes feel steady, then record a take and save it.`);
+  for (const p of parts) add(1, "checkpoint", part(p), `Learn ${the(p.name)} ${how(1)}. Loop it until the changes feel steady, then record a take and save it.`);
   const [from, to] = verse && chorus ? [verse, chorus].sort((a, b) => a.start - b.start) : [parts[0], parts[parts.length - 1]];
   const firstJoin = span(from, to);
   add(1, "assessment", firstJoin, `Record ${firstJoin.section} in one go with the band, ${how(1)}.`);
@@ -92,7 +94,7 @@ function buildMonth(chart, { startsOn, level, readsChart = false }) {
   const learned = sections.indexOf(parts[parts.length - 1]);
   for (let i = 0; i <= learned && i + 1 < sections.length && i < 3; i++) {
     const join = transition(sections[i], sections[i + 1]);
-    add(2, "checkpoint", join, `Play from the end of ${lower(sections[i].name)} into ${lower(sections[i + 1].name)}, ${how(2)}. Slow down for any change that trips you up, then record a take and save it.`);
+    add(2, "checkpoint", join, `Play from the end of ${the(sections[i].name)} into ${the(sections[i + 1].name)}, ${how(2)}. Slow down for any change that trips you up, then record a take and save it.`);
   }
   const soFar = span(sections[0], sections[learned]);
   add(2, "assessment", soFar, `Record the sections you've learned so far in one go: ${soFar.section}, ${how(2)}.`);
@@ -101,7 +103,7 @@ function buildMonth(chart, { startsOn, level, readsChart = false }) {
   const nextUp = sections.slice(learned + 1, learned + 3);
   for (const p of nextUp.length ? nextUp : parts.slice(-2)) {
     practised.add(p);
-    add(3, "checkpoint", part(p), `Play ${lower(p.name)} ${how(3)}. Loop it until you can keep going without looking, then record a take and save it.`);
+    add(3, "checkpoint", part(p), `Play ${the(p.name)} ${how(3)}. Loop it until you can keep going without looking, then record a take and save it.`);
   }
   add(3, "checkpoint", { section: "Earlier feedback", sectionStart: null, sectionEnd: null }, "Go back to the moments in your teacher's notes from weeks 1 and 2. Work on each one, then record the spot that needed the most and save it.");
   const songStart = sections[0].start;
@@ -113,7 +115,7 @@ function buildMonth(chart, { startsOn, level, readsChart = false }) {
   // Week 4: what's left, and the song or an arrangement agreed with the teacher.
   add(4, "checkpoint", { section: "Trouble spots", sectionStart: null, sectionEnd: null }, "Record the spots your teacher's week 3 notes point to, one at a time, until they feel secure. Save your best take of each.");
   for (const p of sections.filter((s) => !practised.has(s)).slice(0, 2)) {
-    add(4, "checkpoint", part(p), `Play ${lower(p.name)} ${how(4)}, then record a take and save it.`);
+    add(4, "checkpoint", part(p), `Play ${the(p.name)} ${how(4)}, then record a take and save it.`);
   }
   add(4, "assessment", { section: "Whole song or agreed arrangement", sectionStart: null, sectionEnd: null }, `Film the whole song with the band, ${how(4)}, or the arrangement you and your teacher agreed on. If the whole song is too much this month, ask your teacher about a shorter arrangement.`);
 
