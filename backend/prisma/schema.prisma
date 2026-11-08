@@ -73,6 +73,8 @@ model User {
   assignmentsReceived Assignment[] @relation("AssignmentStudent")
   monthsTaught        PracticeMonth[] @relation("MonthTeacher")
   practiceMonths      PracticeMonth[] @relation("MonthStudent")
+  monthPlans          MonthPlan[]     @relation("PlanTeacher")
+  monthPlanSeats      MonthPlanStudent[]
 
   mixPresets MixPreset[]
   practice   SongPractice[]
@@ -193,6 +195,9 @@ model Assignment {
   position Int            @default(0)
   // The last day to do it, "YYYY-MM-DD" in Pacific/Honolulu.
   dueOn    String?
+  // Which task of the month's plan this came from (an id in MonthPlan.tasks). Null for work set any
+  // other way, which a plan never touches.
+  planTaskId String?
 
   // "checkpoint" (small, repeatable practice) or "assessment" (a take the student submits on purpose).
   // Everything set before there were checkpoints counts as an assessment: it goes to the teacher.
@@ -231,13 +236,106 @@ model PracticeMonth {
   startsOn   String
   weekTitles Json // four short names, one per week
 
+  // The plan this month was published from, if any, and the version of it this student last took.
+  // Null for a month set any other way.
+  planId      String?
+  plan        MonthPlan? @relation(fields: [planId], references: [id], onDelete: SetNull)
+  planVersion Int?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   tasks Assignment[]
 
+  // Publishing twice can't give a student the same plan twice. Months with no plan don't count.
+  @@unique([planId, studentId])
   @@index([studentId])
   @@index([teacherId])
+}
+
+// A teacher's working document for a month on one song: a plan for particular students, or a reusable
+// template. Nothing in here reaches a student. Publishing makes an ordinary PracticeMonth and
+// Assignments for each student (lib/monthPlans.js), so their pages, takes and reviews are the same as
+// for any other month, and changing a plan or a template never changes anyone's work until the teacher
+// has seen what it would do and applied it.
+model MonthPlan {
+  id        String @id @default(uuid())
+  // Plans belong to the teacher who made them and go with their account. Months already published
+  // keep going without them (PracticeMonth.planId is SetNull).
+  teacherId String
+  teacher   User   @relation("PlanTeacher", fields: [teacherId], references: [id], onDelete: Cascade)
+
+  kind       String // "plan" | "template"
+  name       String
+  instrument String // one of INSTRUMENTS in lib/lessonVideos.js: what it was written for
+  level      Int // 1-5, the song levels. Templates are organised by this and the instrument.
+  songId     String?
+  song       Song?   @relation(fields: [songId], references: [id], onDelete: SetNull)
+
+  // The first day of week 1, "YYYY-MM-DD" in Pacific/Honolulu. A template has no dates of its own.
+  startsOn   String?
+  // The class it was made for, for the record and to offer anyone who has joined it since.
+  classId    String?
+  class      Class?  @relation(fields: [classId], references: [id], onDelete: SetNull)
+  weekTitles Json // four short names, one per week
+  // The working copy: [{ id, week, position, kind, section, sectionStart, sectionEnd, instruction,
+  // level, media, audioAllowed, support, targetSpeed, dueDay, criteria, reviewCheckpoint }]. dueDay
+  // is days after the first day, so moving the start moves every due date with it.
+  tasks      Json
+
+  // Goes up with every save, so a save made from an out-of-date copy can be refused.
+  revision Int @default(0)
+  // The newest snapshot in MonthPlanVersion. 0 means none yet: a draft never published.
+  version  Int @default(0)
+
+  // The template this plan was copied from, and which version of it this plan has taken.
+  templateId      String?
+  template        MonthPlan?  @relation("PlanTemplate", fields: [templateId], references: [id], onDelete: SetNull)
+  copies          MonthPlan[] @relation("PlanTemplate")
+  templateVersion Int?
+
+  publishedAt DateTime?
+  // Archived plans stay intact and can be restored. They're only hidden from the working lists.
+  archivedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  students MonthPlanStudent[]
+  versions MonthPlanVersion[]
+  months   PracticeMonth[]
+
+  @@index([teacherId, kind])
+  @@index([templateId])
+}
+
+// Who a plan is for, and what's different for this student: { taskId: { skip: true } or
+// { targetSpeed, support, media, audioAllowed, dueDay, instruction } }. Staff only.
+model MonthPlanStudent {
+  planId    String
+  plan      MonthPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  studentId String
+  student   User      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  overrides Json?
+  createdAt DateTime  @default(now())
+
+  @@id([planId, studentId])
+  @@index([studentId])
+}
+
+// A plan or template as it stood at a moment that matters: when it was published or changes were
+// applied, or each time a template was saved. Later changes are worked out against these, which is how
+// an individual student's own settings are told apart from what the plan said.
+model MonthPlanVersion {
+  planId      String
+  plan        MonthPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  version     Int
+  startsOn    String?
+  weekTitles  Json
+  tasks       Json
+  createdById String?
+  createdAt   DateTime  @default(now())
+
+  @@id([planId, version])
 }
 
 // A video on its way up in pieces (R2 multipart). Kept so a dropped connection can pick up where it
@@ -393,6 +491,7 @@ model Song {
   termSlots   TermSlot[]
   termGrants  TermGrant[]
   months      PracticeMonth[]
+  monthPlans  MonthPlan[]
 
   // How loud the stems are played together: the 99.999th percentile of the summed
   // sample level (1.0 = full scale). Stems often sum well past full scale, so the
@@ -714,6 +813,7 @@ model Class {
 
   occurrences ClassOccurrence[]
   enrolments  ClassEnrollment[]
+  monthPlans  MonthPlan[]
 
   @@index([teacherId])
 }

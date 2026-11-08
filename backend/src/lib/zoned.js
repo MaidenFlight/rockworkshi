@@ -83,4 +83,13 @@ function weekdayOf(dateString) {
   return new Date(Date.UTC(y, m - 1, d)).getUTCDay();
 }
 
-module.exports = { isTimeZone, localParts, toInstant, isDateString, addDays, weekdayOf };
+// Whole days from one "YYYY-MM-DD" to another, negative if `to` comes first.
+function daysBetween(from, to) {
+  const utc = (dateString) => {
+    const [y, m, d] = dateString.split("-").map(Number);
+    return Date.UTC(y, m - 1, d);
+  };
+  return Math.round((utc(to) - utc(from)) / 86400000);
+}
+
+module.exports = { isTimeZone, localParts, toInstant, isDateString, addDays, daysBetween, weekdayOf };

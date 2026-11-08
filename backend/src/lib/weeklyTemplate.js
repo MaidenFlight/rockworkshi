@@ -122,4 +122,13 @@ function buildMonth(chart, { startsOn, level, readsChart = false }) {
   return { weekTitles: [...WEEK_TITLES], tasks, sections: about };
 }
 
-module.exports = { WEEK_TITLES, CRITERIA, sectionsOf, buildMonth };
+// Every join between one section and the next, to choose from when a task is about a transition.
+function transitionsOf(chart) {
+  const sections = sectionsOf(chart);
+  return sections.slice(0, -1).map((from, i) => {
+    const join = transition(from, sections[i + 1]);
+    return { name: join.section, start: join.sectionStart, end: join.sectionEnd };
+  });
+}
+
+module.exports = { WEEK_TITLES, CRITERIA, sectionsOf, transitionsOf, buildMonth };
