@@ -373,9 +373,11 @@ router.put("/plans/:id", async (req, res) => {
   if (plan.archivedAt) return res.status(409).json({ error: "Restore this before changing it." });
   const { error, data } = plans.parseDocument(req.body, plan);
   if (error) return res.status(400).json({ error });
+  const revision = Number(req.body?.revision);
+  if (!Number.isInteger(revision)) return res.status(400).json({ error: "Say which copy this save was made from." });
 
   const saved = await prisma.$transaction(async (tx) => {
-    const { count } = await tx.monthPlan.updateMany({ where: { id: plan.id, revision: Number(req.body?.revision) }, data: { ...data, revision: { increment: 1 } } });
+    const { count } = await tx.monthPlan.updateMany({ where: { id: plan.id, revision }, data: { ...data, revision: { increment: 1 } } });
     if (!count) return null;
     const fresh = await tx.monthPlan.findUnique({ where: { id: plan.id } });
     if (plan.kind === "template") await snapshot(tx, fresh, req.user.id);
@@ -395,7 +397,10 @@ router.put("/plans/:id/students", async (req, res) => {
   if (!Array.isArray(req.body?.studentIds) || req.body.studentIds.some((id) => typeof id !== "string")) return res.status(400).json({ error: "studentIds has to be a list." });
   const wanted = [...new Set(req.body.studentIds)];
   const linked = await linkedSet(req.user.id, wanted);
-  if (wanted.some((id) => !linked.has(id))) return res.status(403).json({ error: "You can only plan for your own students." });
+  // Someone already on the plan who has since been unlinked can stay on the list, where it says so. Only
+  // adding a student needs them to be linked now, or nobody else could be ticked until they were removed.
+  const seated = new Set((await prisma.monthPlanStudent.findMany({ where: { planId: plan.id }, select: { studentId: true } })).map((s) => s.studentId));
+  if (wanted.some((id) => !linked.has(id) && !seated.has(id))) return res.status(403).json({ error: "You can only plan for your own students." });
 
   const classId = req.body.classId === undefined ? plan.classId : req.body.classId || null;
   if (classId && !(await ownClass(req.user.id, classId))) return res.status(404).json({ error: "That class isn't one of yours." });

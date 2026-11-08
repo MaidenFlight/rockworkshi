@@ -198,6 +198,7 @@ test("a draft can be left unfinished, reordered and moved in time, and two windo
   assert.equal(stale.status, 409);
   assert.equal(stale.data.stale, true);
   assert.equal((await call("teacherA", "GET", `/teacher/plans/${plan.id}`)).data.plan.name, song.title);
+  assert.equal((await call("teacherA", "PUT", `/teacher/plans/${plan.id}`, { name: "No revision" })).status, 400);
 
   assert.equal((await save(plan, { startsOn: "someday" })).status, 400);
   assert.equal((await save(plan, { weekTitles: ["One"] })).status, 400);
@@ -663,6 +664,14 @@ test("a teacher can't publish to or change the work of a student they no longer 
     assert.equal((await publish(plan, ["studentZ"])).status, 403);
     const fetched = (await call("teacherA", "GET", `/teacher/plans/${plan.id}`)).data.plan;
     assert.equal(fetched.students[0].issues[0].kind, "not-linked");
+
+    // Someone who was on the list can stay on it, without stopping others being added.
+    const kept = await call("teacherA", "PUT", `/teacher/plans/${plan.id}/students`, { studentIds: [users.studentZ.id, users.studentX.id] });
+    assert.equal(kept.status, 200, JSON.stringify(kept.data));
+    assert.equal(kept.data.plan.students.length, 2);
+    // But they can't be added afresh to another plan.
+    const other = await draft([]);
+    assert.equal((await call("teacherA", "PUT", `/teacher/plans/${other.id}/students`, { studentIds: [users.studentZ.id] })).status, 403);
 
     const { impact } = (await call("teacherA", "GET", `/teacher/plans/${edited.id}/impact`)).data;
     assert.equal(impact.totals.students, 0);
