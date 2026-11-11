@@ -65,7 +65,7 @@ test("a plan is only checked as a whole when it's about to reach students", () =
 
   const warned = (tasks, extra = {}) => plans.checkPlan({ ...plan, ...extra, tasks }, { song: SONG, today: "2026-12-10" }).warnings.join(" | ");
   assert.match(warned(good.filter((t) => t.id !== "2c")), /Week 2 has no weekly assessment/);
-  assert.match(warned(good.filter((t) => t.id !== "3a")), /Week 3 has 1 practice checkpoint\b/);
+  assert.match(warned(good.filter((t) => t.id !== "3a")), /Week 3 has 1 milestone\b/);
   assert.match(warned(good.filter((t) => t.week !== 4)), /Week 4 has nothing set/);
   assert.match(warned(good), /starts before today/);
   assert.match(plans.checkPlan({ ...plan, tasks: [task({ dueDay: null, kind: "assessment" })] }, { song: { published: true, chart: null } }).warnings.join(" "), /no assessment criteria.*no due date.*no chart/s);

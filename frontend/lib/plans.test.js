@@ -67,7 +67,7 @@ test("changes are said in the teacher's words", () => {
   assert.equal(fieldValue("criteria", []), "None");
   assert.equal(fieldValue("instruction", "Loop it."), "Loop it.");
   assert.equal(taskPlace({ week: 2, kind: "assessment" }), "Week 2 assessment");
-  assert.equal(taskPlace({ week: 1, kind: "checkpoint" }), "Week 1 checkpoint");
+  assert.equal(taskPlace({ week: 1, kind: "checkpoint" }), "Week 1 milestone");
 });
 
 test("one student's differences are said in a few words", () => {

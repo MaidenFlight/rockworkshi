@@ -337,7 +337,7 @@ router.post("/plans", async (req, res) => {
     if (!INSTRUMENTS.includes(instrument)) return res.status(400).json({ error: "Choose the instrument this plan is for." });
     const song = await publishedSong(songId);
     if (!song) return res.status(400).json({ error: "That song isn't available." });
-    const start = req.body?.start === "empty" ? null : buildMonth(song.chart, { startsOn, level: n, readsChart: readsChart === true });
+    const start = req.body?.start === "empty" ? null : buildMonth(song.chart, { startsOn, level: n, readsChart: readsChart === true, instrument });
     const tasks = plans.cleanTasks(start ? plans.tasksFromSuggestion(start, startsOn) : []);
     if (tasks.error) return res.status(400).json({ error: tasks.error });
     data = { name: song.title, instrument, level: n, songId: song.id, weekTitles: start?.weekTitles ?? WEEK_TITLES, tasks: tasks.value };

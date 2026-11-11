@@ -16,7 +16,7 @@ export async function teacherRequest(path, options = {}) {
 
 export const STATUS_LABELS = {
   assigned: "Practising",
-  saved: "Checkpoint saved",
+  saved: "Milestone saved",
   ready: "Ready for review",
   reviewed: "Reviewed",
 };

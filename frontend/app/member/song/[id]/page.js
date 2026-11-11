@@ -168,7 +168,7 @@ function SongPlayAlong() {
       {assignment && (
         <div style={{ padding: "14px 18px", marginBottom: 16, background: "var(--rw-sand)", borderRadius: "var(--rw-radius-md)", lineHeight: 1.55 }}>
           <div style={{ fontWeight: 700, color: "var(--rw-ink)" }}>
-            {[assignment.week ? `Week ${assignment.week} ${assignment.kind === "assessment" ? "assessment" : "checkpoint"}` : null, assignment.instrument, `Level ${assignment.level}${assignment.levelName ? ` ${assignment.levelName}` : ""}`, assignment.section].filter(Boolean).join(" · ")}
+            {[assignment.week ? `Week ${assignment.week} ${assignment.kind === "assessment" ? "assessment" : "milestone"}` : null, assignment.instrument, `Level ${assignment.level}${assignment.levelName ? ` ${assignment.levelName}` : ""}`, assignment.section].filter(Boolean).join(" · ")}
           </div>
           <div style={{ color: "var(--rw-body)", whiteSpace: "pre-wrap" }}>{assignment.instruction}</div>
         </div>

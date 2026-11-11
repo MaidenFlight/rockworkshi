@@ -96,7 +96,7 @@ export default function PracticeNext({ next, failed, onRetry }) {
 
   return (
     <section className="rw-tag rw-next" aria-labelledby="practice-next">
-      <p className="rw-next-label">{assignment?.week ? `Week ${assignment.week} ${assignment.kind === "assessment" ? "assessment" : "checkpoint"}` : LABELS[next.kind]}</p>
+      <p className="rw-next-label">{assignment?.week ? `Week ${assignment.week} ${assignment.kind === "assessment" ? "assessment" : "milestone"}` : LABELS[next.kind]}</p>
       <h2 id="practice-next" className="rw-next-title">
         {title}
       </h2>

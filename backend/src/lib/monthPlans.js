@@ -272,7 +272,7 @@ function checkPlan(plan, { today, song } = {}) {
     const assessments = here.length - checkpoints;
     if (assessments === 0) warnings.push(`Week ${week} has no weekly assessment.`);
     if (assessments > 1) warnings.push(`Week ${week} has ${assessments} assessments. A week usually has one.`);
-    if (checkpoints < 2 || checkpoints > 3) warnings.push(`Week ${week} has ${checkpoints} practice checkpoint${checkpoints === 1 ? "" : "s"}. A week usually has two or three.`);
+    if (checkpoints < 2 || checkpoints > 4) warnings.push(`Week ${week} has ${checkpoints} milestone${checkpoints === 1 ? "" : "s"}. A week usually has two to four.`);
   }
   if (song && !sectionsOf(song.chart).length) warnings.push("This song has no chart with sections yet, so tasks can't be matched to its sections.");
   if (plan.startsOn && today && plan.startsOn < today) warnings.push("This month starts before today.");

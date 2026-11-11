@@ -31,7 +31,9 @@ let otherSong;
 let classA;
 let classB;
 
-const bars = (times) => times.map((time) => ({ time, chords: [{ name: "C", time }] }));
+// Each section runs Am, F, C, G, so a month has chords to learn and changes to practise.
+const CYCLE = ["Am", "F", "C", "G"];
+const bars = (times) => times.map((time, i) => ({ time, chords: [{ name: CYCLE[i % CYCLE.length], time }] }));
 const CHART = {
   end: 100,
   sections: [
@@ -144,7 +146,7 @@ test("a draft is built from the song's real sections and stays with the teacher"
     const here = plan.tasks.filter((t) => t.week === week);
     assert.equal(here.filter((t) => t.kind === "assessment").length, 1, `week ${week} has one assessment`);
     const checkpoints = here.filter((t) => t.kind === "checkpoint").length;
-    assert.ok(checkpoints >= 2 && checkpoints <= 3, `week ${week} has two or three checkpoints`);
+    assert.ok(checkpoints >= 2 && checkpoints <= 4, `week ${week} has two to four milestones`);
   }
   assert.equal(plan.tasks[0].dueOn, "2026-12-13");
   assert.equal(plan.tasks[0].dueDay, 6);

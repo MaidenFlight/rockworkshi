@@ -22,7 +22,7 @@ export default function InboxPage() {
 const VIEWS = [
   { id: "waiting", label: "Waiting for review" },
   { id: "reviewed", label: "Reviewed" },
-  { id: "checkpoints", label: "Practice checkpoints" },
+  { id: "checkpoints", label: "Milestones" },
 ];
 
 // One queue for submitted assessments, the longest wait first. Practice checkpoints are kept apart: they're
@@ -175,7 +175,7 @@ function Empty({ view, filtering }) {
   const words = {
     waiting: ["Nothing waiting", "Assessments appear here as soon as a student submits one."],
     reviewed: ["Nothing reviewed yet", "Assessments you've given feedback on appear here."],
-    checkpoints: ["No checkpoints saved yet", "Takes students save for practice checkpoints appear here. They don't need a review."],
+    checkpoints: ["No milestones saved yet", "Takes students save for milestones appear here. They don't need a review."],
   }[view];
   return (
     <div className="rw-st-empty">
@@ -207,7 +207,7 @@ function AssessmentRow({ task: a, backTo, now, reviewedView }) {
         <div className={s.rowMeta}>{`Sent as: ${recordingWords(latest?.recording).join(" · ")}. Asked for: ${asked}.`}</div>
       </div>
       <div className={s.chips}>
-        {flagged && <span className="rw-st-chip">Checkpoint you asked to see</span>}
+        {flagged && <span className="rw-st-chip">Milestone you asked to see</span>}
         <span className="rw-st-chip" data-tone={a.resubmission ? "warn" : undefined}>
           {a.resubmission ? `Resubmission, attempt ${a.attempts}` : "First submission"}
         </span>
@@ -230,7 +230,7 @@ function CheckpointRow({ task: a }) {
         <div className={s.rowMeta}>{`${count(a.attempts, "take")} saved, last ${formatDate(a.sentAt)}. ${recordingWords(latest?.recording).join(" · ")}.`}</div>
       </div>
       <div className={s.chips}>
-        <span className="rw-st-chip">Practice</span>
+        <span className="rw-st-chip">Milestone</span>
       </div>
     </Link>
   );

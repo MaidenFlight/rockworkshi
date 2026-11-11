@@ -84,7 +84,7 @@ export default function PracticeSession({ assignment, instrument, player, take, 
             </h2>
             <p className={s.text}>
               {checkpoint
-                ? `That's this checkpoint saved. ${teacher === "your teacher" ? "Your teacher" : teacher} can listen to it, and you can save another whenever you like.`
+                ? `That's this milestone saved. ${teacher === "your teacher" ? "Your teacher" : teacher} can listen to it, and you can save another whenever you like.`
                 : `That's today's practice done. ${teacher === "your teacher" ? "Your teacher" : teacher} replies on the practice work's page.`}
             </p>
           </div>
@@ -209,7 +209,7 @@ export default function PracticeSession({ assignment, instrument, player, take, 
             </p>
             <div className={s.actions}>
               <Button type="button" onClick={send} disabled={sending || take.sending}>
-                {sending || take.sending ? "Uploading…" : take.uploadStopped ? "Resume upload" : checkpoint ? "Save to checkpoint" : assessment ? `Submit ${take.name} for the Week ${assignment.week} assessment` : `Send to ${teacher}`}
+                {sending || take.sending ? "Uploading…" : take.uploadStopped ? "Resume upload" : checkpoint ? "Save milestone" : assessment ? `Submit ${take.name} for the Week ${assignment.week} assessment` : `Send to ${teacher}`}
               </Button>
               {sendFailed && (
                 <span className={s.error} role="alert">

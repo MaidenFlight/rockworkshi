@@ -77,7 +77,7 @@ export default function TaskFields({ task, sections = [], transitions = [], onCh
         <label className="rw-st-field">
           Kind of task
           <select value={task.kind} onChange={(e) => chooseKind(e.target.value)}>
-            <option value="checkpoint">Practice checkpoint</option>
+            <option value="checkpoint">Milestone</option>
             <option value="assessment">Weekly assessment</option>
           </select>
         </label>
@@ -249,7 +249,7 @@ export default function TaskFields({ task, sections = [], transitions = [], onCh
       ) : (
         <label className="rw-st-check">
           <input type="checkbox" checked={Boolean(task.reviewCheckpoint)} onChange={(e) => onChange({ reviewCheckpoint: e.target.checked })} />
-          Put takes for this checkpoint in my review queue too
+          Put takes for this milestone in my review queue too
         </label>
       )}
     </div>

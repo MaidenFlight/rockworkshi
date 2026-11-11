@@ -262,7 +262,7 @@ router.post("/months/draft", async (req, res) => {
   if (!student) return;
   const song = await publishedSong(songId);
   if (!song) return res.status(400).json({ error: "That song isn't available." });
-  res.json({ draft: buildMonth(song.chart, { startsOn, level: n, readsChart: readsChart === true }), instrument: student.instrument, canFilm: await canFilm(student) });
+  res.json({ draft: buildMonth(song.chart, { startsOn, level: n, readsChart: readsChart === true, instrument: student.instrument }), instrument: student.instrument, canFilm: await canFilm(student) });
 });
 
 router.post("/months", async (req, res) => {

@@ -79,7 +79,7 @@ export function placeInGroup(tasks, task) {
 
 // A task's one-line place in the month: "Week 2 assessment".
 export function taskPlace({ week, kind }) {
-  return `Week ${week} ${kind === "assessment" ? "assessment" : "checkpoint"}`;
+  return `Week ${week} ${kind === "assessment" ? "assessment" : "milestone"}`;
 }
 
 const FIELD_NAMES = {
@@ -113,7 +113,7 @@ export function fieldValue(field, value) {
   if (field === "targetSpeed") return `${value}%`;
   if (field === "support") return HELP[value] ?? value;
   if (field === "media") return value === "video" ? "Video" : "Audio";
-  if (field === "kind") return value === "assessment" ? "Weekly assessment" : "Practice checkpoint";
+  if (field === "kind") return value === "assessment" ? "Weekly assessment" : "Milestone";
   if (field === "week") return `Week ${value}`;
   if (field === "dueOn" || field === "startsOn") return dayLabel(value);
   if (field === "dueDay") return `Day ${value + 1}`;

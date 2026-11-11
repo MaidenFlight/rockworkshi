@@ -22,7 +22,7 @@ export default function WeekGroups({ tasks, title, renderTask, foot }) {
         {here.length === 0 && <p className="rw-st-muted">Nothing set for this week.</p>}
         {checkpoints.length > 0 && (
           <div className={s.group}>
-            <h3 className={s.groupName}>Practice checkpoints</h3>
+            <h3 className={s.groupName}>Milestones</h3>
             <ul className={s.tasks}>{checkpoints.map((t) => renderTask(t))}</ul>
           </div>
         )}

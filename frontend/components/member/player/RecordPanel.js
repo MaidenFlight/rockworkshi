@@ -117,7 +117,7 @@ export default function RecordPanel({
   const teacher = task?.teacher?.name?.split(" ")[0] || "your teacher";
   const uploading = sendProgress !== null ? `Uploading ${Math.round(sendProgress * 100)}%` : null;
   // What to do with a take, the same for a recording and a video.
-  const firstKey = uploadStopped ? "Resume upload" : checkpoint ? "Save to checkpoint" : "Send to your teacher";
+  const firstKey = uploadStopped ? "Resume upload" : checkpoint ? "Save milestone" : "Send to your teacher";
   const takeActions = current && !recording && (
     <>
       {onSend && (assessment || verdict?.ok === false) && (verdict?.ok ? <p className="rw-take-verdict" data-ok="true">This take can be submitted for the assessment.</p> : <p className="rw-take-verdict">{verdict?.text}</p>)}

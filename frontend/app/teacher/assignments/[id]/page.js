@@ -130,7 +130,7 @@ function ReviewAssignment() {
           </div>
           {a.week && (
             <div style={{ color: "var(--rw-meta)", fontSize: 14, marginTop: 2 }}>
-              Week {a.week} {a.kind === "assessment" ? "assessment" : "checkpoint"}
+              Week {a.week} {a.kind === "assessment" ? "assessment" : "milestone"}
               {a.dueOn ? ` · due ${dayLabel(a.dueOn)}` : ""} ·{" "}
               <Link href={`/teacher/months/${a.month.id}`} style={{ color: "var(--rw-orange-deep)" }}>
                 See the month

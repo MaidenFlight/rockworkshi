@@ -110,7 +110,6 @@ const STUDENTS = {
   Guitar: {
     tip: "Keep your strumming hand moving through every change.",
     goals: "Play rhythm guitar in a band by the summer showcase, and learn to take a short solo over a blues.",
-    now: "Loop the chorus at 75% speed until {change} feels easy, then try it at full speed. Keep your strumming hand moving through every change, even if a chord buzzes.",
     verse: "Strum the verse along with the band at 90% speed. Down strums on every beat to start, and look ahead to each change so you're there on time.",
     verseFeedback:
       "Much steadier! You're landing {verseTo} on time now, and your strumming hand keeps going through the change, which is exactly right. Try the verse at full speed this week, then we'll start on the chorus.",
@@ -119,7 +118,6 @@ const STUDENTS = {
   Piano: {
     tip: "Move your left hand to each new root first.",
     goals: "Play keys in a band by the summer showcase, and learn to comp from a chord chart.",
-    now: "Loop the chorus at 75% speed with the chords in your right hand and the roots in your left. Get {change} smooth without looking down, then try it at full speed.",
     verse: "Play the verse along with the band at 90% speed: a chord on every beat in your right hand, the root in your left. Keep your hand relaxed so each change is a small move.",
     verseFeedback:
       "Lovely and even. You're finding {verseTo} without a gap now, and your left hand is right on the beat. Try the verse at full speed this week, then we'll start on the chorus.",
@@ -128,7 +126,6 @@ const STUDENTS = {
   Bass: {
     tip: "Lock your roots to the kick drum.",
     goals: "Hold down the low end in a band by the summer showcase, and learn to read bass tab fluently.",
-    now: "Loop the chorus at 75% speed and play the root of each chord with the kick drum. Once it's steady, follow the tab for the notes that lead into each change.",
     verse: "Play the verse along with the band at 90% speed: roots only, on every beat, with the kick drum. Count the bars so you change chords with the band.",
     verseFeedback:
       "Great time feel! Your roots sit right on the kick drum now, and you're changing with the band every time. Try the verse at full speed this week, then we'll add the passing notes from the tab.",
@@ -137,7 +134,6 @@ const STUDENTS = {
   Drums: {
     tip: "Keep the hi-hat steady and the snare on 2 and 4.",
     goals: "Play a full set with a band by the summer showcase, and keep steady time through every fill.",
-    now: "Loop the chorus at 75% speed with the band. Keep the hi-hat in steady eighth notes and the snare on 2 and 4, then add a crash on the first beat of each line.",
     verse: "Play the verse along with the band at 90% speed: hi-hat in eighth notes, snare on 2 and 4, kick on 1 and 3. Keep it simple and steady.",
     verseFeedback:
       "Rock solid! Your backbeat sits right in the pocket now and the hi-hat stays even. Try the verse at full speed this week, then we'll add the fill into the chorus.",
@@ -146,7 +142,6 @@ const STUDENTS = {
   Voice: {
     tip: "Take a breath before each line.",
     goals: "Sing lead in a band by the summer showcase, and learn to hold a harmony.",
-    now: "Loop the chorus at 75% speed and sing along with the band. Take a breath before each line, and land on the first note of each line instead of sliding up to it.",
     verse: "Sing the verse along with the band at 90% speed, following the melody in the chart. Keep the long notes steady right to the end.",
     verseFeedback:
       "Beautiful tone! Your long notes are steady now and you're in tune at the start of each line. Try the verse at full speed this week, then we'll work on the chorus.",
@@ -155,7 +150,6 @@ const STUDENTS = {
   Ukulele: {
     tip: "Keep the down-down-up strum going through every change.",
     goals: "Play and sing a whole set of songs on ukulele by the summer showcase.",
-    now: "Loop the chorus at 75% speed with a down-down-up strum until {change} feels easy, then try it at full speed. Keep your strumming hand moving through every change.",
     verse: "Strum the verse along with the band at 90% speed, one down strum on every beat. Look ahead to each change so you're there on time.",
     verseFeedback:
       "Much steadier! You're landing {verseTo} on time now, and your strum keeps going through the change. Try the verse at full speed this week, then we'll start on the chorus.",
@@ -225,14 +219,14 @@ function songWords(song) {
 const MONTH_BEGAN_DAYS_AGO = 16;
 
 // A month of weekly practice on the song, from the template the teachers use (lib/weeklyTemplate.js) and
-// with the instrument's own words on the first verse and chorus. Weeks 1 and 2 are done: checkpoints
-// saved and assessments marked, one of them sent twice. Week 3 is under way, with its video assessment
-// still to do, and week 4 is ahead. The sample work has no recordings, because nobody really played it:
+// with the instrument's own words on the verse it plays along with in week 3. Weeks 1 and 2 are done:
+// milestones saved and assessments marked, the sing-along sent twice. Week 3 is under way, and week 4,
+// with its filmed show, is ahead. The sample work has no recordings, because nobody really played it:
 // it's only ever the replies that are shown. at(n) is that many days into the month.
 // Returns { weekTitles, tasks }, or null without a song and chart to build it from.
-function monthTasks(song, startsOn, at, student) {
+function monthTasks(song, startsOn, at, student, instrument) {
   if (!song) return null;
-  const { weekTitles, tasks: planned } = buildMonth(song.chart, { startsOn, level: 2 });
+  const { weekTitles, tasks: planned } = buildMonth(song.chart, { startsOn, level: 2, instrument });
   if (!planned.length) return null;
   const { values } = songWords(song);
   const sections = sectionsOf(song.chart);
@@ -248,22 +242,19 @@ function monthTasks(song, startsOn, at, student) {
   }));
   const find = (week, kind, n = 0) => tasks.filter((t) => t.week === week && t.kind === kind)[n];
 
-  // The first verse and chorus keep the teacher's words for this instrument, and the speeds they name.
-  const first = (word) => tasks.find((t) => t.week === 1 && t.kind === "checkpoint" && new RegExp(`^${word}`, "i").test(t.section));
-  const verse = first("verse");
+  // Playing the verse along with the band in week 3 keeps the teacher's words for this instrument.
+  const verseSection = sections.find((s) => /^verse/i.test(s.name));
+  const verse = verseSection && tasks.find((t) => t.week === 3 && t.kind === "checkpoint" && t.sectionStart === verseSection.start && t.sectionEnd === verseSection.end);
   if (verse) Object.assign(verse, { instruction: fill(student.verse, values), targetSpeed: 90 });
-  const chorus = first("chorus");
-  if (chorus) Object.assign(chorus, { instruction: fill(student.now, values), targetSpeed: 75 });
 
   const save = (task, ...days) => task && Object.assign(task, { status: "saved", attempts: days.map((day) => ({ sent: at(day) })) });
   const pin = (time, text) => (Number.isFinite(time) ? [{ at: time, text }] : undefined);
   const marked = (task, ...marks) => task.criteria.map((criterion, i) => ({ criterion, mark: marks[i] }));
   const change = firstChangeAt(song.chart, sections.find((s) => /^verse/i.test(s.name))?.name ?? sections[0]?.name);
 
-  // Week 1.
+  // Week 1: the sing-along, sent twice.
   save(find(1, "checkpoint", 0), 1);
   save(find(1, "checkpoint", 1), 2, 3);
-  save(find(1, "checkpoint", 2), 4);
   const firstAssessment = find(1, "assessment");
   Object.assign(firstAssessment, {
     status: "reviewed",
@@ -271,27 +262,24 @@ function monthTasks(song, startsOn, at, student) {
       {
         sent: at(5),
         reviewedAt: at(6),
-        feedback: "A good start, but you're rushing where the chords change. Play it at 75% with the metronome on, then send it again.",
-        notes: pin(change, "Rushing into this change. Wait for beat 1 before you move."),
-        marks: marked(firstAssessment, "getting-there", "got-it", "work-on", "getting-there"),
-        priorities: ["Wait for beat 1 before you change chord"],
+        feedback: "Lovely! You know the chorus already. In the verse you got ahead of the band, so listen for the drums and sing with them, then send it again.",
+        notes: pin(change, "You came in early here. Wait for the band, then sing."),
+        marks: marked(firstAssessment, "getting-there", "got-it", "got-it"),
+        priorities: ["Sing with the drums, not ahead of them"],
       },
       {
         sent: at(6.5),
         reviewedAt: at(7),
-        // The instrument's own words, without the line about what to play next: that's next week's work.
-        feedback: `${fill(student.verseFeedback, values).replace(/ Try the verse at full speed.*$/, "")} Next we'll join it up with the rest of what you've learned.`,
-        notes: pin(change, "On time into the change now. This was the spot."),
-        marks: marked(firstAssessment, "got-it", "got-it", "getting-there", "got-it"),
-        priorities: ["Keep that change on time at full speed"],
+        feedback: "Right with the band all the way through this time. Next week we start on the song's chords.",
+        notes: pin(change, "Spot on here now. This was the place you were early."),
+        marks: marked(firstAssessment, "got-it", "got-it", "got-it"),
+        priorities: ["Keep singing along while you learn the chords"],
       },
     ],
   });
 
-  // Week 2.
-  save(find(2, "checkpoint", 0), 8);
-  save(find(2, "checkpoint", 1), 9);
-  save(find(2, "checkpoint", 2), 11);
+  // Week 2: every milestone saved, and the assessment marked.
+  tasks.filter((t) => t.week === 2 && t.kind === "checkpoint").forEach((t, i) => save(t, 8 + i));
   const secondAssessment = find(2, "assessment");
   Object.assign(secondAssessment, {
     status: "reviewed",
@@ -299,9 +287,10 @@ function monthTasks(song, startsOn, at, student) {
       {
         sent: at(12),
         reviewedAt: at(13),
-        feedback: "A clean start, and you came in right on the first beat. The sections hang together now, and that's the hard part done. Well done.",
+        // The instrument's own words, without the line about what to play next: that's next week's work.
+        feedback: `${fill(student.verseFeedback, values).replace(/ Try the verse at full speed.*$/, "")} Next week you'll play it all along with the band.`,
         notes: pin(secondAssessment.sectionStart, "Right on the first beat. Count yourself in like this every time."),
-        marks: marked(secondAssessment, "got-it", "got-it", "getting-there", "got-it"),
+        marks: marked(secondAssessment, "got-it", "got-it", "getting-there"),
         priorities: [`Get ${values.change} smooth without looking`, student.tip],
       },
     ],
@@ -435,7 +424,7 @@ async function startDemo({ instrument: asked = "Guitar", now = clock.now() } = {
       // tasks were set then, in order, so nothing is ever dated after now.
       const startsOn = addDays(today, -MONTH_BEGAN_DAYS_AGO);
       const at = (day) => new Date(toInstant(startsOn, 12 * 60, ZONE).getTime() + day * DAY);
-      const month = monthTasks(song, startsOn, at, student);
+      const month = monthTasks(song, startsOn, at, student, instrument);
       const tasks = month?.tasks ?? [];
       settle(tasks, now);
       const monthId = month && (await tx.practiceMonth.create({ data: { teacherId: teacher.id, studentId: kai.id, songId: song.id, startsOn, weekTitles: month.weekTitles, createdAt: at(0) } })).id;

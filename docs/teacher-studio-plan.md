@@ -19,6 +19,27 @@ per student, so student pages, the phone app, takes, feedback and the review pag
 
 The migration, `20261108100000_month_plans`, only adds tables and nullable columns.
 
+## The month's shape
+
+Decided by Denny on 2026-11-11, for every new month: sing it, learn its chords, play along, then a show.
+It's built from the song's chart (`lib/weeklyTemplate.js`), so the sections, bars and chords are real.
+
+| Week | Level | Milestones | Weekly assessment |
+|---|---|---|---|
+| 1. Sing-a-long | 1 | Sing along with the verse, then the chorus | The whole song, sung with the band |
+| 2. Chords | 2 | One per chord the song uses, up to four ("Play a C chord"), each looped where the song plays it | The chorus chords with the band, Guide me, 80% |
+| 3. Play along | 2 | The two changes the song makes most ("Switch Am to F"), then the verse with the band | Verse and chorus with the band, Chart only, 90% |
+| 4. Show what you can do | 2 | The student's own trickiest spot, then the whole song at 90% | The whole song, On my own, filmed or audio |
+
+- **Milestones are short recorded takes,** saved as practice and outside the review queue, which is how
+  practice checkpoints already worked. People see "milestone"; the code's kind is still `checkpoint`.
+- **Other instruments get their own version of weeks 2 and 3:** bass learns the root notes and the moves
+  between them, drums the count-in, the beat and a fill into the chorus, and singers the tune. Week 1 is
+  singing for everyone.
+- **Each weekly task's page names its level's video.** It says "coming soon" until the school publishes one
+  for that song and instrument, so the Sing-a-long video can be added later without changing any plan.
+- Everything in it is a draft for Brian to change before anyone sees it.
+
 ## How changes work
 
 A due date is kept as days after the first day, so a new start date moves them all.

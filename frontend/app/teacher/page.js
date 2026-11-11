@@ -141,7 +141,7 @@ function AssignmentRow({ assignment: a }) {
         </div>
         <div style={{ fontSize: 13, color: "var(--rw-meta)" }}>
           {a.instrument} · Level {a.level} {a.levelName}
-          {a.week ? ` · Week ${a.week} ${a.kind === "assessment" ? "assessment" : "checkpoint"}` : ""}
+          {a.week ? ` · Week ${a.week} ${a.kind === "assessment" ? "assessment" : "milestone"}` : ""}
           {a.section ? ` · ${a.section}` : ""}
           {latest ? ` · sent ${formatDate(latest.createdAt)}` : ""}
           {latest?.recording ? " · with recording" : ""}
