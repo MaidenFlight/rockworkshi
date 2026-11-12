@@ -12,6 +12,7 @@ const NAV = [
   { label: "Teaching", href: "/admin/teaching" },
   { label: "People & roles", href: "/admin/people" },
   { label: "Classes", href: "/admin/classes" },
+  { label: "Meetings", href: "/admin/meetings" },
   { label: "Terms", href: "/admin/terms" },
   { label: "Trial Requests", href: "/admin/trials" },
   { label: "Messages", href: "/admin/messages" },

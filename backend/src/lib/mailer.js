@@ -332,7 +332,25 @@ async function trialRequestEmails(trial) {
   if (failed) throw failed.reason;
 }
 
+// A notification from the site (a meeting scheduled, moved, cancelled, starting), as an email.
+// title, body and the link are plain text and escaped by layout(); body may hold line breaks.
+function notificationEmail({ title, body, url, siteUrl }) {
+  const link = url ? `${siteUrl}${url}` : `${siteUrl}/notifications`;
+  const lines = String(body).split("\n").filter(Boolean);
+  return {
+    subject: title,
+    text: `${title}\n\n${lines.join("\n")}\n\n${link}\n\nChoose which emails you get: ${siteUrl}/notifications`,
+    html: layout({
+      heading: title,
+      lines,
+      button: { label: "Open Rock Works", href: link },
+      footer: `You can turn these emails off on your <a href="${escapeHtml(`${siteUrl}/notifications`)}" style="color:#0e8a97;">notifications page</a>.`,
+    }),
+  };
+}
+
 module.exports = {
+  notificationEmail,
   escapeHtml,
   renderGuardianInvite,
   guardianInviteEmail,

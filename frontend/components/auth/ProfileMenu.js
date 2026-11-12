@@ -9,6 +9,8 @@ import { firstNameOf, initialsOf } from "@/lib/auth/displayName";
 
 const MENU_ITEMS = [
   { label: "Student Dashboard", href: "/member" },
+  { label: "Meetings", href: "/meetings" },
+  { label: "Notifications", href: "/notifications" },
   { label: "My Profile", href: "/member/profile" },
   { label: "Account Settings", href: "/member/settings" },
 ];

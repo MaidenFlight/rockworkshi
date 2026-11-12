@@ -16,6 +16,7 @@ const chordLibraryRoutes = require("./routes/chordLibrary.routes");
 const termRoutes = require("./routes/terms.routes");
 const classRoutes = require("./routes/classes.routes");
 const peopleRoutes = require("./routes/people.routes");
+const meetingRoutes = require("./routes/meetings.routes");
 const { router: billingRoutes, stripeWebhook } = require("./routes/billing.routes");
 const { mediaDir, localMediaRouter } = require("./lib/media");
 
@@ -81,6 +82,7 @@ app.use("/auth", authRoutes);
 // Before /admin so the terms router handles its own paths.
 app.use("/admin/terms", termRoutes.admin);
 app.use("/admin/classes", classRoutes.admin);
+app.use("/admin/meetings", meetingRoutes.admin);
 app.use("/admin", peopleRoutes.admin);
 app.use("/admin", adminRoutes);
 app.use("/lessons", lessonsRoutes);
@@ -92,6 +94,8 @@ app.use("/teacher", teacherRoutes);
 app.use("/me", peopleRoutes.me);
 app.use("/family", peopleRoutes.family);
 app.use("/calendar", classRoutes.calendar);
+app.use("/meetings", meetingRoutes.member);
+app.use("/notifications", meetingRoutes.notifications);
 app.use("/assignments", assignmentsRoutes);
 app.use("/library", libraryRoutes);
 app.use("/chord-library", chordLibraryRoutes);

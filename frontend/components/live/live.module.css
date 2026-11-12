@@ -1,0 +1,653 @@
+/* The live room test: a paper header over lacquer consoles, like the metronome and the song
+   player. Buttons and toggles are the shared console controls (.rw-btn, .rw-toggle, .rw-seg);
+   this module only lays them out and adds the mixer's own states. Every colour is a token, so
+   the Classic world switches with no extra work. */
+
+.page {
+  max-width: var(--rw-measure-wide);
+  margin: 0 auto;
+  padding: 40px var(--rw-space-5) 96px;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: var(--rw-text-xs);
+  font-weight: 700;
+  letter-spacing: var(--rw-track-eyebrow);
+  text-transform: uppercase;
+  color: var(--rw-teal);
+}
+
+.title {
+  margin: 10px 0 6px;
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: var(--rw-text-3xl);
+  line-height: 1.05;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--rw-ink);
+}
+
+.lead {
+  margin: 0 0 var(--rw-space-3);
+  max-width: 62ch;
+  font-size: var(--rw-text-base);
+  line-height: 1.6;
+  color: var(--rw-body);
+}
+
+.steps {
+  margin: 0 0 var(--rw-space-5);
+  padding-left: 1.4em;
+  max-width: 62ch;
+  font-size: var(--rw-text-base);
+  line-height: 1.6;
+  color: var(--rw-body);
+}
+
+.steps li + li {
+  margin-top: 2px;
+}
+
+/* ---- Console panels ---- */
+
+.console {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--rw-space-4);
+  padding: var(--rw-space-5);
+  background: var(--rw-console);
+  color: var(--rw-console-text);
+  border: 1px solid var(--rw-console-edge);
+  border-radius: var(--rw-radius-md);
+}
+
+@media (max-width: 560px) {
+  .console {
+    margin-inline: calc(-1 * var(--rw-space-5));
+    padding: var(--rw-space-4) var(--rw-space-3) var(--rw-space-5);
+    border-inline: 0;
+    border-radius: 0;
+  }
+}
+
+.console button:focus-visible,
+.console input:focus-visible {
+  outline: 2px solid var(--rw-teal);
+  outline-offset: 2px;
+}
+
+.panelTitle {
+  margin: 0;
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: var(--rw-text-2xl);
+  line-height: 1.05;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+
+.label {
+  margin: 0;
+  font-size: var(--rw-text-xs);
+  font-weight: 700;
+  letter-spacing: var(--rw-track-eyebrow);
+  text-transform: uppercase;
+  color: var(--rw-console-meta);
+}
+
+.meta {
+  margin: 0;
+  font-size: var(--rw-text-sm);
+  line-height: 1.5;
+  color: var(--rw-console-meta);
+}
+
+/* A problem reads like the metronome console's notices: plain gold text, no box. */
+.error {
+  margin: 0;
+  font-size: var(--rw-text-sm);
+  line-height: 1.5;
+  color: var(--rw-gold);
+}
+
+/* ---- Choosing a part ---- */
+
+.roles {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--rw-space-3);
+}
+
+@media (min-width: 720px) {
+  .roles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.role {
+  display: grid;
+  gap: 6px;
+  min-height: 112px;
+  padding: var(--rw-space-4);
+  text-align: left;
+  border: 1px solid var(--rw-console-edge);
+  border-radius: var(--rw-radius-md);
+  background: var(--rw-console-raised);
+  color: var(--rw-console-text);
+  cursor: pointer;
+  transition: border-color 0.16s ease;
+}
+
+.role:hover {
+  border-color: var(--rw-gold);
+}
+
+.roleName {
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: var(--rw-text-2xl);
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.roleText {
+  font-size: var(--rw-text-sm);
+  line-height: 1.5;
+  color: var(--rw-console-meta);
+}
+
+/* ---- Join form ---- */
+
+.form {
+  display: grid;
+  gap: var(--rw-space-4);
+  max-width: 560px;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.fieldLabel {
+  font-size: var(--rw-text-sm);
+  font-weight: 700;
+}
+
+.input {
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--rw-line);
+  border-radius: var(--rw-radius-field);
+  background: var(--rw-white, #fff);
+  color: var(--rw-ink);
+  font: inherit;
+  font-size: var(--rw-text-base);
+}
+
+.choices {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.choices legend {
+  margin-bottom: 6px;
+  padding: 0;
+  font-size: var(--rw-text-sm);
+  font-weight: 700;
+}
+
+.choice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--rw-console-edge);
+  border-radius: var(--rw-radius-sm);
+  background: var(--rw-console-raised);
+  font-size: var(--rw-text-sm);
+  cursor: pointer;
+}
+
+.choice:has(input:checked) {
+  border-color: var(--rw-gold);
+}
+
+.choice input {
+  accent-color: var(--rw-gold);
+}
+
+.choice input:focus-visible {
+  outline: 2px solid var(--rw-teal);
+  outline-offset: 2px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rw-space-3);
+}
+
+/* ---- Status row ---- */
+
+.statusRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  min-height: 44px;
+}
+
+.lamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--rw-text-xs);
+  font-weight: 700;
+  letter-spacing: var(--rw-track-eyebrow);
+  text-transform: uppercase;
+  color: var(--rw-console-meta);
+}
+
+.lamp::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--rw-console-well);
+  box-shadow: inset 0 0 0 1px var(--rw-console-edge);
+}
+
+.lamp[data-on="true"] {
+  color: var(--rw-console-text);
+}
+
+.lamp[data-on="true"]::before {
+  background: var(--rw-sea-glass);
+  box-shadow: none;
+}
+
+.lamp[data-tone="gold"][data-on="true"]::before {
+  background: var(--rw-gold);
+}
+
+.lamp[data-tone="flare"][data-on="true"]::before {
+  background: var(--rw-flare);
+}
+
+.push {
+  margin-left: auto;
+}
+
+/* ---- What Brian sends ---- */
+
+.sendRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rw-space-3) var(--rw-space-4);
+  padding: var(--rw-space-3) var(--rw-space-4);
+  background: var(--rw-console-raised);
+  border: 1px solid var(--rw-console-edge);
+  border-radius: var(--rw-radius-sm);
+}
+
+/* ---- The song deck ---- */
+
+.songPick {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  /* Wide enough for a whole title like "Have You Ever Seen the Rain (no vocals)". */
+  flex: 1 1 400px;
+  min-width: 0;
+}
+
+.select {
+  flex: 1;
+  min-width: 0;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid var(--rw-line);
+  border-radius: var(--rw-radius-field);
+  background: var(--rw-white, #fff);
+  color: var(--rw-ink);
+  font: inherit;
+  font-size: var(--rw-text-sm);
+}
+
+.select:focus-visible {
+  outline: 2px solid var(--rw-teal);
+  outline-offset: 2px;
+}
+
+.select:disabled {
+  opacity: 0.6;
+}
+
+.transport {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 340px;
+  min-width: 0;
+}
+
+.clock {
+  flex: none;
+  min-width: 6.5em;
+  text-align: right;
+  font-size: var(--rw-text-sm);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.songLevel {
+  flex: 0 1 240px;
+  min-width: 200px;
+}
+
+.sendControls {
+  display: grid;
+  gap: var(--rw-space-3);
+  flex: 1 1 320px;
+  min-width: 0;
+}
+
+.tempo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--rw-text-sm);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.tempo output {
+  min-width: 4.5em;
+  text-align: center;
+}
+
+.sendMeter {
+  flex: 1 1 160px;
+  min-width: 120px;
+}
+
+/* ---- The mixer ---- */
+
+.mixHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rw-space-3) var(--rw-space-4);
+}
+
+.hearing {
+  margin: 0;
+  font-size: var(--rw-text-base);
+  font-weight: 700;
+}
+
+.hearing strong {
+  color: var(--rw-gold);
+}
+
+.strips {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--rw-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.strip {
+  display: grid;
+  /* Without this the column grows to the meter's full length and spills into the next strip. */
+  grid-template-columns: minmax(0, 1fr);
+  /* Strips in a row share a height; keep the extra at the bottom so their buttons line up. */
+  align-content: start;
+  gap: var(--rw-space-3);
+  padding: var(--rw-space-4);
+  background: var(--rw-console-raised);
+  border: 1px solid var(--rw-console-edge);
+  border-radius: var(--rw-radius-md);
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.strip[data-open="true"] {
+  border-color: var(--rw-gold);
+  box-shadow: inset 0 0 0 1px var(--rw-gold);
+}
+
+.strip[data-stage="true"] {
+  border-color: var(--rw-flare);
+  box-shadow: inset 0 0 0 1px var(--rw-flare);
+}
+
+.stripHead {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
+
+.key {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--rw-console-edge);
+  border-radius: var(--rw-radius-sm);
+  font-size: var(--rw-text-sm);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--rw-console-meta);
+}
+
+.kidName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: var(--rw-text-xl);
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.kidSound {
+  margin-left: auto;
+  flex: none;
+  font-size: var(--rw-text-xs);
+  color: var(--rw-console-meta);
+}
+
+.stripButtons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.stripButtons button {
+  min-height: 44px;
+}
+
+.stripButtons button[data-kind="listen"][aria-pressed="true"] {
+  background: var(--rw-gold);
+  border-color: var(--rw-gold);
+  color: var(--rw-ink);
+}
+
+.stripButtons button[data-kind="stage"][aria-pressed="true"] {
+  background: var(--rw-flare);
+  border-color: var(--rw-flare);
+  color: var(--rw-ink);
+}
+
+.delayRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  font-size: var(--rw-text-sm);
+}
+
+.delayValue {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.delayRow button {
+  margin-left: auto;
+}
+
+.empty {
+  margin: 0;
+  padding: var(--rw-space-5) var(--rw-space-4);
+  border: 1px dashed var(--rw-console-edge);
+  border-radius: var(--rw-radius-md);
+  font-size: var(--rw-text-base);
+  line-height: 1.6;
+  color: var(--rw-console-meta);
+}
+
+/* ---- Pictures ---- */
+
+.tile {
+  position: relative;
+  margin: 0;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  /* A dark picture on the dark console still needs an edge. */
+  border: 1px solid var(--rw-console-edge);
+  border-radius: var(--rw-radius-sm);
+  background: var(--rw-console-well);
+}
+
+.tile[data-size="self"] {
+  width: 176px;
+  flex: none;
+}
+
+.video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Your own camera reads like a mirror; everyone else sees it the right way round. */
+.video[data-mirror="true"] {
+  transform: scaleX(-1);
+}
+
+.noPicture {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  padding: var(--rw-space-2);
+  text-align: center;
+  font-size: var(--rw-text-sm);
+  color: var(--rw-console-meta);
+}
+
+.tileLabel {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  padding: 2px 8px;
+  border-radius: var(--rw-radius-sm);
+  background: color-mix(in srgb, var(--rw-ink) 82%, transparent);
+  font-size: var(--rw-text-xs);
+  font-weight: 700;
+  color: var(--rw-console-text);
+}
+
+/* Brian big, and the kid on stage beside him when there is one. */
+.screens {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--rw-space-3);
+}
+
+@media (min-width: 720px) {
+  .screens[data-two="true"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.screens:not([data-two="true"]) {
+  max-width: 880px;
+}
+
+/* Everyone else, like a video call's gallery. */
+.galleryWrap {
+  display: grid;
+  gap: var(--rw-space-2);
+}
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(176px, 1fr));
+  gap: var(--rw-space-3);
+}
+
+@media (max-width: 560px) {
+  .gallery {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.pictureRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rw-space-3) var(--rw-space-4);
+}
+
+/* ---- A kid's page ---- */
+
+.big {
+  margin: 0;
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: var(--rw-text-3xl);
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+
+.lamps {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sendBox {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--rw-space-3);
+  padding: var(--rw-space-4);
+  background: var(--rw-console-raised);
+  border: 1px solid var(--rw-console-edge);
+  border-radius: var(--rw-radius-md);
+}
+
+.segWrap {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.segWrap button {
+  flex: 1 1 auto;
+}
