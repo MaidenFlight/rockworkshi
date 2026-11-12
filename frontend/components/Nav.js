@@ -7,6 +7,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { primaryNav } from "@/lib/content";
 import RockWorksIcon from "@/components/RockWorksIcon";
 import ProfileMenu from "@/components/auth/ProfileMenu";
+import NotificationBell from "@/components/NotificationBell";
 import { useAuth } from "@/contexts/AuthContext";
 import { dashboardFor } from "@/lib/auth/enrolment";
 import { firstNameOf, initialsOf } from "@/lib/auth/displayName";
@@ -220,6 +221,7 @@ export default function Nav() {
                     Dashboard
                   </Link>
                 )}
+                <NotificationBell style={navLinkStyle} />
                 <ProfileMenu />
               </>
             ) : (
@@ -379,6 +381,12 @@ export default function Nav() {
                         </Link>
                       </>
                     )}
+                    <Link href="/meetings" onClick={leaveDrawer} style={mobileMenuLinkStyle}>
+                      Meetings
+                    </Link>
+                    <Link href="/notifications" onClick={leaveDrawer} style={mobileMenuLinkStyle}>
+                      Notifications
+                    </Link>
                     <Link href="/member/profile" onClick={leaveDrawer} style={mobileMenuLinkStyle}>
                       My Profile
                     </Link>

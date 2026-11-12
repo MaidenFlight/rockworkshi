@@ -15,3 +15,10 @@ const sweep = () =>
     .catch((err) => console.error("Could not clear expired student demos:", err.message));
 sweep();
 setInterval(sweep, 10 * 60 * 1000).unref();
+
+// Meeting reminders (24 hours and 15 minutes before) and any email or push still waiting to go out.
+// Every minute; each pass is safe to repeat (lib/notify.js).
+const { tick } = require("./lib/notify");
+const notifyPass = () => tick().catch((err) => console.error("Could not send notifications:", err.message));
+setTimeout(notifyPass, 5000).unref();
+setInterval(notifyPass, 60 * 1000).unref();
