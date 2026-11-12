@@ -4,25 +4,26 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui";
 import Tuner from "@/components/tuner/Tuner";
 import Icon from "./Icon";
+import { singAlong, stepWords } from "@/lib/taskWords";
 import { TUNED, tickToday } from "./TodayList";
 import s from "./PracticeSession.module.css";
 
 // "Start today's practice": the day's practice work as one clear sequence above the player, using the
-// tools the student already has. Tune up (string instruments), practise the section (the loop and the
-// speed trainer), record a take (the recorder), listen back, and save or submit it. Each step done is
-// ticked on the dashboard's Today list too. Getting to the end sends nothing: only the last step's key does.
+// tools the student already has. Tune up (string instruments, once past the Sing-a-long), practise the
+// section or do the milestone it names (the loop and the speed trainer), record a take (the recorder),
+// listen back, and save or submit it. Each step done is ticked on the dashboard's Today list too. Getting to the end sends nothing: only the last step's key does.
 // player is the StemPlayer's handle ({ startTrainer, openRecorder, sendTake, listenBack, setUp }); take is where
 // the take is (StemPlayer's onTakeState: { take, name, keep, sending, verdict, uploadStopped }); sent turns
 // true once it has gone.
 export default function PracticeSession({ assignment, instrument, player, take, sent, onEnd }) {
   const teacher = assignment.teacher?.name?.split(" ")[0] || "your teacher";
-  const part = assignment.section || "the section";
+  const words = stepWords(assignment);
   const checkpoint = Boolean(assignment.week) && assignment.kind === "checkpoint";
   const assessment = Boolean(assignment.week) && assignment.kind === "assessment";
   const speedWords = `${assignment.targetSpeed ?? 100}%`;
   const steps = [
-    ...(TUNED.includes(instrument) ? [{ id: "tune", label: "Tune up" }] : []),
-    { id: "practise", label: `Practise ${part}` },
+    ...(TUNED.includes(instrument) && !singAlong(assignment) ? [{ id: "tune", label: "Tune up" }] : []),
+    { id: "practise", label: words.label },
     { id: "record", label: "Record your take" },
     { id: "listen", label: "Listen back" },
     { id: "send", label: checkpoint ? "Save it" : assessment ? `Submit to ${teacher}` : `Send to ${teacher}` },
@@ -133,7 +134,7 @@ export default function PracticeSession({ assignment, instrument, player, take, 
       {step.id === "practise" && (
         <>
           <p className={s.text}>
-            {`Loop ${part} until it feels easy. The speed trainer starts it slow and speeds up a step every couple of passes, up to ${assignment.targetSpeed ? `${assignment.targetSpeed}%` : "full speed"}. Or just press Play and loop it at your own pace.`}
+            {`Loop ${words.loop} until it feels easy. The speed trainer starts it slow and speeds up a step every couple of passes, up to ${assignment.targetSpeed ? `${assignment.targetSpeed}%` : "full speed"}. Or just press Play and loop it at your own pace.`}
           </p>
           <div className={s.actions}>
             <Button
@@ -154,8 +155,8 @@ export default function PracticeSession({ assignment, instrument, player, take, 
         <>
           <p className={s.text}>
             {assessment
-              ? `Record the whole of ${part} at ${speedWords}, with headphones on so the mic only hears you. The recorder shows what this assessment asks for and can set the player up for it. You can record again until you're happy with it.`
-              : `Record the whole of ${part} at ${assignment.targetSpeed ? speedWords : "full speed"}, with headphones on so the mic only hears you. You can record again until you're happy with it.`}
+              ? `Record ${words.record} at ${speedWords}, with headphones on so the mic only hears you. The recorder shows what this assessment asks for and can set the player up for it. You can record again until you're happy with it.`
+              : `Record ${words.record} at ${assignment.targetSpeed ? speedWords : "full speed"}, with headphones on so the mic only hears you. You can record again until you're happy with it.`}
           </p>
           <div className={s.actions}>
             <Button
