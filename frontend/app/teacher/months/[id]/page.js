@@ -6,7 +6,9 @@ import { useParams } from "next/navigation";
 import TaskFields from "@/components/teacher/TaskFields";
 import WeekGroups from "@/components/teacher/WeekGroups";
 import s from "@/components/teacher/Month.module.css";
+import p from "@/components/teacher/Plans.module.css";
 import { DEFAULT_CRITERIA, dayLabel, requirementWords, taskForSaving } from "@/lib/months";
+import { count, fieldName, fieldValue, taskPlace } from "@/lib/plans";
 import { pill } from "@/lib/terms";
 import { api, send } from "@/lib/studio";
 import { STATUS_LABELS, formatDate } from "@/lib/teaching";
@@ -50,7 +52,7 @@ export default function MonthPage() {
   }
 
   async function remove(task) {
-    if (!window.confirm(`Remove ${task.section || "this task"} from the month?`)) return;
+    if (!window.confirm(`Remove ${task.section || "this task"} from ${name}'s month? They'll stop seeing it straight away.`)) return;
     setError("");
     try {
       await send(`/teacher/assignments/${task.id}`, "DELETE");
@@ -78,6 +80,11 @@ export default function MonthPage() {
         <p className="rw-st-lead">
           {name} · {month.student.instrument} · starts {dayLabel(month.startsOn)}
         </p>
+        {month.plan && (
+          <p className="rw-st-muted" style={{ marginTop: 4 }}>
+            From the plan <Link href={`/teacher/plans/${month.plan.id}`}>{month.plan.name}</Link>. A change made here is {name}&apos;s own, and stays when the plan changes.
+          </p>
+        )}
       </div>
 
       {error && (
@@ -106,6 +113,7 @@ export default function MonthPage() {
               key={t.id}
               task={t}
               sections={month.sections}
+              transitions={month.transitions}
               editing={open === t.id}
               onEdit={() => setOpen(open === t.id ? null : t.id)}
               onRemove={() => remove(t)}
@@ -122,6 +130,8 @@ export default function MonthPage() {
                 blank={blankTask(week)}
                 monthId={id}
                 sections={month.sections}
+                transitions={month.transitions}
+                studentName={name}
                 onCancel={() => setOpen(null)}
                 onSaved={async () => {
                   setOpen(null);
@@ -142,6 +152,7 @@ export default function MonthPage() {
             <button type="button" className="rw-st-btn" data-tone="primary" onClick={saveTitles}>
               Save week names
             </button>
+            <span className="rw-st-muted">{`${name} sees the new names as soon as you save.`}</span>
           </div>
         )}
       </div>
@@ -150,18 +161,34 @@ export default function MonthPage() {
 }
 
 // One task of the month: where it stands, a way to hear what's been saved, and its settings.
-function Task({ task: t, sections, editing, onEdit, onRemove, onSaved }) {
+function Task({ task: t, sections, transitions, editing, onEdit, onRemove, onSaved }) {
   const [draft, setDraft] = useState(t);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  // What saving would do, shown first: the task is already with the student.
+  const [impact, setImpact] = useState(null);
   const sent = t.submissions.length;
   const newest = t.submissions[0];
 
-  async function save() {
+  async function review() {
+    setSaving(true);
+    setError("");
+    try {
+      const d = await send(`/teacher/assignments/${t.id}/impact`, "POST", taskForSaving(draft));
+      setImpact(d.impact);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function confirm() {
     setSaving(true);
     setError("");
     try {
       await send(`/teacher/assignments/${t.id}`, "PUT", taskForSaving(draft));
+      setImpact(null);
       await onSaved();
     } catch (err) {
       setError(err.message);
@@ -207,25 +234,61 @@ function Task({ task: t, sections, editing, onEdit, onRemove, onSaved }) {
       )}
       {editing && (
         <>
-          <TaskFields task={draft} sections={sections} onChange={(patch) => setDraft({ ...draft, ...patch })} />
+          <TaskFields
+            task={draft}
+            sections={sections}
+            transitions={transitions}
+            onChange={(patch) => {
+              setImpact(null);
+              setDraft({ ...draft, ...patch });
+            }}
+          />
           {sent > 0 && <p className="rw-st-muted">Takes already sent keep how they were made. This changes what&apos;s asked from now on.</p>}
           {error && (
             <p className="rw-st-error" role="alert">
               {error}
             </p>
           )}
-          <div className={s.formActions}>
-            <button type="button" className="rw-st-btn" data-tone="primary" disabled={saving} onClick={save}>
-              {saving ? "Saving…" : "Save task"}
-            </button>
-          </div>
+          {impact ? (
+            <div className={p.tag} role="group" aria-label="What this change does">
+              <p>
+                <strong>{`This changes ${impact.student.name || "this student"}'s ${taskPlace(impact)}: ${impact.label}`}</strong>
+              </p>
+              {impact.fields.length === 0 ? (
+                <p>Nothing has changed.</p>
+              ) : (
+                <ul className={p.lines}>
+                  {impact.fields.map((f) => (
+                    <li key={f.field}>{f.field === "instruction" ? "New instructions" : `${fieldName(f.field)}: ${fieldValue(f.field, f.from)} → ${fieldValue(f.field, f.to)}`}</li>
+                  ))}
+                </ul>
+              )}
+              {impact.attempts > 0 && <p>{`${count(impact.attempts, "take")} already sent ${impact.attempts === 1 ? "stays" : "stay"} as ${impact.attempts === 1 ? "it was" : "they were"}.`}</p>}
+              {impact.statusAfter !== impact.status && <p>{`Status moves from ${STATUS_LABELS[impact.status]} to ${STATUS_LABELS[impact.statusAfter]}.`}</p>}
+              {impact.plan && <p>{`This is only for ${impact.student.name || "this student"}. Nobody else on ${impact.plan.name} is changed.`}</p>}
+              <div className={s.formActions}>
+                <button type="button" className="rw-st-btn" data-tone="primary" disabled={saving || impact.fields.length === 0} onClick={confirm}>
+                  {saving ? "Saving…" : "Save this change"}
+                </button>
+                <button type="button" className="rw-st-btn" onClick={() => setImpact(null)}>
+                  Keep editing
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className={s.formActions}>
+              <button type="button" className="rw-st-btn" data-tone="primary" disabled={saving} onClick={review}>
+                {saving ? "Checking…" : "Review this change"}
+              </button>
+            </div>
+          )}
         </>
       )}
     </li>
   );
 }
 
-function NewTask({ week, blank, monthId, sections, onCancel, onSaved }) {
+function NewTask({ week, blank, monthId, sections, transitions, studentName, onCancel, onSaved }) {
   const [task, setTask] = useState(blank);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -245,7 +308,7 @@ function NewTask({ week, blank, monthId, sections, onCancel, onSaved }) {
   return (
     <div className={s.task}>
       <div className={s.taskName}>New task for week {week}</div>
-      <TaskFields task={task} sections={sections} onChange={(patch) => setTask({ ...task, ...patch })} />
+      <TaskFields task={task} sections={sections} transitions={transitions} onChange={(patch) => setTask({ ...task, ...patch })} />
       {error && (
         <p className="rw-st-error" role="alert">
           {error}
@@ -258,6 +321,7 @@ function NewTask({ week, blank, monthId, sections, onCancel, onSaved }) {
         <button type="button" className="rw-st-btn" data-tone="quiet" onClick={onCancel}>
           Cancel
         </button>
+        <span className="rw-st-muted">{`${studentName} sees this as soon as it's added.`}</span>
       </div>
     </div>
   );

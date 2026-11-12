@@ -156,8 +156,9 @@ test("the demo looks like an active student's account", async () => {
   assert.ok(tasks.filter((a) => a.week === 4).every((a) => a.status === "assigned"), "week 4 is ahead");
   assert.equal(week(1, "assessment")[0].attempts, 2, "one assessment was sent twice");
   assert.equal(week(1, "checkpoint")[1].attempts, 2, "and one checkpoint");
-  assert.equal(week(3, "assessment")[0].media, "video");
-  assert.equal(week(3, "assessment")[0].support, "solo");
+  assert.equal(week(4, "assessment")[0].media, "video", "the show at the end is filmed");
+  assert.equal(week(3, "assessment")[0].support, "chart");
+  assert.ok(week(1, "checkpoint").every((a) => /^Sing along/.test(a.section)), "the month starts as a sing-along");
   assert.equal(work.data.canFilm, true);
   assert.ok(tasks.every((a) => a.submissions.every((s) => new Date(s.createdAt) <= new Date())), "nothing dated in the future");
   assert.ok(tasks.every((a) => a.submissions.every((s) => s.recording === null)), "nobody really played it, so there are no recordings");

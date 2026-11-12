@@ -50,7 +50,7 @@ export default function TeacherStudentPage() {
             <p className="rw-st-lead">{student.isMinor ? "Under 18 · contact goes through the school and their guardian" : "Adult student"}</p>
           </div>
           <div className="rw-st-actions">
-            <Link href={`/teacher/months/new?student=${student.id}`} className="rw-st-btn" data-tone="primary">
+            <Link href={`/teacher/plans/new?student=${student.id}`} className="rw-st-btn" data-tone="primary">
               Plan a month
             </Link>
             <Link href={`/teacher/new?student=${student.id}`} className="rw-st-btn">
@@ -157,7 +157,7 @@ export default function TeacherStudentPage() {
           <section className="rw-st-card">
             <h2>Months of practice</h2>
             {months.length === 0 ? (
-              <p className="rw-st-muted">No month planned yet. Plan one to set four weeks of checkpoints and assessments on a song.</p>
+              <p className="rw-st-muted">No month planned yet. Plan one to set four weeks of milestones and assessments on a song.</p>
             ) : (
               <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "grid", gap: 6 }}>
                 {months.map((m) => (

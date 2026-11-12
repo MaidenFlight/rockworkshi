@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { dashboardFor } from "@/lib/auth/enrolment";
+import { holds } from "@/lib/auth/roles";
 import { firstNameOf, initialsOf } from "@/lib/auth/displayName";
 
 const MENU_ITEMS = [
@@ -15,6 +16,7 @@ const MENU_ITEMS = [
   { label: "Account Settings", href: "/member/settings" },
 ];
 const TEACHER_ITEM = { label: "Teaching", href: "/teacher" };
+const ADMIN_ITEM = { label: "Admin", href: "/admin" };
 
 export default function ProfileMenu() {
   const { user, signOut, leaveDemo } = useAuth();
@@ -77,7 +79,7 @@ export default function ProfileMenu() {
       {open && (
         <div role="menu" aria-label="Account menu" style={menuStyle}>
           {/* A student's dashboard is Practice in the header, so it isn't listed again here. */}
-          {(user?.role === "teacher" ? [TEACHER_ITEM, ...MENU_ITEMS] : MENU_ITEMS)
+          {[...(holds(user, "teacher") ? [TEACHER_ITEM] : []), ...(user?.isAdmin ? [ADMIN_ITEM] : []), ...MENU_ITEMS]
             .filter((item) => item.href !== "/member" || dashboardFor(user) !== "/member")
             .map((item) => (
             <Link key={item.href} href={item.href} role="menuitem" className="rw-menu-item" onClick={() => setOpen(false)} style={menuItemStyle}>

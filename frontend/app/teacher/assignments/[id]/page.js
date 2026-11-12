@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Icon from "@/components/member/Icon";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import StemPlayer from "@/components/member/StemPlayer";
 import ui from "@/components/teacher/Month.module.css";
+import plans from "@/components/teacher/Plans.module.css";
 import { HELP, MARKS, MARK_NAMES, dayLabel, requirementWords } from "@/lib/months";
+import { inboxQuery } from "@/lib/plans";
 import {
   STATUS_LABELS,
   contentTitle,
@@ -19,15 +21,31 @@ import {
 
 const MAX_FEEDBACK = 2000;
 
-export default function ReviewAssignment() {
+export default function ReviewPage() {
+  const { id } = useParams();
+  // useSearchParams needs a Suspense boundary. The key starts afresh on the next assessment.
+  return (
+    <Suspense fallback={<p style={{ color: "var(--rw-meta)" }}>Loading…</p>}>
+      <ReviewAssignment key={id} />
+    </Suspense>
+  );
+}
+
+function ReviewAssignment() {
   const { id } = useParams();
   const router = useRouter();
+  const params = useSearchParams();
+  // Opened from the inbox: it keeps the inbox's filters so "next" stays in the same queue.
+  const fromInbox = params.get("inbox") === "1";
+  const query = inboxQuery({ classId: params.get("classId") || "", studentId: params.get("studentId") || "", instrument: params.get("instrument") || "" });
   // undefined = loading, null = failed (see error)
   const [assignment, setAssignment] = useState(undefined);
   const [tracks, setTracks] = useState(null);
   const [mixLevel, setMixLevel] = useState(null);
   const [listeningTo, setListeningTo] = useState(null); // submission id playing with the band
   const [error, setError] = useState("");
+  const [replies, setReplies] = useState(0); // how many times feedback has gone out from this page
+  const queue = useQueue(fromInbox, id, query, replies);
 
   function load() {
     return teacherRequest(`/teacher/assignments/${id}`)
@@ -64,6 +82,7 @@ export default function ReviewAssignment() {
         s.id === saved.id ? { ...s, feedback: saved.feedback, notes: saved.notes, marks: saved.marks, priorities: saved.priorities, reviewedAt: saved.reviewedAt } : s
       ),
     }));
+    setReplies((n) => n + 1);
   }
 
   async function remove() {
@@ -94,9 +113,13 @@ export default function ReviewAssignment() {
 
   return (
     <div style={{ maxWidth: 800 }}>
-      <Link href="/teacher" style={{ fontSize: 13.5, color: "var(--rw-meta)", textDecoration: "none" }}>
-        <Icon name="arrow-left" size={14} /> Your students
-      </Link>
+      {fromInbox ? (
+        <QueueBar queue={queue} query={query} sentTo={replies > 0 ? studentName(a.student) : null} />
+      ) : (
+        <Link href="/teacher" style={{ fontSize: 13.5, color: "var(--rw-meta)", textDecoration: "none" }}>
+          <Icon name="arrow-left" size={14} /> Your students
+        </Link>
+      )}
 
       <div style={{ display: "flex", justifyContent: "space-between", gap: 16, alignItems: "flex-start", margin: "10px 0 18px" }}>
         <div>
@@ -107,7 +130,7 @@ export default function ReviewAssignment() {
           </div>
           {a.week && (
             <div style={{ color: "var(--rw-meta)", fontSize: 14, marginTop: 2 }}>
-              Week {a.week} {a.kind === "assessment" ? "assessment" : "checkpoint"}
+              Week {a.week} {a.kind === "assessment" ? "assessment" : "milestone"}
               {a.dueOn ? ` · due ${dayLabel(a.dueOn)}` : ""} ·{" "}
               <Link href={`/teacher/months/${a.month.id}`} style={{ color: "var(--rw-orange-deep)" }}>
                 See the month
@@ -151,11 +174,74 @@ export default function ReviewAssignment() {
         </div>
       )}
 
+      {fromInbox && replies > 0 && (
+        <p className={plans.actions} style={{ margin: "16px 0 0" }}>
+          <span className="rw-st-ok">{`Feedback sent to ${studentName(a.student)}.`}</span>
+          {nextHref(queue, query) ? (
+            <Link href={nextHref(queue, query)} className="rw-st-btn" data-tone="primary">
+              {nextWords(queue.next)}
+            </Link>
+          ) : (
+            queue && <span className="rw-st-muted">Nothing else is waiting.</span>
+          )}
+        </p>
+      )}
+
       <div style={{ borderTop: "1px solid var(--rw-border)", marginTop: 36, paddingTop: 16 }}>
         <button onClick={remove} style={{ ...smallBtn, color: "var(--rw-orange-deep)" }}>
           Delete this practice work
         </button>
       </div>
+    </div>
+  );
+}
+
+// Where this assessment sits in the inbox and what comes next. Asked again after feedback goes out,
+// because that takes this one out of the queue.
+function useQueue(enabled, id, query, replies) {
+  const [queue, setQueue] = useState(null);
+  useEffect(() => {
+    if (!enabled) return;
+    let stale = false;
+    teacherRequest(`/teacher/inbox/next?after=${id}${query ? `&${query}` : ""}`)
+      .then((q) => !stale && setQueue(q))
+      .catch(() => !stale && setQueue(false));
+    return () => {
+      stale = true;
+    };
+  }, [enabled, id, query, replies]);
+  return queue;
+}
+
+const nextHref = (queue, query) => (queue?.next ? `/teacher/assignments/${queue.next.id}?inbox=1${query ? `&${query}` : ""}` : null);
+const nextWords = (next) => `Next: ${studentName(next.student)}${next.week ? `, week ${next.week}` : ""}`;
+
+// The way through the inbox: back to it, where this one sits, and on to the next that's waiting.
+function QueueBar({ queue, query, sentTo }) {
+  const back = `/teacher/inbox${query ? `?${query}` : ""}`;
+  const onward = nextHref(queue, query);
+  const place = queue ? (queue.position ? `${queue.position} of ${queue.total} waiting` : `${queue.total} still waiting`) : "";
+
+  return (
+    <div className={plans.actions} style={{ justifyContent: "space-between", paddingBottom: 12, borderBottom: "1px solid var(--rw-border)" }}>
+      <div className={plans.actions}>
+        <Link href={back} style={{ fontSize: 13.5, color: "var(--rw-meta)", textDecoration: "none", minHeight: 44, display: "inline-flex", alignItems: "center", gap: 4 }}>
+          <Icon name="arrow-left" size={14} /> Inbox
+        </Link>
+        {place && <span className="rw-st-muted">{place}</span>}
+        {sentTo && (
+          <span className="rw-st-ok" role="status">
+            {`Feedback sent to ${sentTo}.`}
+          </span>
+        )}
+      </div>
+      {onward ? (
+        <Link href={onward} className="rw-st-btn" data-tone="primary">
+          {nextWords(queue.next)}
+        </Link>
+      ) : (
+        queue && <span className="rw-st-muted">{queue.total === 0 ? "Nothing else is waiting." : "This is the only one waiting."}</span>
+      )}
     </div>
   );
 }

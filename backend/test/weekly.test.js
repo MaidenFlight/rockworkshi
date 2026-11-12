@@ -31,7 +31,9 @@ const users = {};
 const tokens = {};
 let song;
 
-const bars = (times) => times.map((time) => ({ time, chords: [{ name: "C", time }] }));
+// Each section runs Am, F, C, G, like the school's first song.
+const CYCLE = ["Am", "F", "C", "G"];
+const bars = (times, chords = CYCLE) => times.map((time, i) => ({ time, chords: [{ name: chords[i % chords.length], time }] }));
 const CHART = {
   end: 100,
   sections: [
@@ -107,65 +109,118 @@ after(async () => {
   await prisma.$disconnect();
 });
 
-test("the template builds four weeks from the sections the song really has", () => {
-  const { weekTitles, tasks } = buildMonth(CHART, { startsOn: START, level: 2 });
-  assert.deepEqual(weekTitles, ["Learn the parts", "Connect the parts", "Build independence", "Perform"]);
+test("a month starts with a sing-along, then the song's chords, then playing along, then a show", () => {
+  const { weekTitles, tasks } = buildMonth(CHART, { startsOn: START, level: 2, instrument: "Guitar" });
+  assert.deepEqual(weekTitles, ["Sing-a-long", "Chords", "Play along", "Show what you can do"]);
   const week = (n) => tasks.filter((t) => t.week === n);
   const names = (list) => list.map((t) => t.section);
+  const where = (t) => [t.sectionStart, t.sectionEnd];
 
   for (const n of [1, 2, 3, 4]) {
     assert.equal(week(n).filter((t) => t.kind === "assessment").length, 1, `week ${n} has one assessment`);
-    const checkpoints = week(n).filter((t) => t.kind === "checkpoint");
-    assert.ok(checkpoints.length >= 2 && checkpoints.length <= 3, `week ${n} has two or three checkpoints`);
+    const milestones = week(n).filter((t) => t.kind === "checkpoint");
+    assert.ok(milestones.length >= 2 && milestones.length <= 4, `week ${n} has two to four milestones`);
     assert.equal(week(n).at(-1).kind, "assessment", "the assessment comes last");
   }
 
-  assert.deepEqual(names(week(1)), ["Intro", "Verse 1", "Chorus 1", "Verse 1 + Chorus 1"]);
-  assert.deepEqual(names(week(2)), ["Intro into Verse 1", "Verse 1 into Chorus 1", "Chorus 1 into Verse 2", "Intro to Chorus 1"]);
-  assert.deepEqual(names(week(3)), ["Verse 2", "Chorus 2", "Earlier feedback", "Intro to Verse 2"]);
-  assert.deepEqual(names(week(4)), ["Trouble spots", "Outro", "Whole song or agreed arrangement"]);
+  // Week 1 is singing, at the Sing-a-long level, whatever the instrument.
+  assert.deepEqual(names(week(1)), ["Sing along with Verse 1", "Sing along with Chorus 1", "Sing the whole song with the band"]);
+  assert.deepEqual(week(1).map(where), [[10, 30], [30, 50], [0, 100]]);
+  assert.ok(week(1).every((t) => t.level === 1 && t.support === null && t.targetSpeed === null));
+  assert.match(week(1)[0].instruction, /Sing-a-long video/);
+
+  // Week 2 is one milestone for each of the song's chords, looped where the song plays it.
+  assert.deepEqual(names(week(2)), ["Play an Am chord", "Play an F chord", "Play a C chord", "Play a G chord", "Chorus 1 chords with the band"]);
+  assert.deepEqual(week(2).slice(0, 4).map(where), [[0, 5], [5, 10], [20, 25], [25, 30]]);
+  assert.deepEqual(where(week(2)[4]), [30, 50]);
+
+  // Week 3 is the changes the song makes most, then playing along.
+  assert.deepEqual(names(week(3)), ["Switch Am to F", "Switch F to C", "Play Verse 1 with the band", "Verse 1 + Chorus 1 with the band"]);
+  assert.deepEqual(week(3).map(where), [[0, 10], [15, 25], [10, 30], [10, 50]]);
+
+  assert.deepEqual(names(week(4)), ["Your trickiest spot", "The whole song at 90% speed", "The whole song"]);
+  assert.deepEqual(where(week(4)[0]), [null, null], "the trickiest spot is the student's to choose");
 
   // What each week asks for.
   const assessment = (n) => week(n).at(-1);
-  assert.deepEqual([1, 2, 3, 4].map((n) => assessment(n).media), ["audio", "audio", "video", "video"]);
-  assert.deepEqual([1, 2, 3, 4].map((n) => assessment(n).support), ["guide", "chart", "solo", "solo"]);
-  assert.deepEqual([1, 2, 3, 4].map((n) => assessment(n).targetSpeed), [80, 90, 100, 100]);
+  assert.deepEqual([1, 2, 3, 4].map((n) => assessment(n).media), ["audio", "audio", "audio", "video"]);
+  assert.equal(assessment(4).audioAllowed, true, "audio is fine for the show");
+  assert.deepEqual([1, 2, 3, 4].map((n) => assessment(n).support), [null, "guide", "chart", "solo"]);
+  assert.deepEqual([1, 2, 3, 4].map((n) => assessment(n).targetSpeed), [null, 80, 90, 100]);
   assert.deepEqual([1, 2, 3, 4].map((n) => assessment(n).dueOn), ["2026-11-07", "2026-11-14", "2026-11-21", "2026-11-28"]);
-  assert.equal(tasks.filter((t) => t.kind === "checkpoint" && t.media !== "audio").length, 0, "checkpoints are audio");
-  assert.equal(assessment(1).criteria.length, 4);
+  assert.deepEqual([1, 2, 3, 4].map((n) => assessment(n).level), [1, 2, 2, 2]);
+  assert.equal(tasks.filter((t) => t.kind === "checkpoint" && t.media !== "audio").length, 0, "milestones are audio");
+  assert.deepEqual(assessment(1).criteria, ["Sings in time with the band", "Knows the words", "Follows the tune"]);
+  assert.equal(assessment(2).criteria.length, 3);
   assert.equal(week(1)[0].criteria.length, 0);
-  // A transition runs from the last two bars of one section into the first two of the next.
-  assert.deepEqual([week(2)[1].sectionStart, week(2)[1].sectionEnd], [20, 40]);
-  assert.deepEqual([assessment(1).sectionStart, assessment(1).sectionEnd], [10, 50]);
-  assert.equal(assessment(4).sectionStart, null);
 });
 
-test("the template never invents a section", () => {
+test("each instrument gets its own way into the song's chords", () => {
+  const month = (instrument) => buildMonth(CHART, { startsOn: START, instrument });
+  const names = (instrument, week) => month(instrument).tasks.filter((t) => t.week === week).map((t) => t.section);
+
+  assert.deepEqual(month("Bass").weekTitles[1], "Root notes");
+  assert.deepEqual(names("Bass", 2), ["Play the A note for Am", "Play the F note", "Play the C note", "Play the G note", "Chorus 1 root notes with the band"]);
+  assert.deepEqual(names("Bass", 3).slice(0, 2), ["Move from A to F", "Move from F to C"]);
+
+  assert.deepEqual(month("Drums").weekTitles[1], "The beat");
+  assert.deepEqual(names("Drums", 2), ["Count in and start on time", "Play the Verse 1 beat", "Play the Chorus 1 beat", "Chorus 1 beat with the band"]);
+  assert.deepEqual(names("Drums", 3).slice(0, 1), ["Play a fill into Chorus 1"]);
+  // A fill runs from the last two bars of the verse into the first two of the chorus.
+  const fill = month("Drums").tasks.find((t) => t.section === "Play a fill into Chorus 1");
+  assert.deepEqual([fill.sectionStart, fill.sectionEnd], [20, 40]);
+
+  assert.deepEqual(month("Voice").weekTitles[1], "The tune");
+  assert.deepEqual(names("Voice", 2), ["Sing the Verse 1 tune", "Sing the Chorus 1 tune", "Sing Chorus 1 with the band"]);
+  assert.ok(month("Voice").tasks.filter((t) => t.week > 1).every((t) => !/^Play /.test(t.section)), "a singer is never asked to play");
+
+  assert.deepEqual(names("Piano", 2).slice(0, 1), ["Play an Am chord"]);
+  assert.match(month("Piano").tasks.find((t) => t.week === 2).instruction, /every note sounds/);
+  assert.deepEqual(names("Ukulele", 2), names("Guitar", 2));
+  // With no instrument on file, a month is planned for chords.
+  assert.deepEqual(names(undefined, 2), names("Guitar", 2));
+  // Every week 1 is singing.
+  for (const instrument of ["Guitar", "Bass", "Drums", "Voice"]) assert.deepEqual(names(instrument, 1), names("Guitar", 1));
+});
+
+test("the template never invents a section or a chord", () => {
   assert.equal(buildMonth(null, { startsOn: START, level: 1 }).tasks.length, 0);
 
-  const odd = { end: 30, sections: [{ name: "A", bars: bars([0, 5]) }, { name: "B", bars: bars([10, 15]) }, { name: "C", bars: bars([20, 25]) }] };
-  const real = new Set(["A", "B", "C"]);
-  const { tasks } = buildMonth(odd, { startsOn: START, level: 1 });
-  const unnamedExtras = new Set(["Earlier feedback", "Trouble spots", "Whole song or agreed arrangement"]);
+  // Odd names, chords that aren't the usual four, and passing chords that aren't learned on their own.
+  const odd = {
+    end: 30,
+    sections: [
+      { name: "A", bars: bars([0, 5], ["D", "Bm"]) },
+      { name: "B", bars: bars([10, 15], ["G", "D/F#"]) },
+      { name: "C", bars: bars([20, 25], ["Em", "A7"]) },
+    ],
+  };
+  const { tasks } = buildMonth(odd, { startsOn: START, instrument: "Guitar" });
+  const barStarts = new Set([0, 5, 10, 15, 20, 25]);
+  const barEnds = new Set([5, 10, 15, 20, 25, 30]);
   for (const t of tasks) {
-    if (unnamedExtras.has(t.section)) {
-      assert.equal(t.sectionStart, null, "a task that isn't a section of the song has no range");
+    if (t.sectionStart === null) {
+      assert.equal(t.section, "Your trickiest spot");
       continue;
     }
-    for (const word of t.section.split(/ (?:to|into|\+) /)) assert.ok(real.has(word), `${t.section} is built from the chart`);
+    assert.ok(barStarts.has(t.sectionStart) && barEnds.has(t.sectionEnd), `${t.section} starts and ends on the song's own bars`);
   }
+  assert.deepEqual(tasks.filter((t) => t.week === 2 && t.kind === "checkpoint").map((t) => t.section), ["Play a D chord", "Play a Bm chord", "Play a G chord", "Play an Em chord"]);
+  assert.ok(!tasks.some((t) => t.section.includes("/")), "a passing slash chord isn't a milestone");
+  assert.equal(tasks.find((t) => t.week === 1 && t.kind === "checkpoint").section, "Sing along with A", "with no verse, the first section stands in");
 
-  const one = { end: 20, sections: [{ name: "Main", bars: bars([0, 5, 10, 15]) }] };
-  const single = buildMonth(one, { startsOn: START, level: 1 }).tasks;
-  assert.equal(single.filter((t) => t.week === 2 && t.kind === "checkpoint").length, 0, "one section has no transitions");
-  assert.equal(single.find((t) => t.week === 1 && t.kind === "assessment").section, "Main");
+  const one = { end: 20, sections: [{ name: "Main", bars: bars([0, 5, 10, 15], ["C"]) }] };
+  const single = buildMonth(one, { startsOn: START, instrument: "Guitar" }).tasks;
+  assert.equal(single.filter((t) => t.week === 1 && t.kind === "checkpoint").length, 1, "one section is sung once");
+  assert.equal(single.filter((t) => t.week === 3 && /^Switch/.test(t.section)).length, 0, "one chord has no changes");
+  assert.deepEqual(single.filter((t) => t.week === 2).map((t) => t.section), ["Play a C chord", "Main chords with the band"]);
 });
 
-test("a student learning to read keeps the chart in the On my own weeks", () => {
-  const { tasks } = buildMonth(CHART, { startsOn: START, level: 1, readsChart: true });
+test("a student learning to read keeps the chart in the show", () => {
+  const { tasks } = buildMonth(CHART, { startsOn: START, level: 1, readsChart: true, instrument: "Guitar" });
   assert.equal(tasks.filter((t) => t.support === "solo").length, 0);
-  assert.deepEqual([...new Set(tasks.filter((t) => t.week >= 3).map((t) => t.support))], ["chart"]);
-  assert.equal(tasks.filter((t) => t.week === 1 && t.support !== "guide").length, 0);
+  assert.equal(tasks.find((t) => t.week === 4 && t.kind === "assessment").support, "chart");
+  assert.match(tasks.find((t) => t.week === 4 && t.kind === "assessment").instruction, /Chart only/);
 });
 
 test("only the student's own teacher can plan and change a month", async () => {

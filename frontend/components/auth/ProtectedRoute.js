@@ -4,12 +4,15 @@ import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { nextEnrolmentStep } from "@/lib/auth/enrolment";
+import { holds } from "@/lib/auth/roles";
 import RockWorksIcon from "@/components/RockWorksIcon";
 
-// Gates any page/layout behind sign-in (and optionally a role allow-list).
+// Gates any page/layout behind sign-in, and optionally a role: allow lists main roles; holding names a
+// role someone only has to have among others, so a teacher who is also the admin gets in.
 export default function ProtectedRoute({
   children,
   allow,
+  holding,
   fallbackHref = "/member",
   requireEnrolment = true,
 }) {
@@ -17,7 +20,7 @@ export default function ProtectedRoute({
   const router = useRouter();
   const pathname = usePathname();
 
-  const roleAllowed = !allow || allow.includes(role);
+  const roleAllowed = holding ? holds(user, holding) : !allow || allow.includes(role);
   const pendingStep = requireEnrolment ? nextEnrolmentStep(user) : null;
   // Guard against redirecting to the page we're already on.
   const mustFinishSetup = Boolean(pendingStep) && pendingStep !== pathname;

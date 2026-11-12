@@ -3,22 +3,23 @@
 import { useState } from "react";
 import { formatClock } from "@/lib/practice";
 import { hasLoop } from "@/lib/teaching";
+import { singAlong, stepWords } from "@/lib/taskWords";
 
 // The instruments with strings to tune first. Mirrors the tuner's own (components/tuner/Tuner.js).
 export const TUNED = ["Guitar", "Bass", "Ukulele"];
 
 // Today's steps for the teacher's open work, built only from what the assignment holds: tuning up
-// (a string instrument), the section to loop, the lesson to watch, and the take to send. The guided
-// practice session (PracticeSession.js) walks through the same steps and ticks them. Ticks stay in this
-// browser for the day; nothing is reported to anyone.
+// (a string instrument, once past the Sing-a-long), the section to loop, the lesson to watch, and the take
+// to send. The guided practice session (PracticeSession.js) walks through the same steps and ticks them.
+// Ticks stay in this browser for the day; nothing is reported to anyone.
 export function stepsFor(assignment) {
   if (!assignment) return [];
   const steps = [];
-  if (assignment.song && TUNED.includes(assignment.instrument)) steps.push({ id: "tune", text: "Tune up" });
+  if (assignment.song && TUNED.includes(assignment.instrument) && !singAlong(assignment)) steps.push({ id: "tune", text: "Tune up" });
   if (assignment.lesson) steps.push({ id: "lesson", text: `Watch the lesson: ${assignment.lesson.title}` });
   if (assignment.song && hasLoop(assignment)) {
-    const part = assignment.section || `${formatClock(assignment.sectionStart)} to ${formatClock(assignment.sectionEnd)}`;
-    steps.push({ id: "loop", text: `Loop ${part} until it feels easy` });
+    const loop = assignment.section ? stepWords(assignment).today : `Loop ${formatClock(assignment.sectionStart)} to ${formatClock(assignment.sectionEnd)}`;
+    steps.push({ id: "loop", text: `${loop} until it feels easy` });
   }
   if (assignment.song) steps.push({ id: "send", text: assignment.week ? (assignment.kind === "checkpoint" ? "Record a take and save it" : "Record a take and submit it to your teacher") : "Record a take and send it to your teacher" });
   return steps;

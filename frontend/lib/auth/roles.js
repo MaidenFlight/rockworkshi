@@ -15,9 +15,14 @@ export function getUserRole(user) {
   return ROLES.STUDENT;
 }
 
-// Whether someone holds a role at all, even if it isn't their main one (a teacher who is a parent).
+// Whether someone holds a role at all, even if it isn't their main one: a teacher who is a parent, or
+// the school's director, who teaches and runs the school from one account. The flags cover a user
+// saved in this browser before the API sent every role.
 export function holds(user, role) {
-  return Boolean(user?.roles?.includes(role));
+  if (user?.roles?.includes(role)) return true;
+  if (role === "teacher") return Boolean(user?.isTeacher || user?.role === "teacher");
+  if (role === "admin") return Boolean(user?.isAdmin);
+  return false;
 }
 
 export function hasRole(user, role) {
