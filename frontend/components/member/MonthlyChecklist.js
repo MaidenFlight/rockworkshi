@@ -80,8 +80,9 @@ function Tasks({ tasks, currentId, showSong }) {
   );
 }
 
-// One task's row. kept says a take for it is waiting in this browser.
-export function Task({ task: a, current, showSong = false, kept = false }) {
+// One task's row. kept says a take for it is waiting in this browser. preview draws the same row for a
+// teacher looking ahead, going nowhere; children go under it.
+export function Task({ task: a, current, showSong = false, kept = false, preview = false, children }) {
   const status = studentStatus(a);
   const state = STATE[a.status] ?? "todo";
   const attempts = a.attempts ?? a.submissions.length;
@@ -94,26 +95,38 @@ export function Task({ task: a, current, showSong = false, kept = false }) {
     ? none
     : `${attempts === 1 ? verb : `${verb} ${attempts === 2 ? "twice" : `${attempts} times`}, last`} ${day(newest.createdAt)}${newest.reviewedAt ? ` · ${teacher} replied ${day(newest.reviewedAt)}` : ""}`;
   const asks = a.week ? [...requirementWords(a), a.dueOn ? `due ${dayLabel(a.dueOn)}` : null].filter(Boolean).join(" · ") : null;
+  const body = (
+    <>
+      <span className={s.mark} data-state={state} aria-hidden="true">
+        <Icon name={MARK[state]} size={20} />
+      </span>
+      <span className={s.main}>
+        <span className={s.title}>{a.section || assignmentTitle(a)}</span>
+        {asks && <span className={s.meta}>{asks}</span>}
+        <span className={s.meta}>{[showSong && a.section ? assignmentTitle(a) : null, sends, kept ? "a take is kept in this browser, not sent yet" : null].filter(Boolean).join(" · ")}</span>
+      </span>
+      <span className={s.tags}>
+        {current && <span className={s.today}>Today</span>}
+        <span style={pill(status.tone)}>{status.label}</span>
+      </span>
+    </>
+  );
 
   return (
     <li>
-      <Link href={`/member/assignment/${a.id}`} className={s.row} data-kind={a.week ? a.kind : undefined} aria-current={current ? "step" : undefined}>
-        <span className={s.mark} data-state={state} aria-hidden="true">
-          <Icon name={MARK[state]} size={20} />
-        </span>
-        <span className={s.main}>
-          <span className={s.title}>{a.section || assignmentTitle(a)}</span>
-          {asks && <span className={s.meta}>{asks}</span>}
-          <span className={s.meta}>{[showSong && a.section ? assignmentTitle(a) : null, sends, kept ? "a take is kept in this browser, not sent yet" : null].filter(Boolean).join(" · ")}</span>
-        </span>
-        <span className={s.tags}>
-          {current && <span className={s.today}>Today</span>}
-          <span style={pill(status.tone)}>{status.label}</span>
-        </span>
-        <span className={s.go} aria-hidden="true">
-          <Icon name="chevron-right" size={18} />
-        </span>
-      </Link>
+      {preview ? (
+        <div className={s.row} data-kind={a.week ? a.kind : undefined} data-preview="true">
+          {body}
+        </div>
+      ) : (
+        <Link href={`/member/assignment/${a.id}`} className={s.row} data-kind={a.week ? a.kind : undefined} aria-current={current ? "step" : undefined}>
+          {body}
+          <span className={s.go} aria-hidden="true">
+            <Icon name="chevron-right" size={18} />
+          </span>
+        </Link>
+      )}
+      {children}
     </li>
   );
 }

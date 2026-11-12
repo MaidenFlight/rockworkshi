@@ -2,6 +2,7 @@
 
 import { songLevels } from "@/lib/content";
 import { DEFAULT_CRITERIA, HELP, WEEKS, rangeName } from "@/lib/months";
+import { MAX_DUE_DAY } from "@/lib/plans";
 import { formatClock, parseClock } from "@/lib/teaching";
 import s from "./Month.module.css";
 
@@ -34,13 +35,21 @@ function ClockInput({ label, value, onChange }) {
   );
 }
 
-// Everything a teacher can set on one task. sections are the song's own, from its chart: choosing them
-// fills in the times, which can then be nudged to cover any bars.
-export default function TaskFields({ task, sections = [], onChange }) {
+// Everything a teacher can set on one task. sections and transitions are the song's own, from its chart:
+// choosing them fills in the times, which can then be nudged to cover any bars. A template has no dates
+// of its own, so with dueMode="day" the due date is a day of the month instead of a date.
+export default function TaskFields({ task, sections = [], transitions = [], onChange, dueMode = "date", minDue, maxDue }) {
   const from = sections.findIndex((x) => near(task.sectionStart, x.start));
   const to = sections.findIndex((x) => near(task.sectionEnd, x.end));
   const hasRange = task.sectionStart !== null && task.sectionStart !== undefined;
   const matchesSections = hasRange && from >= 0 && to >= from;
+  const transition = transitions.findIndex((x) => near(task.sectionStart, x.start) && near(task.sectionEnd, x.end));
+
+  function chooseTransition(value) {
+    if (value === "") return onChange({ sectionStart: null, sectionEnd: null });
+    const picked = transitions[Number(value)];
+    onChange({ sectionStart: picked.start, sectionEnd: picked.end, section: picked.name });
+  }
 
   function chooseFrom(value) {
     if (value === "") return onChange({ sectionStart: null, sectionEnd: null });
@@ -68,7 +77,7 @@ export default function TaskFields({ task, sections = [], onChange }) {
         <label className="rw-st-field">
           Kind of task
           <select value={task.kind} onChange={(e) => chooseKind(e.target.value)}>
-            <option value="checkpoint">Practice checkpoint</option>
+            <option value="checkpoint">Milestone</option>
             <option value="assessment">Weekly assessment</option>
           </select>
         </label>
@@ -82,10 +91,25 @@ export default function TaskFields({ task, sections = [], onChange }) {
             ))}
           </select>
         </label>
-        <label className="rw-st-field">
-          Due
-          <input type="date" value={task.dueOn ?? ""} onChange={(e) => onChange({ dueOn: e.target.value || null })} />
-        </label>
+        {dueMode === "day" ? (
+          <label className="rw-st-field">
+            Due on day
+            <input
+              type="number"
+              min={1}
+              max={MAX_DUE_DAY + 1}
+              value={task.dueDay === null || task.dueDay === undefined ? "" : task.dueDay + 1}
+              placeholder="None"
+              onChange={(e) => onChange({ dueDay: e.target.value === "" ? null : Math.min(MAX_DUE_DAY, Math.max(0, Number(e.target.value) - 1)) })}
+            />
+            <small>Day 1 is the first day of week 1.</small>
+          </label>
+        ) : (
+          <label className="rw-st-field">
+            Due
+            <input type="date" min={minDue} max={maxDue} value={task.dueOn ?? ""} onChange={(e) => onChange({ dueOn: e.target.value || null })} />
+          </label>
+        )}
         <label className="rw-st-field">
           Level
           <select value={task.level} onChange={(e) => onChange({ level: Number(e.target.value) })}>
@@ -130,6 +154,19 @@ export default function TaskFields({ task, sections = [], onChange }) {
             </label>
           </>
         )}
+        {transitions.length > 0 && (
+          <label className="rw-st-field">
+            Or a transition
+            <select value={transition >= 0 ? String(transition) : ""} onChange={(e) => chooseTransition(e.target.value)}>
+              <option value="">Not a transition</option>
+              {transitions.map((x, i) => (
+                <option key={`${x.name}-${i}`} value={i}>
+                  {x.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         <ClockInput label="Starts at" value={task.sectionStart} onChange={(t) => onChange({ sectionStart: t })} />
         <ClockInput label="Ends at" value={task.sectionEnd} onChange={(t) => onChange({ sectionEnd: t })} />
       </div>
@@ -148,9 +185,9 @@ export default function TaskFields({ task, sections = [], onChange }) {
           </select>
         </label>
         <label className="rw-st-field">
-          Help in the final take
+          Support mode
           <select value={task.support ?? ""} onChange={(e) => onChange({ support: e.target.value || null })}>
-            <option value="">Any help</option>
+            <option value="">Any</option>
             {Object.entries(HELP).map(([id, name]) => (
               <option key={id} value={id}>
                 {name}
@@ -212,7 +249,7 @@ export default function TaskFields({ task, sections = [], onChange }) {
       ) : (
         <label className="rw-st-check">
           <input type="checkbox" checked={Boolean(task.reviewCheckpoint)} onChange={(e) => onChange({ reviewCheckpoint: e.target.checked })} />
-          Put takes for this checkpoint in my review queue too
+          Put takes for this milestone in my review queue too
         </label>
       )}
     </div>

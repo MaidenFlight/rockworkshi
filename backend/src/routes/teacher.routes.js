@@ -2,10 +2,12 @@ const express = require("express");
 const prisma = require("../lib/prisma");
 const { findPage } = require("../lib/pagination");
 const { requireTeacher } = require("../middleware/auth");
+const { audit } = require("../lib/audit");
 const { canonicalInstrument } = require("../lib/instrumentAccess");
 const { isDateString } = require("../lib/zoned");
 const { canFilm } = require("../lib/consents");
-const { buildMonth, sectionsOf, WEEK_TITLES } = require("../lib/weeklyTemplate");
+const { buildMonth, sectionsOf, transitionsOf, WEEK_TITLES } = require("../lib/weeklyTemplate");
+const { same, taskLabel } = require("../lib/monthPlans");
 const {
   STATUSES,
   MAX_MONTH_TASKS,
@@ -107,7 +109,7 @@ router.get("/content", async (req, res) => {
     prisma.song.findMany({
       where: { published: true },
       orderBy: { order: "asc" },
-      select: { id: true, title: true, artist: true, _count: { select: { tracks: true } } },
+      select: { id: true, title: true, artist: true, chart: true, _count: { select: { tracks: true } } },
     }),
     prisma.lesson.findMany({
       where: { published: true },
@@ -116,7 +118,7 @@ router.get("/content", async (req, res) => {
     }),
   ]);
   res.json({
-    songs: songs.map(({ _count, ...s }) => ({ ...s, hasTracks: _count.tracks > 0 })),
+    songs: songs.map(({ _count, chart, ...s }) => ({ ...s, hasTracks: _count.tracks > 0, hasChart: sectionsOf(chart).length > 0 })),
     lessons,
   });
 });
@@ -164,6 +166,33 @@ router.post("/assignments", async (req, res) => {
   res.status(201).json({ assignment: await presentAssignment(assignment) });
 });
 
+// What saving a change to this task would do, for the teacher to see first. Nothing is written.
+router.post("/assignments/:id/impact", async (req, res) => {
+  const assignment = await findOwnAssignment(req, req.params.id, {
+    student: { select: { id: true, name: true } },
+    month: { select: { id: true, plan: { select: { id: true, name: true } } } },
+    _count: { select: { submissions: true } },
+  });
+  if (!assignment) return res.status(404).json({ error: "Not found." });
+  const { error, data } = validateTaskEdit(req.body, assignment);
+  if (error) return res.status(400).json({ error });
+  res.json({
+    impact: {
+      student: assignment.student,
+      label: taskLabel(assignment),
+      week: assignment.week,
+      kind: assignment.kind,
+      attempts: assignment._count.submissions,
+      fields: Object.keys(data)
+        .filter((field) => !same(assignment[field], data[field]))
+        .map((field) => ({ field, from: assignment[field] ?? null, to: data[field] ?? null })),
+      status: assignment.status,
+      statusAfter: statusAfterEdit(assignment, { ...assignment, ...data }),
+      plan: assignment.month?.plan ?? null,
+    },
+  });
+});
+
 // Changing what a task asks for. Takes already sent keep how they were made (Submission).
 router.put("/assignments/:id", async (req, res) => {
   const assignment = await findOwnAssignment(req, req.params.id, {});
@@ -175,6 +204,8 @@ router.put("/assignments/:id", async (req, res) => {
     data: { ...data, status: statusAfterEdit(assignment, { ...assignment, ...data }) },
     include: ASSIGNMENT_INCLUDE,
   });
+  const changed = Object.keys(data).filter((field) => !same(assignment[field], data[field]));
+  if (changed.length) await audit(req.user, "assignment.edit", "assignment", assignment.id, { student: assignment.studentId, changed });
   res.json({ assignment: await presentAssignment(updated, { linkSeconds: RECORDING_LINK_SECONDS }) });
 });
 
@@ -185,6 +216,7 @@ const MONTH_INCLUDE = {
   song: { select: { id: true, title: true, artist: true, chart: true } },
   student: { select: { id: true, name: true, instrument: true, isMinor: true } },
   tasks: { include: ASSIGNMENT_INCLUDE, orderBy: [{ week: "asc" }, { position: "asc" }] },
+  plan: { select: { id: true, name: true } },
 };
 
 // A month this teacher set, for a student they still teach. Anything else is a 404.
@@ -203,8 +235,10 @@ async function presentMonth(month) {
     weekTitles: month.weekTitles,
     song: month.song ? { id: month.song.id, title: month.song.title, artist: month.song.artist } : null,
     student: { id: month.student.id, name: month.student.name, instrument: month.student.instrument },
+    plan: month.plan ?? null,
     canFilm: await canFilm(month.student),
     sections: sectionsOf(month.song?.chart).map(({ name, start, end }) => ({ name, start, end })),
+    transitions: transitionsOf(month.song?.chart),
     tasks: await Promise.all(month.tasks.map((t) => presentAssignment(t, { linkSeconds: RECORDING_LINK_SECONDS }))),
   };
 }
@@ -228,7 +262,7 @@ router.post("/months/draft", async (req, res) => {
   if (!student) return;
   const song = await publishedSong(songId);
   if (!song) return res.status(400).json({ error: "That song isn't available." });
-  res.json({ draft: buildMonth(song.chart, { startsOn, level: n, readsChart: readsChart === true }), instrument: student.instrument, canFilm: await canFilm(student) });
+  res.json({ draft: buildMonth(song.chart, { startsOn, level: n, readsChart: readsChart === true, instrument: student.instrument }), instrument: student.instrument, canFilm: await canFilm(student) });
 });
 
 router.post("/months", async (req, res) => {
@@ -316,6 +350,7 @@ router.post("/months/:id/tasks", async (req, res) => {
   if (error) return res.status(400).json({ error: error.replace(/^Task \d+: /, "") });
   const position = Math.max(-1, ...month.tasks.map((t) => t.position)) + 1;
   const task = await prisma.assignment.create({ data: { ...data, teacherId: req.user.id, monthId: month.id, position }, include: ASSIGNMENT_INCLUDE });
+  await audit(req.user, "assignment.add", "assignment", task.id, { student: month.studentId, month: month.id });
   res.status(201).json({ assignment: await presentAssignment(task) });
 });
 
@@ -330,6 +365,7 @@ router.delete("/assignments/:id", async (req, res) => {
   if (!assignment) return res.status(404).json({ error: "Not found." });
   await prisma.assignment.delete({ where: { id: assignment.id } });
   await deleteAssignmentRecordings([assignment.id]);
+  await audit(req.user, "assignment.delete", "assignment", assignment.id, { student: assignment.studentId, month: assignment.monthId, section: assignment.section });
   res.status(204).end();
 });
 

@@ -18,4 +18,13 @@ async function findPage(model, args, query) {
   return { items, pagination: { page, pageSize, total, totalPages } };
 }
 
-module.exports = { findPage };
+// The same for a list that had to be sorted in memory.
+function pageOfList(list, query) {
+  const total = list.length;
+  const pageSize = Math.min(positiveInt(query.pageSize) ?? DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE);
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const page = Math.min(positiveInt(query.page) ?? 1, totalPages);
+  return { items: list.slice((page - 1) * pageSize, page * pageSize), pagination: { page, pageSize, total, totalPages } };
+}
+
+module.exports = { findPage, pageOfList };

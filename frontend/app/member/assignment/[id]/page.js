@@ -7,6 +7,7 @@ import Icon from "@/components/member/Icon";
 import { Button } from "@/components/ui";
 import { useAuth } from "@/contexts/AuthContext";
 import CompareTakes from "@/components/member/CompareTakes";
+import LevelVideo from "@/components/member/LevelVideo";
 import UnsentTake from "@/components/member/UnsentTake";
 import { HELP, MARK_NAMES, dayLabel, requirementWords } from "@/lib/months";
 import { assignmentTitle, formatClock, formatDate, hasLoop, sendForReview, studentStatus, teacherRequest } from "@/lib/teaching";
@@ -93,7 +94,7 @@ export default function AssignmentPage() {
           <p style={{ color: "var(--rw-meta)", margin: 0 }}>{[item?.artist, `From ${a.teacher?.name || "your teacher"}`].filter(Boolean).join(" · ")}</p>
           {a.week && (
             <p style={{ color: "var(--rw-ink)", fontWeight: 700, margin: "4px 0 0" }}>
-              Week {a.week} {a.kind === "assessment" ? "assessment" : "checkpoint"}
+              Week {a.week} {a.kind === "assessment" ? "assessment" : "milestone"}
               {a.dueOn ? ` · due ${dayLabel(a.dueOn)}` : ""}
             </p>
           )}
@@ -113,6 +114,7 @@ export default function AssignmentPage() {
         )}
         <h2 style={subheading}>What to practise</h2>
         <p style={{ margin: "0 0 16px", color: "var(--rw-body)", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{a.instruction}</p>
+        {a.week && a.song && <LevelVideo songId={a.song.id} level={a.level} levelName={a.levelName} assignmentId={a.id} />}
         {a.week && (
           <div style={{ margin: "0 0 16px" }}>
             <h2 style={subheading}>{a.kind === "assessment" ? "What your final take needs" : "How to record it"}</h2>
@@ -154,8 +156,8 @@ export default function AssignmentPage() {
         <section style={panel}>
           <p style={{ margin: "0 0 12px", color: "var(--rw-body)", lineHeight: 1.55 }}>
             {a.kind === "checkpoint"
-              ? `Record it in the player, listen back, and choose Save to checkpoint when you've got one you like. ${who || "Your teacher"} can listen to what you save, and you can save another whenever you like.`
-              : `Record it in the player, listen back, then submit the take you've chosen. Nothing goes to ${who || "your teacher"} until you do, and you don't have to finish the checkpoints first.`}
+              ? `Record it in the player, listen back, and choose Save milestone when you've got one you like. ${who || "Your teacher"} can listen to what you save, and you can save another whenever you like.`
+              : `Record it in the player, listen back, then submit the take you've chosen. Nothing goes to ${who || "your teacher"} until you do, and you don't have to finish the milestones first.`}
           </p>
           {a.song && (
             <Button href={`/member/song/${a.song.id}?assignment=${a.id}`} size="sm">

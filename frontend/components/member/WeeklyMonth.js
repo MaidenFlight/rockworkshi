@@ -8,7 +8,7 @@ import { Task } from "./MonthlyChecklist";
 import list from "./MonthlyChecklist.module.css";
 import s from "./WeeklyMonth.module.css";
 
-// A month of work on one song, by week: each week's small practice checkpoints, then the assessment they
+// A month of work on one song, by week: each week's milestones (small practice takes), then the assessment they
 // lead to. It opens on this week, says what still needs practice and what the teacher wants worked on
 // next, and earlier months fold away. priorities is the API's { monthId: { list, section } }. `currentId`
 // is the task on the practice panel above, marked Today. Draws nothing without a month.
@@ -94,13 +94,14 @@ function useKeptTakes(month) {
   return kept;
 }
 
-function Week({ number, month, now = false, currentId = null, kept, open = false }) {
+// One week of the month. renderTask replaces the row, for a teacher's preview of what the student will get.
+export function Week({ number, month, now = false, currentId = null, kept, open = false, renderTask }) {
   const tasks = month.tasks.filter((t) => t.week === number);
   if (!tasks.length) return null;
   const checkpoints = tasks.filter((t) => t.kind === "checkpoint");
   const assessments = tasks.filter((t) => t.kind === "assessment");
   const due = tasks.map((t) => t.dueOn).filter(Boolean).sort().at(-1);
-  const row = (t) => <Task key={t.id} task={t} current={t.id === currentId} kept={kept.has(t.id)} />;
+  const row = renderTask ?? ((t) => <Task key={t.id} task={t} current={t.id === currentId} kept={kept.has(t.id)} />);
 
   return (
     <details className={s.week} open={open}>
@@ -118,7 +119,7 @@ function Week({ number, month, now = false, currentId = null, kept, open = false
       <div className={s.weekBody}>
         {checkpoints.length > 0 && (
           <div>
-            <h4 className={s.kind}>Practice checkpoints</h4>
+            <h4 className={s.kind}>Milestones</h4>
             <ol className={list.list}>{checkpoints.map(row)}</ol>
           </div>
         )}
