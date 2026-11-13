@@ -6,3 +6,11 @@
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+
+# TAKEN DOWN: every path shows the maintenance page. To bring the site back,
+# delete this block (or `git revert` the commit that added it).
+[[redirects]]
+  from = "/*"
+  to = "/maintenance.html"
+  status = 503
+  force = true
