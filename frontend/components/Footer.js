@@ -39,7 +39,7 @@ export default function Footer() {
 
   return (
     <footer style={{ background: "linear-gradient(168deg,var(--rw-ink),var(--rw-ink-deep))", color: "rgba(255,245,236,0.72)", marginTop: "auto" }}>
-      <div style={{ height: 4, background: "linear-gradient(90deg,var(--rw-teal),var(--rw-gold),var(--rw-flare),var(--rw-sea-glass))" }} />
+      <div className="rw-foot-band" style={{ height: 4, background: "linear-gradient(90deg,var(--rw-teal),var(--rw-gold),var(--rw-flare),var(--rw-sea-glass))" }} />
       <div
         style={{
           maxWidth: 1200,

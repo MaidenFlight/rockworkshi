@@ -1,0 +1,462 @@
+/* The stage set: the lit half of the homepage's opening (Silkie only).
+
+   A small venue with the house lights down. The scene is a 720 x 840 board that scales as one
+   picture, in three depths. At the back, dim and a touch out of focus: light on the wall, the
+   amps, the stage piano. In the middle, the drum kit on its riser, backlit and under the one
+   strong lamp: the only thing fully lit and fully sharp. At the front, in shadow, the guitar
+   and the bass on one side, the mic and the ukulele on the other. Most of the board is dark on
+   purpose, and the corners darkest.
+
+   The settled stage is the base style. The opening only plays into it, so no animation, reduced
+   motion or an old browser all show the finished stage at once. */
+
+.set {
+  --stage-white: color-mix(in oklab, var(--rw-gold) 10%, var(--rw-chrome-hi));
+  /* Warm white on the kit and the singer, amber and warm either side, one muted violet on the keys. */
+  --light-key: color-mix(in oklab, var(--rw-gold) 22%, var(--rw-chrome-hi));
+  --light-amber: color-mix(in oklab, var(--rw-gold) 84%, var(--rw-flare));
+  --light-warm: color-mix(in oklab, var(--rw-gold) 52%, var(--rw-chrome-hi));
+  --light-violet: oklch(0.6 0.1 305);
+
+  /* Haze, as images the browser draws once. The beam's own: thin streaks that also fade the beam
+     in at the top and out at the floor. */
+  --beam-haze: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 800' preserveAspectRatio='none'%3E%3Cdefs%3E%3Cfilter id='f' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.05 0.0024' numOctaves='3' seed='11'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0.9 0 0 0 0.42'/%3E%3C/filter%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='.07' stop-color='white' stop-opacity='0'/%3E%3Cstop offset='.26' stop-color='white' stop-opacity='.5'/%3E%3Cstop offset='.56' stop-color='white' stop-opacity='1'/%3E%3Cstop offset='.8' stop-color='white' stop-opacity='.7'/%3E%3Cstop offset='1' stop-color='white' stop-opacity='0'/%3E%3C/linearGradient%3E%3Cmask id='m'%3E%3Crect width='200' height='800' fill='url(%23g)'/%3E%3C/mask%3E%3C/defs%3E%3Crect width='200' height='800' filter='url(%23f)' mask='url(%23m)'/%3E%3C/svg%3E");
+  /* Smoke hanging in the room. */
+  --smoke: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 400' preserveAspectRatio='none'%3E%3Cfilter id='f' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.005 0.011' numOctaves='4' seed='5'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 0.94 0 0 0 0 0.86 1.5 0 0 0 -0.52'/%3E%3C/filter%3E%3Crect width='600' height='400' filter='url(%23f)'/%3E%3C/svg%3E");
+  /* Fine grain: it sits over everything, keeps the dark gradients from banding and takes the
+     drawn edge off the instruments. */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='f' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0.6 0 0 0 -0.14'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23f)'/%3E%3C/svg%3E");
+
+  /* Stacked under the copy, the board is as wide as the screen, up to this. */
+  --board: min(100vw, 760px);
+  position: relative;
+  z-index: 1;
+  /* Phones and tablets look at the lower stage: the lamps are above the frame, and there is
+     headroom left for the tallest name tag. */
+  height: calc(var(--board) * 680 / 720 + 14px);
+  /* The wave at the foot of the hero is cut across the stage floor. */
+  margin-bottom: -46px;
+  overflow: hidden;
+  overflow-x: visible;
+  overflow-y: clip;
+}
+
+.scene {
+  position: absolute;
+  left: 50%;
+  /* Lifted clear of the wave, which takes more of a small stage than a large one. */
+  bottom: 14px;
+  width: var(--board);
+  aspect-ratio: 720 / 840;
+  translate: -50% 0;
+}
+
+@media (min-width: 1000px) {
+  .set {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: min(54%, calc(50% + 64px));
+    right: max(20px, calc(50% - 720px));
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    container-type: size;
+  }
+
+  /* As large as the column allows. */
+  .scene {
+    bottom: 0;
+    width: min(100cqw, 100cqh * 720 / 840);
+  }
+}
+
+.wash,
+.scenery,
+.lights,
+.smoke,
+.haze,
+.bloom,
+.corners,
+.grain {
+  position: absolute;
+  pointer-events: none;
+}
+
+/* Light on the back wall. The kit is lit from behind as well as above: a warm glow at its
+   shoulders with crimson under it, so it stands off the wall. Then a little violet off to the
+   keys' side and a trace of amber behind the guitar. */
+.wash {
+  inset: 0 -40%;
+  background:
+    radial-gradient(ellipse 13% 13% at 50.2% 57%, color-mix(in srgb, var(--light-key) 26%, transparent), transparent 74%),
+    radial-gradient(ellipse 20% 16% at 50.2% 69%, color-mix(in srgb, var(--rw-flare) 24%, transparent), transparent 72%),
+    radial-gradient(ellipse 13% 26% at 79% 58%, color-mix(in srgb, var(--light-violet) 20%, transparent), transparent 72%),
+    radial-gradient(ellipse 13% 20% at 31% 62%, color-mix(in srgb, var(--light-amber) 9%, transparent), transparent 72%);
+}
+
+.scenery {
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  /* The riser and the amps are behind the plane of focus and out of the light. */
+  filter: brightness(0.8) blur(0.5px);
+  transition: filter 0.35s ease;
+}
+
+.lights {
+  inset: 0;
+  z-index: 2;
+}
+
+/* A beam falls from a lamp above the picture and turns to its mark. The wedge is a conic
+   gradient with a bright core inside a wide soft edge, seen only where the haze catches it. */
+.beam {
+  --tint: var(--light-key);
+  position: absolute;
+  translate: -50% 0;
+  rotate: var(--tilt);
+  transform-origin: 50% 0;
+  opacity: var(--level);
+  transition: opacity 0.35s ease;
+}
+
+.beam::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: conic-gradient(
+    from calc(180deg - var(--spread) * 0.95) at 50% 0,
+    transparent 0deg,
+    color-mix(in srgb, var(--tint) 7%, transparent) calc(var(--spread) * 0.34),
+    color-mix(in srgb, var(--tint) 20%, transparent) calc(var(--spread) * 0.7),
+    color-mix(in srgb, var(--tint) 32%, transparent) calc(var(--spread) * 0.95),
+    color-mix(in srgb, var(--tint) 20%, transparent) calc(var(--spread) * 1.2),
+    color-mix(in srgb, var(--tint) 7%, transparent) calc(var(--spread) * 1.56),
+    transparent calc(var(--spread) * 1.9)
+  );
+  -webkit-mask: var(--beam-haze) center / 100% 100% no-repeat;
+  mask: var(--beam-haze) center / 100% 100% no-repeat;
+}
+
+.pool {
+  --tint: var(--light-key);
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--tint) 17%, transparent),
+    color-mix(in srgb, var(--tint) 5%, transparent) 60%,
+    transparent
+  );
+  opacity: var(--level);
+  transition: opacity 0.35s ease;
+}
+
+:is(.beam, .pool)[data-light="guitar"] {
+  --tint: var(--light-amber);
+}
+:is(.beam, .pool)[data-light="bass"],
+:is(.beam, .pool)[data-light="ukulele"] {
+  --tint: var(--light-warm);
+}
+:is(.beam, .pool)[data-light="keys"] {
+  --tint: var(--light-violet);
+}
+
+.smoke {
+  inset: 6% -10% 18%;
+  z-index: 2;
+  background: var(--smoke) center / 100% 100% no-repeat;
+  opacity: 0.2;
+  -webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 8%, transparent 96%);
+  mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 8%, transparent 96%);
+}
+
+/* Haze hangs between the kit and the instruments in front of it, which is what sets one in
+   front of the other. */
+.haze {
+  inset: 34% -30% 0;
+  z-index: 4;
+  background:
+    radial-gradient(ellipse 28% 20% at 51% 52%, color-mix(in srgb, var(--light-key) 7%, transparent), transparent 72%),
+    radial-gradient(ellipse 24% 12% at 52% 70%, color-mix(in srgb, var(--rw-flare) 4%, transparent), transparent 72%);
+}
+
+/* The kit's light, bleeding a little into the air in front of it. */
+.bloom {
+  inset: 0 -20%;
+  z-index: 8;
+  background: radial-gradient(ellipse 24% 22% at 51% 58%, color-mix(in srgb, var(--light-key) 7%, transparent), transparent 72%);
+}
+
+/* The room closes in at its far corners. Both patches fade out well inside the layer, and it
+   stops at the left edge of the stage, so nothing here reaches the copy. */
+.corners {
+  inset: -4% -14% -8% 0;
+  z-index: 8;
+  background:
+    radial-gradient(ellipse 46% 40% at 100% 100%, color-mix(in srgb, var(--rw-ink-deep) 82%, transparent), transparent 72%),
+    radial-gradient(ellipse 40% 44% at 100% 0%, color-mix(in srgb, var(--rw-ink-deep) 70%, transparent), transparent 72%);
+}
+
+.grain {
+  inset: 12% 0 0;
+  z-index: 8;
+  background: var(--grain);
+  opacity: 0.1;
+  -webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 44%, transparent 98%);
+  mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 44%, transparent 98%);
+}
+
+/* ---- The instruments ----
+   Each is a link. It has no stacking of its own, so its drawing takes its place among the layers
+   above while its name tag sits over all of them. */
+.player {
+  position: absolute;
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* A little more to touch than the drawing itself: the ukulele and the mic are narrow. */
+.player::before {
+  content: "";
+  position: absolute;
+  inset: -4px -8px;
+}
+
+/* --rest is how much light an instrument stands in and --soft how far out of focus it is: the
+   kit gets all of the light and none of the blur. Every state lists the same three filters, so
+   the browser can move smoothly between them. */
+.art {
+  position: relative;
+  z-index: var(--z);
+  display: block;
+  filter: brightness(var(--rest, 1)) saturate(1) blur(var(--soft, 0px));
+  transition: filter 0.35s ease;
+}
+
+/* Backlit: the haze behind the kit glows along its top edge. */
+.player[data-stage-instrument="drums"] .art svg {
+  filter: drop-shadow(0 -3px 9px color-mix(in srgb, var(--light-key) 22%, transparent));
+}
+
+.art svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+/* A dark, polished floor gives a little of each instrument back. Where the browser can't do
+   this, the floor is simply matte. The kit stands on its riser, so it has none. */
+.player:not([data-stage-instrument="drums"]) .art {
+  -webkit-box-reflect: below -1.6% linear-gradient(transparent 76%, rgb(0 0 0 / 0.2));
+}
+
+/* Under the pointer, the keyboard or a finger, an instrument's lamp opens up and the rest of
+   the stage steps back. */
+.player:is(:hover, :focus-visible, [data-on]) .art {
+  filter: brightness(1.14) saturate(1) blur(0px);
+}
+
+.scene:has(.player:is(:hover, :focus-visible, [data-on])) .player:not(:hover, :focus-visible, [data-on]) .art {
+  filter: brightness(calc(var(--rest, 1) * 0.5)) saturate(0.8) blur(var(--soft, 0px));
+}
+
+.scene:has(.player:is(:hover, :focus-visible, [data-on])) .scenery {
+  filter: brightness(0.42) blur(0.5px);
+}
+
+.scene:has(.player:is(:hover, :focus-visible, [data-on])) :is(.beam, .pool) {
+  opacity: calc(var(--level) * 0.3);
+}
+
+.scene:has([data-stage-instrument="guitar"]:is(:hover, :focus-visible, [data-on])) [data-light="guitar"],
+.scene:has([data-stage-instrument="drums"]:is(:hover, :focus-visible, [data-on])) [data-light="drums"],
+.scene:has([data-stage-instrument="voice"]:is(:hover, :focus-visible, [data-on])) [data-light="voice"],
+.scene:has([data-stage-instrument="bass"]:is(:hover, :focus-visible, [data-on])) [data-light="bass"],
+.scene:has([data-stage-instrument="ukulele"]:is(:hover, :focus-visible, [data-on])) [data-light="ukulele"],
+.scene:has([data-stage-instrument="keys"]:is(:hover, :focus-visible, [data-on])) [data-light="keys"] {
+  opacity: 1;
+}
+
+/* The focus ring is drawn over the layers, where the amps and the kit can't hide it. */
+.player::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  z-index: 9;
+  outline: 2px solid var(--rw-sea-glass);
+  outline-offset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.player:focus-visible::after {
+  opacity: 1;
+}
+
+/* The name tag: lacquer, square, a flare rule across the top, like the site's sewn tags. */
+.plaque {
+  position: absolute;
+  z-index: 10;
+  left: var(--tag, 50%);
+  bottom: calc(100% + 4px);
+  display: block;
+  padding: 9px 13px 10px;
+  border-top: 4px solid var(--rw-flare);
+  background: color-mix(in srgb, var(--rw-ink-deep) 92%, transparent);
+  white-space: nowrap;
+  opacity: 0;
+  translate: -50% 6px;
+  pointer-events: none;
+  transition:
+    opacity 0.16s ease,
+    translate 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.player[data-edge="start"] .plaque {
+  left: 0;
+  translate: 0 6px;
+}
+
+.player[data-edge="end"] .plaque {
+  left: auto;
+  right: 0;
+  translate: 0 6px;
+}
+
+.player:is(:hover, :focus-visible, [data-on]) .plaque {
+  opacity: 1;
+  translate: -50% 0;
+  pointer-events: auto;
+}
+
+.player[data-edge]:is(:hover, :focus-visible, [data-on]) .plaque {
+  translate: 0 0;
+}
+
+.name {
+  display: block;
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: var(--rw-text-xl);
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--stage-white);
+}
+
+.go {
+  display: block;
+  margin-top: 6px;
+  font-size: var(--rw-text-sm);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--rw-gold);
+}
+
+/* The stage's one line, kept small and quiet: it says the instruments can be explored and no
+   more. Stacked, it heads the stage; side by side, it sits in the dark at the foot, bottom right. */
+.hint {
+  position: absolute;
+  z-index: 11;
+  top: 6px;
+  left: 24px;
+  right: 24px;
+  margin: 0;
+  font-size: var(--rw-text-xs);
+  line-height: 1.3;
+  color: color-mix(in oklab, var(--stage-white) 62%, var(--rw-ink-deep));
+}
+
+@media (max-width: 999.98px) {
+  /* The light comes in from above the frame, so nothing ends on a hard edge under the copy. */
+  .wash,
+  .lights,
+  .smoke {
+    -webkit-mask-image: linear-gradient(to bottom, transparent 20%, black 46%);
+    mask-image: linear-gradient(to bottom, transparent 20%, black 46%);
+  }
+}
+
+@media (min-width: 1000px) {
+  .hint {
+    top: auto;
+    bottom: 27px;
+    left: 0;
+    right: max(4px, calc((100cqw - 100cqh * 720 / 840) / 2));
+    text-align: right;
+  }
+}
+
+/* ---- The opening, then the room at rest ----
+   About two and a half seconds: the kit's lamp first, then guitar, bass, keys and the mic. Each
+   plays from dark into the finished stage and then lets go. After that the only thing that
+   moves is the smoke, very slowly, and only while the stage is on screen. */
+@media (prefers-reduced-motion: no-preference) {
+  .art {
+    animation: light-up 1.1s cubic-bezier(0.16, 1, 0.3, 1) var(--delay) backwards;
+  }
+
+  .beam {
+    animation: come-up 1.1s cubic-bezier(0.16, 1, 0.3, 1) var(--delay) backwards;
+  }
+
+  .pool {
+    animation: come-up 1.3s ease-out var(--delay) backwards;
+  }
+
+  .scenery {
+    animation: house-up 2.2s ease-out 0.3s backwards;
+  }
+
+  .wash {
+    animation: come-up 2.3s ease-out 0.3s backwards;
+  }
+
+  .haze,
+  .bloom {
+    animation: come-up 2s ease-out 0.5s backwards;
+  }
+
+  .smoke {
+    animation:
+      come-up 2.2s ease-out 0.5s backwards,
+      drift 54s ease-in-out 3s infinite alternate;
+  }
+
+  .set[data-offstage] .smoke {
+    animation-play-state: paused;
+  }
+}
+
+@keyframes light-up {
+  from {
+    filter: brightness(0.07) saturate(0.4) blur(var(--soft, 0px));
+  }
+}
+
+@keyframes come-up {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes house-up {
+  from {
+    filter: brightness(0.16) blur(0.5px);
+  }
+}
+
+@keyframes drift {
+  to {
+    translate: 5% -1.5%;
+  }
+}

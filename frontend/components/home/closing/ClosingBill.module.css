@@ -1,0 +1,480 @@
+/* The closing bill (Silkie): the homepage's last section, set like the back page of a concert
+   programme. Deep crimson with one warm light in it, the school's pick and its echoes drawn in
+   fine line, and the way in as a single printed spread on two grounds: lacquer for what the
+   member area is, label stock for what it costs and the key.
+
+   Everything here is the finished page. The opening (see "Arriving" at the foot) only plays into
+   it, and only for a block that was below the screen when the page woke up. */
+
+.close {
+  /* Three reds from the two the system already has: the ground, the same ground under the
+     light, and the dark it falls away to. */
+  --bill-crimson: var(--rw-orange-deep);
+  --bill-lit: color-mix(in oklab, var(--rw-orange) 72%, var(--rw-orange-deep));
+  --bill-deep: color-mix(in oklab, var(--rw-orange-deep) 52%, var(--rw-ink-deep));
+  /* Secondary text on the ground, tinted from the ground and not from grey. */
+  --bill-soft: color-mix(in oklab, var(--rw-cream) 86%, var(--rw-orange-deep));
+  --bill-rise: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Where the pick hangs, and how far its echoes reach. */
+  --pick-x: 105%;
+  --pick-y: 150px;
+  --echo: 700px;
+
+  /* Paper tooth: grey noise the browser draws once, laid over the red in overlay. */
+  --bill-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g' x='0' y='0' width='100%25' height='100%25' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0.34 0.33 0.33 0 0 0.34 0.33 0.33 0 0 0.34 0.33 0.33 0 0 0 0 0 0 1'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)'/%3E%3C/svg%3E");
+
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  color: var(--rw-cream);
+  /* The red holds to the foot of the spread and then sinks into the footer's lacquer over a
+     short, fixed distance, so the page ends without a line across it. */
+  background: linear-gradient(to top, var(--rw-ink) 0, var(--bill-deep) 96px, var(--bill-crimson) 210px);
+  background: linear-gradient(to top in oklab, var(--rw-ink) 0, var(--bill-deep) 96px, var(--bill-crimson) 210px);
+}
+
+/* ---- The room ---- */
+
+.room {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.light,
+.grain {
+  position: absolute;
+  inset: 0;
+}
+
+/* One light, behind the pick, and the corners left darker. */
+.light {
+  background:
+    radial-gradient(
+      ellipse 56% 420px at var(--pick-x) var(--pick-y),
+      color-mix(in oklab, var(--bill-lit) 92%, transparent) 0%,
+      color-mix(in oklab, var(--bill-lit) 40%, transparent) 44%,
+      transparent 100%
+    ),
+    radial-gradient(
+      ellipse 120% 90% at 46% 34%,
+      transparent 48%,
+      color-mix(in oklab, var(--rw-ink-deep) 38%, transparent) 100%
+    );
+}
+
+.echo {
+  position: absolute;
+  left: var(--pick-x);
+  top: var(--pick-y);
+  width: var(--echo);
+  height: var(--echo);
+  translate: -50% -50%;
+  overflow: visible;
+  color: color-mix(in oklab, var(--rw-cream) 62%, var(--rw-flare));
+  /* The echoes thin out toward the copy, so no line runs behind the standfirst. */
+  -webkit-mask-image: linear-gradient(90deg, transparent 4%, #000 52%);
+  mask-image: linear-gradient(90deg, transparent 4%, #000 52%);
+}
+
+/* The pick itself is a shade, not a shape: the dark at the centre of the light. */
+.echoCore {
+  color: color-mix(in oklab, var(--rw-ink-deep) 30%, transparent);
+}
+
+.grain {
+  background: var(--bill-grain);
+  opacity: 0.2;
+  mix-blend-mode: overlay;
+}
+
+/* ---- The copy ---- */
+
+.inner {
+  position: relative;
+  padding-top: 26px;
+  padding-bottom: 36px;
+}
+
+.head {
+  max-width: 760px;
+}
+
+.eyebrow {
+  margin: 0 0 14px;
+  font-weight: 700;
+  font-size: var(--rw-text-xs);
+  letter-spacing: var(--rw-track-eyebrow);
+  text-transform: uppercase;
+  color: var(--bill-soft);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: clamp(42px, 14.4vw, 96px);
+  line-height: 0.9;
+  letter-spacing: var(--rw-track-poster);
+  text-transform: uppercase;
+  color: var(--rw-cream);
+}
+
+/* Each line is a mask its text can rise into. The inset is negative so nothing is clipped at rest. */
+.line {
+  display: block;
+  clip-path: inset(-0.08em -0.1em -0.04em -0.1em);
+}
+
+.rise {
+  display: block;
+}
+
+.gold {
+  color: var(--rw-gold);
+}
+
+.lead {
+  max-width: 42ch;
+  margin: 18px 0 0;
+  font-size: var(--rw-text-md);
+  line-height: 1.55;
+  color: var(--rw-cream);
+}
+
+/* ---- The way in: one spread, two grounds ---- */
+
+.paths {
+  margin-top: 30px;
+}
+
+.spread {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+.panel {
+  position: relative;
+  isolation: isolate;
+  padding: 28px 24px 30px;
+}
+
+/* What it is. One gold rule heads the spread: over this panel when the two stack, across both
+   side by side. */
+.about {
+  background: var(--rw-ink);
+  border-top: 4px solid var(--rw-gold);
+  color: var(--rw-cream);
+  --path-label: var(--rw-gold);
+  --path-copy: color-mix(in oklab, var(--rw-cream) 82%, var(--rw-ink));
+}
+
+/* What it costs, and the key: the stub of the ticket. */
+.stub {
+  background: var(--rw-sand);
+  color: var(--rw-ink);
+  --path-label: var(--rw-orange-deep);
+  --path-meta: var(--rw-body);
+  --path-edge: color-mix(in oklab, var(--rw-ink) 22%, var(--rw-sand));
+}
+
+/* Light falling on the stub under the pointer or the keyboard. It never moves the panel:
+   printed matter does not float. */
+.stub::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(
+    ellipse 96% 76% at 24% 0%,
+    color-mix(in oklab, var(--rw-surface) 78%, transparent),
+    transparent 72%
+  );
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.stub:hover::before,
+.stub:focus-within::before {
+  opacity: 1;
+}
+
+.label {
+  margin: 0 0 12px;
+  font-weight: 700;
+  font-size: var(--rw-text-xs);
+  letter-spacing: var(--rw-track-eyebrow);
+  text-transform: uppercase;
+  color: var(--path-label);
+}
+
+.pathTitle {
+  margin: 0 0 14px;
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: var(--rw-text-3xl);
+  line-height: 0.95;
+  letter-spacing: var(--rw-track-tight);
+  text-transform: uppercase;
+  color: inherit;
+}
+
+.copy {
+  max-width: 46ch;
+  margin: 0;
+  font-size: var(--rw-text-base);
+  line-height: 1.6;
+  color: var(--path-copy);
+}
+
+/* A plan: its figure in the display face, and two short lines beside it. */
+.plan {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0;
+  padding: 14px 0;
+}
+
+.label + .plan {
+  padding-top: 8px;
+}
+
+.plan + .plan {
+  border-top: 1px solid var(--path-edge);
+}
+
+.figure {
+  flex-shrink: 0;
+  /* Wide enough for the longer figure, so the words beside both plans start on one line. */
+  min-width: 1.62em;
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: clamp(44px, 5vw, 68px);
+  line-height: 0.9;
+  letter-spacing: var(--rw-track-poster);
+  font-variant-numeric: tabular-nums;
+}
+
+.per {
+  display: grid;
+  gap: 2px;
+  font-size: var(--rw-text-sm);
+  line-height: 1.4;
+  color: var(--path-meta);
+}
+
+.per b {
+  font-size: var(--rw-text-base);
+  font-weight: 700;
+  color: var(--rw-ink);
+}
+
+.go {
+  margin-top: 12px;
+}
+
+/* The key. The whole stub is its target (the ::after below covers the stub), so the key itself
+   must stay put: a transformed or filtered element would pull that cover in to its own box.
+   Its hover is a change of ground instead of the lift the button has elsewhere. The panel
+   beside it is left as plain text, so it can be selected. */
+.cta {
+  width: 100%;
+  min-height: 52px;
+  gap: 12px;
+}
+
+.cta::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.spread .stub .cta:is(:hover, :focus-visible, :active):not(:disabled):not([aria-disabled="true"]) {
+  transform: none;
+  filter: none;
+}
+
+.stub .cta:is(:hover, :focus-visible) {
+  background: color-mix(in oklab, var(--rw-orange) 86%, var(--rw-flare));
+}
+
+.stub .cta:focus-visible {
+  outline: 2px solid var(--rw-teal);
+  outline-offset: 3px;
+}
+
+.arrow {
+  flex-shrink: 0;
+  transition: translate 0.18s ease;
+}
+
+.cta:is(:hover, :focus-visible) .arrow {
+  translate: 4px 0;
+}
+
+/* ---- The bill line ---- */
+
+.bill {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 30px 0 0;
+  font-weight: 700;
+  font-size: var(--rw-text-2xs);
+  letter-spacing: var(--rw-track-eyebrow);
+  text-transform: uppercase;
+  color: var(--bill-soft);
+}
+
+.bill::before,
+.bill::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: color-mix(in oklab, var(--rw-cream) 18%, transparent);
+}
+
+.billMark {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+/* ---- Side by side ---- */
+
+@media (min-width: 861px) {
+  .close {
+    --pick-x: min(calc(50% + 322px), 78%);
+    --pick-y: 268px;
+    --echo: 1000px;
+  }
+
+  .stub {
+    border-top: 4px solid var(--rw-gold);
+  }
+
+  .inner {
+    padding-top: 40px;
+    padding-bottom: 40px;
+  }
+
+  .lead {
+    font-size: var(--rw-text-lg);
+    margin-top: 22px;
+  }
+
+  .paths {
+    margin-top: 44px;
+  }
+
+  /* The description takes the wider half; the stub is the narrower one, as on a ticket. */
+  .spread {
+    grid-template-columns: minmax(0, 1.14fr) minmax(0, 0.86fr);
+  }
+
+  .panel {
+    padding: 34px 44px 42px;
+  }
+
+  /* The description sits in the middle of its half, beside the taller stub. */
+  .about {
+    display: grid;
+    align-content: center;
+  }
+
+  .pathTitle {
+    font-size: var(--rw-text-4xl);
+  }
+
+  .go {
+    margin-top: 14px;
+  }
+
+  .bill {
+    margin-top: 36px;
+  }
+}
+
+/* ---- Arriving ----
+   Played once, as the block scrolls into view (Reveal sets data-reveal). The headline's two lines
+   rise into their masks, the light comes up behind the pick, and the two halves follow a beat
+   apart. Nothing loops and nothing moves afterwards. Screens only: a printed page gets the
+   finished section whatever the script has done. */
+
+@media screen and (prefers-reduced-motion: no-preference) {
+  .close[data-reveal="armed"] .eyebrow,
+  .close[data-reveal="armed"] .lead {
+    opacity: 0;
+  }
+
+  .close[data-reveal="armed"] .rise {
+    opacity: 0;
+    transform: translateY(0.36em);
+  }
+
+  .close[data-reveal="armed"] .light {
+    opacity: 0.35;
+  }
+
+  .close[data-reveal="armed"] .echo {
+    opacity: 0;
+    scale: 0.965;
+  }
+
+  .close[data-reveal="in"] .eyebrow {
+    transition: opacity 0.5s ease-out;
+  }
+
+  .close[data-reveal="in"] .rise {
+    transition:
+      transform 0.7s var(--bill-rise) 0.08s,
+      opacity 0.5s ease-out 0.08s;
+  }
+
+  .close[data-reveal="in"] .line + .line .rise {
+    transition-delay: 0.26s;
+  }
+
+  .close[data-reveal="in"] .lead {
+    transition: opacity 0.6s ease-out 0.5s;
+  }
+
+  .close[data-reveal="in"] .light {
+    transition: opacity 1.6s ease-out 0.1s;
+  }
+
+  .close[data-reveal="in"] .echo {
+    transition:
+      opacity 1.4s ease-out 0.2s,
+      scale 1.8s var(--bill-rise) 0.2s;
+  }
+
+  .paths[data-reveal="armed"] .panel,
+  .paths[data-reveal="armed"] .bill {
+    opacity: 0;
+  }
+
+  .paths[data-reveal="armed"] .panel {
+    transform: translateY(18px);
+  }
+
+  .paths[data-reveal="in"] .panel {
+    transition:
+      transform 0.7s var(--bill-rise),
+      opacity 0.5s ease-out;
+  }
+
+  .paths[data-reveal="in"] .panel + .panel {
+    transition-delay: 0.12s;
+  }
+
+  .paths[data-reveal="in"] .bill {
+    transition: opacity 0.6s ease-out 0.4s;
+  }
+}
