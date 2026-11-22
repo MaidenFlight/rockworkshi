@@ -272,13 +272,16 @@ summary:focus-visible,
   transform: scaleY(-1);
 }
 
-/* Inside a field the wave sits over the motif repeat. The band a top wave is cut from loses its
-   bottom edge, which would otherwise show as a hairline across the join. */
-.rw-field .rw-wave {
-  z-index: 1;
-}
-section:has(+ .rw-field-ask) {
+/* The band a top wave is cut from loses its bottom edge, which would otherwise show as a
+   hairline across the join. */
+section:has(+ [data-rw-closing]) {
   border-bottom-color: transparent;
+}
+
+/* The homepage's closing bill sinks into the footer's lacquer, so the footer's colour band steps
+   aside there. Classic keeps its own closing section and its band. */
+html:not([data-world="classic"]) .rw-page:has([data-rw-closing]) .rw-foot-band {
+  display: none;
 }
 
 /* ---- The ways in ---- */
@@ -719,41 +722,6 @@ main:focus {
   }
 }
 
-/* ---- The field ---- */
-.rw-field {
-  position: relative;
-  overflow: hidden;
-  background: var(--rw-flare);
-  color: var(--rw-ink);
-}
-
-/* The closing field opens straight on its wave, cut from the label stock above it. */
-.rw-field-ask {
-  padding-top: 0;
-}
-
-.rw-repeat {
-  position: absolute;
-  inset: -6% -10%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 52px;
-  pointer-events: none;
-}
-
-.rw-repeat-row {
-  display: flex;
-  justify-content: center;
-  gap: 76px;
-  flex-shrink: 0;
-}
-
-.rw-repeat-row span {
-  display: block;
-  flex-shrink: 0;
-}
-
 /* ---- Poster type ---- */
 .rw-poster {
   margin: 18px 0 0;
@@ -770,28 +738,14 @@ main:focus {
   color: var(--rw-cream);
 }
 
-.rw-poster-ask {
-  margin: 0 0 18px;
-  font-size: clamp(42px, 6.4vw, 92px);
-}
-
-.rw-field-lead {
-  max-width: 46ch;
-  margin: 26px 0 0;
-  font-size: var(--rw-text-lg);
-  line-height: 1.5;
-  color: var(--rw-ink);
-}
-
 /* ---- The stage: the homepage's opening (Silkie) ----
-   Lacquer, two spotlights from lamps just above the upper corners, and a red glow off the stage
-   floor. The settled composition is the base style and the opening sequence only plays into it, so
-   reduced motion and phones get the finished lights straight away. Only opacity and rotation
-   animate; nothing here is blurred. */
+   Lacquer, with the copy standing in the dark at the left and a band's worth of instruments lit
+   at the right. The instruments, their lamps and the opening sequence live with the component
+   (components/home/stage). This sheet holds the room: the ground, the red glow off the stage
+   floor, the copy and its two actions. Nothing here is blurred. */
 .rw-stage {
   --rw-stage-white: color-mix(in oklab, var(--rw-gold) 10%, var(--rw-chrome-hi));
   --rw-stage-warm: color-mix(in oklab, var(--rw-gold) 24%, var(--rw-chrome-hi));
-  --rw-stage-gold: color-mix(in oklab, var(--rw-gold) 55%, var(--rw-chrome-hi));
   position: relative;
   overflow: hidden;
   isolation: isolate;
@@ -810,62 +764,20 @@ main:focus {
   z-index: 0;
 }
 
-/* The red sits low and to the right, so the wave reads as the stage edge against it. */
+/* The red sits low and to the right, under the stage, so the wave reads as the stage edge
+   against it. */
 .rw-stage-glow {
   inset: 0;
   background:
-    radial-gradient(ellipse 58% 46% at 74% 104%, color-mix(in srgb, var(--rw-flare) 34%, transparent), transparent 72%),
-    radial-gradient(ellipse 46% 36% at 14% 106%, color-mix(in srgb, var(--rw-flare) 16%, transparent), transparent 70%);
+    radial-gradient(ellipse 58% 40% at 76% 106%, color-mix(in srgb, var(--rw-flare) 20%, transparent), transparent 72%),
+    radial-gradient(ellipse 46% 34% at 14% 108%, color-mix(in srgb, var(--rw-flare) 10%, transparent), transparent 70%);
 }
 
-/* A beam is a narrow conic wedge from a lamp just above its corner. It is brightest where it enters
-   and fades with distance, so each reads as one clear shaft. The two pass each other right of the
-   headline without pooling into a glow. */
-.rw-stage-beam {
-  top: -8%;
-  height: 140%;
-}
-
-.rw-stage-beam-left {
-  left: -3%;
-  width: 112%;
-  transform-origin: 0 0;
-  background: conic-gradient(
-    from 114deg at 0 0,
-    transparent 0deg,
-    color-mix(in srgb, var(--rw-stage-warm) 5%, transparent) 2deg,
-    color-mix(in srgb, var(--rw-stage-warm) 17%, transparent) 5deg,
-    color-mix(in srgb, var(--rw-stage-warm) 15%, transparent) 7.5deg,
-    color-mix(in srgb, var(--rw-stage-warm) 4%, transparent) 10deg,
-    transparent 12deg
-  );
-  -webkit-mask-image: radial-gradient(circle at 0 0, rgb(0 0 0 / 0.5) 3%, black 10%, rgb(0 0 0 / 0.72) 30%, rgb(0 0 0 / 0.34) 52%, transparent 78%);
-  mask-image: radial-gradient(circle at 0 0, rgb(0 0 0 / 0.5) 3%, black 10%, rgb(0 0 0 / 0.72) 30%, rgb(0 0 0 / 0.34) 52%, transparent 78%);
-}
-
-.rw-stage-beam-right {
-  right: -3%;
-  width: 90%;
-  transform-origin: 100% 0;
-  background: conic-gradient(
-    from 211deg at 100% 0,
-    transparent 0deg,
-    color-mix(in srgb, var(--rw-stage-gold) 5%, transparent) 2.5deg,
-    color-mix(in srgb, var(--rw-stage-gold) 20%, transparent) 6deg,
-    color-mix(in srgb, var(--rw-stage-gold) 18%, transparent) 9deg,
-    color-mix(in srgb, var(--rw-stage-gold) 4%, transparent) 12deg,
-    transparent 14deg
-  );
-  -webkit-mask-image: radial-gradient(circle at 100% 0, rgb(0 0 0 / 0.55) 3%, black 10%, rgb(0 0 0 / 0.8) 32%, rgb(0 0 0 / 0.4) 54%, transparent 80%);
-  mask-image: radial-gradient(circle at 100% 0, rgb(0 0 0 / 0.55) 3%, black 10%, rgb(0 0 0 / 0.8) 32%, rgb(0 0 0 / 0.4) 54%, transparent 80%);
-}
-
-/* Haze: only a thin veil under each lamp. The beams carry the light. */
-.rw-stage-haze {
+/* What the rig spills on the copy's side of the room: a breath of warm light from above the
+   stage, kept well under the text. */
+.rw-stage-spill {
   inset: 0;
-  background:
-    radial-gradient(ellipse 46% 24% at 84% 0%, color-mix(in srgb, var(--rw-stage-gold) 5%, transparent), transparent 72%),
-    radial-gradient(ellipse 36% 20% at 8% 0%, color-mix(in srgb, var(--rw-stage-warm) 3%, transparent), transparent 70%);
+  background: radial-gradient(ellipse 50% 60% at 72% -12%, color-mix(in srgb, var(--rw-stage-warm) 5%, transparent), transparent 70%);
 }
 
 /* Room scales with the window's height as well as its width, so a short laptop still shows the
@@ -885,6 +797,17 @@ main:focus {
 
 .rw-stage .rw-poster-em {
   color: var(--rw-gold);
+}
+
+/* The headline is three lines, each a block. The line is the mask and the text inside it rises
+   into view, once, as the page opens (see the opening at the foot of this block). */
+.rw-poster-line {
+  display: block;
+  clip-path: inset(-0.08em -0.1em -0.04em -0.1em);
+}
+
+.rw-poster-rise {
+  display: block;
 }
 
 /* Large enough to read as the headline's second voice, at a line length that stays comfortable. */
@@ -944,49 +867,68 @@ main:focus {
   }
 }
 
-/* The opening: the glow comes up, then each lamp fades in and sweeps to its mark, the left one
-   crossing behind the headline on its way. About four and a half seconds, then still. Only with a
-   mouse or trackpad and when motion is welcome: phones and tablets get the settled lights. The test
-   is the pointer, not the width, because a query that flips (a phone turned sideways, a window
-   resized) would start the sequence again. */
-@media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
-  .rw-stage-glow {
-    animation: rw-stage-up 2.4s cubic-bezier(0.33, 0, 0.2, 1) 0.15s both;
+/* Side by side from 1000px: the copy keeps the left and the stage takes the right, so the
+   headline is sized to end where the stage begins. */
+@media (min-width: 1000px) {
+  .rw-stage .rw-poster {
+    font-size: clamp(64px, min(calc((54vw - 28px) / 4.9), 17svh), 128px);
   }
-  .rw-stage-beam-right {
-    animation: rw-stage-beam-right 3.4s cubic-bezier(0.37, 0, 0.13, 1) 0.4s both;
+
+  .rw-stage-lead {
+    max-width: min(44ch, calc(min(54vw, 50vw + 64px) - max(24px, (100vw - 1200px) / 2 + 24px) - 16px));
+    font-size: clamp(var(--rw-text-lg), 0.75rem + 0.55vw, 20px);
   }
-  .rw-stage-beam-left {
-    animation: rw-stage-beam-left 3.6s cubic-bezier(0.37, 0, 0.13, 1) 0.8s both;
+}
+
+/* Stacked below that: headline and actions first, and the stage follows them closely. */
+@media (max-width: 999.98px) {
+  .rw-stage-inner {
+    padding-bottom: 30px;
   }
-  .rw-stage-haze {
-    animation: rw-stage-up 2.6s ease-out 1.8s both;
+}
+
+/* The opening. The headline comes first: its three lines rise into place one after another,
+   the last a little slower and warming from pale gold to full gold as it lands. About a second
+   and a half in all, once, and then it does not move again. The floor glow comes up with the stage's
+   own lights (see the component's opening). Each rule plays from its hidden state into the
+   finished page and lets go, so with no animation the headline is simply there. */
+@media (prefers-reduced-motion: no-preference) {
+  .rw-poster-rise {
+    animation: rw-poster-rise 0.62s cubic-bezier(0.16, 1, 0.3, 1) 0.06s backwards;
+  }
+
+  .rw-poster-line:nth-child(2) .rw-poster-rise {
+    animation-delay: 0.3s;
+  }
+
+  .rw-poster-line:nth-child(3) .rw-poster-rise {
+    animation:
+      rw-poster-rise 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.58s backwards,
+      rw-poster-warm 1s ease-out 0.58s backwards;
+  }
+
+  .rw-stage-glow,
+  .rw-stage-spill {
+    animation: rw-stage-up 2.4s cubic-bezier(0.33, 0, 0.2, 1) 0.15s backwards;
+  }
+}
+
+@keyframes rw-poster-rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.34em);
+  }
+}
+
+@keyframes rw-poster-warm {
+  from {
+    color: color-mix(in oklab, var(--rw-gold) 46%, var(--rw-stage-white));
   }
 }
 
 @keyframes rw-stage-up {
   from {
     opacity: 0;
-  }
-}
-
-@keyframes rw-stage-beam-left {
-  from {
-    opacity: 0;
-    transform: rotate(20deg);
-  }
-  40% {
-    opacity: 0.8;
-  }
-}
-
-@keyframes rw-stage-beam-right {
-  from {
-    opacity: 0;
-    transform: rotate(-16deg);
-  }
-  40% {
-    opacity: 0.8;
   }
 }
 
@@ -1159,23 +1101,6 @@ main:focus {
   .rw-motifs {
     grid-template-columns: repeat(2, 1fr);
   }
-}
-
-.rw-mark-chrome {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 20px;
-  color: var(--rw-ink);
-}
-
-.rw-ask-price {
-  margin: 22px auto 0;
-  max-width: 46ch;
-  font-family: var(--rw-font-display);
-  font-weight: 600;
-  font-size: var(--rw-text-lg);
-  letter-spacing: 0.01em;
-  color: var(--rw-ink);
 }
 
 /* ---- The wordmark ---- */
