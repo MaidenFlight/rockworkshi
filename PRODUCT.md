@@ -172,6 +172,13 @@ after enrolment changed only by the admin (a student asks from Account settings)
   school in Honolulu, for students already signed up with it; anyone else uses
   the member area purely online, from anywhere. Rock Works runs no lessons inside
   other schools or at after-school sites.
+- **The homepage sells the online member area only** (user, 2026-11-21: "I dont want
+  lessons at the school, we need to focus on online stuff"). The in-person offer came off
+  the homepage in both designs: the "Lessons at the school" column, the free-trial buttons
+  and the closing section's "Learn in person" panel. Decided in the same conversation: the
+  six-month band promise stays on the homepage for now, and the header's "Book a Trial"
+  button, the trial page and the in-person programme pages were left as they are until
+  reviewed. Don't add an in-person offer back to the homepage.
 - **The site is still in testing**, with the goal of being fully live by the start
   of 2027 (user, 2026-11-05). Trial requests are told to expect contact within the
   next month or two. Update both when the school launches.

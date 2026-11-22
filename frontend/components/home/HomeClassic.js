@@ -74,17 +74,10 @@ export default function HomeClassic() {
               </Button>
             </div>
             <p style={{ margin: "20px 0 0", maxWidth: 466, fontSize: 14.5, lineHeight: 1.6, color: "rgba(255,245,236,0.78)" }}>
-              <T k="home.classic.hero.note">
-                Membership opens the lesson videos, song library and practice tools. Lessons at the school
-                are arranged with us &mdash;
-              </T>{" "}
-              <Link
-                href="/trial"
-                style={{ color: "var(--rw-gold)", fontWeight: 600, textDecoration: "underline", textUnderlineOffset: 3 }}
-              >
-                <T k="home.classic.hero.trial">start with a free trial</T>
-              </Link>
-              .
+              <T k="home.classic.hero.online">
+                Membership opens the lesson videos, song library and practice tools. It is all online, so
+                you can learn from anywhere.
+              </T>
             </p>
           </div>
         </div>
@@ -226,25 +219,16 @@ export default function HomeClassic() {
             <T k="home.ask.title">Ready to play your first song?</T>
           </h2>
           <p style={{ margin: "0 auto 30px", maxWidth: 520, fontSize: 17.5, lineHeight: 1.55, color: "rgba(255,245,236,0.82)" }}>
-            <T k="home.classic.ask.lead">
-              Membership opens every lesson video, the song library and the practice tools &mdash; between
-              lessons at the school, or entirely online from anywhere.
+            <T k="home.classic.ask.online">
+              Membership opens every lesson video, the song library and the practice tools. It is all
+              online, so you can learn from anywhere.
             </T>
           </p>
           <div style={{ display: "flex", gap: 22, flexWrap: "wrap", alignItems: "center", justifyContent: "center" }}>
             <Button href="/signup"><T k="cta.join">Join the member area</T></Button>
-            <Button href="/trial" variant="quiet" onDark>
-              <T k="cta.trial">Book a free trial &rarr;</T>
-            </Button>
           </div>
           <p style={{ margin: "20px auto 0", maxWidth: 520, fontSize: 15, lineHeight: 1.6, color: "rgba(255,245,236,0.9)" }}>
             $55 a month, cancel any time &mdash; or $135 for a three-month term.
-          </p>
-          <p style={{ margin: "10px auto 0", maxWidth: 520, fontSize: 14.5, lineHeight: 1.6, color: "rgba(255,245,236,0.74)" }}>
-            <T k="home.classic.ask.note">
-              Lessons at the school in Honolulu are arranged with us, not booked here &mdash; the trial is
-              where that starts.
-            </T>
           </p>
         </Container>
       </section>

@@ -1,7 +1,7 @@
 /* The closing bill (Silkie): the homepage's last section, set like the back page of a concert
    programme. Deep crimson with one warm light in it, the school's pick and its echoes drawn in
-   fine line, and the two ways to begin as a single printed spread: lacquer for the member area,
-   label stock for lessons at the school.
+   fine line, and the way in as a single printed spread on two grounds: lacquer for what the
+   member area is, label stock for what it costs and the key.
 
    Everything here is the finished page. The opening (see "Arriving" at the foot) only plays into
    it, and only for a block that was below the screen when the page woke up. */
@@ -144,61 +144,61 @@
   color: var(--rw-cream);
 }
 
-/* ---- The two ways in: one spread, two grounds ---- */
+/* ---- The way in: one spread, two grounds ---- */
 
 .paths {
-  display: grid;
-  grid-template-columns: 1fr;
   margin-top: 30px;
 }
 
-.path {
+.spread {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+.panel {
   position: relative;
   isolation: isolate;
-  display: grid;
-  align-content: start;
   padding: 28px 24px 30px;
 }
 
-.online {
+/* What it is. One gold rule heads the spread: over this panel when the two stack, across both
+   side by side. */
+.about {
   background: var(--rw-ink);
-  /* One gold rule heads the spread: over the first panel when they stack, across both side by side. */
   border-top: 4px solid var(--rw-gold);
   color: var(--rw-cream);
   --path-label: var(--rw-gold);
   --path-copy: color-mix(in oklab, var(--rw-cream) 82%, var(--rw-ink));
-  --path-meta: var(--rw-console-meta);
-  --path-edge: var(--rw-console-edge);
-  --path-glow: color-mix(in oklab, var(--rw-cream) 12%, transparent);
-  --path-ring: var(--rw-sea-glass);
 }
 
-.inPerson {
+/* What it costs, and the key: the stub of the ticket. */
+.stub {
   background: var(--rw-sand);
   color: var(--rw-ink);
   --path-label: var(--rw-orange-deep);
-  --path-copy: var(--rw-prose);
   --path-meta: var(--rw-body);
   --path-edge: color-mix(in oklab, var(--rw-ink) 22%, var(--rw-sand));
-  --path-glow: color-mix(in oklab, var(--rw-surface) 78%, transparent);
-  --path-ring: var(--rw-teal);
 }
 
-/* Light falling on the panel under the pointer or the keyboard. It never moves the panel:
+/* Light falling on the stub under the pointer or the keyboard. It never moves the panel:
    printed matter does not float. */
-.path::before {
+.stub::before {
   content: "";
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: radial-gradient(ellipse 96% 76% at 24% 0%, var(--path-glow), transparent 72%);
+  background: radial-gradient(
+    ellipse 96% 76% at 24% 0%,
+    color-mix(in oklab, var(--rw-surface) 78%, transparent),
+    transparent 72%
+  );
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s ease;
 }
 
-.path:hover::before,
-.path:focus-within::before {
+.stub:hover::before,
+.stub:focus-within::before {
   opacity: 1;
 }
 
@@ -223,35 +223,40 @@
 }
 
 .copy {
-  max-width: 48ch;
+  max-width: 46ch;
   margin: 0;
   font-size: var(--rw-text-base);
   line-height: 1.6;
   color: var(--path-copy);
 }
 
-.terms {
-  margin-top: 24px;
-  padding-top: 20px;
-  border-top: 1px solid var(--path-edge);
-}
-
-.offer {
+/* A plan: its figure in the display face, and two short lines beside it. */
+.plan {
   display: flex;
   align-items: center;
   gap: 14px;
   margin: 0;
+  padding: 14px 0;
+}
+
+.label + .plan {
+  padding-top: 8px;
+}
+
+.plan + .plan {
+  border-top: 1px solid var(--path-edge);
 }
 
 .figure {
   flex-shrink: 0;
+  /* Wide enough for the longer figure, so the words beside both plans start on one line. */
+  min-width: 1.62em;
   font-family: var(--rw-font-display);
   font-weight: 800;
   font-size: clamp(44px, 5vw, 68px);
   line-height: 0.9;
   letter-spacing: var(--rw-track-poster);
   font-variant-numeric: tabular-nums;
-  text-transform: uppercase;
 }
 
 .per {
@@ -265,37 +270,17 @@
 .per b {
   font-size: var(--rw-text-base);
   font-weight: 700;
-  color: inherit;
-}
-
-.online .per b,
-.online .alt b {
-  color: var(--rw-cream);
-}
-
-.inPerson .per b {
   color: var(--rw-ink);
 }
 
-.alt {
-  max-width: 48ch;
-  margin: 12px 0 0;
-  font-size: var(--rw-text-base);
-  line-height: 1.5;
-  color: var(--path-copy);
-}
-
-.alt b {
-  font-weight: 700;
-}
-
 .go {
-  margin-top: 24px;
+  margin-top: 12px;
 }
 
-/* The key. The whole panel is its target (the ::after below covers the panel), so the key itself
+/* The key. The whole stub is its target (the ::after below covers the stub), so the key itself
    must stay put: a transformed or filtered element would pull that cover in to its own box.
-   Its hover is a change of ground instead of the lift the button has elsewhere. */
+   Its hover is a change of ground instead of the lift the button has elsewhere. The panel
+   beside it is left as plain text, so it can be selected. */
 .cta {
   width: 100%;
   min-height: 52px;
@@ -309,21 +294,17 @@
   z-index: 1;
 }
 
-.paths .path .cta:is(:hover, :focus-visible, :active):not(:disabled):not([aria-disabled="true"]) {
+.spread .stub .cta:is(:hover, :focus-visible, :active):not(:disabled):not([aria-disabled="true"]) {
   transform: none;
   filter: none;
 }
 
-.online .cta:is(:hover, :focus-visible) {
+.stub .cta:is(:hover, :focus-visible) {
   background: color-mix(in oklab, var(--rw-orange) 86%, var(--rw-flare));
 }
 
-.inPerson .cta:is(:hover, :focus-visible) {
-  background: color-mix(in oklab, var(--rw-ink) 80%, var(--rw-orange-deep));
-}
-
-.path .cta:focus-visible {
-  outline: 2px solid var(--path-ring);
+.stub .cta:focus-visible {
+  outline: 2px solid var(--rw-teal);
   outline-offset: 3px;
 }
 
@@ -374,7 +355,7 @@
     --echo: 1000px;
   }
 
-  .inPerson {
+  .stub {
     border-top: 4px solid var(--rw-gold);
   }
 
@@ -388,46 +369,41 @@
     margin-top: 22px;
   }
 
-  /* Both panels share their rows, so the labels, the figures and the keys line up across the
-     spread whatever the copy does. */
   .paths {
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: repeat(5, auto);
     margin-top: 44px;
   }
 
-  .path {
-    grid-row: span 5;
-    grid-template-rows: subgrid;
+  /* The description takes the wider half; the stub is the narrower one, as on a ticket. */
+  .spread {
+    grid-template-columns: minmax(0, 1.14fr) minmax(0, 0.86fr);
+  }
+
+  .panel {
     padding: 34px 44px 42px;
+  }
+
+  /* The description sits in the middle of its half, beside the taller stub. */
+  .about {
+    display: grid;
+    align-content: center;
   }
 
   .pathTitle {
     font-size: var(--rw-text-4xl);
   }
 
-  .terms {
-    margin-top: 28px;
-    padding-top: 22px;
-  }
-
   .go {
-    margin-top: 28px;
-  }
-
-  .cta {
-    width: auto;
+    margin-top: 14px;
   }
 
   .bill {
-    grid-column: 1 / -1;
     margin-top: 36px;
   }
 }
 
 /* ---- Arriving ----
    Played once, as the block scrolls into view (Reveal sets data-reveal). The headline's two lines
-   rise into their masks, the light comes up behind the pick, and the two panels follow a beat
+   rise into their masks, the light comes up behind the pick, and the two halves follow a beat
    apart. Nothing loops and nothing moves afterwards. Screens only: a printed page gets the
    finished section whatever the script has done. */
 
@@ -479,22 +455,22 @@
       scale 1.8s var(--bill-rise) 0.2s;
   }
 
-  .paths[data-reveal="armed"] .path,
+  .paths[data-reveal="armed"] .panel,
   .paths[data-reveal="armed"] .bill {
     opacity: 0;
   }
 
-  .paths[data-reveal="armed"] .path {
+  .paths[data-reveal="armed"] .panel {
     transform: translateY(18px);
   }
 
-  .paths[data-reveal="in"] .path {
+  .paths[data-reveal="in"] .panel {
     transition:
       transform 0.7s var(--bill-rise),
       opacity 0.5s ease-out;
   }
 
-  .paths[data-reveal="in"] .path + .path {
+  .paths[data-reveal="in"] .panel + .panel {
     transition-delay: 0.12s;
   }
 

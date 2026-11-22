@@ -1,11 +1,11 @@
 import Link from "next/link";
 import InstrumentCards from "@/components/home/InstrumentCards";
-import { instruments, audiences, songLevels, bandPromise } from "@/lib/content";
-import InstrumentIcon from "@/components/InstrumentIcon";
+import { audiences, songLevels, bandPromise } from "@/lib/content";
 import PlayerPreview from "@/components/home/PlayerPreview";
 import StageSet from "@/components/home/stage/StageSet";
 import ClosingBill from "@/components/home/closing/ClosingBill";
-import { Section, Container, SectionHead, Eyebrow, Button } from "@/components/ui";
+import { Section, Container, SectionHead, Button } from "@/components/ui";
+import { planPrice } from "@/lib/auth/signupOptions";
 import T from "@/components/T";
 
 // Homepage for the Silkie (default) theme.
@@ -38,9 +38,6 @@ export default function HomeSilkie() {
           </p>
           <div className="rw-stage-actions">
             <Button href="/signup"><T k="cta.join">Join the member area</T></Button>
-            <Button href="/trial" variant="secondary" className="rw-stage-alt">
-              <T k="home.hero.trial">Book a free trial</T>
-            </Button>
           </div>
           <p className="rw-stage-bill"><T k="home.hero.tag">Honolulu &middot; Est. 1982</T></p>
         </Container>
@@ -54,40 +51,30 @@ export default function HomeSilkie() {
         </div>
       </section>
 
-      {/* The stage carries the two actions. This band only sets the two side by side, so its ways in
-          are text links rather than a second pair of buttons. */}
+      {/* The stage carries the action. This band says what membership is and what it costs, so its
+          way in is a text link rather than a second button. The homepage offers the member area
+          only: lessons at the school and the free trial came off it on 2026-11-21. */}
       <section className="rw-band">
         <Container style={{ padding: "0 24px 54px" }}>
           <div className="rw-band-grid">
             <div className="rw-band-col">
               <h2 className="rw-band-label"><T k="home.band.member.label">The member area</T></h2>
               <p className="rw-band-copy">
-                <T k="home.band.member.copy">
-                  Membership opens the lesson videos, song library and practice tools &mdash; between
-                  lessons at the school, or entirely online from anywhere.
+                <T k="home.band.online.copy">
+                  Membership opens the lesson videos, song library and practice tools. It is all online,
+                  so you can learn from anywhere.
                 </T>
               </p>
-              <p className="rw-band-price">$55 a month, cancel any time &mdash; or $135 a term</p>
+            </div>
+            <div className="rw-band-col">
+              <h2 className="rw-band-label"><T k="home.band.cost.label">What it costs</T></h2>
+              <p className="rw-band-copy">
+                <b>{planPrice("monthly")}</b> a month, and you can cancel any time. Or{" "}
+                <b>{planPrice("term")}</b> for a three-month term, paid up front.
+              </p>
               <div className="rw-band-links">
                 <Link href="/signup" className="rw-band-link">
                   <T k="cta.join">Join the member area</T>
-                </Link>
-              </div>
-            </div>
-            <div className="rw-band-col">
-              <h2 className="rw-band-label"><T k="home.band.lessons.label">Lessons at the school</T></h2>
-              <p className="rw-band-copy">
-                <T k="home.band.lessons.copy">
-                  In person at the school in Honolulu, arranged with us, not booked here. A free trial is
-                  where that starts &mdash; bring nothing, we have the instruments.
-                </T>
-              </p>
-              <div className="rw-band-links">
-                <Link href="/trial" className="rw-band-link">
-                  <T k="home.band.trial">Book a free trial</T>
-                </Link>
-                <Link href="/program/curriculum" className="rw-band-link">
-                  <T k="home.band.curriculum">See the curriculum</T>
                 </Link>
               </div>
             </div>
@@ -154,57 +141,6 @@ export default function HomeSilkie() {
             ))}
           </ul>
         </div>
-      </Section>
-
-      {/* ---- THE RECORD ---- */}
-      <Section band="sand">
-        <Eyebrow><T k="home.record.eyebrow">The record</T></Eyebrow>
-        <h2 className="rw-record-lead"><T k="home.record.lead">Teaching in Honolulu since 1982.</T></h2>
-        <dl className="rw-sheet">
-          <div className="rw-sheet-row">
-            <dt><T k="home.record.instruments.label">Instruments</T></dt>
-            <dd>
-              <span className="rw-sheet-marks" aria-hidden="true">
-                {instruments.map((inst) => (
-                  <InstrumentIcon key={inst.name} name={inst.name} size={38} />
-                ))}
-              </span>
-              <span>
-                <b><T k="home.record.instruments.n">Six</T></b> <T k="home.record.instruments.text">— guitar, piano, bass, drums, voice and ukulele.</T>
-              </span>
-            </dd>
-          </div>
-          <div className="rw-sheet-row">
-            <dt><T k="home.record.levels.label">Levels per song</T></dt>
-            <dd>
-              <b><T k="home.record.levels.n">Five</T></b><T k="home.record.levels.text">, sing-a-long through improv.</T>
-            </dd>
-          </div>
-          <div className="rw-sheet-row">
-            <dt><T k="home.record.pace.label">Pace</T></dt>
-            <dd>
-              <T k="home.record.pace.text">Most students finish a song every</T> <b><T k="home.record.pace.n">four to six weeks</T></b>.
-            </dd>
-          </div>
-          <div className="rw-sheet-row">
-            <dt><T k="home.record.membership.label">Membership opens</T></dt>
-            <dd>
-              <T k="home.record.membership.text">Every lesson video, the song library and</T> <b><T k="home.record.membership.n">five practice tools</T></b>.
-            </dd>
-          </div>
-          <div className="rw-sheet-row">
-            <dt><T k="home.record.placement.label">Band placement</T></dt>
-            <dd>
-              <T k="home.record.placement.pre">At</T> <b><T k="home.record.placement.n">six months</T></b><T k="home.record.placement.text">, with a shot at a Hawaii stage.</T>
-            </dd>
-          </div>
-          <div className="rw-sheet-row">
-            <dt><T k="home.record.bands.label">Bands</T></dt>
-            <dd>
-              <T k="home.record.bands.text">Rehearse weekly and finish at a</T> <b><T k="home.record.bands.n">Rock Works recital</T></b>.
-            </dd>
-          </div>
-        </dl>
       </Section>
 
       {/* ---- THE CLOSING BILL ---- */}
