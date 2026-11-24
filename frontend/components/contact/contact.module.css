@@ -1,0 +1,453 @@
+/* The contact section: an introduction on lacquer beside the form on label stock.
+   It sets itself out by the room it is given (container queries), not the window, so a narrow
+   column stacks it wherever it is used. Only the phone's edge-to-edge treatment asks the window. */
+
+.section {
+  padding: var(--rw-space-7) 0 100px;
+}
+
+.frame {
+  container: rw-contact / inline-size;
+}
+
+.panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* ---- The introduction ---- */
+
+.intro {
+  --rw-contact-pad: var(--rw-space-5);
+  container: rw-contact-intro / inline-size;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: var(--rw-space-6) var(--rw-contact-pad) 0;
+  border-radius: var(--rw-radius-md) var(--rw-radius-md) 0 0;
+  /* Lit from the floor, as the stage is: a low flare glow under the lines. */
+  background:
+    radial-gradient(95% 58% at 8% 108%, color-mix(in srgb, var(--rw-flare) 24%, transparent) 0%, transparent 72%),
+    linear-gradient(168deg, var(--rw-ink) 0%, var(--rw-ink-deep) 100%);
+  color: var(--rw-cream);
+}
+
+.eyebrow {
+  margin: 0 0 var(--rw-space-3);
+  font-weight: 700;
+  font-size: var(--rw-text-2xs);
+  line-height: 1.4;
+  letter-spacing: var(--rw-track-eyebrow);
+  text-transform: uppercase;
+  color: var(--rw-sea-glass);
+}
+
+/* Sized off the column it sits in, so it breaks after "talk" in the narrow column and runs as one
+   line when the introduction has the full width. */
+.headline {
+  margin: 0;
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: clamp(44px, 20cqi, 76px);
+  line-height: 0.9;
+  letter-spacing: var(--rw-track-poster);
+  text-transform: uppercase;
+  text-wrap: balance;
+  color: #fff;
+}
+
+.lead {
+  margin: var(--rw-space-4) 0 0;
+  max-width: 34ch;
+  font-size: var(--rw-text-md);
+  line-height: 1.55;
+  color: color-mix(in srgb, var(--rw-cream) 86%, transparent);
+}
+
+/* Three lines of the wave, running off both edges. Each is a strip of its own height, set a fixed
+   step below the last, so the set can be drawn smaller and closer when the column is short. */
+.waves {
+  --rw-wave-strip: 40px;
+  --rw-wave-step: 22px;
+  position: relative;
+  height: calc(var(--rw-wave-strip) + 2 * var(--rw-wave-step));
+  margin: var(--rw-space-5) calc(-1 * var(--rw-contact-pad)) var(--rw-space-4);
+}
+
+.wave {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: var(--rw-wave-strip);
+  fill: none;
+  stroke-width: 5;
+}
+
+.wave[data-tone="gold"] {
+  stroke: var(--rw-gold);
+  opacity: 0.82;
+}
+
+.wave[data-tone="crimson"] {
+  top: var(--rw-wave-step);
+  stroke: var(--rw-orange);
+}
+
+.wave[data-tone="teal"] {
+  top: calc(2 * var(--rw-wave-step));
+  stroke: color-mix(in srgb, var(--rw-sea-glass) 34%, var(--rw-teal));
+}
+
+/* The one authored moment: the lines run in once, left to right, then hold still. Drawn is the
+   base style, so reduced motion gets the finished lines at once. */
+@media (prefers-reduced-motion: no-preference) {
+  .wave {
+    animation: rw-contact-run 1.25s cubic-bezier(0.25, 1, 0.5, 1) both;
+  }
+  .wave[data-tone="crimson"] {
+    animation-delay: 0.12s;
+  }
+  .wave[data-tone="teal"] {
+    animation-delay: 0.24s;
+  }
+}
+
+@keyframes rw-contact-run {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* The maker's line at the hem. The header above already carries the full lockup. */
+.maker {
+  display: none;
+  align-items: center;
+  gap: var(--rw-space-3);
+  margin: 0;
+  font-weight: 700;
+  font-size: var(--rw-text-2xs);
+  line-height: 1.4;
+  letter-spacing: var(--rw-track-eyebrow);
+  text-transform: uppercase;
+  color: var(--rw-console-meta);
+}
+
+/* ---- The form ---- */
+
+.sheet {
+  /* The edge of a field and a tile: 3:1 against the white inside it and the label stock around it. */
+  --rw-contact-edge: color-mix(in srgb, var(--rw-meta) 74%, var(--rw-line));
+  container: rw-contact-sheet / inline-size;
+  display: flex;
+  flex-direction: column;
+  padding: var(--rw-space-6) var(--rw-space-5) var(--rw-space-7);
+  background: var(--rw-sand);
+  border: 1px solid var(--rw-border);
+  border-top: 0;
+  border-radius: 0 0 var(--rw-radius-md) var(--rw-radius-md);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--rw-font-display);
+  font-weight: 800;
+  font-size: var(--rw-text-2xl);
+  line-height: 1.05;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--rw-ink);
+}
+
+.sub {
+  margin: 6px 0 0;
+  font-size: var(--rw-text-base);
+  line-height: 1.6;
+  color: var(--rw-body);
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--rw-space-4);
+  margin-top: var(--rw-space-5);
+}
+
+.cell {
+  min-width: 0;
+}
+
+.reason {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sheet .legend {
+  margin: 0;
+}
+
+.sheet .control {
+  border-color: var(--rw-contact-edge);
+}
+
+.sheet .control:hover {
+  border-color: var(--rw-prose);
+}
+
+.sheet .control:focus-visible {
+  border-color: var(--rw-ink);
+}
+
+.sheet .control[aria-invalid="true"] {
+  border-color: var(--rw-orange-deep);
+}
+
+/* A browser's own autofill tint belongs to no palette. */
+.sheet .control:-webkit-autofill {
+  -webkit-text-fill-color: var(--rw-ink);
+  box-shadow: inset 0 0 0 100px #fff;
+}
+
+.sheet .message {
+  min-height: 118px;
+}
+
+/* ---- The reason tiles ---- */
+
+/* Each column is as wide as its longest label, and what is left over is shared out. */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  gap: var(--rw-space-2);
+}
+
+.tile {
+  position: relative;
+  display: block;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.tileInput {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.tileFace {
+  display: flex;
+  align-items: center;
+  gap: var(--rw-space-2);
+  height: 100%;
+  min-height: 44px;
+  padding: 6px 14px;
+  border: 1px solid var(--rw-contact-edge);
+  border-radius: var(--rw-radius-field);
+  background: #fff;
+  font-size: var(--rw-text-sm);
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--rw-ink);
+  transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+}
+
+.tileIcon {
+  flex-shrink: 0;
+  color: var(--rw-body);
+  transition: color 0.16s ease;
+}
+
+.tileText {
+  min-width: 0;
+}
+
+@media (hover: hover) {
+  .tile:hover .tileFace {
+    border-color: var(--rw-ink);
+  }
+}
+
+.tileInput:checked + .tileFace {
+  background: var(--rw-ink);
+  border-color: var(--rw-ink);
+  color: var(--rw-cream);
+}
+
+.tileInput:checked + .tileFace .tileIcon {
+  color: var(--rw-gold);
+}
+
+.tileInput:focus-visible + .tileFace {
+  outline: 2px solid var(--rw-teal);
+  outline-offset: 2px;
+}
+
+@media (forced-colors: active) {
+  .tileInput:checked + .tileFace {
+    outline: 3px solid Highlight;
+    outline-offset: -3px;
+  }
+}
+
+/* ---- Send ---- */
+
+.actions {
+  margin-top: var(--rw-space-5);
+}
+
+.sheet .send {
+  width: 100%;
+  min-height: 52px;
+}
+
+.arrow {
+  flex-shrink: 0;
+  transition: transform 0.18s ease;
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .send:hover .arrow {
+    transform: translateX(3px);
+  }
+}
+
+/* While it sends the key stays solid and says so, where a greyed key would read as broken. */
+.sheet .send[aria-disabled="true"] {
+  opacity: 1;
+  cursor: progress;
+}
+
+.spinner {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  border: 2px solid color-mix(in srgb, #fff 38%, transparent);
+  border-top-color: #fff;
+  border-radius: 50%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .spinner {
+    animation: rw-contact-turn 0.7s linear infinite;
+  }
+}
+
+@keyframes rw-contact-turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---- Sent ---- */
+
+/* Set in the middle of the sheet the form has just left, which keeps its height beside the
+   introduction, so nothing on the page jumps. */
+.done {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-block: auto;
+}
+
+.sheet .again {
+  min-height: 44px;
+  margin-top: var(--rw-space-3);
+}
+
+/* ---- Room for more ---- */
+
+@container rw-contact-sheet (min-width: 480px) {
+  .fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .wide {
+    grid-column: 1 / -1;
+  }
+}
+
+@container rw-contact-sheet (min-width: 540px) {
+  .tiles {
+    grid-template-columns: repeat(4, auto);
+  }
+}
+
+/* Side by side: the introduction takes a little under two fifths. */
+@container rw-contact (min-width: 860px) {
+  .panel {
+    grid-template-columns: minmax(0, 38fr) minmax(0, 62fr);
+  }
+
+  .intro {
+    --rw-contact-pad: 40px;
+    padding: var(--rw-space-7) var(--rw-contact-pad) var(--rw-space-6);
+    border-radius: var(--rw-radius-md) 0 0 var(--rw-radius-md);
+  }
+
+  .waves {
+    --rw-wave-strip: 72px;
+    --rw-wave-step: 48px;
+    margin-top: auto;
+    margin-bottom: var(--rw-space-5);
+  }
+
+  .maker {
+    display: flex;
+  }
+
+  .sheet {
+    min-height: var(--rw-contact-hold, 0);
+    padding: 40px var(--rw-space-7);
+    border-top: 1px solid var(--rw-border);
+    border-left: 0;
+    border-radius: 0 var(--rw-radius-md) var(--rw-radius-md) 0;
+  }
+}
+
+/* A phone: the introduction runs edge to edge under the header and the form fills the rest. */
+@media (max-width: 560px) {
+  .section {
+    padding: 0;
+  }
+
+  .section .bleed {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .intro,
+  .sheet {
+    border-radius: 0;
+  }
+
+  .sheet {
+    border-left: 0;
+    border-right: 0;
+    border-bottom: 0;
+    padding-bottom: var(--rw-space-8);
+  }
+}
+
+/* ---- Classic ---- */
+
+:global([data-world="classic"]) .headline {
+  font-weight: 600;
+  font-size: clamp(36px, 14cqi, 54px);
+  line-height: 1.08;
+  text-transform: none;
+}
+
+:global([data-world="classic"]) .title {
+  font-weight: 600;
+  font-size: var(--rw-text-xl);
+  letter-spacing: 0;
+  text-transform: none;
+}
